@@ -104,6 +104,7 @@ target_link_libraries(sm2_rom
     PRIVATE
         sm2_warnings
         sm2_miniz
+        sm2_7z
         pugixml::static
 )
 

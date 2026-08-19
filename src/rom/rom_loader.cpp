@@ -19,12 +19,21 @@
 
 #include <miniz.h>
 
+extern "C" {
+#include <7z.h>
+#include <7zAlloc.h>
+#include <7zBuf.h>
+#include <7zCrc.h>
+#include <7zFile.h>
+}
+
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <deque>
 #include <filesystem>
+#include <memory>
 #include <unordered_map>
 
 namespace sm2::rom {
@@ -47,15 +56,116 @@ struct ZipEntry {
     return out;
 }
 
-/// A set of open zip archives, indexed for lookup by CRC and by name.
+/// Signature bytes identifying an archive's actual format, read from the
+/// file's own contents rather than trusted from its extension: a renamed
+/// file (7z content with a `.zip` name, or the reverse, both observed in
+/// real-world Model 2 dumps) still has to load correctly, matching the
+/// loader's existing CRC-first philosophy that identity comes from content.
+enum class ArchiveFormat {
+    Unknown,
+    Zip,
+    SevenZip,
+};
+
+[[nodiscard]] ArchiveFormat sniff_archive_format(const std::string& path)
+{
+    std::FILE* handle = std::fopen(path.c_str(), "rb");
+    if (handle == nullptr) {
+        return ArchiveFormat::Unknown;
+    }
+    u8   header[8] = {};
+    const usize read = std::fread(header, 1, sizeof(header), handle);
+    std::fclose(handle);
+
+    static constexpr u8 kZipSignature[4]      = {0x50, 0x4b, 0x03, 0x04};  // "PK\x03\x04"
+    static constexpr u8 kSevenZipSignature[6] = {0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c};  // "7z\xBC\xAF\x27\x1C"
+
+    if (read >= sizeof(kZipSignature)
+        && std::memcmp(header, kZipSignature, sizeof(kZipSignature)) == 0) {
+        return ArchiveFormat::Zip;
+    }
+    if (read >= sizeof(kSevenZipSignature)
+        && std::memcmp(header, kSevenZipSignature, sizeof(kSevenZipSignature)) == 0) {
+        return ArchiveFormat::SevenZip;
+    }
+    return ArchiveFormat::Unknown;
+}
+
+/// Owns one open 7z archive via the vendored LZMA SDK reader, plus the
+/// solid-block decompression cache `SzArEx_Extract` uses to avoid
+/// re-inflating a shared block for every file inside it.
+struct SevenZipArchive {
+    CFileInStream archive_stream{};
+    CLookToRead2  look_stream{};
+    CSzArEx       db{};
+    bool          db_open = false;
+
+    // SzArEx_Extract's solid-block cache: must persist across calls for the
+    // same archive to get the reuse benefit, and must be zeroed before the
+    // first call.
+    UInt32 cached_block_index  = 0;
+    Byte*  cached_out_buffer   = nullptr;
+    size_t cached_out_buffer_size = 0;
+
+    static constexpr size_t kLookAheadBufferSize = 1 << 18;
+
+    SevenZipArchive() { SzArEx_Init(&db); }
+
+    SevenZipArchive(const SevenZipArchive&)            = delete;
+    SevenZipArchive& operator=(const SevenZipArchive&) = delete;
+    // CFileInStream/CLookToRead2 hold self-pointers into `look_stream.vt`
+    // (installed by LookToRead2_CreateVTable to point back at this object's
+    // fields), so an instance must never be relocated once opened. As with
+    // mz_zip_archive above, callers keep these in a std::deque.
+    SevenZipArchive(SevenZipArchive&&)            = delete;
+    SevenZipArchive& operator=(SevenZipArchive&&) = delete;
+
+    ~SevenZipArchive()
+    {
+        static const ISzAlloc alloc{SzAlloc, SzFree};
+        if (cached_out_buffer != nullptr) {
+            ISzAlloc_Free(&alloc, cached_out_buffer);
+        }
+        if (db_open) {
+            SzArEx_Free(&db, &alloc);
+        }
+        if (look_stream.buf != nullptr) {
+            ISzAlloc_Free(&alloc, look_stream.buf);
+        }
+        File_Close(&archive_stream.file);
+    }
+};
+
+/// File names inside a 7z are UTF-16LE; ROM chip names are always plain
+/// ASCII in practice, so a byte-at-a-time truncation (dropping the high byte
+/// of anything outside the ASCII range) is sufficient and matches what every
+/// chip name actually contains. Lowercasing happens separately in
+/// `index_entry`/`find`, same as the zip backend.
+[[nodiscard]] std::string utf16_to_utf8(const std::vector<u16>& utf16)
+{
+    std::string out;
+    out.reserve(utf16.size());
+    for (const u16 unit : utf16) {
+        if (unit == 0) {
+            break;
+        }
+        out.push_back(static_cast<char>(unit & 0xff));
+    }
+    return out;
+}
+
+/// A set of open zip *or* 7z archives, indexed for lookup by CRC and by
+/// name. Both backends feed the same `ZipEntry` records so the rest of
+/// `RomLoader` does not need to know which format a given archive is.
 ///
-/// More than one archive is needed for split sets, where a clone's own zip
-/// holds only the chips that differ and the rest come from the parent's.
+/// More than one archive is needed for split sets, where a clone's own
+/// archive holds only the chips that differ and the rest come from the
+/// parent's -- and a zip and a 7z can be mixed in the same set.
 class ArchiveSet {
 public:
     ~ArchiveSet()
     {
-        for (mz_zip_archive& archive : m_archives) {
+        for (mz_zip_archive& archive : m_zip_archives) {
             mz_zip_reader_end(&archive);
         }
     }
@@ -66,48 +176,17 @@ public:
 
     [[nodiscard]] bool open(const std::string& path)
     {
-        m_archives.emplace_back();
-        mz_zip_archive& archive = m_archives.back();
-        std::memset(&archive, 0, sizeof(archive));
-
-        if (mz_zip_reader_init_file(&archive, path.c_str(), 0) == MZ_FALSE) {
-            SM2_ERROR("could not open '%s' as a zip archive: %s", path.c_str(),
-                      mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
-            m_archives.pop_back();
-            return false;
+        switch (sniff_archive_format(path)) {
+            case ArchiveFormat::Zip:
+                return open_zip(path);
+            case ArchiveFormat::SevenZip:
+                return open_seven_zip(path);
+            case ArchiveFormat::Unknown:
+                SM2_ERROR("'%s' is not a zip or 7z archive (unrecognised signature)",
+                          path.c_str());
+                return false;
         }
-
-        const usize archive_index = m_archives.size() - 1;
-        const u32   count         = mz_zip_reader_get_num_files(&archive);
-        u32         indexed       = 0;
-
-        for (u32 index = 0; index < count; ++index) {
-            mz_zip_archive_file_stat stat{};
-            if (mz_zip_reader_file_stat(&archive, index, &stat) == MZ_FALSE) {
-                continue;
-            }
-            if (mz_zip_reader_is_file_a_directory(&archive, index) == MZ_TRUE) {
-                continue;
-            }
-
-            ZipEntry entry;
-            entry.name    = stat.m_filename;
-            entry.crc32   = stat.m_crc32;
-            entry.size    = static_cast<usize>(stat.m_uncomp_size);
-            entry.index   = index;
-            entry.archive = archive_index;
-
-            // Several chips in a merged set can share a CRC when a revision
-            // respins only some of them, so keep the first and let name lookup
-            // disambiguate. Content is identical by definition.
-            m_by_crc.emplace(entry.crc32, entry);
-            m_by_name.emplace(to_lower(entry.name), entry);
-            ++indexed;
-        }
-
-        SM2_DEBUG("indexed %u file(s) from %s", indexed, path.c_str());
-        m_paths.push_back(path);
-        return true;
+        return false;
     }
 
     /// Find an entry, by CRC when the database declares one and by name
@@ -128,12 +207,142 @@ public:
 
     [[nodiscard]] bool extract(const ZipEntry& entry, std::vector<u8>* out)
     {
+        return entry.archive < kSevenZipArchiveBase
+                 ? extract_zip(entry, out)
+                 : extract_seven_zip(entry, out);
+    }
+
+private:
+    // Backend archive indices are disjoint: zip archives are indexed
+    // 0..N-1 directly into `m_zip_archives`, and 7z archives are indexed
+    // starting at this base into `m_seven_zip_archives`, so `ZipEntry::archive`
+    // alone says which backend and slot an entry came from without a
+    // separate tag field.
+    static constexpr usize kSevenZipArchiveBase = 1u << 20;
+
+    [[nodiscard]] bool open_zip(const std::string& path)
+    {
+        m_zip_archives.emplace_back();
+        mz_zip_archive& archive = m_zip_archives.back();
+        std::memset(&archive, 0, sizeof(archive));
+
+        if (mz_zip_reader_init_file(&archive, path.c_str(), 0) == MZ_FALSE) {
+            SM2_ERROR("could not open '%s' as a zip archive: %s", path.c_str(),
+                      mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
+            m_zip_archives.pop_back();
+            return false;
+        }
+
+        const usize archive_index = m_zip_archives.size() - 1;
+        const u32   count         = mz_zip_reader_get_num_files(&archive);
+        u32         indexed       = 0;
+
+        for (u32 index = 0; index < count; ++index) {
+            mz_zip_archive_file_stat stat{};
+            if (mz_zip_reader_file_stat(&archive, index, &stat) == MZ_FALSE) {
+                continue;
+            }
+            if (mz_zip_reader_is_file_a_directory(&archive, index) == MZ_TRUE) {
+                continue;
+            }
+
+            ZipEntry entry;
+            entry.name    = stat.m_filename;
+            entry.crc32   = stat.m_crc32;
+            entry.size    = static_cast<usize>(stat.m_uncomp_size);
+            entry.index   = index;
+            entry.archive = archive_index;
+
+            index_entry(entry);
+            ++indexed;
+        }
+
+        SM2_DEBUG("indexed %u file(s) from %s (zip)", indexed, path.c_str());
+        return true;
+    }
+
+    [[nodiscard]] bool open_seven_zip(const std::string& path)
+    {
+        static const ISzAlloc alloc{SzAlloc, SzFree};
+        static const ISzAlloc alloc_temp{SzAllocTemp, SzFreeTemp};
+        static bool           crc_table_ready = false;
+        if (!crc_table_ready) {
+            CrcGenerateTable();
+            crc_table_ready = true;
+        }
+
+        m_seven_zip_archives.emplace_back();
+        SevenZipArchive& archive = m_seven_zip_archives.back();
+
+        if (InFile_Open(&archive.archive_stream.file, path.c_str()) != 0) {
+            SM2_ERROR("could not open '%s' as a 7z archive", path.c_str());
+            m_seven_zip_archives.pop_back();
+            return false;
+        }
+        FileInStream_CreateVTable(&archive.archive_stream);
+
+        LookToRead2_CreateVTable(&archive.look_stream, /*lookahead=*/False);
+        archive.look_stream.buf =
+            static_cast<Byte*>(ISzAlloc_Alloc(&alloc, SevenZipArchive::kLookAheadBufferSize));
+        archive.look_stream.bufSize   = SevenZipArchive::kLookAheadBufferSize;
+        archive.look_stream.realStream = &archive.archive_stream.vt;
+        LookToRead2_INIT(&archive.look_stream)
+
+        const SRes result =
+            SzArEx_Open(&archive.db, &archive.look_stream.vt, &alloc, &alloc_temp);
+        if (result != SZ_OK) {
+            SM2_ERROR("could not open '%s' as a 7z archive: SzArEx_Open returned %d "
+                      "(corrupted archive or unsupported compression method)",
+                      path.c_str(), result);
+            m_seven_zip_archives.pop_back();
+            return false;
+        }
+        archive.db_open = true;
+
+        const usize archive_index = kSevenZipArchiveBase + m_seven_zip_archives.size() - 1;
+        u32         indexed       = 0;
+
+        for (u32 index = 0; index < archive.db.NumFiles; ++index) {
+            if (SzArEx_IsDir(&archive.db, index)) {
+                continue;
+            }
+
+            const size_t      name_length = SzArEx_GetFileNameUtf16(&archive.db, index, nullptr);
+            std::vector<u16> name_utf16(name_length);
+            SzArEx_GetFileNameUtf16(&archive.db, index, name_utf16.data());
+
+            ZipEntry entry;
+            entry.name    = utf16_to_utf8(name_utf16);
+            entry.crc32   = SzBitWithVals_Check(&archive.db.CRCs, index) ? archive.db.CRCs.Vals[index] : 0;
+            entry.size    = static_cast<usize>(SzArEx_GetFileSize(&archive.db, index));
+            entry.index   = index;
+            entry.archive = archive_index;
+
+            index_entry(entry);
+            ++indexed;
+        }
+
+        SM2_DEBUG("indexed %u file(s) from %s (7z)", indexed, path.c_str());
+        return true;
+    }
+
+    void index_entry(const ZipEntry& entry)
+    {
+        // Several chips in a merged set can share a CRC when a revision
+        // respins only some of them, so keep the first and let name lookup
+        // disambiguate. Content is identical by definition.
+        m_by_crc.emplace(entry.crc32, entry);
+        m_by_name.emplace(to_lower(entry.name), entry);
+    }
+
+    [[nodiscard]] bool extract_zip(const ZipEntry& entry, std::vector<u8>* out)
+    {
         out->resize(entry.size);
         if (entry.size == 0) {
             return true;
         }
 
-        mz_zip_archive& archive = m_archives[entry.archive];
+        mz_zip_archive& archive = m_zip_archives[entry.archive];
         if (mz_zip_reader_extract_to_mem(&archive, entry.index, out->data(), out->size(), 0)
             == MZ_FALSE) {
             // miniz verifies the CRC while inflating, so this also catches a
@@ -145,12 +354,41 @@ public:
         return true;
     }
 
-private:
-    // A deque, not a vector: mz_zip_archive holds internal pointers into itself
-    // once initialised, so it must never be relocated, and entries reference
-    // their archive by index. A deque never moves an existing element.
-    std::deque<mz_zip_archive>                m_archives;
-    std::vector<std::string>                  m_paths;
+    [[nodiscard]] bool extract_seven_zip(const ZipEntry& entry, std::vector<u8>* out)
+    {
+        static const ISzAlloc alloc{SzAlloc, SzFree};
+        static const ISzAlloc alloc_temp{SzAllocTemp, SzFreeTemp};
+
+        SevenZipArchive& archive = m_seven_zip_archives[entry.archive - kSevenZipArchiveBase];
+
+        size_t offset            = 0;
+        size_t out_size_processed = 0;
+        const SRes result = SzArEx_Extract(
+            &archive.db, &archive.look_stream.vt, entry.index, &archive.cached_block_index,
+            &archive.cached_out_buffer, &archive.cached_out_buffer_size, &offset,
+            &out_size_processed, &alloc, &alloc_temp);
+
+        if (result != SZ_OK) {
+            // SzArEx_Extract verifies the folder's CRC while inflating (7z
+            // stores CRCs per solid block, same guarantee as miniz's per-file
+            // CRC check), so this also catches damaged data with a correct
+            // header.
+            SM2_ERROR("could not extract '%s': SzArEx_Extract returned %d", entry.name.c_str(),
+                      result);
+            return false;
+        }
+
+        out->assign(archive.cached_out_buffer + offset,
+                    archive.cached_out_buffer + offset + out_size_processed);
+        return true;
+    }
+
+    // Deques, not vectors: both mz_zip_archive and SevenZipArchive hold
+    // internal/self pointers once opened, so neither must ever be relocated,
+    // and entries reference their archive by index. A deque never moves an
+    // existing element.
+    std::deque<mz_zip_archive>                m_zip_archives;
+    std::deque<SevenZipArchive>                m_seven_zip_archives;
     std::unordered_map<u32, ZipEntry>         m_by_crc;
     std::unordered_map<std::string, ZipEntry> m_by_name;
 };

@@ -159,6 +159,36 @@ target_compile_definitions(sm2_miniz PUBLIC
 )
 
 # ---------------------------------------------------------------------------
+# LZMA SDK — 7z reading for the ROM loader
+# ---------------------------------------------------------------------------
+
+FetchContent_Declare(lzmasdk
+    URL      https://www.7-zip.org/a/lzma2301.7z
+    URL_HASH SHA256=317dd834d6bbfd95433488b832e823cd3d4d420101436422c03af88507dd1370
+)
+FetchContent_MakeAvailable(lzmasdk)
+
+add_library(sm2_7z STATIC
+    "${lzmasdk_SOURCE_DIR}/C/7zAlloc.c"
+    "${lzmasdk_SOURCE_DIR}/C/7zArcIn.c"
+    "${lzmasdk_SOURCE_DIR}/C/7zBuf.c"
+    "${lzmasdk_SOURCE_DIR}/C/7zCrc.c"
+    "${lzmasdk_SOURCE_DIR}/C/7zCrcOpt.c"
+    "${lzmasdk_SOURCE_DIR}/C/7zDec.c"
+    "${lzmasdk_SOURCE_DIR}/C/7zFile.c"
+    "${lzmasdk_SOURCE_DIR}/C/7zStream.c"
+    "${lzmasdk_SOURCE_DIR}/C/Bcj2.c"
+    "${lzmasdk_SOURCE_DIR}/C/CpuArch.c"
+    "${lzmasdk_SOURCE_DIR}/C/Lzma2Dec.c"
+    "${lzmasdk_SOURCE_DIR}/C/LzmaDec.c"
+)
+target_include_directories(sm2_7z SYSTEM PUBLIC "${lzmasdk_SOURCE_DIR}/C")
+set_target_properties(sm2_7z PROPERTIES C_STANDARD 11)
+target_compile_definitions(sm2_7z PUBLIC
+    Z7_NO_METHODS_FILTERS  # no Delta/BCJ/branch-conversion filters
+)
+
+# ---------------------------------------------------------------------------
 # pugixml — the games.xml database
 # ---------------------------------------------------------------------------
 
