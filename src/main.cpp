@@ -538,7 +538,8 @@ int main(int argc, char** argv)
         std::printf("faulted           : %s\n",
                     machine->cpu().faulted() ? machine->cpu().fault_message().c_str()
                                              : "no");
-        std::printf("cpu state         : %s\n", machine->cpu().state_string().c_str());
+        std::printf("cpu state         : %s%s\n", machine->cpu().state_string().c_str(),
+                    machine->cpu().halted() ? " HALTED" : "");
         std::printf("interrupts        : intena %03x intreq %03x\n",
                     machine->intena(), machine->intreq());
 
@@ -823,7 +824,7 @@ int main(int argc, char** argv)
                 // Inputs are levels, sampled whenever the program polls the I/O
                 // controller during the frame, so they have to be set before the
                 // frame runs rather than after.
-                input.poll(&machine->inputs());
+                input.poll(&machine->inputs(), loaded->game.inputs);
                 if (options.coin_at != 0) {
                     // Scripted coin, start and character confirmation, so an
                     // unattended capture can reach the game itself rather than

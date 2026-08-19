@@ -480,42 +480,47 @@ USA, Desert Tank, Virtua Cop.
 
 ### GPU acceleration and Pi 5 performance
 
-The current pipeline runs the geometry engine and the tilemap chip entirely on
-the CPU and hands the GPU pre-projected screen-space triangles at native 496×384.
-The fragment shader is the main bottleneck: it manually implements trilinear
-filtering from a packed 4-bit SSBO (4–16 random memory reads per fragment) and
-runs the full tone-curve colour chain per texel. On a tile-based GPU like
-VideoCore VII these random SSBO accesses bypass the texture cache entirely.
+The geometry engine and the tilemap chip still run entirely on the CPU, and the
+GPU still receives pre-projected screen-space triangles at native 496×384. The
+fragment shader's own filtering, however, no longer reads the packed 4-bit
+texture data directly.
 
-Offloading opportunities, roughly in order of impact:
+- **Texture decode, moved to a compute pass (done).** A compute shader
+  (`shaders/texel_decode.comp`) unpacks each sheet's 4-bit texels into a plain
+  image once per upload — almost always once, at startup — instead of the
+  fragment shader re-deriving the containing word and shifting out a nibble on
+  every one of up to sixteen taps a mipmapped, microtextured fragment needs. The
+  fragment shader's own bilinear filter, mip blend, wrap/mirror handling and
+  transparent-neighbour borrowing are all unchanged; only the last step of a
+  texel fetch — word, halfword, byte, nibble — moved off the per-fragment path.
+  Verified bit-exact against the pre-change renderer (`--screenshot` output is
+  byte-identical) and clean under Vulkan validation across a full attract mode
+  through a fight. What is *not* yet measured is the effect on a real tile-based
+  GPU: this was built and checked on Apple silicon, which is not the class of
+  hardware the optimisation targets, so the Pi 5 number below is reasoning about
+  the mechanism, not a benchmark.
+- **Split textured and untextured pipelines (not yet done).** Untextured
+  polygons need only the colour lookup (three `texelFetch` calls) and never
+  `discard`, so a separate pipeline can use early stencil rejection — every
+  fragment behind an already-drawn pixel is culled before the shader runs.
+- **Stencil pre-pass (not yet done).** Draw all polygons in a depth/stencil-only
+  pass first (no fragment output, just claim fill-mask bits), then draw the
+  textured pass with stencil EQUAL. The expensive shader only executes on
+  visible pixels. This does not work for stipple-transparent polygons (which
+  conditionally leave stencil unclaimed), so those still need the current path.
+- **GPU tilemap rasterisation (not yet done).** Replace the software tile
+  renderer with a compute or render pass that decodes tiles directly from tile
+  RAM and character RAM on the GPU. Eliminates 1.5 MB/frame of CPU→GPU upload
+  and frees the host for geometry work.
+- **Reduce per-frame allocations (not yet done).** The vertex and parameter
+  buffers are host-coherent (written by CPU, read by GPU); on unified-memory ARM
+  SoCs this is already efficient, but ensuring no unnecessary flushes or
+  barriers fire is worth profiling.
 
-- **Pre-decode texture sheets into a GPU-native format.** Convert the packed 4-bit
-  texels into `R8_UNORM` with proper mipmaps on upload, then let the hardware
-  texture unit do bilinear/trilinear filtering. This replaces hundreds of SSBO
-  reads per fragment with one or two hardware texture samples. The tone curve is
-  still applied after filtering (one lookup per channel), but the dominant cost
-  disappears.
-- **Split textured and untextured pipelines.** Untextured polygons need only the
-  colour lookup (three `texelFetch` calls) and never `discard`, so a separate
-  pipeline can use early stencil rejection — every fragment behind an
-  already-drawn pixel is culled before the shader runs.
-- **Stencil pre-pass.** Draw all polygons in a depth/stencil-only pass first (no
-  fragment output, just claim fill-mask bits), then draw the textured pass with
-  stencil EQUAL. The expensive shader only executes on visible pixels. This does
-  not work for stipple-transparent polygons (which conditionally leave stencil
-  unclaimed), so those still need the current path.
-- **GPU tilemap rasterisation.** Replace the software tile renderer with a compute
-  or render pass that decodes tiles directly from tile RAM and character RAM on
-  the GPU. Eliminates 1.5 MB/frame of CPU→GPU upload and frees the host for
-  geometry work.
-- **Reduce per-frame allocations.** The vertex and parameter buffers are
-  host-coherent (written by CPU, read by GPU); on unified-memory ARM SoCs this
-  is already efficient, but ensuring no unnecessary flushes or barriers fire is
-  worth profiling.
-
-With the first two items alone, the fragment shader cost drops to roughly one
-hardware-filtered texture sample plus three table lookups per visible pixel —
-well within what VideoCore VII can sustain at 496×384 and 57.5 Hz.
+The remaining three items would still meaningfully reduce fragment cost, and
+none of them has been measured on Pi 5 hardware — there is no device to test on
+at the time of writing. Anyone who tries this on a Pi 5 or similar tile-based ARM
+GPU and can share frame-time numbers would make this section a lot more useful.
 
 ### Internal resolution upscaling
 

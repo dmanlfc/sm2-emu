@@ -144,9 +144,12 @@ u32 CoproTgp::host_fifo_read()
 void CoproTgp::function_port_write(u32 byte_offset, u32 value)
 {
     // The port's own address carries the function number, which the host folds
-    // into the command word. Bits 22:20 of the value are discarded because that is
-    // where the function number lands.
-    const u32 function = (byte_offset >> 2) & 0xff;
+    // into the command word. Sixteen bytes per function, six bits of function
+    // number, matching the geometrizer's identical function-port convention
+    // (kGeoPort in model2.cpp uses the same offset >> 4 with a 6-bit mask). Bits
+    // 22:20 of the value are discarded because that is where the function number
+    // lands.
+    const u32 function = (byte_offset >> 4) & 0x3f;
     const u32 command  = (value & 0x800fffffu) | (function << 23);
     m_fifo_in.push(command);
 }

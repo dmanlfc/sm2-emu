@@ -15,6 +15,7 @@
 #pragma once
 
 #include "core/types.h"
+#include "rom/game.h"
 
 #include <SDL3/SDL.h>
 
@@ -99,8 +100,11 @@ public:
     void handle_event(const SDL_Event& event);
 
     /// Overwrite the digital and analogue fields of `inputs` from current device
-    /// state. Call once per frame, before running the frame.
-    void poll(hw::Inputs* inputs) const;
+    /// state. Call once per frame, before running the frame. The game flags select
+    /// the analogue wiring; the default keeps source compatibility for callers
+    /// that do not have game metadata and leaves the analogue input idle.
+    void poll(hw::Inputs* inputs,
+              rom::InputFlags game_inputs = rom::InputFlags::None) const;
 
     /// Names of the gamepads currently open, in player order. An empty string means
     /// that player has no pad.

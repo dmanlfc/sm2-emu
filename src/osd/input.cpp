@@ -39,6 +39,16 @@ constexpr u8 kUp      = Input::kUp;
 constexpr u8 kRight   = Input::kRight;
 constexpr u8 kLeft    = Input::kLeft;
 
+// The Model 2 analogue mux is shared by all games. Vehicle games use the first
+// three channels; two-gun games use adjacent X/Y pairs for each player.
+constexpr usize kSteeringChannel = 0;
+constexpr usize kThrottleChannel = 1;
+constexpr usize kBrakeChannel    = 2;
+constexpr usize kGun1XChannel    = 0;
+constexpr usize kGun1YChannel    = 1;
+constexpr usize kGun2XChannel    = 2;
+constexpr usize kGun2YChannel    = 3;
+
 // ---------------------------------------------------------------------------
 // Keyboard
 // ---------------------------------------------------------------------------
@@ -144,6 +154,38 @@ u8 Input::axis_to_pedal(s16 value)
     const int travelled = std::max(0, static_cast<int>(value) - kPedalFloor);
     const int scaled    = (travelled * 255) / (32767 - kPedalFloor);
     return static_cast<u8>(std::min(scaled, 255));
+}
+
+/// Convert a mouse position in the focused SDL window to the 8-bit light-gun
+/// coordinate expected by the analogue mux. SDL reports the position in the
+/// same logical coordinate space as SDL_GetWindowSize, including on HiDPI.
+u8 mouse_to_screen(float position, int extent)
+{
+    if (extent <= 1) {
+        return 0x80;
+    }
+    const float maximum = static_cast<float>(extent - 1);
+    const float clamped = std::clamp(position, 0.0f, maximum);
+    return static_cast<u8>((clamped * 255.0f) / maximum);
+}
+
+/// Use the mouse as the fallback light-gun device. A dedicated gun device is not
+/// exposed by the current input layer, so both gun players share the pointer.
+void gather_mouse_coordinates(std::array<u8, 8>* analog,
+                               usize x_channel, usize y_channel)
+{
+    float x = 0.0f;
+    float y = 0.0f;
+    SDL_GetMouseState(&x, &y);
+
+    SDL_Window* focus = SDL_GetMouseFocus();
+    int          width = 0;
+    int          height = 0;
+    if (focus != nullptr) {
+        SDL_GetWindowSize(focus, &width, &height);
+    }
+    (*analog)[x_channel] = mouse_to_screen(x, width);
+    (*analog)[y_channel] = mouse_to_screen(y, height);
 }
 
 Input::~Input()
@@ -267,7 +309,7 @@ void Input::remove_gamepad(SDL_JoystickID id)
     m_pads.erase(found);
 }
 
-void Input::poll(hw::Inputs* inputs) const
+void Input::poll(hw::Inputs* inputs, rom::InputFlags game_inputs) const
 {
     u8 ports[1 + kPlayers] = {0xff, 0xff, 0xff};
 
@@ -311,23 +353,35 @@ void Input::poll(hw::Inputs* inputs) const
     inputs->in1 = ports[1];
     inputs->in2 = ports[2];
 
-    // Analogue channels. Which channel a game reads is a per-game wiring matter and
-    // none of the analogue games are in the database yet, so this is the obvious
-    // arrangement for a driving cabinet and is unverified. Player 1's pad only:
-    // no Model 2 game has two analogue stations.
+    // Analogue channels are game-wired rather than universal. Vehicle games use
+    // player 1's pad for steering, throttle and brake; gun games use the mouse
+    // fallback for screen-relative X/Y; all other games keep the idle wheel value.
     inputs->analog.fill(0);
     const auto primary = std::find_if(m_pads.begin(), m_pads.end(),
                                       [](const Pad& pad) { return pad.player == 0; });
-    if (primary != m_pads.end() && primary->handle != nullptr) {
-        inputs->analog[0] =
-            axis_to_centred(SDL_GetGamepadAxis(primary->handle, SDL_GAMEPAD_AXIS_LEFTX));
-        inputs->analog[1] = axis_to_pedal(
-            SDL_GetGamepadAxis(primary->handle, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER));
-        inputs->analog[2] = axis_to_pedal(
-            SDL_GetGamepadAxis(primary->handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER));
+    if (rom::has_input(game_inputs, rom::InputFlags::Vehicle)) {
+        if (primary != m_pads.end() && primary->handle != nullptr) {
+            inputs->analog[kSteeringChannel] = axis_to_centred(
+                SDL_GetGamepadAxis(primary->handle, SDL_GAMEPAD_AXIS_LEFTX));
+            inputs->analog[kThrottleChannel] = axis_to_pedal(
+                SDL_GetGamepadAxis(primary->handle, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER));
+            inputs->analog[kBrakeChannel] = axis_to_pedal(
+                SDL_GetGamepadAxis(primary->handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER));
+        } else {
+            // A wheel at rest is centred, not at one end.
+            inputs->analog[kSteeringChannel] = 0x80;
+        }
+    } else if (rom::has_input(game_inputs, rom::InputFlags::Gun1)
+               || rom::has_input(game_inputs, rom::InputFlags::Gun2)) {
+        if (rom::has_input(game_inputs, rom::InputFlags::Gun1)) {
+            gather_mouse_coordinates(&inputs->analog, kGun1XChannel, kGun1YChannel);
+        }
+        if (rom::has_input(game_inputs, rom::InputFlags::Gun2)) {
+            gather_mouse_coordinates(&inputs->analog, kGun2XChannel, kGun2YChannel);
+        }
     } else {
-        // A wheel at rest is centred, not at one end.
-        inputs->analog[0] = 0x80;
+        // Non-analogue games retain the historical idle analogue state.
+        inputs->analog[kSteeringChannel] = 0x80;
     }
 }
 

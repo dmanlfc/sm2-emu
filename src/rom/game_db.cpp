@@ -434,6 +434,10 @@ bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
         if (game.manufacturer.empty()) { game.manufacturer = parent.manufacturer; }
         if (game.year == 0)            { game.year = parent.year; }
         if (game.inputs == InputFlags::None) { game.inputs = parent.inputs; }
+        // A clone cannot be more validated than its parent unless it has been
+        // explicitly boot-tested as well. Keep preliminary status conservative
+        // across revisions so --list-games does not advertise an unverified set.
+        game.preliminary = game.preliminary || parent.preliminary;
 
         // A region the child redefines replaces the parent's entirely, which is
         // what a revision does: it respins whole chips, not individual bytes.
