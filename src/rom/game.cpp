@@ -29,6 +29,19 @@ const char* board_name(Board board)
     return "unknown";
 }
 
+bool board_implemented(Board board)
+{
+    switch (board) {
+        case Board::Model2A: return true;
+
+        case Board::Model2:
+        case Board::Model2B:
+        case Board::Model2C:
+            return false;
+    }
+    return false;
+}
+
 const RegionSpec* GameSpec::region(const std::string& region_name) const
 {
     const auto match = std::find_if(regions.begin(), regions.end(),

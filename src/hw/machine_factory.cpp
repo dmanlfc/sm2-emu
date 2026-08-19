@@ -21,8 +21,21 @@ namespace sm2::hw {
 
 std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game, rom::RomSet roms)
 {
+    // The switch below still enumerates every rom::Board value explicitly (no
+    // default: label), so a new enumerator without a case here remains a
+    // compile-time -Wswitch error. But each case's accept/reject decision now
+    // starts from rom::board_implemented rather than being re-decided by a
+    // second, separately-maintained list: RomLoader::load gates on that exact
+    // same function, so the two are provably in sync rather than just
+    // currently-matching by coincidence. A future wave that flips
+    // board_implemented() to true for a board still needs its own case here
+    // to actually construct that board's machine class -- this only keeps the
+    // *rejection* in sync, not the construction itself.
     switch (game.board) {
         case rom::Board::Model2A: {
+            if (!rom::board_implemented(game.board)) {
+                break;
+            }
             auto machine = std::make_unique<Model2>();
             if (!machine->init(game, std::move(roms))) {
                 return nullptr;
@@ -37,16 +50,12 @@ std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game, rom
         case rom::Board::Model2:
         case rom::Board::Model2B:
         case rom::Board::Model2C:
-            SM2_ERROR("'%s' is a %s board, which is not implemented yet. Only "
-                      "Model 2A-CRX is supported.", game.name.c_str(),
-                      rom::board_name(game.board));
-            return nullptr;
+            break;
     }
 
-    // Unreachable: the switch above is exhaustive over every rom::Board value
-    // (no default: label, so a new enumerator without a case here is a
-    // compile-time -Wswitch error). Kept only because some compilers still
-    // want a return on every path out of a non-void function.
+    SM2_ERROR("'%s' is a %s board, which is not implemented yet. Only "
+              "Model 2A-CRX is supported.", game.name.c_str(),
+              rom::board_name(game.board));
     return nullptr;
 }
 

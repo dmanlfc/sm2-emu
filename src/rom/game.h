@@ -41,6 +41,14 @@ enum class Board {
 
 [[nodiscard]] const char* board_name(Board board);
 
+/// True for board variants sm2-emu can currently construct a working machine
+/// for. Both `RomLoader::load` (which decides whether a game's archive may
+/// even be assembled) and `hw::create_machine` (which decides whether a
+/// machine can be built for it) consult this single function, so the two can
+/// never drift out of sync as later waves add board support -- there is
+/// exactly one place that knows "which boards are implemented".
+[[nodiscard]] bool board_implemented(Board board);
+
 /// Logical input groups a game uses, so the input layer can bind only what is
 /// relevant and the UI can hide the rest.
 enum class InputFlags : u32 {
