@@ -22,6 +22,7 @@
 #include "hw/eeprom_93c46.h"
 #include "hw/i8251.h"
 #include "hw/io_315_5649.h"
+#include "hw/model2_machine_base.h"
 #include "hw/model2_sound.h"
 #include "hw/model2_video.h"
 #include "rom/game.h"
@@ -35,30 +36,6 @@
 
 namespace sm2::hw {
 
-/// State of every operator and player control, in hardware polarity.
-///
-/// All Model 2 digital inputs are active low, so an idle panel is all ones.
-/// Phase 5 fills this from SDL; until then it stays idle and the game sees a
-/// machine nobody is touching.
-struct Inputs {
-    /// Coins, service, test and start. Bit 0 coin 1, bit 1 coin 2, bit 2 test,
-    /// bit 3 service, bit 4 start 1, bit 5 start 2.
-    u8 in0 = 0xff;
-
-    /// Player 1: bits 0-3 buttons, bit 4 down, bit 5 up, bit 6 right, bit 7 left.
-    u8 in1 = 0xff;
-
-    /// Player 2, same layout.
-    u8 in2 = 0xff;
-
-    /// The CPU board's eight-position SW3.
-    u8 dipswitches = 0xff;
-
-    /// Eight analogue channels behind the I/O controller's mux. Unused by games
-    /// with digital controls only.
-    std::array<u8, 8> analog{};
-};
-
 /// Sega Model 2A-CRX.
 ///
 /// Owns the memory map, the interrupt latch, the four count-down timers and the
@@ -69,7 +46,17 @@ struct Inputs {
 /// tilemap chip's rendering (phase 2) and the sound board (phase 5). Their
 /// address ranges exist and behave as memory or as inert registers, which is
 /// enough for the program to boot.
-class Model2 final : public cpu::Bus {
+///
+/// This is the Model 2A implementation of hw::Model2MachineBase (see
+/// hw/model2_machine_base.h for the board-agnostic interface and why the CPU
+/// status accessors it needs are exposed through a type-erased CpuStatus
+/// rather than a virtual CPU base class). Its own additional accessors --
+/// cpu(), copro(), sound(), uart(), geometry() and the rest -- return
+/// board-specific hardware types that a Model 2B or 2C machine would not share,
+/// so they stay outside the shared interface; code that needs them (the
+/// boot-test report, the debug dumps) is written against the concrete Model2
+/// class rather than the base interface.
+class Model2 final : public cpu::Bus, public Model2MachineBase {
 public:
     // -- video timing ------------------------------------------------------
     // From MAME's screen configuration: a 16 MHz dot clock, 656x424 total,
@@ -114,18 +101,32 @@ public:
     Model2& operator=(const Model2&) = delete;
 
     /// Wire up the ROMs and bring the machine to its reset state.
-    [[nodiscard]] bool init(const rom::GameSpec& game, rom::RomSet roms);
+    [[nodiscard]] bool init(const rom::GameSpec& game, rom::RomSet roms) override;
 
-    void reset();
+    void reset() override;
 
     /// Advance one video frame, including the vertical blank interrupt.
-    void run_frame();
+    void run_frame() override;
 
-    [[nodiscard]] Inputs& inputs() { return m_inputs; }
-    [[nodiscard]] const Inputs& inputs() const { return m_inputs; }
+    [[nodiscard]] Inputs& inputs() override { return m_inputs; }
+    [[nodiscard]] const Inputs& inputs() const override { return m_inputs; }
 
     [[nodiscard]] cpu::i960::I960& cpu() { return m_cpu; }
     [[nodiscard]] const cpu::i960::I960& cpu() const { return m_cpu; }
+
+    /// A type-erased snapshot of the i960's state, for hw::Model2MachineBase.
+    /// The concrete accessor above stays available for code (the boot-test
+    /// report, the debug dumps) that already depends on the i960 specifically.
+    [[nodiscard]] CpuStatus main_cpu_status() const override
+    {
+        CpuStatus status;
+        status.state_string  = m_cpu.state_string();
+        status.fault_message = m_cpu.fault_message();
+        status.instructions  = m_cpu.instructions();
+        status.halted        = m_cpu.halted();
+        status.faulted       = m_cpu.faulted();
+        return status;
+    }
 
     [[nodiscard]] CoproTgp& copro() { return m_copro; }
     [[nodiscard]] const CoproTgp& copro() const { return m_copro; }
@@ -144,27 +145,27 @@ public:
     ///
     /// Rebuilt by the geometry engine at each vertical blank, or every other one
     /// when the program has selected 30 Hz geometry.
-    [[nodiscard]] const RenderList& render_list() const { return m_render_list; }
+    [[nodiscard]] const RenderList& render_list() const override { return m_render_list; }
 
-    [[nodiscard]] u64 cycles() const { return m_cycles; }
-    [[nodiscard]] u64 frames() const { return m_frames; }
+    [[nodiscard]] u64 cycles() const override { return m_cycles; }
+    [[nodiscard]] u64 frames() const override { return m_frames; }
 
     /// The interrupt latch, for reporting which sources the program has armed.
-    [[nodiscard]] u32 intreq() const { return m_intreq; }
-    [[nodiscard]] u32 intena() const { return m_intena; }
+    [[nodiscard]] u32 intreq() const override { return m_intreq; }
+    [[nodiscard]] u32 intena() const override { return m_intena; }
 
     // -- persistence -------------------------------------------------------
 
     /// Directory for the NVRAM and EEPROM images. Loaded now, saved on request.
-    void set_nvram_directory(const std::string& directory);
-    void load_nvram();
-    void save_nvram() const;
+    void set_nvram_directory(const std::string& directory) override;
+    void load_nvram() override;
+    void save_nvram() const override;
 
     // -- diagnostics -------------------------------------------------------
 
     /// Log every access that lands outside a mapped region. Off by default
     /// because a boot produces hundreds of thousands of them.
-    void set_log_unmapped(bool enable) { m_log_unmapped = enable; }
+    void set_log_unmapped(bool enable) override { m_log_unmapped = enable; }
 
     /// Counts of unmapped accesses, keyed by 1 MB region.
     [[nodiscard]] const std::map<u32, u64>& unmapped_reads() const { return m_unmapped_reads; }
@@ -178,18 +179,18 @@ public:
     /// may, so a region wrongly lacking the flag turns a four-word transfer into
     /// four accesses to one address. The result is plausible-looking repeated
     /// data rather than an error.
-    void log_burst_summary() const;
+    void log_burst_summary() const override;
 
-    void log_unmapped_summary() const;
+    void log_unmapped_summary() const override;
 
     // -- views for the renderer, used from phase 2 onwards ------------------
 
-    [[nodiscard]] std::span<const u8>  tile_ram() const { return m_tile_ram; }
-    [[nodiscard]] std::span<const u8>  char_ram() const { return m_char_ram; }
-    [[nodiscard]] std::span<const u16> palette_ram() const { return m_palette_ram; }
-    [[nodiscard]] std::span<const u16> colour_translate() const { return m_colorxlat; }
-    [[nodiscard]] std::span<const u8>  luma_ram() const { return m_luma_ram; }
-    [[nodiscard]] std::span<const u32> texture_ram(int sheet) const
+    [[nodiscard]] std::span<const u8>  tile_ram() const override { return m_tile_ram; }
+    [[nodiscard]] std::span<const u8>  char_ram() const override { return m_char_ram; }
+    [[nodiscard]] std::span<const u16> palette_ram() const override { return m_palette_ram; }
+    [[nodiscard]] std::span<const u16> colour_translate() const override { return m_colorxlat; }
+    [[nodiscard]] std::span<const u8>  luma_ram() const override { return m_luma_ram; }
+    [[nodiscard]] std::span<const u32> texture_ram(int sheet) const override
     {
         return sheet == 0 ? std::span<const u32>(m_texture_ram0)
                           : std::span<const u32>(m_texture_ram1);
@@ -198,11 +199,11 @@ public:
     /// The display list buffer, which the coprocessor fills and the geometry
     /// engine reads. Comes up holding a repeated pattern, so "still all pattern"
     /// means nothing has written to it.
-    [[nodiscard]] std::span<const u32> buffer_ram() const { return m_buffer_ram; }
+    [[nodiscard]] std::span<const u32> buffer_ram() const override { return m_buffer_ram; }
 
     /// Cleared by the renderer once it has taken the change into account.
-    [[nodiscard]] bool palette_dirty() const { return m_palette_dirty; }
-    void clear_palette_dirty() { m_palette_dirty = false; }
+    [[nodiscard]] bool palette_dirty() const override { return m_palette_dirty; }
+    void clear_palette_dirty() override { m_palette_dirty = false; }
 
     /// Counters that advance whenever the 3D renderer's source data changes.
     ///
@@ -215,13 +216,13 @@ public:
     /// Texture RAM is tracked separately from the small tables because it is two
     /// megabytes against a few tens of kilobytes, and the tables change far more
     /// often.
-    [[nodiscard]] u64 texture_generation() const { return m_texture_generation; }
-    [[nodiscard]] u64 table_generation() const { return m_table_generation; }
+    [[nodiscard]] u64 texture_generation() const override { return m_texture_generation; }
+    [[nodiscard]] u64 table_generation() const override { return m_table_generation; }
 
     // -- video output ------------------------------------------------------
 
-    [[nodiscard]] Model2Video& video() { return m_video; }
-    [[nodiscard]] const Model2Video& video() const { return m_video; }
+    [[nodiscard]] Model2Video& video() override { return m_video; }
+    [[nodiscard]] const Model2Video& video() const override { return m_video; }
 
     /// Produce this frame's 2D output, refreshing the palette first if the
     /// program changed it.
@@ -229,7 +230,7 @@ public:
     /// Separate from run_frame() because composition costs about as much as a
     /// frame of emulation and only the display needs it: a headless run does it
     /// once at the end rather than 600 times.
-    void compose_video();
+    void compose_video() override;
 
     // -- cpu::Bus ----------------------------------------------------------
 
