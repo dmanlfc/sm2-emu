@@ -1,0 +1,288 @@
+//  ____  __  __  ____         _____ __  __ _   _
+// / ___||  \/  ||___ \       | ____|  \/  | | | |
+// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
+//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
+// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+//
+// sm2-emu — A Sega Model 2 arcade emulator.
+// Copyright (c) 2025+ Daniel Martin (dmanlfc)
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// This header must not be removed. The source files in this project may not be
+// used to contribute to commercial projects or for monetary gain without the
+// express written permission of the author.
+//
+#include "core/config.h"
+
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+
+namespace sm2 {
+namespace {
+
+constexpr const char* kFileName = "sm2-emu.ini";
+
+[[nodiscard]] std::string trim(std::string_view text)
+{
+    const auto not_space = [](unsigned char c) { return std::isspace(c) == 0; };
+    auto begin = std::find_if(text.begin(), text.end(), not_space);
+    auto end   = std::find_if(text.rbegin(), text.rend(), not_space).base();
+    return begin < end ? std::string(begin, end) : std::string();
+}
+
+[[nodiscard]] std::string lowered(std::string text)
+{
+    std::transform(text.begin(), text.end(), text.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return text;
+}
+
+/// Accepts every spelling a person might reasonably write, because rejecting `yes`
+/// in a hand-edited file is not a helpful thing to do.
+[[nodiscard]] bool parse_bool(const std::string& value, bool* out)
+{
+    const std::string text = lowered(value);
+    if (text == "true" || text == "yes" || text == "on" || text == "1") {
+        *out = true;
+        return true;
+    }
+    if (text == "false" || text == "no" || text == "off" || text == "0") {
+        *out = false;
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] bool parse_u32(const std::string& value, u32* out)
+{
+    std::istringstream stream(value);
+    unsigned long      parsed = 0;
+    stream >> parsed;
+    if (stream.fail() || !stream.eof()) {
+        return false;
+    }
+    *out = static_cast<u32>(parsed);
+    return true;
+}
+
+[[nodiscard]] const char* bool_text(bool value)
+{
+    return value ? "true" : "false";
+}
+
+[[nodiscard]] const char* environment(const char* name)
+{
+    const char* value = std::getenv(name);
+    return (value != nullptr && value[0] != '\0') ? value : nullptr;
+}
+
+/// The platform's directory for a program's configuration.
+///
+/// Written out rather than taken from SDL because SDL offers only its preferences
+/// path, which on Linux is the XDG *data* directory. Configuration belongs in the
+/// config directory, and a user who has moved theirs expects that to be honoured.
+[[nodiscard]] std::filesystem::path config_directory()
+{
+#if defined(_WIN32)
+    if (const char* appdata = environment("APPDATA")) {
+        return std::filesystem::path(appdata) / "sm2-emu";
+    }
+#elif defined(__APPLE__)
+    if (const char* home = environment("HOME")) {
+        return std::filesystem::path(home) / "Library" / "Application Support"
+             / "sm2-emu";
+    }
+#else
+    if (const char* xdg = environment("XDG_CONFIG_HOME")) {
+        return std::filesystem::path(xdg) / "sm2-emu";
+    }
+    if (const char* home = environment("HOME")) {
+        return std::filesystem::path(home) / ".config" / "sm2-emu";
+    }
+#endif
+    // No home directory at all. The working directory is the only place left.
+    return std::filesystem::path();
+}
+
+}  // namespace
+
+bool parse_log_level(const std::string& name, log::Level* out_level)
+{
+    const std::string text = lowered(name);
+    if (text == "trace") {
+        *out_level = log::Level::Trace;
+    } else if (text == "debug") {
+        *out_level = log::Level::Debug;
+    } else if (text == "info") {
+        *out_level = log::Level::Info;
+    } else if (text == "warning" || text == "warn") {
+        *out_level = log::Level::Warning;
+    } else if (text == "error") {
+        *out_level = log::Level::Error;
+    } else {
+        return false;
+    }
+    return true;
+}
+
+std::string default_config_path()
+{
+    // A file beside the binary's working directory wins. That is what a build tree
+    // wants, and it makes a checked-out copy self-contained.
+    std::error_code error;
+    if (std::filesystem::exists(kFileName, error) && !error) {
+        return kFileName;
+    }
+
+    const std::filesystem::path directory = config_directory();
+    if (directory.empty()) {
+        return kFileName;
+    }
+    return (directory / kFileName).string();
+}
+
+bool load_config(const std::string& path, Config* out, std::vector<std::string>* problems)
+{
+    std::error_code error;
+    if (!std::filesystem::exists(path, error) || error) {
+        return true;  // nothing to load is not a failure
+    }
+
+    std::ifstream file(path);
+    if (!file) {
+        return false;
+    }
+
+    std::string line;
+    u32         number = 0;
+    while (std::getline(file, line)) {
+        ++number;
+
+        // Section headers are accepted and ignored: there is only one group of
+        // settings, but a file that has grown one should still load.
+        const std::string trimmed = trim(line);
+        if (trimmed.empty() || trimmed[0] == '#' || trimmed[0] == ';'
+            || trimmed[0] == '[') {
+            continue;
+        }
+
+        const usize separator = trimmed.find('=');
+        if (separator == std::string::npos) {
+            problems->push_back(path + ":" + std::to_string(number)
+                                + ": expected key = value");
+            continue;
+        }
+
+        const std::string key   = lowered(trim(trimmed.substr(0, separator)));
+        const std::string value = trim(trimmed.substr(separator + 1));
+
+        const auto bad_value = [&]() {
+            problems->push_back(path + ":" + std::to_string(number) + ": '" + key
+                                + "' does not accept '" + value + "'");
+        };
+
+        if (key == "vsync") {
+            if (!parse_bool(value, &out->vsync)) {
+                bad_value();
+            }
+        } else if (key == "throttle") {
+            if (!parse_bool(value, &out->throttle)) {
+                bad_value();
+            }
+        } else if (key == "fullscreen") {
+            if (!parse_bool(value, &out->fullscreen)) {
+                bad_value();
+            }
+        } else if (key == "validation") {
+            if (!parse_bool(value, &out->validation)) {
+                bad_value();
+            }
+        } else if (key == "window_width") {
+            if (!parse_u32(value, &out->window_width)) {
+                bad_value();
+            }
+        } else if (key == "window_height") {
+            if (!parse_u32(value, &out->window_height)) {
+                bad_value();
+            }
+        } else if (key == "gpu") {
+            out->gpu = value;
+        } else if (key == "nvram_dir") {
+            out->nvram_dir = value;
+        } else if (key == "games_xml") {
+            out->games_xml = value;
+        } else if (key == "log_level") {
+            log::Level level = log::Level::Info;
+            if (parse_log_level(value, &level)) {
+                out->log_level = lowered(value);
+            } else {
+                bad_value();
+            }
+        } else {
+            // Reported but not fatal. A file written by a later version must not
+            // stop this one from starting.
+            problems->push_back(path + ":" + std::to_string(number)
+                                + ": unknown setting '" + key + "'");
+        }
+    }
+
+    // A window smaller than the raster is not useful and a zero one is not valid.
+    out->window_width  = std::max(out->window_width, 256u);
+    out->window_height = std::max(out->window_height, 192u);
+    return true;
+}
+
+bool save_config(const std::string& path, const Config& config)
+{
+    const std::filesystem::path file(path);
+    if (file.has_parent_path()) {
+        std::error_code error;
+        std::filesystem::create_directories(file.parent_path(), error);
+    }
+
+    std::ofstream out(path, std::ios::trunc);
+    if (!out) {
+        return false;
+    }
+
+    out << "# sm2-emu settings.\n"
+        << "#\n"
+        << "# Every setting below is at its default. Anything given on the command\n"
+        << "# line overrides what is here, and anything missing here keeps its\n"
+        << "# default, so deleting a line is the same as never writing it.\n"
+        << "\n"
+        << "# Wait for the display's vertical blank before presenting. Off can tear\n"
+        << "# but shows a frame as soon as it is ready.\n"
+        << "vsync = " << bool_text(config.vsync) << "\n"
+        << "\n"
+        << "# Hold the machine to its own 57.5245 Hz. Off runs as fast as this\n"
+        << "# computer manages, which is only useful for captures and benchmarks.\n"
+        << "throttle = " << bool_text(config.throttle) << "\n"
+        << "\n"
+        << "fullscreen = " << bool_text(config.fullscreen) << "\n"
+        << "window_width = " << config.window_width << "\n"
+        << "window_height = " << config.window_height << "\n"
+        << "\n"
+        << "# Exact device name as --list-gpus prints it. Empty picks the best one.\n"
+        << "gpu = " << config.gpu << "\n"
+        << "\n"
+        << "# Where operator settings and the EEPROM image are kept.\n"
+        << "nvram_dir = " << config.nvram_dir << "\n"
+        << "\n"
+        << "# ROM database to use instead of searching the usual places.\n"
+        << "games_xml = " << config.games_xml << "\n"
+        << "\n"
+        << "# Vulkan validation layers. Slow, and only useful when developing.\n"
+        << "validation = " << bool_text(config.validation) << "\n"
+        << "\n"
+        << "# trace, debug, info, warning or error.\n"
+        << "log_level = " << config.log_level << "\n";
+
+    return out.good();
+}
+
+}  // namespace sm2

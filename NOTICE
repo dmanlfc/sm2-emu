@@ -1,0 +1,93 @@
+sm2-emu — Sega Model 2 arcade emulator
+======================================
+
+sm2-emu is licensed under the BSD 3-Clause License (see LICENSE).
+
+This project would not exist without the reverse-engineering work of the MAME
+team. Substantial portions of the hardware emulation are derived from MAME's
+Sega Model 2 driver and its supporting device cores, all of which the MAME
+authors released under the BSD 3-Clause License. Their copyright notices are
+preserved in the individual source files that carry derived code.
+
+Derived from MAME (https://github.com/mamedev/mame), BSD-3-Clause
+-----------------------------------------------------------------
+
+  Sega Model 2 driver, geometry engine and rasterizer
+    src/mame/sega/model2.cpp, model2.h, model2_m.cpp, model2_v.cpp, model2rd.ipp
+    Copyright (c) R. Belmont, Olivier Galibert, ElSemi, Angelo Salese,
+                  Matthew Daniels
+
+  Sega System 24 tilemap chip
+    src/mame/sega/segaic24.cpp, segaic24.h
+    Copyright (c) Olivier Galibert
+
+  Tilemap pixel and category flag semantics
+    src/emu/tilemap.cpp, tilemap.h
+    Copyright (c) Aaron Giles
+
+  Intel 80960KB CPU core and disassembler
+    src/devices/cpu/i960/i960.cpp, i960.h, i960dis.cpp, i960dis.h
+    Copyright (c) Farfetch'd, R. Belmont
+
+  Fujitsu MB86233 / MB86234 "TGP" geometry coprocessor
+    src/devices/cpu/mb86233/mb86233.cpp, mb86233.h, mb86233d.cpp
+    Copyright (c) Olivier Galibert
+
+  Inter-processor FIFO with flow control
+    src/devices/machine/gen_fifo.cpp, gen_fifo.h
+    Copyright (c) Olivier Galibert
+
+  Yamaha SCSP (Saturn Custom Sound Processor)
+    src/devices/sound/scsp.cpp, scsp.h, scspdsp.cpp, scspdsp.h
+    Copyright (c) ElSemi, R. Belmont
+
+  Polygon rasterizer helper concepts
+    src/devices/video/poly.h
+    Copyright (c) Ville Linde, Aaron Giles
+
+Deliberately not derived from MAME
+----------------------------------
+
+Two commodity parts are implemented from their published programming models
+rather than ported, because they are fully documented general-purpose chips: no
+reverse-engineering insight is embodied in one implementation over another, so
+there is nothing to be gained by tracking MAME's, and MAME's versions are woven
+into its device framework in ways a port would have to unpick.
+
+  Motorola 68000 (the sound board CPU)
+    Musashi, by Karl Stenerud, used unmodified and configured through compile
+    definitions. MIT licence. https://github.com/kstenerud/Musashi
+    MAME's own 68000 is either generated from a table into some two hundred
+    thousand lines per variant, or is itself a fork of Musashi.
+
+  Intel 8251A / NEC uPD71051 USART (the sound command link)
+    src/hw/i8251.cpp, i8251.h — written for this project.
+    MAME's i8251 is bit-serial through device_serial_interface, and so is the
+    SCSP at the other end of the wire; this models whole bytes and keeps only the
+    byte period, which is the part the sound driver's pacing depends on.
+
+Architectural influence
+-----------------------
+
+The application structure — the XML-driven ROM database with content-addressed
+CRC32 identification and stride/chunk interleaving, the snapshot-based handoff
+between emulation and rendering, and the layered input abstraction — was
+informed by the design of Supermodel, the Sega Model 3 emulator
+(https://supermodel3.com). Supermodel is licensed under the GPL; no Supermodel
+code is included in sm2-emu except where contributed directly by its original
+author under the terms of this project's licence.
+
+Third-party dependencies
+------------------------
+
+  SDL3                      — zlib licence      — https://libsdl.org
+  Musashi                   — MIT licence       — Karl Stenerud
+  VulkanMemoryAllocator     — MIT licence       — AMD / GPUOpen
+  Vulkan-Headers            — Apache-2.0 / MIT  — The Khronos Group
+  miniz                     — MIT licence       — Rich Geldreich et al.
+  pugixml                   — MIT licence       — Arseny Kapoulkine
+
+Sega, Model 2, Virtua Fighter, Virtua Cop and Daytona USA are trademarks of
+their respective owners. sm2-emu is an independent work and is not affiliated
+with or endorsed by Sega. No copyrighted game data is distributed with this
+software.

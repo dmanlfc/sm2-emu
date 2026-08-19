@@ -1,0 +1,39 @@
+# Build output
+build/
+build-*/
+out/
+install/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CMakeUserPresets.json
+compile_commands.json
+.cache/
+
+# Generated shader headers
+*.spv
+
+# Emulator runtime artefacts
+*.log
+nvram/
+saves/
+screenshots/
+sm2-emu.ini
+
+# ROM images — never commit these
+roms/
+*.zip
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Optional local/development content
+tests/
+tools/
+cfg/
+snap/

@@ -1,0 +1,95 @@
+#version 450
+//  ____  __  __  ____         _____ __  __ _   _
+// / ___||  \/  ||___ \       | ____|  \/  | | | |
+// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
+//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
+// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+//
+// sm2-emu — A Sega Model 2 arcade emulator.
+// Copyright (c) 2025+ Daniel Martin (dmanlfc)
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// This header must not be removed. The source files in this project may not be
+// used to contribute to commercial projects or for monetary gain without the
+// express written permission of the author.
+//
+// Texture sheet decode: unpacks the hardware's 4-bit-per-texel texture RAM into
+// a directly indexable image, once per texture upload rather than once per
+// fragment tap.
+//
+// Model 2 packs four texels into every 32-bit word: two bytes to a halfword by
+// the sample's *local* y parity, two nibbles to a byte by its local x parity, and
+// the halfword within the word by the *physical* address's own bit 1. That last
+// distinction is real hardware behaviour, not a simplification -- polygon.frag's
+// fetchTexel comment explains it is what makes an odd mipmap base position work
+// out -- and it means the byte/nibble split cannot be resolved from a texel's
+// physical position alone: the same word backs different logical texels
+// depending on which mip level and base position a draw call is sampling from.
+//
+// What can be precomputed is the one step that has nothing to do with either: the
+// word fetch and the split into its four nibbles. That is what this shader does,
+// one invocation per *container* (one 32-bit word's low half or high half) rather
+// than one per texel, writing all four nibbles it holds into the four channels of
+// one decoded pixel. The fragment shader still makes the same x&1 / y&1 choice it
+// always did -- selecting a channel instead of shifting a shift -- so the output
+// is bit-identical to fetching the packed word directly; only the address
+// arithmetic moves off the per-fragment path and into a pass that runs once per
+// upload.
+//
+// Layout of one decoded pixel, matching fetchTexel's own byte_/nibble selection:
+//   R = y even, x even     G = y even, x odd
+//   B = y odd,  x even     A = y odd,  x odd
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+/// Both texture sheets, back to back, exactly as the hardware and polygon.frag
+/// see them. Read-only and never written here.
+layout(std430, set = 0, binding = 0) readonly buffer Sheets { uint uSheet[]; };
+
+/// One decoded pixel per halfword container: 512 by 1024 containers per sheet: a
+/// physical 1024x2048 texel grid at two texels wide and two texels tall per
+/// container, one layer per sheet.
+layout(set = 0, binding = 1, rgba8ui) writeonly uniform uimage2DArray uDecoded;
+
+/// Words in one sheet, matching polygon.frag's kSheetWords.
+const uint kSheetWords = 0x40000u;
+
+/// Containers per sheet along each axis: half the physical texel dimensions,
+/// since each container holds a 2x2 block of texels.
+const uint kContainersX = 512u;
+const uint kContainersY = 1024u;
+
+void main()
+{
+    const uint cx    = gl_GlobalInvocationID.x;  // 0..511
+    const uint cy     = gl_GlobalInvocationID.y;  // 0..1023
+    const uint layer = gl_GlobalInvocationID.z;  // which sheet, 0 or 1
+
+    if (cx >= kContainersX || cy >= kContainersY) {
+        return;
+    }
+
+    // fetchTexel's own arithmetic, in reverse: (cx, cy) here is exactly the
+    // (x2>>1, y2>>1) pair it computes from a physical address, so this recovers
+    // the same offset and reads the same word.
+    const uint offset = cy * kContainersX + cx;
+    const uint index  = offset >> 1;
+
+    uint word = 0u;
+    if (index < kSheetWords) {
+        word = uSheet[layer * kSheetWords + index];
+    }
+    const uint halfword = ((offset & 1u) != 0u) ? (word >> 16) : (word & 0xffffu);
+
+    const uint byte_even_y = (halfword >> 8) & 0xffu;  // fetchTexel's y&1==0 case
+    const uint byte_odd_y  = halfword & 0xffu;         // fetchTexel's y&1!=0 case
+
+    const uvec4 nibbles = uvec4(
+        (byte_even_y >> 4) & 0xfu,  // R: y even, x even
+        byte_even_y & 0xfu,         // G: y even, x odd
+        (byte_odd_y >> 4) & 0xfu,   // B: y odd,  x even
+        byte_odd_y & 0xfu           // A: y odd,  x odd
+    );
+
+    imageStore(uDecoded, ivec3(int(cx), int(cy), int(layer)), nibbles);
+}
