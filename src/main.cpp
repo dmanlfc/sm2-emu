@@ -20,6 +20,7 @@
 #include "core/config.h"
 #include "core/log.h"
 #include "core/types.h"
+#include "hw/machine_factory.h"
 #include "hw/model2.h"
 #include "hw/model2_debug.h"
 #include "osd/audio.h"
@@ -467,14 +468,29 @@ int main(int argc, char** argv)
     }
 
     // -- the machine -------------------------------------------------------
-    std::unique_ptr<hw::Model2> machine;
+    // hw::create_machine dispatches on loaded->game.board and does the
+    // construction and init() that main.cpp used to do directly against
+    // hw::Model2. Only Model2A is implemented today, so this always hands
+    // back a concrete hw::Model2 on success; downcasting here keeps every
+    // accessor below (cpu(), copro(), sound(), uart(), and the debug/render
+    // call sites) written against the concrete class unchanged, matching
+    // hw::Model2MachineBase's own documented split between the shared
+    // interface and board-specific accessors.
+    std::unique_ptr<hw::Model2MachineBase> machine_iface;
+    hw::Model2* machine = nullptr;
     if (loaded.has_value()) {
-        machine = std::make_unique<hw::Model2>();
-        machine->set_nvram_directory(options.config.nvram_dir);
-        machine->set_log_unmapped(options.log_unmapped);
-        if (!machine->init(loaded->game, std::move(loaded->roms))) {
+        machine_iface = hw::create_machine(loaded->game, std::move(loaded->roms));
+        if (!machine_iface) {
             return 1;
         }
+        machine = dynamic_cast<hw::Model2*>(machine_iface.get());
+        if (!machine) {
+            SM2_ERROR("internal error: create_machine returned an unexpected "
+                      "machine type for a Model 2A game");
+            return 1;
+        }
+        machine->set_nvram_directory(options.config.nvram_dir);
+        machine->set_log_unmapped(options.log_unmapped);
         machine->load_nvram();
         // init() resets before the NVRAM is in place, so reset again to let the
         // program read the settings it saved last time.
@@ -874,7 +890,7 @@ int main(int argc, char** argv)
             // one, and the 3D pass opens a scope of its own on its offscreen
             // target.
             tilemaps.upload(video.below(), video.above());
-            polygons.build(machine.get(), video);
+            polygons.build(machine, video);
             polygons.render();
 
             // The hardware's three-way composite, all of it at the native 496x384:

@@ -136,6 +136,7 @@ add_library(sm2_hw STATIC
     hw/eeprom_93c46.cpp
     hw/i8251.cpp
     hw/io_315_5649.cpp
+    hw/machine_factory.cpp
     hw/model2.cpp
     hw/model2_debug.cpp
     hw/model2_sound.cpp
