@@ -22,6 +22,7 @@
 #include "core/types.h"
 #include "hw/machine_factory.h"
 #include "hw/model2.h"
+#include "hw/model2b.h"
 #include "hw/model2_debug.h"
 #include "osd/audio.h"
 #include "osd/frame_pacer.h"
@@ -477,31 +478,33 @@ int main(int argc, char** argv)
     // hw::Model2MachineBase's own documented split between the shared
     // interface and board-specific accessors.
     std::unique_ptr<hw::Model2MachineBase> machine_iface;
-    hw::Model2* machine = nullptr;
+    hw::Model2*  machine    = nullptr;
+    hw::Model2B* machine_2b = nullptr;
     if (loaded.has_value()) {
         machine_iface = hw::create_machine(loaded->game, std::move(loaded->roms));
         if (!machine_iface) {
             return 1;
         }
-        machine = dynamic_cast<hw::Model2*>(machine_iface.get());
-        if (!machine) {
+        machine    = dynamic_cast<hw::Model2*>(machine_iface.get());
+        machine_2b = dynamic_cast<hw::Model2B*>(machine_iface.get());
+        if (!machine && !machine_2b) {
             SM2_ERROR("internal error: create_machine returned an unexpected "
-                      "machine type for a Model 2A game");
+                      "machine type");
             return 1;
         }
-        machine->set_nvram_directory(options.config.nvram_dir);
-        machine->set_log_unmapped(options.log_unmapped);
-        machine->load_nvram();
+        machine_iface->set_nvram_directory(options.config.nvram_dir);
+        machine_iface->set_log_unmapped(options.log_unmapped);
+        machine_iface->load_nvram();
         // init() resets before the NVRAM is in place, so reset again to let the
         // program read the settings it saved last time.
-        machine->reset();
+        machine_iface->reset();
     }
 
     // -- headless boot test ------------------------------------------------
     // No window, no Vulkan: just run the machine and report where it got to.
     // This is the fastest way to see whether a change moved the boot forward.
     if (options.boot_test != 0) {
-        if (!machine) {
+        if (!machine && !machine_2b) {
             SM2_ERROR("--boot-test needs a ROM");
             return 1;
         }
@@ -512,27 +515,33 @@ int main(int argc, char** argv)
             // About 767 stereo frames per video frame.
             recorded.reserve(static_cast<usize>(options.boot_test) * 800 * 2);
         }
+
+        // Unified accessors: both Model2 and Model2B share these.
+        auto& the_cpu   = machine ? machine->cpu() : machine_2b->cpu();
+        auto& the_sound = machine ? machine->sound() : machine_2b->sound();
+        auto& the_uart  = machine ? machine->uart() : machine_2b->uart();
+
         SM2_INFO("running %u frame(s) headless", options.boot_test);
         const u64 start = SDL_GetPerformanceCounter();
         for (u32 frame = 0; frame < options.boot_test; ++frame) {
             if (options.coin_at != 0) {
                 const osd::Input::ScriptedPress press = osd::Input::scripted_press(
                     frame, options.coin_at, loaded->game.start1_bit);
-                machine->inputs().in0 = static_cast<u8>(0xff & ~press.in0);
-                machine->inputs().in1 = static_cast<u8>(0xff & ~press.in1);
+                machine_iface->inputs().in0 = static_cast<u8>(0xff & ~press.in0);
+                machine_iface->inputs().in1 = static_cast<u8>(0xff & ~press.in1);
             }
-            machine->run_frame();
+            machine_iface->run_frame();
 
             // Draining every frame whether or not it is being recorded: the sound
             // board drops samples nothing collects, and leaving that to happen
             // would put gaps in a recording.
-            const std::span<const s16> produced = machine->sound().pending_samples();
+            const std::span<const s16> produced = the_sound.pending_samples();
             if (!options.dump_audio.empty()) {
                 recorded.insert(recorded.end(), produced.begin(), produced.end());
             }
-            machine->sound().clear_pending_samples();
+            the_sound.clear_pending_samples();
 
-            if (machine->cpu().faulted()) {
+            if (the_cpu.faulted()) {
                 SM2_ERROR("the CPU faulted on frame %u", frame);
                 break;
             }
@@ -540,53 +549,66 @@ int main(int argc, char** argv)
         const double seconds = static_cast<double>(SDL_GetPerformanceCounter() - start)
                              / static_cast<double>(SDL_GetPerformanceFrequency());
 
-        const double emulated = static_cast<double>(machine->frames())
+        const double emulated = static_cast<double>(machine_iface->frames())
                               / (static_cast<double>(hw::Model2::kCpuClock)
                                  / static_cast<double>(hw::Model2::kCyclesPerFrame));
 
         std::printf("\n=== boot test ===\n");
         std::printf("frames run        : %llu\n",
-                    (unsigned long long)machine->frames());
+                    (unsigned long long)machine_iface->frames());
         std::printf("instructions      : %llu\n",
-                    (unsigned long long)machine->cpu().instructions());
+                    (unsigned long long)the_cpu.instructions());
         std::printf("master cycles     : %llu\n",
-                    (unsigned long long)machine->cycles());
+                    (unsigned long long)machine_iface->cycles());
         std::printf("faulted           : %s\n",
-                    machine->cpu().faulted() ? machine->cpu().fault_message().c_str()
-                                             : "no");
-        std::printf("cpu state         : %s%s\n", machine->cpu().state_string().c_str(),
-                    machine->cpu().halted() ? " HALTED" : "");
+                    the_cpu.faulted() ? the_cpu.fault_message().c_str()
+                                      : "no");
+        std::printf("cpu state         : %s%s\n", the_cpu.state_string().c_str(),
+                    the_cpu.halted() ? " HALTED" : "");
         std::printf("interrupts        : intena %03x intreq %03x\n",
-                    machine->intena(), machine->intreq());
+                    machine_iface->intena(), machine_iface->intreq());
 
-        const hw::CoproTgp& copro = machine->copro();
-        std::printf("copro uploaded    : %u word(s)\n", copro.uploaded_words());
-        std::printf("copro instructions: %llu\n",
-                    (unsigned long long)copro.cpu().instructions());
-        std::printf("copro state       : %s%s\n", copro.cpu().state_string().c_str(),
-                    copro.cpu().halted() ? " HALTED" : "");
-        std::printf("copro fifos       : in %zu (peak overflow %zu), out %zu "
-                    "(peak overflow %zu)\n",
-                    copro.fifo_in().size(), copro.fifo_in().peak_overflow(),
-                    copro.fifo_out().size(), copro.fifo_out().peak_overflow());
+        if (machine) {
+            const hw::CoproTgp& copro = machine->copro();
+            std::printf("copro uploaded    : %u word(s)\n", copro.uploaded_words());
+            std::printf("copro instructions: %llu\n",
+                        (unsigned long long)copro.cpu().instructions());
+            std::printf("copro state       : %s%s\n", copro.cpu().state_string().c_str(),
+                        copro.cpu().halted() ? " HALTED" : "");
+            std::printf("copro fifos       : in %zu (peak overflow %zu), out %zu "
+                        "(peak overflow %zu)\n",
+                        copro.fifo_in().size(), copro.fifo_in().peak_overflow(),
+                        copro.fifo_out().size(), copro.fifo_out().peak_overflow());
 
-        const hw::CoproTgp::Activity& work = copro.activity();
-        std::printf("copro work        : %llu command(s), %llu result(s), "
-                    "%llu table lookup(s)\n",
-                    (unsigned long long)work.commands_received,
-                    (unsigned long long)work.results_sent,
-                    (unsigned long long)work.table_reads);
-        std::printf("copro memory      : display list %llu read / %llu written, "
-                    "data ROM %llu read\n",
-                    (unsigned long long)work.buffer_reads,
-                    (unsigned long long)work.buffer_writes,
-                    (unsigned long long)work.data_rom_reads);
-        const hw::Model2Sound& sound = machine->sound();
-        if (sound.present()) {
-            const hw::Model2Sound::Counters& snd = sound.counters();
-            std::printf("sound 68000       : %s\n", sound.cpu().state_string().c_str());
+            const hw::CoproTgp::Activity& work = copro.activity();
+            std::printf("copro work        : %llu command(s), %llu result(s), "
+                        "%llu table lookup(s)\n",
+                        (unsigned long long)work.commands_received,
+                        (unsigned long long)work.results_sent,
+                        (unsigned long long)work.table_reads);
+            std::printf("copro memory      : display list %llu read / %llu written, "
+                        "data ROM %llu read\n",
+                        (unsigned long long)work.buffer_reads,
+                        (unsigned long long)work.buffer_writes,
+                        (unsigned long long)work.data_rom_reads);
+        } else {
+            const hw::CoproSharc& copro = machine_2b->copro();
+            std::printf("copro uploaded    : %u 16-bit word(s)\n", copro.uploaded_words());
+            std::printf("copro instructions: %llu\n",
+                        (unsigned long long)copro.cpu().instructions());
+            std::printf("copro state       : %s%s\n", copro.cpu().state_string().c_str(),
+                        copro.cpu().halted() ? " HALTED" : "");
+            std::printf("copro fifos       : in %zu (peak overflow %zu), out %zu "
+                        "(peak overflow %zu)\n",
+                        copro.fifo_in().size(), copro.fifo_in().peak_overflow(),
+                        copro.fifo_out().size(), copro.fifo_out().peak_overflow());
+        }
+
+        if (the_sound.present()) {
+            const hw::Model2Sound::Counters& snd = the_sound.counters();
+            std::printf("sound 68000       : %s\n", the_sound.cpu().state_string().c_str());
             std::printf("sound cycles      : %llu\n",
-                        (unsigned long long)sound.cpu().cycles());
+                        (unsigned long long)the_sound.cpu().cycles());
             std::printf("sound scsp        : %llu write(s), %llu read(s)\n",
                         (unsigned long long)snd.scsp_writes,
                         (unsigned long long)snd.scsp_reads);
@@ -597,7 +619,7 @@ int main(int argc, char** argv)
                         (unsigned long long)snd.unmapped_reads,
                         (unsigned long long)snd.unmapped_writes);
 
-            const hw::I8251::Counters& uart = machine->uart().counters();
+            const hw::I8251::Counters& uart = the_uart.counters();
             std::printf("sound link        : %llu byte(s) to the board, %llu back, "
                         "%llu overrun(s), %llu status reads\n",
                         (unsigned long long)uart.bytes_sent,
@@ -605,14 +627,14 @@ int main(int argc, char** argv)
                         (unsigned long long)uart.overruns,
                         (unsigned long long)uart.status_reads);
 
-            const hw::Scsp::Stats& scsp = sound.scsp().stats();
+            const hw::Scsp::Stats& scsp = the_sound.scsp().stats();
             std::printf("scsp audio        : %llu sample(s) at %u Hz, peak %d/32767, "
                         "%llu dropped\n",
-                        (unsigned long long)scsp.samples, sound.sample_rate(),
+                        (unsigned long long)scsp.samples, the_sound.sample_rate(),
                         scsp.peak_output, (unsigned long long)snd.samples_dropped);
             std::printf("scsp slots        : %llu key-on(s), %u sounding now\n",
                         (unsigned long long)scsp.slot_starts,
-                        sound.scsp().active_slots());
+                        the_sound.scsp().active_slots());
             std::printf("scsp events       : %llu timer irq(s), %llu DMA(s), "
                         "MIDI %llu in / %llu out\n",
                         (unsigned long long)scsp.timer_interrupts,
@@ -626,35 +648,35 @@ int main(int argc, char** argv)
         std::printf("wall time         : %.2f s for %.2f s emulated (%.2fx)\n",
                     seconds, emulated, seconds > 0.0 ? emulated / seconds : 0.0);
         std::printf("\n");
-        machine->log_unmapped_summary();
-        machine->log_burst_summary();
+        machine_iface->log_unmapped_summary();
+        machine_iface->log_burst_summary();
 
-        if (!hw::run_copro_selftest(*machine)) {
+        if (machine && !hw::run_copro_selftest(*machine)) {
             SM2_ERROR("the coprocessor's mathematical units are out of tolerance");
             exit_code_boot_test = 1;
         }
 
-        hw::print_render_list_summary(*machine);
-        hw::print_tilemap_summary(*machine);
+        hw::print_render_list_summary(*machine_iface);
+        hw::print_tilemap_summary(*machine_iface);
 
         // Compose once, at the end. This exercises the real colour chain and the
         // real compositor, which is what the display uses, so a discrepancy
         // between this and the raw layer dump points at one or the other.
-        machine->compose_video();
+        machine_iface->compose_video();
         if (!options.dump_tilemap.empty()) {
-            hw::dump_tilemaps(*machine, options.dump_tilemap);
-            hw::dump_composed_frame(*machine, options.dump_tilemap);
-            hw::dump_render_list_wireframe(*machine, options.dump_tilemap);
+            hw::dump_tilemaps(*machine_iface, options.dump_tilemap);
+            hw::dump_composed_frame(*machine_iface, options.dump_tilemap);
+            hw::dump_render_list_wireframe(*machine_iface, options.dump_tilemap);
         }
 
         if (!options.dump_audio.empty()
             && !hw::write_wav(options.dump_audio, recorded,
-                              machine->sound().sample_rate())) {
+                              the_sound.sample_rate())) {
             exit_code_boot_test = 1;
         }
 
-        machine->save_nvram();
-        return machine->cpu().faulted() ? 1 : exit_code_boot_test;
+        machine_iface->save_nvram();
+        return the_cpu.faulted() ? 1 : exit_code_boot_test;
     }
 
     if (!SDL_Init(0)) {
@@ -731,7 +753,7 @@ int main(int argc, char** argv)
 
         // Show the overlay when launched without a ROM so there is something to
         // interact with.
-        if (!machine) {
+        if (!machine && !machine_2b) {
             gui.show();
         }
 
@@ -751,8 +773,9 @@ int main(int argc, char** argv)
         // reported by Audio::init and otherwise ignored. Opened at the machine's
         // own 44100 Hz and left to SDL to resample.
         osd::Audio audio;
-        if (machine) {
-            static_cast<void>(audio.init(machine->sound().sample_rate()));
+        if (machine || machine_2b) {
+            const auto& snd = machine ? machine->sound() : machine_2b->sound();
+            static_cast<void>(audio.init(snd.sample_rate()));
         }
 
         // With no machine there is nothing to draw, so present the two empty
@@ -836,36 +859,38 @@ int main(int argc, char** argv)
             // returns to real time.
             pacer.set_throttled(options.config.throttle && !fast_forward);
 
-            if (machine && !paused) {
+            if ((machine || machine_2b) && !paused) {
                 // Inputs are levels, sampled whenever the program polls the I/O
                 // controller during the frame, so they have to be set before the
                 // frame runs rather than after.
-                input.poll(&machine->inputs(), loaded->game);
+                input.poll(&machine_iface->inputs(), loaded->game);
                 if (options.coin_at != 0) {
                     // Scripted coin, start and character confirmation, so an
                     // unattended capture can reach the game itself rather than
                     // only the attract mode.
                     const osd::Input::ScriptedPress press = osd::Input::scripted_press(
                         frames_presented, options.coin_at, loaded->game.start1_bit);
-                    machine->inputs().in0 &= static_cast<u8>(~press.in0);
-                    machine->inputs().in1 &= static_cast<u8>(~press.in1);
+                    machine_iface->inputs().in0 &= static_cast<u8>(~press.in0);
+                    machine_iface->inputs().in1 &= static_cast<u8>(~press.in1);
                 }
 
-                machine->run_frame();
+                machine_iface->run_frame();
 
                 // The sound board produced about 767 stereo frames while that ran.
                 // Handed over every frame rather than buffered here, so the only
                 // buffering is SDL's.
-                const std::span<const s16> produced = machine->sound().pending_samples();
+                auto& snd = machine ? machine->sound() : machine_2b->sound();
+                const std::span<const s16> produced = snd.pending_samples();
                 audio.submit(produced);
                 if (!options.dump_audio.empty()) {
                     recorded_audio.insert(recorded_audio.end(), produced.begin(),
                                           produced.end());
                 }
-                machine->sound().clear_pending_samples();
+                snd.clear_pending_samples();
 
-                if (machine->cpu().faulted()) {
-                    SM2_ERROR("stopping: %s", machine->cpu().fault_message().c_str());
+                auto& cpu = machine ? machine->cpu() : machine_2b->cpu();
+                if (cpu.faulted()) {
+                    SM2_ERROR("stopping: %s", cpu.fault_message().c_str());
                     exit_code = 1;
                     break;
                 }
@@ -880,9 +905,9 @@ int main(int argc, char** argv)
                 continue;
             }
 
-            const hw::Model2Video& video = machine ? machine->video() : idle_video;
-            if (machine) {
-                machine->compose_video();
+            const hw::Model2Video& video = (machine || machine_2b) ? machine_iface->video() : idle_video;
+            if (machine || machine_2b) {
+                machine_iface->compose_video();
             }
 
             // Uploads and the 3D pass first. Both need a command buffer that is
@@ -890,7 +915,7 @@ int main(int argc, char** argv)
             // one, and the 3D pass opens a scope of its own on its offscreen
             // target.
             tilemaps.upload(video.below(), video.above());
-            polygons.build(machine, video);
+            polygons.build(machine_iface.get(), video);
             polygons.render();
 
             // The hardware's three-way composite, all of it at the native 496x384:
@@ -1005,7 +1030,10 @@ int main(int argc, char** argv)
                           polygons.drawn_polygons(), polygons.triangles(),
                           polygons.blank_polygons(), frames_written_off,
                           audio.queued_milliseconds(),
-                          machine ? machine->sound().scsp().active_slots() : 0u);
+                          (machine || machine_2b)
+                              ? (machine ? machine->sound().scsp().active_slots()
+                                         : machine_2b->sound().scsp().active_slots())
+                              : 0u);
 
                 std::string title = std::string("sm2-emu — ")
                                   + (loaded.has_value() ? loaded->game.title : "no game");
@@ -1028,10 +1056,10 @@ int main(int argc, char** argv)
                      frames_written_off);
         }
 
-        if (machine) {
-            machine->save_nvram();
-            machine->log_unmapped_summary();
-            machine->log_burst_summary();
+        if (machine || machine_2b) {
+            machine_iface->save_nvram();
+            machine_iface->log_unmapped_summary();
+            machine_iface->log_burst_summary();
         }
 
         // Nothing may be destroyed while a submitted command buffer still
@@ -1045,9 +1073,10 @@ int main(int argc, char** argv)
             exit_code = 1;
         }
 
-        if (!options.dump_audio.empty() && machine
+        if (!options.dump_audio.empty() && (machine || machine_2b)
             && !hw::write_wav(options.dump_audio, recorded_audio,
-                              machine->sound().sample_rate())) {
+                              machine ? machine->sound().sample_rate()
+                                      : machine_2b->sound().sample_rate())) {
             exit_code = 1;
         }
 

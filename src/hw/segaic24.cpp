@@ -388,8 +388,13 @@ void Segaic24Tile::draw_split(const DrawState& state,
     // Modes 2 and 3 without row scroll: a fixed vertical boundary, which is how a
     // game splits the screen for two players or insets a window.
     //
-    // Note the boundary is the unnegated scroll value while the source origin is
-    // the negated one. That asymmetry is in the original.
+    // The boundary is the unnegated scroll value while the source origin is
+    // the negated one. That asymmetry is in the original: MAME applies
+    // set_scrollx(0, -(hscr & 0x1ff)) to both layers (negated), then clips each
+    // to its own side of the boundary (unnegated). draw_region's mapping of
+    // source = h + (X - x0) already accounts for that because h is negated and
+    // x0 is the clip start, not the boundary — so the right half's origin
+    // (h + boundary) gives each screen pixel the same source as MAME.
     const int boundary = std::clamp(static_cast<int>(hscr & 0x1ff), 0, screen_width);
     const u32 left     = (hscr & 0x200) != 0 ? layer : (layer ^ 1);
 

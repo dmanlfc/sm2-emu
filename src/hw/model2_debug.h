@@ -23,6 +23,7 @@
 namespace sm2::hw {
 
 class Model2;
+class Model2MachineBase;
 
 /// Decode the System 24 tilemap layers and write them out for inspection.
 ///
@@ -34,7 +35,7 @@ class Model2;
 /// Tiles are drawn with their raw 4-bit pixel values scaled to full range rather
 /// than through the palette, which is enough to make text legible while
 /// depending on nothing but the tile format.
-bool dump_tilemaps(const Model2& machine, const std::string& directory);
+bool dump_tilemaps(const Model2MachineBase& machine, const std::string& directory);
 
 /// What the geometry engine produced this frame, and where it went.
 ///
@@ -43,14 +44,14 @@ bool dump_tilemaps(const Model2& machine, const std::string& directory);
 /// whose extent lies outside the 496x384 raster is the usual symptom of a wrong
 /// projection or a wrong focal distance, and says so far more directly than a
 /// blank screen does.
-void print_render_list_summary(const Model2& machine);
+void print_render_list_summary(const Model2MachineBase& machine);
 
 /// Draw this frame's polygons as a wireframe and write it as a PPM.
 ///
 /// A wireframe rather than filled triangles on purpose: it shows the geometry
 /// itself, including polygons that a fill would hide behind nearer ones, so the
 /// question "is the shape right?" can be answered before any pixel stage exists.
-bool dump_render_list_wireframe(const Model2& machine, const std::string& directory);
+bool dump_render_list_wireframe(const Model2MachineBase& machine, const std::string& directory);
 
 /// Check the coprocessor's mathematical units against the standard library.
 ///
@@ -70,11 +71,11 @@ bool run_copro_selftest(Model2& machine);
 /// This is what says whether a layer is scrolling, disabled, using per-line
 /// scroll, or splitting a pair between its two maps. A wrong picture is almost
 /// always explained here before it is explained anywhere else.
-void print_tilemap_registers(const Model2& machine);
+void print_tilemap_registers(const Model2MachineBase& machine);
 
 /// One-line-per-layer summary of how much of each tilemap is populated, plus an
 /// ASCII rendering of every populated layer. Written to stdout.
-void print_tilemap_summary(const Model2& machine);
+void print_tilemap_summary(const Model2MachineBase& machine);
 
 /// Write interleaved stereo samples to a RIFF WAV file.
 ///
@@ -91,6 +92,6 @@ bool write_wav(const std::string& path, std::span<const s16> samples, u32 sample
 /// Takes a mutable machine because it re-draws individual layers into scratch
 /// buffers, which uses the tile chip's own drawing path rather than a
 /// reimplementation of it.
-bool dump_composed_frame(Model2& machine, const std::string& directory);
+bool dump_composed_frame(Model2MachineBase& machine, const std::string& directory);
 
 }  // namespace sm2::hw

@@ -16,6 +16,7 @@
 
 #include "core/log.h"
 #include "hw/model2.h"
+#include "hw/model2b.h"
 
 namespace sm2::hw {
 
@@ -43,12 +44,19 @@ std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game, rom
             return machine;
         }
 
-        // Not implemented yet. Rejected here rather than left to crash or to
-        // produce a silently-empty machine, matching RomLoader::load's own
-        // rejection message style. `roms` is never touched and no device
-        // state is allocated on this path.
+        case rom::Board::Model2B: {
+            if (!rom::board_implemented(game.board)) {
+                break;
+            }
+            auto machine = std::make_unique<Model2B>();
+            if (!machine->init(game, std::move(roms))) {
+                return nullptr;
+            }
+            return machine;
+        }
+
+        // Not implemented yet.
         case rom::Board::Model2:
-        case rom::Board::Model2B:
         case rom::Board::Model2C:
             break;
     }

@@ -24,7 +24,7 @@
 using VmaAllocation = struct VmaAllocation_T*;
 
 namespace sm2::hw {
-class Model2;
+class Model2MachineBase;
 class Model2Video;
 struct RenderPolygon;
 }  // namespace sm2::hw
@@ -95,7 +95,7 @@ public:
     /// The machine argument is what the pass reads texture RAM, luminance RAM and
     /// the colour tables from; it also carries the change counters that decide
     /// whether any of that needs copying again.
-    void build(const hw::Model2* machine, const hw::Model2Video& video);
+    void build(const hw::Model2MachineBase* machine, const hw::Model2Video& video);
 
     /// Draw what build() prepared into the offscreen target.
     ///
@@ -248,7 +248,7 @@ private:
 
     /// Copy whatever this frame's copies are missing, and record the transfer of
     /// the tone curve into its image.
-    void refresh_machine_data(const hw::Model2& machine, const hw::Model2Video& video);
+    void refresh_machine_data(const hw::Model2MachineBase& machine, const hw::Model2Video& video);
 
     /// Dispatch the decode pass over the current frame's texture sheets.
     ///

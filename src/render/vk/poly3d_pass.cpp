@@ -20,7 +20,7 @@
 
 #include "core/log.h"
 #include "hw/geometrizer.h"
-#include "hw/model2.h"
+#include "hw/model2_machine_base.h"
 #include "hw/model2_video.h"
 
 #include <vk_mem_alloc.h>
@@ -901,7 +901,7 @@ Poly3DPass::Frame& Poly3DPass::frame()
     return m_frames[m_context->frame_index()];
 }
 
-void Poly3DPass::refresh_machine_data(const hw::Model2&      machine,
+void Poly3DPass::refresh_machine_data(const hw::Model2MachineBase& machine,
                                       const hw::Model2Video& video)
 {
     Frame& target = frame();
@@ -1059,7 +1059,7 @@ Poly3DPass::PolyParams Poly3DPass::describe(const hw::RenderPolygon& poly,
     return params;
 }
 
-void Poly3DPass::build(const hw::Model2* machine, const hw::Model2Video& video)
+void Poly3DPass::build(const hw::Model2MachineBase* machine, const hw::Model2Video& video)
 {
     m_vertices.clear();
     m_polygons.clear();

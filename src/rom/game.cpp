@@ -33,9 +33,9 @@ bool board_implemented(Board board)
 {
     switch (board) {
         case Board::Model2A: return true;
+        case Board::Model2B: return true;
 
         case Board::Model2:
-        case Board::Model2B:
         case Board::Model2C:
             return false;
     }

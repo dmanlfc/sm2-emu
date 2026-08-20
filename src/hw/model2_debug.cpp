@@ -21,6 +21,7 @@
 #include "core/log.h"
 #include "core/types.h"
 #include "hw/model2.h"
+#include "hw/model2_machine_base.h"
 #include "hw/copro_tgp.h"
 #include "hw/model2_video.h"
 
@@ -43,7 +44,7 @@ constexpr u32 kTileSize    = 8;
 constexpr u32 kMapPixels   = kCellsAcross * kTileSize;  // 512
 
 /// Render a whole layer at 512x512, one byte per pixel.
-[[nodiscard]] std::vector<u8> render_layer(const Model2& machine, u32 layer)
+[[nodiscard]] std::vector<u8> render_layer(const Model2MachineBase& machine, u32 layer)
 {
     const std::span<const u8> tile_ram = machine.tile_ram();
     const std::span<const u8> char_ram = machine.char_ram();
@@ -76,7 +77,7 @@ struct LayerStats {
     u32 pixels_set       = 0;
 };
 
-[[nodiscard]] LayerStats measure_layer(const Model2& machine, u32 layer,
+[[nodiscard]] LayerStats measure_layer(const Model2MachineBase& machine, u32 layer,
                                        const std::vector<u8>& image)
 {
     LayerStats stats;
@@ -154,7 +155,7 @@ struct LayerStats {
 
 }  // namespace
 
-bool dump_tilemaps(const Model2& machine, const std::string& directory)
+bool dump_tilemaps(const Model2MachineBase& machine, const std::string& directory)
 {
     std::error_code error;
     std::filesystem::create_directories(directory, error);
@@ -207,7 +208,7 @@ bool dump_tilemaps(const Model2& machine, const std::string& directory)
     return true;
 }
 
-bool dump_composed_frame(Model2& machine, const std::string& directory)
+bool dump_composed_frame(Model2MachineBase& machine, const std::string& directory)
 {
     std::error_code error;
     std::filesystem::create_directories(directory, error);
@@ -307,7 +308,7 @@ bool dump_composed_frame(Model2& machine, const std::string& directory)
     return true;
 }
 
-void print_render_list_summary(const Model2& machine)
+void print_render_list_summary(const Model2MachineBase& machine)
 {
     const RenderList& list = machine.render_list();
 
@@ -419,7 +420,7 @@ void print_render_list_summary(const Model2& machine)
     std::printf("touching the raster: %u of %zu\n", on_screen, list.polygons.size());
 }
 
-bool dump_render_list_wireframe(const Model2& machine, const std::string& directory)
+bool dump_render_list_wireframe(const Model2MachineBase& machine, const std::string& directory)
 {
     std::error_code error;
     std::filesystem::create_directories(directory, error);
@@ -638,7 +639,7 @@ bool run_copro_selftest(Model2& machine)
     return ok;
 }
 
-void print_tilemap_registers(const Model2& machine)
+void print_tilemap_registers(const Model2MachineBase& machine)
 {
     const std::span<const u8> tile_ram = machine.tile_ram();
     const auto word = [&](u32 index) -> u16 {
@@ -686,7 +687,7 @@ void print_tilemap_registers(const Model2& machine)
     }
 }
 
-void print_tilemap_summary(const Model2& machine)
+void print_tilemap_summary(const Model2MachineBase& machine)
 {
     print_tilemap_registers(machine);
 
