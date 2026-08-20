@@ -442,6 +442,12 @@ usize RomLoader::computed_region_size(const RegionSpec&         region,
                         + region.chunk;
         required = std::max(required, end);
     }
+    // A mirror can reach past the last chip, which is the whole point of it, so
+    // a region declaring no explicit size still has to be big enough to hold
+    // its own copies.
+    for (const RegionCopy& copy : region.copies) {
+        required = std::max<usize>(required, usize{copy.to} + copy.size);
+    }
     return required;
 }
 
@@ -523,6 +529,41 @@ std::optional<std::vector<u8>> RomLoader::assemble_region(
             destination += region.stride;
             source      += region.chunk;
         }
+    }
+
+    // MAME's ROM_COPY, applied in declaration order once every chip is in
+    // place. Before the byte swap rather than after, which is equivalent
+    // (swapping a copy of a block gives the same bytes as copying the swapped
+    // block) but keeps the swap as the single last step over the whole region.
+    for (const RegionCopy& copy : region.copies) {
+        const usize from = copy.from;
+        const usize to   = copy.to;
+        const usize span = copy.size;
+        if (from + span > data.size() || to + span > data.size()) {
+            SM2_ERROR("region '%s': copy of 0x%zx bytes from 0x%zx to 0x%zx "
+                      "does not fit in 0x%zx", region.name.c_str(), span, from, to,
+                      data.size());
+            return std::nullopt;
+        }
+        // memmove, not memcpy: nothing stops a set from declaring an
+        // overlapping mirror.
+        std::memmove(data.data() + to, data.data() + from, span);
+    }
+
+    // MAME's driver init patches, applied after the mirrors so a patched word
+    // cannot be overwritten by one.
+    for (const RegionPatch& patch : region.patches) {
+        if (usize{patch.offset} + 4 > data.size()) {
+            SM2_ERROR("region '%s': patch at 0x%x is outside the region's 0x%zx bytes",
+                      region.name.c_str(), patch.offset, data.size());
+            return std::nullopt;
+        }
+        data[patch.offset + 0] = static_cast<u8>(patch.value);
+        data[patch.offset + 1] = static_cast<u8>(patch.value >> 8);
+        data[patch.offset + 2] = static_cast<u8>(patch.value >> 16);
+        data[patch.offset + 3] = static_cast<u8>(patch.value >> 24);
+        SM2_DEBUG("region '%s': patched 0x%x = %08x", region.name.c_str(),
+                  patch.offset, patch.value);
     }
 
     if (region.byte_swap) {

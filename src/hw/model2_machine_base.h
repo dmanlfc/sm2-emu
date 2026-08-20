@@ -89,7 +89,24 @@ struct Inputs {
 
     /// Eight analogue channels behind the I/O controller's mux. Unused by games
     /// with digital controls only.
+    ///
+    /// These are filled from the per-title channel assignment in
+    /// rom::GameSpec::analog rather than by a fixed convention, because the
+    /// channel a control sits on differs between titles. A machine with no
+    /// analogue controls leaves them at their rest values.
     std::array<u8, 8> analog{};
+
+    /// Gear selector, one bit per shifter position, active high. Only read by a
+    /// title whose GameSpec sets `gearbox`.
+    u8 gears = 0;
+
+    /// Lightgun position, 10-bit, in the coordinate space the title calibrates
+    /// for in rom::GameSpec::lightgun. These do not go through the analogue mux:
+    /// the gun interface board is a serial device.
+    u16 gun_p1x = 0;
+    u16 gun_p1y = 0;
+    u16 gun_p2x = 0;
+    u16 gun_p2y = 0;
 };
 
 /// A type-erased snapshot of the machine's main CPU state.

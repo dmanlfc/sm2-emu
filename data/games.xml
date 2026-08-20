@@ -9,9 +9,12 @@
   Schema
   ======
 
-  <game name= parent= board= preliminary=>
+  <game name= parent= board= preliminary= start1= protection= key=
+        gearbox= drive_board=>
     <title/> <version/> <manufacturer/> <year/>
     <inputs> <input type="..."/> ... </inputs>
+    <analog>   <channel index= control= min= max= rest= reverse=/> ... </analog>
+    <lightgun> <axis name= min= max= rest=/> ... </lightgun>
     <roms>
       <region name= size= stride= chunk= byte_swap= fill= required=>
         <file name= offset= crc=/>
@@ -41,8 +44,42 @@
   `required="false"` marks a region that may be absent, or that is present in
   the archive but holds no chips on this board.
 
+  A region may also declare `<copy from= to= size=/>` children, applied in
+  order once every chip is placed. This is MAME's ROM_COPY: the ROM boards
+  alias their last populated bank across the rest of the address window the
+  hardware decodes, and games read those aliases, so a missing mirror shows up
+  as a program reading a table of zeros rather than as a missing file.
+
+  `<patch offset= value=/>` overwrites one 32-bit little-endian word after the
+  copies. These are MAME's per-game `init_` workarounds for genuine bugs in the
+  game programs, not emulation; each one cites the MAME function it came from.
+
   Identification is by CRC32 content, not by archive name, so merged sets
   containing several revisions resolve to the right one.
+
+  Analogue and lightgun wiring
+  ============================
+  `<analog>` describes how the title's machine config binds the I/O
+  controller's 8-channel mux, transcribed from MAME's `an_port_callback<N>`
+  bindings. The channel a control sits on is *not* consistent between titles:
+  Manx TT and Motor Raid put throttle on 0, brake on 1 and the handlebars on 2,
+  where every other racer has steering on 0. Sky Target uses 0 and 2 and skips
+  1. Rail Chase 2 puts player 2 on the even channels. Guessing here produces a
+  game that runs and steers with the accelerator, so each title's wiring is
+  data rather than a shared default.
+
+  `min`/`max`/`rest`/`reverse` mirror MAME's PORT_MINMAX, the PORT_BIT default
+  value, and PORT_REVERSE. `rest` defaults to 0x00 for a pedal and 0x80 for
+  everything else, matching how MAME declares them.
+
+  `<lightgun>` is a different piece of hardware: the gun interface board is
+  10-bit and reaches the program over RS-422 channel 2, not through the mux, so
+  its axes are declared separately and each title carries its own calibration.
+  Axis order is the board's own mux order, P1 Y, P1 X, P2 Y, P2 X.
+
+  `gearbox="true"` marks a title whose IN1 bits 0x70 read a gear selector
+  rather than buttons (MAME's daytona_gearbox_r). `drive_board="true"` marks
+  one that latches force-feedback commands on port E.
 -->
 
 <games>
@@ -224,6 +261,12 @@
       <input type="buttons3"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2a_state::skytargt. -->
+    <analog>
+      <channel index="0" control="sticky" rest="0x80"/>
+      <channel index="2" control="stickx" rest="0x80" reverse="true"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-18406.12" offset="0x000000" crc="0xfde9c00a"/>
@@ -237,6 +280,22 @@
         <file name="mpr-18418.9"  offset="0x0800002" crc="0xc7a6f97f"/>
         <file name="epr-18404.6"  offset="0x1000000" crc="0xf1407ec4"/>
         <file name="epr-18405.7"  offset="0x1000002" crc="0x00b40f9e"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1800000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1f00000" size="0x100000"/>
       </region>
 
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
@@ -299,6 +358,15 @@
       <input type="gun2"/>
     </inputs>
 
+    <!-- Lightgun calibration, from MAME's vcop2 input ports. The guns are 10-bit and arrive over RS-422
+         channel 2, not through the analogue mux. -->
+    <lightgun>
+      <axis name="p1y" min="0x024" max="0x1a9" rest="0x0e6"/>
+      <axis name="p1x" min="0x089" max="0x276" rest="0x17f"/>
+      <axis name="p2y" min="0x024" max="0x1a9" rest="0x0e6"/>
+      <axis name="p2x" min="0x086" max="0x273" rest="0x17c"/>
+    </lightgun>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-18524.12" offset="0x000000" crc="0x1858988b"/>
@@ -316,6 +384,10 @@
         <file name="mpr-18523.7"  offset="0x800002" crc="0x61d08dc4"/>
         <file name="epr-18520.4"  offset="0xc00000" crc="0x1d4ec5e8"/>
         <file name="epr-18521.5"  offset="0xc00002" crc="0xb8b3781c"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0xc00000" to="0xd00000" size="0x100000"/>
+        <copy from="0xc00000" to="0xe00000" size="0x100000"/>
+        <copy from="0xc00000" to="0xf00000" size="0x100000"/>
       </region>
 
       <region name="copro_data" size="0x800000" required="false"/>
@@ -361,7 +433,7 @@
        Vertical scrolling shooter. Digital joystick and two buttons.
        Requires 315-5881 encryption chip (key 042c0d13).
        =================================================================== -->
-  <game name="zeroguna" board="model2a" preliminary="true">
+  <game name="zeroguna" board="model2a" protection="315-5881" key="0x042c0d13" preliminary="true">
     <title>Zero Gunner</title>
     <version>Export</version>
     <manufacturer>Psikyo</manufacturer>
@@ -378,6 +450,9 @@
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-20437.12" offset="0x000000" crc="0xfad30cc0"/>
         <file name="epr-20438.13" offset="0x000002" crc="0xca364408"/>
+              <!-- MAME init_zerogun: the program destroys its own
+             interrupt table and never repairs it. -->
+        <patch offset="0x700" value="0x08000004"/>
       </region>
 
       <region name="main_data" size="0x2000000" stride="4" chunk="2">
@@ -422,12 +497,15 @@
     </roms>
   </game>
 
-  <game name="zerogunaj" parent="zeroguna">
+  <game name="zerogunaj" parent="zeroguna" protection="315-5881" key="0x042c0d13">
     <version>Japan</version>
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-20288.12" offset="0x000000" crc="0x162305d5"/>
         <file name="epr-20289.13" offset="0x000002" crc="0xb5acb940"/>
+              <!-- MAME init_zerogun: the program destroys its own
+             interrupt table and never repairs it. -->
+        <patch offset="0x700" value="0x08000004"/>
       </region>
     </roms>
   </game>
@@ -468,6 +546,8 @@
         <file name="mpr-19315.7"  offset="0x1000002" crc="0x90ae5682"/>
         <file name="mpr-19312.4"  offset="0x1800000" crc="0x1dcedb10"/>
         <file name="mpr-19313.5"  offset="0x1800002" crc="0x8c63055e"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1c00000" size="0x400000"/>
       </region>
 
       <region name="copro_data" size="0x800000" required="false"/>
@@ -552,6 +632,10 @@
         <file name="mpr-19237.11" offset="0x000002" crc="0x961328b1"/>
         <file name="11-7_ic8_d400.8" offset="0x800000" crc="0x37f300bd"/>
         <file name="11-7_ic9_6e4a.9" offset="0x800002" crc="0x454e4a09"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x200000"/>
+        <copy from="0x800000" to="0xc00000" size="0x400000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2" required="false"/>
       <region name="polygons" size="0x2000000" stride="4" chunk="2">
@@ -595,6 +679,14 @@
       <input type="gun1"/>
       <input type="gun2"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2c_state::bel. -->
+    <analog>
+      <channel index="0" control="p1x" min="0x69" rest="0xb1"/>
+      <channel index="1" control="p2x" max="0x96" rest="0x50"/>
+      <channel index="2" control="p1y" min="0x11" max="0xae" rest="0x5f"/>
+      <channel index="3" control="p2y" min="0x11" max="0xae" rest="0x5f"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -646,7 +738,7 @@
   </game>
 
 
-  <game name="daytona" board="model2" preliminary="true">
+  <game name="daytona" gearbox="true" drive_board="true" board="model2" preliminary="true">
     <title>Daytona USA</title>
     <manufacturer>Sega</manufacturer>
     <year>1994</year>
@@ -655,6 +747,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2o_state::daytona. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -668,6 +767,14 @@
         <file name="mpr-16809.9" offset="0x400002" crc="0x37a2dd12"/>
         <file name="epr-16724a.6" offset="0x800000" crc="0x469f10fd"/>
         <file name="epr-16725a.7" offset="0x800002" crc="0xba0df8db"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-16537.ic28" offset="0x000000" crc="0x36b7c35a"/>
@@ -710,7 +817,7 @@
     </roms>
   </game>
 
-  <game name="daytona93" parent="daytona" board="model2" preliminary="true">
+  <game name="daytona93" gearbox="true" drive_board="true" parent="daytona" board="model2" preliminary="true">
     <title>Daytona USA</title>
     <manufacturer>Sega</manufacturer>
     <year>1993</year>
@@ -719,6 +826,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2o_state::daytona. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -732,6 +846,13 @@
         <file name="mpr-16527.9" offset="0x400002" crc="0xfc4cb0ef"/>
         <file name="epr-16534a.6" offset="0x800000" crc="0x1bb0d72d"/>
         <file name="epr-16535a.7" offset="0x800002" crc="0x459a8bfb"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x900000" to="0xa00000" size="0x100000"/>
+        <copy from="0x900000" to="0xb00000" size="0x100000"/>
+        <copy from="0x900000" to="0xc00000" size="0x100000"/>
+        <copy from="0x900000" to="0xd00000" size="0x100000"/>
+        <copy from="0x900000" to="0xe00000" size="0x100000"/>
+        <copy from="0x900000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-16537.ic28" offset="0x000000" crc="0x36b7c35a"/>
@@ -774,7 +895,7 @@
     </roms>
   </game>
 
-  <game name="daytonas" parent="daytona" board="model2" preliminary="true">
+  <game name="daytonas" gearbox="true" drive_board="true" parent="daytona" board="model2" preliminary="true">
     <title>Daytona USA</title>
     <version>with Saturn advertisements</version>
     <manufacturer>Sega</manufacturer>
@@ -784,6 +905,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2o_state::daytona. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -797,6 +925,14 @@
         <file name="mpr-16809.9" offset="0x400002" crc="0x37a2dd12"/>
         <file name="epr-17967.ic6" offset="0x800000" crc="0xa94d8690"/>
         <file name="epr-17968.ic7" offset="0x800002" crc="0x9d5a92c6"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-16537.ic28" offset="0x000000" crc="0x36b7c35a"/>
@@ -841,7 +977,7 @@
     </roms>
   </game>
 
-  <game name="daytonase" parent="daytona" board="model2" preliminary="true">
+  <game name="daytonase" gearbox="true" drive_board="true" parent="daytona" board="model2" preliminary="true">
     <title>Daytona USA Special Edition</title>
     <version>Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -851,6 +987,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2o_state::daytona. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -864,6 +1007,14 @@
         <file name="mpr-16809.9" offset="0x400002" crc="0x37a2dd12"/>
         <file name="epr-17371.6" offset="0x800000" crc="0x7478f0d2"/>
         <file name="epr-17372.7" offset="0x800002" crc="0x308a06a9"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-16537.ic28" offset="0x000000" crc="0x36b7c35a"/>
@@ -993,6 +1144,8 @@
         <file name="mpr-19315.8" offset="0x1000002" crc="0x90ae5682"/>
         <file name="mpr-19312.5" offset="0x1800000" crc="0x1dcedb10"/>
         <file name="mpr-19313.6" offset="0x1800002" crc="0x8c63055e"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1c00000" size="0x400000"/>
       </region>
       <region name="polygons" size="0x2000000" stride="4" chunk="2" fill="0xff">
         <file name="mpr-19322.17" offset="0x000000" crc="0xd0e6ecf0"/>
@@ -1049,6 +1202,8 @@
         <file name="mpr-19315.7" offset="0x1000002" crc="0x90ae5682"/>
         <file name="mpr-19312.4" offset="0x1800000" crc="0x1dcedb10"/>
         <file name="mpr-19313.5" offset="0x1800002" crc="0x8c63055e"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1c00000" size="0x400000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2" required="false"/>
       <region name="polygons" size="0x2000000" stride="4" chunk="2" fill="0xff">
@@ -1112,6 +1267,8 @@
         <file name="mpr-19315.8" offset="0x1000002" crc="0x90ae5682"/>
         <file name="mpr-19312.5" offset="0x1800000" crc="0x1dcedb10"/>
         <file name="mpr-19313.6" offset="0x1800002" crc="0x8c63055e"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1c00000" size="0x400000"/>
       </region>
       <region name="polygons" size="0x2000000" stride="4" chunk="2" fill="0xff">
         <file name="mpr-19322.17" offset="0x000000" crc="0xd0e6ecf0"/>
@@ -1150,6 +1307,12 @@
       <input type="joystick2"/>
       <input type="buttons3"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2b_state::dynabb. -->
+    <analog>
+      <channel index="0" control="bat1" rest="0x00"/>
+      <channel index="1" control="bat2" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -1201,6 +1364,12 @@
       <input type="buttons3"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2b_state::dynabb. -->
+    <analog>
+      <channel index="0" control="bat1" rest="0x00"/>
+      <channel index="1" control="bat2" rest="0x00"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19833a.15" offset="0x000000" crc="0xd99ed1b2"/>
@@ -1242,7 +1411,7 @@
   </game>
 
 
-  <game name="dynamcop" board="model2a" preliminary="true">
+  <game name="dynamcop" board="model2a" protection="315-5881" key="0x2c2a4a93" preliminary="true">
     <title>Dynamite Cop</title>
     <manufacturer>Sega</manufacturer>
     <year>1998</year>
@@ -1310,7 +1479,7 @@
     </roms>
   </game>
 
-  <game name="dynamcopb" parent="dynamcop" board="model2b" preliminary="true">
+  <game name="dynamcopb" parent="dynamcop" board="model2b" protection="315-5881" key="0x2c2a4a93" preliminary="true">
     <title>Dynamite Cop</title>
     <version>Export, Model 2B</version>
     <manufacturer>Sega</manufacturer>
@@ -1369,7 +1538,7 @@
     </roms>
   </game>
 
-  <game name="dynamcopc" parent="dynamcop" board="model2c" preliminary="true">
+  <game name="dynamcopc" parent="dynamcop" board="model2c" protection="315-5881" key="0x2c2a4a93" preliminary="true">
     <title>Dynamite Cop</title>
     <version>USA, Model 2C</version>
     <manufacturer>Sega</manufacturer>
@@ -1428,7 +1597,7 @@
     </roms>
   </game>
 
-  <game name="dyndeka2" parent="dynamcop" board="model2a" preliminary="true">
+  <game name="dyndeka2" parent="dynamcop" board="model2a" protection="315-5881" key="0x2c2a4a93" preliminary="true">
     <title>Dynamite Deka 2</title>
     <version>Japan, Model 2A</version>
     <manufacturer>Sega</manufacturer>
@@ -1497,7 +1666,7 @@
     </roms>
   </game>
 
-  <game name="dyndeka2b" parent="dynamcop" board="model2b" preliminary="true">
+  <game name="dyndeka2b" parent="dynamcop" board="model2b" protection="315-5881" key="0x2c2a4a93" preliminary="true">
     <title>Dynamite Deka 2</title>
     <version>Japan, Model 2B</version>
     <manufacturer>Sega</manufacturer>
@@ -1585,6 +1754,21 @@
         <file name="epr-18611d.8" offset="0x1000002" crc="0x39a75fee"/>
         <file name="epr-18608d.5" offset="0x1800000" crc="0x5bc11881"/>
         <file name="epr-18609d.6" offset="0x1800002" crc="0xcd426035"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-18622.29" offset="0x000000" crc="0xc74d99e3"/>
@@ -1645,6 +1829,21 @@
         <file name="epr-18611a.8" offset="0x1000002" crc="0xd1b0194c"/>
         <file name="epr-18608a.5" offset="0x1800000" crc="0xdd082af6"/>
         <file name="epr-18609a.6" offset="0x1800002" crc="0x3f69b77c"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-18622.29" offset="0x000000" crc="0xc74d99e3"/>
@@ -1705,6 +1904,21 @@
         <file name="epr-18611b.8" offset="0x1000002" crc="0x39a75fee"/>
         <file name="epr-18608b.5" offset="0x1800000" crc="0x7df5082f"/>
         <file name="epr-18609b.6" offset="0x1800002" crc="0xe771fec9"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-18622.29" offset="0x000000" crc="0xc74d99e3"/>
@@ -1747,6 +1961,14 @@
       <input type="gun1"/>
       <input type="gun2"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2b_state::gunblade. -->
+    <analog>
+      <channel index="0" control="p1x" min="0x69" rest="0xb1"/>
+      <channel index="1" control="p2x" max="0x96" rest="0x50"/>
+      <channel index="2" control="p1y" min="0x11" max="0xae" rest="0x5f"/>
+      <channel index="3" control="p2y" min="0x11" max="0xae" rest="0x5f"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -1795,6 +2017,15 @@
       <input type="gun2"/>
     </inputs>
 
+    <!-- Lightgun calibration, from MAME's hotd input ports. The guns are 10-bit and arrive over RS-422
+         channel 2, not through the analogue mux. -->
+    <lightgun>
+      <axis name="p1y" min="0x057" max="0x17c" rest="0x0e9"/>
+      <axis name="p1x" min="0x0ad" max="0x254" rest="0x180"/>
+      <axis name="p2y" min="0x057" max="0x17c" rest="0x0e9"/>
+      <axis name="p2x" min="0x0a3" max="0x254" rest="0x17b"/>
+    </lightgun>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19696a.15" offset="0x000000" crc="0x42adc32e"/>
@@ -1811,6 +2042,14 @@
         <file name="mpr-19701.8" offset="0x1000002" crc="0x224a8929"/>
         <file name="epr-19698.5" offset="0x1800000" crc="0xe7a7b6ea"/>
         <file name="epr-19699.6" offset="0x1800002" crc="0x8160b3d9"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="epr-19707.29" offset="0x000000" crc="0x384fd133"/>
@@ -1853,6 +2092,15 @@
       <input type="gun2"/>
     </inputs>
 
+    <!-- Lightgun calibration, from MAME's hotdo input ports. The guns are 10-bit and arrive over RS-422
+         channel 2, not through the analogue mux. -->
+    <lightgun>
+      <axis name="p1y" min="0x057" max="0x17c" rest="0x0e9"/>
+      <axis name="p1x" min="0x0ad" max="0x254" rest="0x180"/>
+      <axis name="p2y" min="0x057" max="0x17c" rest="0x0e9"/>
+      <axis name="p2x" min="0x0a3" max="0x254" rest="0x17b"/>
+    </lightgun>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19696.15" offset="0x000000" crc="0x03da5623"/>
@@ -1869,6 +2117,14 @@
         <file name="mpr-19701.8" offset="0x1000002" crc="0x224a8929"/>
         <file name="epr-19698.5" offset="0x1800000" crc="0xe7a7b6ea"/>
         <file name="epr-19699.6" offset="0x1800002" crc="0x8160b3d9"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="epr-19707.29" offset="0x000000" crc="0x384fd133"/>
@@ -1912,6 +2168,15 @@
       <input type="gun2"/>
     </inputs>
 
+    <!-- Lightgun calibration, from MAME's hotdp input ports. The guns are 10-bit and arrive over RS-422
+         channel 2, not through the analogue mux. -->
+    <lightgun>
+      <axis name="p1y" min="0x057" max="0x17c" rest="0x0e9"/>
+      <axis name="p1x" min="0x0ad" max="0x254" rest="0x180"/>
+      <axis name="p2y" min="0x057" max="0x17c" rest="0x0e9"/>
+      <axis name="p2x" min="0x0a3" max="0x254" rest="0x17b"/>
+    </lightgun>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="prg0.15" offset="0x000000" crc="0x548ed10a"/>
@@ -1924,6 +2189,14 @@
         <file name="dat3.10" offset="0x800002" crc="0x356d348b"/>
         <file name="dat4.7" offset="0x1000000" crc="0x7ec403f6"/>
         <file name="dat5.8" offset="0x1000002" crc="0x592fac50"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="copro0.29" offset="0x000000" crc="0xfc2380f5"/>
@@ -2023,7 +2296,7 @@
   </game>
 
 
-  <game name="indy500" board="model2b" start1="0x40" preliminary="true">
+  <game name="indy500" drive_board="true" board="model2b" start1="0x40" preliminary="true">
     <title>INDY 500 Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -2032,6 +2305,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2b_state::indy500. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -2045,6 +2325,22 @@
         <file name="mpr-18240.10" offset="0x800002" crc="0xab46a35f"/>
         <file name="epr-18596.7" offset="0x1000000" crc="0x8be1a5cd"/>
         <file name="epr-18597.8" offset="0x1000002" crc="0x44824e38"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1800000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="epr-18249.29" offset="0x000000" crc="0xa399f023"/>
@@ -2072,7 +2368,7 @@
     </roms>
   </game>
 
-  <game name="indy500d" parent="indy500" board="model2b" preliminary="true">
+  <game name="indy500d" drive_board="true" parent="indy500" board="model2b" preliminary="true">
     <title>INDY 500 Deluxe</title>
     <version>Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -2082,6 +2378,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2b_state::indy500. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -2095,6 +2398,22 @@
         <file name="mpr-18240.10" offset="0x800002" crc="0xab46a35f"/>
         <file name="epr-18245.7" offset="0x1000000" crc="0x854b1037"/>
         <file name="epr-18246.8" offset="0x1000002" crc="0x1a68acdc"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1800000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="epr-18249.29" offset="0x000000" crc="0xa399f023"/>
@@ -2122,7 +2441,7 @@
     </roms>
   </game>
 
-  <game name="indy500to" parent="indy500" board="model2b" preliminary="true">
+  <game name="indy500to" drive_board="true" parent="indy500" board="model2b" preliminary="true">
     <title>INDY 500 Twin</title>
     <version>Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -2132,6 +2451,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2b_state::indy500. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -2145,6 +2471,22 @@
         <file name="mpr-18240.10" offset="0x800002" crc="0xab46a35f"/>
         <file name="epr-18389.7" offset="0x1000000" crc="0xd22ea019"/>
         <file name="epr-18390.8" offset="0x1000002" crc="0x38e796e5"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1800000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="epr-18249.29" offset="0x000000" crc="0xa399f023"/>
@@ -2312,6 +2654,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2a_state::manxtt. -->
+    <analog>
+      <channel index="0" control="throttle" rest="0x00"/>
+      <channel index="1" control="brake" rest="0x00"/>
+      <channel index="2" control="bank" rest="0x80" reverse="true"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-18822d.12" offset="0x000000" crc="0x4f435990"/>
@@ -2328,6 +2677,10 @@
         <file name="mpr-18748.7" offset="0x800002" crc="0x375e3748"/>
         <file name="epr-18862.4" offset="0xc00000" crc="0x9adc3a30"/>
         <file name="epr-18863.5" offset="0xc00002" crc="0x603742e9"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0xc00000" to="0xd00000" size="0x100000"/>
+        <copy from="0xc00000" to="0xe00000" size="0x100000"/>
+        <copy from="0xc00000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="polygons" size="0x1000000" stride="4" chunk="2" fill="0xff">
         <file name="mpr-18753.16" offset="0x000000" crc="0x33ddaa0d"/>
@@ -2384,6 +2737,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2a_state::manxtt. -->
+    <analog>
+      <channel index="0" control="throttle" rest="0x00"/>
+      <channel index="1" control="brake" rest="0x00"/>
+      <channel index="2" control="bank" rest="0x80" reverse="true"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-18822c.12" offset="0x000000" crc="0xc7b3e45a"/>
@@ -2400,6 +2760,10 @@
         <file name="mpr-18748.7" offset="0x800002" crc="0x375e3748"/>
         <file name="epr-18862.4" offset="0xc00000" crc="0x9adc3a30"/>
         <file name="epr-18863.5" offset="0xc00002" crc="0x603742e9"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0xc00000" to="0xd00000" size="0x100000"/>
+        <copy from="0xc00000" to="0xe00000" size="0x100000"/>
+        <copy from="0xc00000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="polygons" size="0x2000000" stride="4" chunk="2">
         <file name="mpr-18753.16" offset="0x000000" crc="0x33ddaa0d"/>
@@ -2453,6 +2817,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2a_state::manxtt. -->
+    <analog>
+      <channel index="0" control="throttle" rest="0x00"/>
+      <channel index="1" control="brake" rest="0x00"/>
+      <channel index="2" control="bank" rest="0x80" reverse="true"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-18744.12" offset="0x000000" crc="0xd19ca47f"/>
@@ -2469,6 +2840,10 @@
         <file name="mpr-18748.7" offset="0x800002" crc="0x375e3748"/>
         <file name="epr-18786.4" offset="0xc00000" crc="0x4219e7dc"/>
         <file name="epr-18787.5" offset="0xc00002" crc="0x67a92cd3"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0xc00000" to="0xd00000" size="0x100000"/>
+        <copy from="0xc00000" to="0xe00000" size="0x100000"/>
+        <copy from="0xc00000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="polygons" size="0x2000000" stride="4" chunk="2">
         <file name="mpr-18753.16" offset="0x000000" crc="0x33ddaa0d"/>
@@ -2524,6 +2899,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2a_state::manxtt. -->
+    <analog>
+      <channel index="0" control="throttle" rest="0x00"/>
+      <channel index="1" control="brake" rest="0x00"/>
+      <channel index="2" control="bank" rest="0x80" reverse="true"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-20007.12" offset="0x000000" crc="0xf040c108"/>
@@ -2538,6 +2920,14 @@
         <file name="mpr-20016.7" offset="0x1000002" crc="0xc99a83f4"/>
         <file name="epr-20013.4" offset="0x1800000" crc="0xa4478f52"/>
         <file name="epr-20014.5" offset="0x1800002" crc="0x1aa541be"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="polygons" size="0x2000000" stride="4" chunk="2">
         <file name="mpr-20023.16" offset="0x000000" crc="0x016be8d6"/>
@@ -2587,6 +2977,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2a_state::manxtt. -->
+    <analog>
+      <channel index="0" control="throttle" rest="0x00"/>
+      <channel index="1" control="brake" rest="0x00"/>
+      <channel index="2" control="bank" rest="0x80" reverse="true"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-20213.12" offset="0x000000" crc="0x1ad291e5"/>
@@ -2601,6 +2998,14 @@
         <file name="mpr-20016.7" offset="0x1000002" crc="0xc99a83f4"/>
         <file name="epr-20215.4" offset="0x1800000" crc="0x19249d40"/>
         <file name="epr-20216.5" offset="0x1800002" crc="0xec963b8d"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="polygons" size="0x2000000" stride="4" chunk="2">
         <file name="mpr-20023.16" offset="0x000000" crc="0x016be8d6"/>
@@ -2654,6 +3059,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::overrev2c. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00" reverse="true"/>
+      <channel index="2" control="brake" rest="0x00" reverse="true"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-20124a.15" offset="0x000000" crc="0x74beb8d7"/>
@@ -2687,7 +3099,7 @@
     </roms>
   </game>
 
-  <game name="overrevb" parent="overrev" board="model2b" preliminary="true">
+  <game name="overrevb" drive_board="true" parent="overrev" board="model2b" preliminary="true">
     <title>Over Rev</title>
     <version>Model 2B, Revision B</version>
     <manufacturer>Jaleco</manufacturer>
@@ -2697,6 +3109,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2b_state::indy500. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00" reverse="true"/>
+      <channel index="2" control="brake" rest="0x00" reverse="true"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -2731,7 +3150,7 @@
     </roms>
   </game>
 
-  <game name="overrevba" parent="overrev" board="model2b" preliminary="true">
+  <game name="overrevba" drive_board="true" parent="overrev" board="model2b" preliminary="true">
     <title>Over Rev</title>
     <version>Model 2B, Revision A</version>
     <manufacturer>Jaleco</manufacturer>
@@ -2741,6 +3160,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2b_state::indy500. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00" reverse="true"/>
+      <channel index="2" control="brake" rest="0x00" reverse="true"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -2776,7 +3202,7 @@
   </game>
 
 
-  <game name="pltkids" board="model2b" preliminary="true">
+  <game name="pltkids" board="model2b" protection="315-5881" key="0x042e2dc1" preliminary="true">
     <title>Pilot Kids</title>
     <manufacturer>Psikyo</manufacturer>
     <year>1998</year>
@@ -2792,6 +3218,9 @@
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-21285a.15" offset="0x000000" crc="0xbdde5b41"/>
         <file name="epr-21286a.16" offset="0x000002" crc="0xc8092e0e"/>
+              <!-- MAME init_pltkids: the program destroys its own
+             interrupt table and never repairs it. -->
+        <patch offset="0x730" value="0x08000004"/>
       </region>
       <region name="main_data" size="0x2000000" stride="4" chunk="2">
         <file name="mpr-21262.da0" offset="0x000000" crc="0xaa71353e"/>
@@ -2826,7 +3255,7 @@
     </roms>
   </game>
 
-  <game name="pltkidsa" parent="pltkids" board="model2a" preliminary="true">
+  <game name="pltkidsa" parent="pltkids" board="model2a" protection="315-5881" key="0x042e2dc1" preliminary="true">
     <title>Pilot Kids</title>
     <version>Model 2A</version>
     <manufacturer>Psikyo</manufacturer>
@@ -2843,6 +3272,9 @@
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-21281.pr0" offset="0x000000" crc="0x293ead5d"/>
         <file name="epr-21282.pr1" offset="0x000002" crc="0xed0e7b9e"/>
+              <!-- MAME init_pltkids: the program destroys its own
+             interrupt table and never repairs it. -->
+        <patch offset="0x730" value="0x08000004"/>
       </region>
       <region name="main_data" size="0x2000000" stride="4" chunk="2">
         <file name="mpr-21262.da0" offset="0x000000" crc="0xaa71353e"/>
@@ -2950,6 +3382,14 @@
       <input type="gun2"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2b_state::rchase2. -->
+    <analog>
+      <channel index="0" control="p2x" min="0x34" max="0xc7" rest="0x7d" reverse="true"/>
+      <channel index="1" control="p1x" min="0x3a" max="0xca" rest="0x82" reverse="true"/>
+      <channel index="2" control="p2y" min="0x1c" max="0xcb" rest="0x73" reverse="true"/>
+      <channel index="3" control="p1y" min="0x1c" max="0xcb" rest="0x73" reverse="true"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-18045a.15" offset="0x000000" crc="0xbfca0314"/>
@@ -3001,6 +3441,14 @@
       <input type="gun1"/>
       <input type="gun2"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2b_state::rchase2. -->
+    <analog>
+      <channel index="0" control="p2x" rest="0x80"/>
+      <channel index="1" control="p1x" rest="0x80"/>
+      <channel index="2" control="p2y" rest="0x80"/>
+      <channel index="3" control="p1y" rest="0x80"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -3068,6 +3516,22 @@
         <file name="mpr-19006.10" offset="0x800002" crc="0xe79f0a26"/>
         <file name="epr-19143.7" offset="0x1000000" crc="0xf97176fd"/>
         <file name="epr-19144.8" offset="0x1000002" crc="0xd040202a"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1800000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-19015.29" offset="0x000000" crc="0xc74d99e3"/>
@@ -3122,6 +3586,22 @@
         <file name="mpr-19006.10" offset="0x800002" crc="0xe79f0a26"/>
         <file name="epr-19003.7" offset="0x1000000" crc="0x63bae5c5"/>
         <file name="epr-19004.8" offset="0x1000002" crc="0xc10c9f39"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1800000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-19015.29" offset="0x000000" crc="0xc74d99e3"/>
@@ -3162,6 +3642,11 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::segawski. -->
+    <analog>
+      <channel index="0" control="slide" rest="0x80"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19963a.15" offset="0x000000" crc="0x89c9cb0d"/>
@@ -3176,6 +3661,14 @@
         <file name="mpr-19985.8" offset="0x1000002" crc="0x57827677"/>
         <file name="epr-19961.5" offset="0x1800000" crc="0xcc34ecaf"/>
         <file name="epr-19962.6" offset="0x1800002" crc="0xe8a30e5e"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1800000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-19986.29" offset="0x000000" crc="0x4b8e26f8"/>
@@ -3208,7 +3701,7 @@
   </game>
 
 
-  <game name="sgt24h" board="model2b" preliminary="true">
+  <game name="sgt24h" drive_board="true" board="model2b" preliminary="true">
     <title>Super GT 24h</title>
     <manufacturer>Jaleco</manufacturer>
     <year>1996</year>
@@ -3217,6 +3710,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2b_state::indy500. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00" reverse="true"/>
+      <channel index="2" control="brake" rest="0x00" reverse="true"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -3262,6 +3762,12 @@
       <input type="buttons3"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::skisuprg. -->
+    <analog>
+      <channel index="0" control="swing" rest="0x80"/>
+      <channel index="1" control="inclining" rest="0x80"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19489.15" offset="0x000000" crc="0x1df948a7"/>
@@ -3300,7 +3806,7 @@
   </game>
 
 
-  <game name="srallyc" board="model2a" preliminary="true">
+  <game name="srallyc" gearbox="true" drive_board="true" board="model2a" preliminary="true">
     <title>Sega Rally Championship - Twin/DX</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -3309,6 +3815,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2a_state::srallyc. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -3365,7 +3878,7 @@
     </roms>
   </game>
 
-  <game name="srallycb" parent="srallyc" board="model2a" preliminary="true">
+  <game name="srallycb" gearbox="true" drive_board="true" parent="srallyc" board="model2a" preliminary="true">
     <title>Sega Rally Championship - Twin/DX</title>
     <version>Revision B</version>
     <manufacturer>Sega</manufacturer>
@@ -3375,6 +3888,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2a_state::srallyc. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -3431,7 +3951,7 @@
     </roms>
   </game>
 
-  <game name="srallycc" parent="srallyc" board="model2a" preliminary="true">
+  <game name="srallycc" gearbox="true" drive_board="true" parent="srallyc" board="model2a" preliminary="true">
     <title>Sega Rally Championship - Twin/DX</title>
     <version>Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -3441,6 +3961,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2a_state::srallyc. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -3497,7 +4024,7 @@
     </roms>
   </game>
 
-  <game name="srallycdx" parent="srallyc" board="model2a" preliminary="true">
+  <game name="srallycdx" gearbox="true" drive_board="true" parent="srallyc" board="model2a" preliminary="true">
     <title>Sega Rally Championship - DX</title>
     <version>Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -3507,6 +4034,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2a_state::srallyc. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -3562,7 +4096,7 @@
     </roms>
   </game>
 
-  <game name="srallycdxa" parent="srallyc" board="model2a" preliminary="true">
+  <game name="srallycdxa" gearbox="true" drive_board="true" parent="srallyc" board="model2a" preliminary="true">
     <title>Sega Rally Championship - DX</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -3571,6 +4105,13 @@
       <input type="common"/>
       <input type="vehicle"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2a_state::srallyc. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -3637,6 +4178,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::stcc. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19570.15" offset="0x000000" crc="0x9d6a1965"/>
@@ -3647,6 +4195,14 @@
         <file name="mpr-19258.12" offset="0x000002" crc="0xf5ba7d78"/>
         <file name="epr-19270.9" offset="0x800000" crc="0x7bd1d04e"/>
         <file name="epr-19271.10" offset="0x800002" crc="0xd2d74f85"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-19255.29" offset="0x000000" crc="0xd78bf030"/>
@@ -3657,12 +4213,25 @@
         <file name="mpr-19252.21" offset="0x000002" crc="0x68509993"/>
         <file name="epr-19266.18" offset="0x800000" crc="0x41464ee2"/>
         <file name="epr-19267.22" offset="0x800002" crc="0x780f994d"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x200000"/>
+        <copy from="0x800000" to="0xc00000" size="0x400000"/>
       </region>
       <region name="textures" size="0x1000000" stride="4" chunk="2">
         <file name="mpr-19254.27" offset="0x000000" crc="0x1ec49c02"/>
         <file name="mpr-19253.25" offset="0x000002" crc="0x41ba79fb"/>
         <file name="epr-19269.28" offset="0x800000" crc="0x01881121"/>
         <file name="epr-19268.26" offset="0x800002" crc="0xbc4e081c"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x0" to="0x400000" size="0x400000"/>
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="audiocpu" size="0x80000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-19274.31" offset="0x000000" crc="0x2dcc08ae"/>
@@ -3700,6 +4269,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::stcc. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19272a.15" offset="0x000000" crc="0x20cedd05"/>
@@ -3710,6 +4286,14 @@
         <file name="mpr-19258.12" offset="0x000002" crc="0xf5ba7d78"/>
         <file name="epr-19270.9" offset="0x800000" crc="0x7bd1d04e"/>
         <file name="epr-19271.10" offset="0x800002" crc="0xd2d74f85"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-19255.29" offset="0x000000" crc="0xd78bf030"/>
@@ -3720,12 +4304,25 @@
         <file name="mpr-19252.21" offset="0x000002" crc="0x68509993"/>
         <file name="epr-19266.18" offset="0x800000" crc="0x41464ee2"/>
         <file name="epr-19267.22" offset="0x800002" crc="0x780f994d"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x200000"/>
+        <copy from="0x800000" to="0xc00000" size="0x400000"/>
       </region>
       <region name="textures" size="0x1000000" stride="4" chunk="2">
         <file name="mpr-19254.27" offset="0x000000" crc="0x1ec49c02"/>
         <file name="mpr-19253.25" offset="0x000002" crc="0x41ba79fb"/>
         <file name="epr-19269.28" offset="0x800000" crc="0x01881121"/>
         <file name="epr-19268.26" offset="0x800002" crc="0xbc4e081c"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x0" to="0x400000" size="0x400000"/>
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="audiocpu" size="0x80000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-19274.31" offset="0x000000" crc="0x2dcc08ae"/>
@@ -3763,6 +4360,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::stcc. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19272b.15" offset="0x000000" crc="0xefdfb625"/>
@@ -3773,6 +4377,14 @@
         <file name="mpr-19258.12" offset="0x000002" crc="0xf5ba7d78"/>
         <file name="epr-19270.9" offset="0x800000" crc="0x7bd1d04e"/>
         <file name="epr-19271.10" offset="0x800002" crc="0xd2d74f85"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-19255.29" offset="0x000000" crc="0xd78bf030"/>
@@ -3783,12 +4395,25 @@
         <file name="mpr-19252.21" offset="0x000002" crc="0x68509993"/>
         <file name="epr-19266.18" offset="0x800000" crc="0x41464ee2"/>
         <file name="epr-19267.22" offset="0x800002" crc="0x780f994d"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x200000"/>
+        <copy from="0x800000" to="0xc00000" size="0x400000"/>
       </region>
       <region name="textures" size="0x1000000" stride="4" chunk="2">
         <file name="mpr-19254.27" offset="0x000000" crc="0x1ec49c02"/>
         <file name="mpr-19253.25" offset="0x000002" crc="0x41ba79fb"/>
         <file name="epr-19269.28" offset="0x800000" crc="0x01881121"/>
         <file name="epr-19268.26" offset="0x800002" crc="0xbc4e081c"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x0" to="0x400000" size="0x400000"/>
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="audiocpu" size="0x80000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-19274.31" offset="0x000000" crc="0x2dcc08ae"/>
@@ -3825,6 +4450,13 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::stcc. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19272.15" offset="0x000000" crc="0x2583f15d"/>
@@ -3835,6 +4467,14 @@
         <file name="mpr-19258.12" offset="0x000002" crc="0xf5ba7d78"/>
         <file name="epr-19270.9" offset="0x800000" crc="0x7bd1d04e"/>
         <file name="epr-19271.10" offset="0x800002" crc="0xd2d74f85"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="mpr-19255.29" offset="0x000000" crc="0xd78bf030"/>
@@ -3845,12 +4485,25 @@
         <file name="mpr-19252.21" offset="0x000002" crc="0x68509993"/>
         <file name="epr-19266.18" offset="0x800000" crc="0x41464ee2"/>
         <file name="epr-19267.22" offset="0x800002" crc="0x780f994d"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x200000"/>
+        <copy from="0x800000" to="0xc00000" size="0x400000"/>
       </region>
       <region name="textures" size="0x1000000" stride="4" chunk="2">
         <file name="mpr-19254.27" offset="0x000000" crc="0x1ec49c02"/>
         <file name="mpr-19253.25" offset="0x000002" crc="0x41ba79fb"/>
         <file name="epr-19269.28" offset="0x800000" crc="0x01881121"/>
         <file name="epr-19268.26" offset="0x800002" crc="0xbc4e081c"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x0" to="0x400000" size="0x400000"/>
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="audiocpu" size="0x80000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-19274.31" offset="0x000000" crc="0x2dcc08ae"/>
@@ -3888,6 +4541,12 @@
       <input type="joystick1"/>
       <input type="buttons3"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2c_state::topskatr. -->
+    <analog>
+      <channel index="0" control="curving" rest="0x80"/>
+      <channel index="1" control="slide" rest="0x80"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -3943,6 +4602,12 @@
       <input type="buttons3"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::topskatr. -->
+    <analog>
+      <channel index="0" control="curving" rest="0x80"/>
+      <channel index="1" control="slide" rest="0x80"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19751.15" offset="0x000000" crc="0xd615a15f"/>
@@ -3996,6 +4661,12 @@
       <input type="joystick1"/>
       <input type="buttons3"/>
     </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2c_state::topskatr. -->
+    <analog>
+      <channel index="0" control="curving" rest="0x80"/>
+      <channel index="1" control="slide" rest="0x80"/>
+    </analog>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -4051,6 +4722,12 @@
       <input type="buttons3"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::topskatr. -->
+    <analog>
+      <channel index="0" control="curving" rest="0x80"/>
+      <channel index="1" control="slide" rest="0x80"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19753.15" offset="0x000000" crc="0x179a0954"/>
@@ -4104,6 +4781,15 @@
       <input type="gun1"/>
       <input type="gun2"/>
     </inputs>
+
+    <!-- Lightgun calibration, from MAME's vcop input ports. The guns are 10-bit and arrive over RS-422
+         channel 2, not through the analogue mux. -->
+    <lightgun>
+      <axis name="p1y" min="0x024" max="0x1a9" rest="0x0e6"/>
+      <axis name="p1x" min="0x083" max="0x276" rest="0x17c"/>
+      <axis name="p2y" min="0x027" max="0x1a9" rest="0x0e8"/>
+      <axis name="p2x" min="0x080" max="0x273" rest="0x179"/>
+    </lightgun>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -4159,6 +4845,15 @@
       <input type="gun1"/>
       <input type="gun2"/>
     </inputs>
+
+    <!-- Lightgun calibration, from MAME's vcopa input ports. The guns are 10-bit and arrive over RS-422
+         channel 2, not through the analogue mux. -->
+    <lightgun>
+      <axis name="p1y" min="0x024" max="0x1a9" rest="0x0e6"/>
+      <axis name="p1x" min="0x083" max="0x276" rest="0x17c"/>
+      <axis name="p2y" min="0x027" max="0x1a9" rest="0x0e8"/>
+      <axis name="p2x" min="0x080" max="0x273" rest="0x179"/>
+    </lightgun>
 
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
@@ -4533,6 +5228,14 @@
       <input type="vehicle"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2c_state::waverunr. -->
+    <analog>
+      <channel index="0" control="handle" rest="0x80"/>
+      <channel index="1" control="roll" rest="0x80"/>
+      <channel index="2" control="throttle" rest="0x80" reverse="true"/>
+      <channel index="3" control="pitch" rest="0x80" reverse="true"/>
+    </analog>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19282a.15" offset="0x000000" crc="0x5df58604"/>
@@ -4545,6 +5248,22 @@
         <file name="mpr-19294.10" offset="0x800002" crc="0xc731e659"/>
         <file name="epr-19278.7" offset="0x1000000" crc="0x29ed421d"/>
         <file name="epr-19279.8" offset="0x1000002" crc="0x6ae9f899"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1800000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1e00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1f00000" size="0x100000"/>
       </region>
       <region name="copro_data" size="0x800000" stride="4" chunk="2">
         <file name="epr-19280.29" offset="0x000000" crc="0xc6b59fb9"/>
@@ -4557,12 +5276,35 @@
         <file name="mpr-19290.22" offset="0x800002" crc="0x67300826"/>
         <file name="epr-19304.19" offset="0x1000000" crc="0x1a7d9521"/>
         <file name="epr-19305.23" offset="0x1000002" crc="0x00412412"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1000000" to="0x1100000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1200000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1300000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1400000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1500000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1600000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1700000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1800000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1900000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1a00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1b00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1c00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1d00000" size="0x100000"/>
+        <copy from="0x1000000" to="0x1e00000" size="0x100000"/>
       </region>
       <region name="textures" size="0x1000000" stride="4" chunk="2">
         <file name="mpr-19286.27" offset="0x000000" crc="0x3ccc33cb"/>
         <file name="mpr-19285.25" offset="0x000002" crc="0xa070fbd0"/>
         <file name="epr-19303.28" offset="0x800000" crc="0xfcffc8a0"/>
         <file name="epr-19302.26" offset="0x800002" crc="0xbd00933a"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
       </region>
       <region name="audiocpu" size="0x80000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-19284.31" offset="0x000000" crc="0xefe5f0f3"/>
@@ -4575,7 +5317,7 @@
   </game>
 
 
-  <game name="zerogun" board="model2b" preliminary="true">
+  <game name="zerogun" board="model2b" protection="315-5881" key="0x042c0d13" preliminary="true">
     <title>Zero Gunner</title>
     <manufacturer>Psikyo</manufacturer>
     <year>1997</year>
@@ -4591,6 +5333,9 @@
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-20439.15" offset="0x000000" crc="0x10125381"/>
         <file name="epr-20440.16" offset="0x000002" crc="0xce872747"/>
+              <!-- MAME init_zerogun: the program destroys its own
+             interrupt table and never repairs it. -->
+        <patch offset="0x700" value="0x08000004"/>
       </region>
       <region name="main_data" size="0x2000000" stride="4" chunk="2">
         <file name="mpr-20296.11" offset="0x000000" crc="0x072d8a5e"/>
@@ -4617,7 +5362,7 @@
     </roms>
   </game>
 
-  <game name="zerogunj" parent="zerogun" board="model2b" preliminary="true">
+  <game name="zerogunj" parent="zerogun" board="model2b" protection="315-5881" key="0x042c0d13" preliminary="true">
     <title>Zero Gunner</title>
     <version>Japan, Model 2B</version>
     <manufacturer>Psikyo</manufacturer>
@@ -4634,6 +5379,9 @@
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-20290.15" offset="0x000000" crc="0x9ce3ad21"/>
         <file name="epr-20291.16" offset="0x000002" crc="0x7267a03d"/>
+              <!-- MAME init_zerogun: the program destroys its own
+             interrupt table and never repairs it. -->
+        <patch offset="0x700" value="0x08000004"/>
       </region>
       <region name="main_data" size="0x2000000" stride="4" chunk="2">
         <file name="mpr-20296.11" offset="0x000000" crc="0x072d8a5e"/>

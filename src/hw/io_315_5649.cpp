@@ -10,8 +10,10 @@ namespace sm2::hw {
 
 void Io315_5649::reset()
 {
-    m_port_value.fill(0);
-    m_port_config    = 0;
+    // MAME's device_reset only sets the direction register and the mode; the
+    // port latches are initialised once, in the constructor, and survive a
+    // reset. m_port_value is left alone here for that reason.
+    m_port_config    = 0xff;
     m_mode           = 0;
     m_analog_channel = 0;
 }
@@ -38,14 +40,15 @@ u8 Io315_5649::read(u32 offset)
             }
             break;
 
-        // RS-422 channel 1 input. Nothing on Model 2A drives it.
+        // RS-422 channel 1 input. Nothing on Model 2A drives it, and MAME's
+        // unbound serial callback reads as zero rather than as an idle line.
         case 0x0b:
-            data = 0xff;
+            data = 0x00;
             break;
 
         // RS-422 channel 2 input, used by the lightgun interface board.
         case 0x0c:
-            data = m_serial2_read ? m_serial2_read() : 0xff;
+            data = m_serial2_read ? m_serial2_read() : 0x00;
             break;
 
         // RS-422 status. Reported as receive buffers full and transmit buffers
@@ -59,8 +62,10 @@ u8 Io315_5649::read(u32 offset)
         // Analogue input. Reading advances the mux, so a game can sample every
         // channel with repeated reads of this one register.
         case 0x0f: {
+            // An unbound channel reads as an open input, which is what MAME's
+            // default 0xff for an_port_cb gives.
             const InputHandler& handler = m_analog[m_analog_channel];
-            data = handler ? handler() : 0x00;
+            data = handler ? handler() : 0xff;
             m_analog_channel = (m_analog_channel + 1) & 0x07;
             break;
         }

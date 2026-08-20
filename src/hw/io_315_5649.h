@@ -73,11 +73,16 @@ private:
     OutputHandler m_serial2_write;
 
     /// Last value written to each port, returned for ports configured as
-    /// outputs.
-    std::array<u8, kPortCount> m_port_value{};
+    /// outputs. Comes up all ones and is *not* cleared by reset, matching
+    /// MAME's device, which sets it in its constructor rather than in
+    /// device_reset.
+    std::array<u8, kPortCount> m_port_value{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-    /// Direction register: a set bit marks that port as an input.
-    u8 m_port_config = 0;
+    /// Direction register: a set bit marks that port as an input. Every port is
+    /// an input after reset. This matters more than it looks: a program that
+    /// reads a port before programming the direction register sees the live
+    /// input, not a latched zero, and several titles do exactly that.
+    u8 m_port_config = 0xff;
 
     u8 m_mode           = 0;
     u8 m_analog_channel = 0;

@@ -39,15 +39,70 @@ constexpr u8 kUp      = Input::kUp;
 constexpr u8 kRight   = Input::kRight;
 constexpr u8 kLeft    = Input::kLeft;
 
-// The Model 2 analogue mux is shared by all games. Vehicle games use the first
-// three channels; two-gun games use adjacent X/Y pairs for each player.
-constexpr usize kSteeringChannel = 0;
-constexpr usize kThrottleChannel = 1;
-constexpr usize kBrakeChannel    = 2;
-constexpr usize kGun1XChannel    = 0;
-constexpr usize kGun1YChannel    = 1;
-constexpr usize kGun2XChannel    = 2;
-constexpr usize kGun2YChannel    = 3;
+// Which host axis each logical control reads. The channel a control occupies is
+// the game's business (rom::GameSpec::analog); this table is only about how a
+// gamepad stands in for the cabinet's own hardware.
+//
+// Two shapes cover everything Model 2 uses: a self-centring axis (wheel,
+// handlebars, stick, motion platform) and a pedal, which rests at one end of its
+// travel. Pedals go on the triggers so both can be held at once, which a driving
+// game expects.
+enum class HostAxis : u8 {
+    None,
+    PadLeftX,       ///< Player 1's left stick, horizontal.
+    PadLeftY,
+    Pad2LeftX,      ///< Player 2's pad, for the twin-stick cabinets.
+    Pad2LeftY,
+    RightTrigger,   ///< Pedal.
+    LeftTrigger,    ///< Pedal.
+};
+
+struct ControlBinding {
+    rom::AnalogControl control;
+    HostAxis           axis;
+};
+
+constexpr ControlBinding kControlBindings[] = {
+    {rom::AnalogControl::Steer,     HostAxis::PadLeftX},
+    {rom::AnalogControl::Bank,      HostAxis::PadLeftX},
+    {rom::AnalogControl::Handle,    HostAxis::PadLeftX},
+    {rom::AnalogControl::StickX,    HostAxis::PadLeftX},
+    {rom::AnalogControl::Gun1X,     HostAxis::PadLeftX},
+    {rom::AnalogControl::Curving,   HostAxis::PadLeftX},
+    {rom::AnalogControl::Slide,     HostAxis::PadLeftX},
+    {rom::AnalogControl::Roll,      HostAxis::PadLeftX},
+    {rom::AnalogControl::Inclining, HostAxis::PadLeftX},
+
+    {rom::AnalogControl::StickY,    HostAxis::PadLeftY},
+    {rom::AnalogControl::Gun1Y,     HostAxis::PadLeftY},
+    {rom::AnalogControl::Pitch,     HostAxis::PadLeftY},
+    {rom::AnalogControl::Swing,     HostAxis::PadLeftY},
+
+    {rom::AnalogControl::Gun2X,     HostAxis::Pad2LeftX},
+    {rom::AnalogControl::Gun2Y,     HostAxis::Pad2LeftY},
+
+    {rom::AnalogControl::Accel,     HostAxis::RightTrigger},
+    {rom::AnalogControl::Throttle,  HostAxis::RightTrigger},
+    {rom::AnalogControl::Bat1,      HostAxis::RightTrigger},
+    {rom::AnalogControl::Brake,     HostAxis::LeftTrigger},
+    {rom::AnalogControl::Bat2,      HostAxis::LeftTrigger},
+};
+
+[[nodiscard]] HostAxis host_axis_for(rom::AnalogControl control)
+{
+    for (const ControlBinding& binding : kControlBindings) {
+        if (binding.control == control) {
+            return binding.axis;
+        }
+    }
+    return HostAxis::None;
+}
+
+/// True for an axis that rests at one end of its travel rather than centred.
+[[nodiscard]] bool is_pedal(HostAxis axis)
+{
+    return axis == HostAxis::RightTrigger || axis == HostAxis::LeftTrigger;
+}
 
 // ---------------------------------------------------------------------------
 // Keyboard
@@ -156,36 +211,40 @@ u8 Input::axis_to_pedal(s16 value)
     return static_cast<u8>(std::min(scaled, 255));
 }
 
-/// Convert a mouse position in the focused SDL window to the 8-bit light-gun
-/// coordinate expected by the analogue mux. SDL reports the position in the
-/// same logical coordinate space as SDL_GetWindowSize, including on HiDPI.
-u8 mouse_to_screen(float position, int extent)
+/// Map a mouse position in the focused SDL window onto one lightgun axis.
+///
+/// The gun interface board is 10-bit and each title calibrates its own travel,
+/// so a pointer at the edge of the window has to land on that title's own
+/// minimum or maximum rather than on 0 or 0x3ff. Anything else puts the
+/// crosshair in the wrong place and makes the offscreen test fire early.
+[[nodiscard]] u16 mouse_to_gun(float position, int extent, const rom::LightgunAxis& axis)
 {
     if (extent <= 1) {
-        return 0x80;
+        return axis.rest;
     }
-    const float maximum = static_cast<float>(extent - 1);
-    const float clamped = std::clamp(position, 0.0f, maximum);
-    return static_cast<u8>((clamped * 255.0f) / maximum);
+    const float maximum  = static_cast<float>(extent - 1);
+    const float clamped  = std::clamp(position, 0.0f, maximum);
+    const float fraction = clamped / maximum;
+    const float span     = static_cast<float>(axis.maximum - axis.minimum);
+    return static_cast<u16>(static_cast<float>(axis.minimum) + fraction * span + 0.5f);
 }
 
-/// Use the mouse as the fallback light-gun device. A dedicated gun device is not
-/// exposed by the current input layer, so both gun players share the pointer.
-void gather_mouse_coordinates(std::array<u8, 8>* analog,
-                               usize x_channel, usize y_channel)
-{
-    float x = 0.0f;
-    float y = 0.0f;
-    SDL_GetMouseState(&x, &y);
+/// Mouse position in the focused window, and that window's size.
+struct PointerState {
+    float x      = 0.0f;
+    float y      = 0.0f;
+    int   width  = 0;
+    int   height = 0;
+};
 
-    SDL_Window* focus = SDL_GetMouseFocus();
-    int          width = 0;
-    int          height = 0;
-    if (focus != nullptr) {
-        SDL_GetWindowSize(focus, &width, &height);
+[[nodiscard]] PointerState pointer_state()
+{
+    PointerState state;
+    SDL_GetMouseState(&state.x, &state.y);
+    if (SDL_Window* focus = SDL_GetMouseFocus(); focus != nullptr) {
+        SDL_GetWindowSize(focus, &state.width, &state.height);
     }
-    (*analog)[x_channel] = mouse_to_screen(x, width);
-    (*analog)[y_channel] = mouse_to_screen(y, height);
+    return state;
 }
 
 Input::~Input()
@@ -309,8 +368,115 @@ void Input::remove_gamepad(SDL_JoystickID id)
     m_pads.erase(found);
 }
 
-void Input::poll(hw::Inputs* inputs, rom::InputFlags game_inputs) const
+SDL_Gamepad* Input::pad_for(u32 player) const
 {
+    const auto match = std::find_if(m_pads.begin(), m_pads.end(),
+                                    [player](const Pad& pad) {
+                                        return pad.player == player && pad.handle != nullptr;
+                                    });
+    return match != m_pads.end() ? match->handle : nullptr;
+}
+
+u8 Input::sample_channel(const rom::AnalogChannel& channel) const
+{
+    const HostAxis axis = host_axis_for(channel.control);
+    if (axis == HostAxis::None) {
+        return channel.rest;
+    }
+
+    SDL_Gamepad* pad = pad_for(axis == HostAxis::Pad2LeftX || axis == HostAxis::Pad2LeftY
+                                   ? 1u
+                                   : 0u);
+    if (pad == nullptr) {
+        // No pad for this control: hand back the value the hardware reads with
+        // nobody touching it. A wheel at rest is centred and a pedal is
+        // released, and the difference matters -- a game that sees full lock or
+        // full throttle at boot can refuse to leave its self-test.
+        return channel.rest;
+    }
+
+    // Scale into the channel's own calibrated travel rather than the full byte:
+    // several titles declare a narrow PORT_MINMAX and treat anything outside it
+    // as a fault or as an off-screen gun.
+    const auto scaled = [&channel](float fraction) {
+        const float span  = static_cast<float>(channel.maximum - channel.minimum);
+        const float value = static_cast<float>(channel.minimum)
+                          + std::clamp(fraction, 0.0f, 1.0f) * span;
+        return static_cast<u8>(value + 0.5f);
+    };
+
+    float fraction = 0.0f;
+    switch (axis) {
+        case HostAxis::PadLeftX:
+        case HostAxis::Pad2LeftX:
+            fraction = static_cast<float>(
+                           SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX) + 32768)
+                     / 65535.0f;
+            break;
+        case HostAxis::PadLeftY:
+        case HostAxis::Pad2LeftY:
+            fraction = static_cast<float>(
+                           SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTY) + 32768)
+                     / 65535.0f;
+            break;
+        case HostAxis::RightTrigger:
+        case HostAxis::LeftTrigger: {
+            const SDL_GamepadAxis which = axis == HostAxis::RightTrigger
+                                              ? SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
+                                              : SDL_GAMEPAD_AXIS_LEFT_TRIGGER;
+            const int travelled = std::max(0, static_cast<int>(
+                                                  SDL_GetGamepadAxis(pad, which))
+                                                  - kPedalFloor);
+            fraction = static_cast<float>(travelled) / static_cast<float>(32767 - kPedalFloor);
+            break;
+        }
+        case HostAxis::None:
+            return channel.rest;
+    }
+
+    // A pedal's rest value is its minimum, so an untouched trigger has to read
+    // as rest rather than as the bottom of the scaled range; they coincide for
+    // every title in the database, but not by construction.
+    if (is_pedal(axis) && fraction <= 0.0f) {
+        return channel.reverse ? static_cast<u8>(channel.maximum - (channel.rest - channel.minimum))
+                               : channel.rest;
+    }
+
+    const u8 value = scaled(fraction);
+    if (!channel.reverse) {
+        return value;
+    }
+    // PORT_REVERSE mirrors within the declared travel, not within the byte.
+    return static_cast<u8>(channel.maximum - (value - channel.minimum));
+}
+
+void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) const
+{
+    const rom::LightgunSpec& spec = game.lightgun;
+    if (!spec.present) {
+        return;
+    }
+
+    // One pointer for both players: there is no per-gun host device yet, so
+    // player 2's gun follows the mouse as well rather than sitting at a corner
+    // where the offscreen test would fire continuously.
+    const PointerState pointer = pointer_state();
+    inputs->gun_p1x = mouse_to_gun(pointer.x, pointer.width, spec.p1x);
+    inputs->gun_p1y = mouse_to_gun(pointer.y, pointer.height, spec.p1y);
+    inputs->gun_p2x = mouse_to_gun(pointer.x, pointer.width, spec.p2x);
+    inputs->gun_p2y = mouse_to_gun(pointer.y, pointer.height, spec.p2y);
+}
+
+void Input::poll(hw::Inputs* inputs) const
+{
+    poll(inputs, rom::GameSpec{});
+}
+
+void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
+{
+    const rom::InputFlags game_inputs = game.inputs;
+    (void)game_inputs;
+
     u8 ports[1 + kPlayers] = {0xff, 0xff, 0xff};
 
     int         key_count = 0;
@@ -353,35 +519,38 @@ void Input::poll(hw::Inputs* inputs, rom::InputFlags game_inputs) const
     inputs->in1 = ports[1];
     inputs->in2 = ports[2];
 
-    // Analogue channels are game-wired rather than universal. Vehicle games use
-    // player 1's pad for steering, throttle and brake; gun games use the mouse
-    // fallback for screen-relative X/Y; all other games keep the idle wheel value.
-    inputs->analog.fill(0);
-    const auto primary = std::find_if(m_pads.begin(), m_pads.end(),
-                                      [](const Pad& pad) { return pad.player == 0; });
-    if (rom::has_input(game_inputs, rom::InputFlags::Vehicle)) {
-        if (primary != m_pads.end() && primary->handle != nullptr) {
-            inputs->analog[kSteeringChannel] = axis_to_centred(
-                SDL_GetGamepadAxis(primary->handle, SDL_GAMEPAD_AXIS_LEFTX));
-            inputs->analog[kThrottleChannel] = axis_to_pedal(
-                SDL_GetGamepadAxis(primary->handle, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER));
-            inputs->analog[kBrakeChannel] = axis_to_pedal(
-                SDL_GetGamepadAxis(primary->handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER));
-        } else {
-            // A wheel at rest is centred, not at one end.
-            inputs->analog[kSteeringChannel] = 0x80;
+    // Analogue channels follow the title's own machine config: which channel a
+    // control sits on, how far it travels and where it rests are all per-title.
+    // An unconnected channel reads zero, as an unbound an_port_callback does.
+    for (usize channel = 0; channel < inputs->analog.size(); ++channel) {
+        const rom::AnalogChannel& wiring = game.analog[channel];
+        inputs->analog[channel] = wiring.control == rom::AnalogControl::None
+                                      ? 0x00
+                                      : sample_channel(wiring);
+    }
+
+    gather_lightguns(inputs, game);
+
+    // Gear selector. The shifter's positions are exposed as one bit each and the
+    // machine turns them into the code its program expects. Nothing held means
+    // "hold the last gear", which is what the real gate does between positions.
+    //
+    // F1 to F5 rather than the number row, which the operator controls already
+    // own.
+    if (game.gearbox) {
+        u8 gears = 0;
+        if (keys != nullptr) {
+            static constexpr SDL_Scancode kGearKeys[5] = {
+                SDL_SCANCODE_F1, SDL_SCANCODE_F2, SDL_SCANCODE_F3,
+                SDL_SCANCODE_F4, SDL_SCANCODE_F5,
+            };
+            for (u32 gear = 0; gear < 5; ++gear) {
+                if (static_cast<int>(kGearKeys[gear]) < key_count && keys[kGearKeys[gear]]) {
+                    gears |= static_cast<u8>(1u << gear);
+                }
+            }
         }
-    } else if (rom::has_input(game_inputs, rom::InputFlags::Gun1)
-               || rom::has_input(game_inputs, rom::InputFlags::Gun2)) {
-        if (rom::has_input(game_inputs, rom::InputFlags::Gun1)) {
-            gather_mouse_coordinates(&inputs->analog, kGun1XChannel, kGun1YChannel);
-        }
-        if (rom::has_input(game_inputs, rom::InputFlags::Gun2)) {
-            gather_mouse_coordinates(&inputs->analog, kGun2XChannel, kGun2YChannel);
-        }
-    } else {
-        // Non-analogue games retain the historical idle analogue state.
-        inputs->analog[kSteeringChannel] = 0x80;
+        inputs->gears = gears;
     }
 }
 

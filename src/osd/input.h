@@ -100,11 +100,16 @@ public:
     void handle_event(const SDL_Event& event);
 
     /// Overwrite the digital and analogue fields of `inputs` from current device
-    /// state. Call once per frame, before running the frame. The game flags select
-    /// the analogue wiring; the default keeps source compatibility for callers
-    /// that do not have game metadata and leaves the analogue input idle.
-    void poll(hw::Inputs* inputs,
-              rom::InputFlags game_inputs = rom::InputFlags::None) const;
+    /// state. Call once per frame, before running the frame.
+    ///
+    /// The game is needed in full, not just its input flags: which mux channel
+    /// each control sits on, its travel limits and its value at rest are all
+    /// per-title (`rom::GameSpec::analog`), as is the lightgun calibration.
+    void poll(hw::Inputs* inputs, const rom::GameSpec& game) const;
+
+    /// Digital-only overload, for callers with no game metadata. Leaves every
+    /// analogue channel at zero.
+    void poll(hw::Inputs* inputs) const;
 
     /// Names of the gamepads currently open, in player order. An empty string means
     /// that player has no pad.
@@ -141,6 +146,15 @@ private:
 
     void add_gamepad(SDL_JoystickID id);
     void remove_gamepad(SDL_JoystickID id);
+
+    /// The pad driving a given player, or nullptr if that player has none.
+    [[nodiscard]] SDL_Gamepad* pad_for(u32 player) const;
+
+    /// Sample one logical control and scale it into an analogue channel's own
+    /// calibrated range.
+    [[nodiscard]] u8 sample_channel(const rom::AnalogChannel& channel) const;
+
+    void gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) const;
 
     /// Lowest player position with no pad, or kPlayers when both are taken.
     [[nodiscard]] u32 first_free_player() const;

@@ -112,6 +112,12 @@ constexpr u32 kDoaSrcAddr      = 0x01d87ff0;  // 315-5838 sequential read offset
 constexpr u32 kDoaDataW        = 0x01d87ff4;  // 315-5838 protection input, unused in hack mode
 constexpr u32 kDoaProtR        = 0x01d87ff8;  // 315-5838 decompressed data
 constexpr u32 kDoaUnk          = 0x01d8400c;  // toggling busy-flag stub
+constexpr u32 kCryptRam        = 0x01d80000;  // 64 KB, the 315-5881's staging buffer
+constexpr u32 kCryptReady      = 0x01d90000;  // 315-5881 busy flag
+constexpr u32 kCryptAddrLo     = 0x01d90008;  // source word address, low half
+constexpr u32 kCryptAddrHi     = 0x01d9000a;  // high half, always written as zero
+constexpr u32 kCryptSubkey     = 0x01d9000c;  // per-stream sequence key
+constexpr u32 kCryptData       = 0x01d9000e;  // decrypted stream
 constexpr u32 kRomMainData     = 0x02000000;  // 32 MB window
 constexpr u32 kRomMainDataHigh = 0x06000000;  // 16 MB window at region offset 0x1000000
 constexpr u32 kRenderMode      = 0x10000000;
@@ -169,6 +175,19 @@ bool Model2::init(const rom::GameSpec& game, rom::RomSet roms)
     m_cpu_control.assign(0x40, 0);
     m_comm_ram.assign(0x4000, 0);
     m_doa_ram.assign(0x8000, 0);
+    m_crypt_ram.assign(0x10000, 0);
+
+    // MAME's crypt_read_callback: a word read of the staging RAM, byte-swapped,
+    // which for a little-endian bus is just a big-endian fetch.
+    if (game.protection == rom::Protection::Sega315_5881 && game.protection_key == 0) {
+        SM2_WARN("model2: %s needs a 315-5881 key and the database has none",
+                 game.name.c_str());
+    }
+    m_crypt.set_key(game.protection_key);
+    m_crypt.set_read_callback([this](u32 word_address) {
+        const u32 offset = (word_address * 2) & 0xffffu;
+        return static_cast<u16>((m_crypt_ram[offset] << 8) | m_crypt_ram[offset + 1]);
+    });
 
     // The video stage keeps decoded copies of this memory, so it has to be
     // attached after the allocation above and before anything can write to it.
@@ -260,9 +279,29 @@ void Model2::reset()
     // parses the buffer before writing it reads nonsense.
     std::fill(m_buffer_ram.begin(), m_buffer_ram.end(), 0x07800f0fu);
 
+    // Bring the analogue controls up where the hardware has them with nobody at
+    // the cabinet. MAME gets this from each PORT_BIT's default value; here it
+    // comes from the same data, so a headless run -- which never polls a host
+    // device -- sees a centred wheel and released pedals rather than full lock
+    // and full throttle. Several titles will not leave their self-test
+    // otherwise.
+    m_inputs.analog.fill(0);
+    for (usize channel = 0; channel < m_inputs.analog.size(); ++channel) {
+        if (m_game.analog[channel].control != rom::AnalogControl::None) {
+            m_inputs.analog[channel] = m_game.analog[channel].rest;
+        }
+    }
+    m_inputs.gun_p1x = m_game.lightgun.p1x.rest;
+    m_inputs.gun_p1y = m_game.lightgun.p1y.rest;
+    m_inputs.gun_p2x = m_game.lightgun.p2x.rest;
+    m_inputs.gun_p2y = m_game.lightgun.p2y.rest;
+    m_inputs.gears   = 0;
+    m_gear_selected  = 0;
+
     m_io.reset();
     m_doa_comp.reset();
     m_doa_unk_toggle = false;
+    m_crypt.reset();
 
     // The serial link to the sound board. 500 kHz clock divided by 16 is the
     // 31.25 kHz standard Sega and MIDI rate, and the frame is eight data bits
@@ -276,12 +315,26 @@ void Model2::reset()
     // counters, G reads the CPU board dipswitches.
     m_io.set_output(0, [this](u8 value) { io_port_a_write(value); });
     m_io.set_input(1, [this] { return io_port_b_read(); });
-    m_io.set_input(2, [this] { return m_inputs.in1; });
+    m_io.set_input(2, [this] { return io_port_c_read(); });
     m_io.set_input(3, [this] { return m_inputs.in2; });
     m_io.set_output(5, [this](u8 value) { lamp_output_w(value); });
     m_io.set_input(6, [this] { return m_inputs.dipswitches; });
     for (u32 channel = 0; channel < Io315_5649::kAnalogCount; ++channel) {
         m_io.set_analog(channel, [this, channel] { return m_inputs.analog[channel]; });
+    }
+
+    // Port E latches force-feedback commands. MAME binds it for Sega Rally,
+    // Daytona and the Indy 500 family; every other title leaves it unconnected.
+    if (m_game.drive_board) {
+        m_io.set_output(4, [this](u8 value) { drive_board_write(value); });
+    }
+
+    // The lightgun interface board hangs off RS-422 channel 2 rather than the
+    // analogue mux: the program writes a byte-lane selector and reads the
+    // selected byte back.
+    if (m_game.lightgun.present) {
+        m_io.set_serial2([this] { return lightgun_mux_read(); },
+                         [this](u8 value) { lightgun_mux_write(value); });
     }
 
     m_cpu.reset();
@@ -548,6 +601,90 @@ u8 Model2::io_port_b_read()
                            | (panel & 0x0f));
 }
 
+u8 Model2::io_port_c_read()
+{
+    u8 data = m_inputs.in1;
+
+    if (m_game.gearbox) {
+        // MAME's daytona_gearbox_r. The three bits are not a gear number: the
+        // shifter's five positions encode as 0, 2, 1, 6, 5, and releasing the
+        // stick holds the last selection rather than returning to neutral, so a
+        // program watching for a legal code never sees an illegal one. Without
+        // this, IN1's idle 0xff presents the code 7, which no shifter produces.
+        static constexpr u8 kGearValues[5] = {0, 2, 1, 6, 5};
+        for (u32 gear = 0; gear < 5; ++gear) {
+            if ((m_inputs.gears & (1u << gear)) != 0) {
+                m_gear_selected = static_cast<u8>(gear);
+                break;
+            }
+        }
+        data = static_cast<u8>((data & ~0x70u) | (kGearValues[m_gear_selected] << 4));
+    }
+
+    return data;
+}
+
+// ---------------------------------------------------------------------------
+// Lightgun interface board (837-12079)
+// ---------------------------------------------------------------------------
+
+u8 Model2::lightgun_data_read(u8 offset) const
+{
+    // Four 10-bit axes presented as eight byte lanes, in the board's own order:
+    // P1 Y, P1 X, P2 Y, P2 X.
+    const std::array<u16, 4> axes = {
+        m_inputs.gun_p1y, m_inputs.gun_p1x, m_inputs.gun_p2y, m_inputs.gun_p2x,
+    };
+    const u16 value = axes[(offset >> 1) & 3];
+    return (offset & 1) != 0 ? static_cast<u8>(value >> 8) : static_cast<u8>(value);
+}
+
+u8 Model2::lightgun_offscreen_read(u8 offset) const
+{
+    // Bit 0 is set while player 1 is aimed off the screen, bit 1 for player 2,
+    // which is how a game distinguishes a reload from a miss. MAME derives the
+    // border from each axis's own calibrated travel rather than from the raster,
+    // because the gun's range and the visible area are not the same thing.
+    constexpr float kBorderFraction = 0.05f;
+
+    const auto offscreen = [](u16 value, const rom::LightgunAxis& axis) {
+        const int border = static_cast<int>(
+            static_cast<float>(axis.maximum - axis.minimum) * kBorderFraction);
+        return value <= axis.minimum + border || value >= axis.maximum - border;
+    };
+
+    u16 data = 0xfffc;
+    if (offscreen(m_inputs.gun_p1x, m_game.lightgun.p1x)
+        || offscreen(m_inputs.gun_p1y, m_game.lightgun.p1y)) {
+        data |= 1;
+    }
+    if (offscreen(m_inputs.gun_p2x, m_game.lightgun.p2x)
+        || offscreen(m_inputs.gun_p2y, m_game.lightgun.p2y)) {
+        data |= 2;
+    }
+    return static_cast<u8>((data >> ((offset & 1) * 8)) & 0xff);
+}
+
+u8 Model2::lightgun_mux_read()
+{
+    return m_lightgun_mux < 8 ? lightgun_data_read(m_lightgun_mux)
+                              : lightgun_offscreen_read(0);
+}
+
+void Model2::lightgun_mux_write(u8 value)
+{
+    m_lightgun_mux = value;
+}
+
+void Model2::drive_board_write(u8 value)
+{
+    // MAME's drive_board_w latches the byte and pulses the drive CPU's IRQ. Only
+    // Sega Rally and Daytona have a real Z80 behind it, and nothing on the host
+    // side reads the latch back, so accepting the write is the whole
+    // requirement for the games that reach gameplay without one.
+    m_drive_board_latch = value;
+}
+
 void Model2::lamp_output_w(u8 value)
 {
     // Coin counters and six cabinet lamps. Recorded for a future output layer;
@@ -640,6 +777,10 @@ Model2::Window Model2::resolve(u32 address)
         && !(address >= kDoaUnk && address < kDoaUnk + 4)
         && !(address >= kDoaSrcAddr && address < kDoaProtR + 4)) {
         return window(m_doa_ram, address - kDoaRam, true, cpu::kBusFlagNone);
+    }
+    if (m_game.protection == rom::Protection::Sega315_5881
+        && address >= kCryptRam && address < kCryptRam + 0x10000) {
+        return window(m_crypt_ram, address - kCryptRam, true, cpu::kBusFlagBurst);
     }
     if (address >= kCpuControl && address < kCpuControl + 0x38) {
         // Wait-state configuration. Plain memory, and notably the one memory
@@ -833,6 +974,15 @@ u32 Model2::register_read(u32 address, u32 width)
         if (address >= kDoaUnk && address < kDoaUnk + 4) {
             m_doa_unk_toggle = !m_doa_unk_toggle;
             return m_doa_unk_toggle ? 0xffff : 0xfff0;
+        }
+    }
+
+    if (m_game.protection == rom::Protection::Sega315_5881) {
+        if (address >= kCryptReady && address < kCryptReady + 2) {
+            return m_crypt.ready_r();
+        }
+        if (address >= kCryptData && address < kCryptData + 2) {
+            return m_crypt.decrypt_le_r();
         }
     }
 
@@ -1067,6 +1217,26 @@ void Model2::register_write(u32 address, u32 value, u32 width)
         }
         if (address >= kDoaDataW && address < kDoaDataW + 4) {
             m_doa_comp.data_w_doa(value);
+            return;
+        }
+    }
+
+    if (m_game.protection == rom::Protection::Sega315_5881) {
+        // Sixteen bits wide, and the games only ever write them that way. A
+        // 32-bit store at the address register covers both halves, low first.
+        if (address >= kCryptAddrLo && address < kCryptAddrLo + 2) {
+            m_crypt.addrlo_w(static_cast<u16>(value));
+            if (width == 4) {
+                m_crypt.addrhi_w(static_cast<u16>(value >> 16));
+            }
+            return;
+        }
+        if (address >= kCryptAddrHi && address < kCryptAddrHi + 2) {
+            m_crypt.addrhi_w(static_cast<u16>(value));
+            return;
+        }
+        if (address >= kCryptSubkey && address < kCryptSubkey + 2) {
+            m_crypt.subkey_le_w(static_cast<u16>(value));
             return;
         }
     }

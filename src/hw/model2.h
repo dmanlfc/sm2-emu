@@ -26,6 +26,7 @@
 #include "hw/model2_sound.h"
 #include "hw/model2_video.h"
 #include "hw/sega_315_5838_comp.h"
+#include "hw/sega_315_5881_crypt.h"
 #include "rom/game.h"
 #include "rom/rom_set.h"
 
@@ -323,6 +324,12 @@ private:
     void sync_copro();
 
     [[nodiscard]] u8 io_port_b_read();
+    [[nodiscard]] u8 io_port_c_read();
+    [[nodiscard]] u8 lightgun_mux_read();
+    void             lightgun_mux_write(u8 value);
+    [[nodiscard]] u8 lightgun_data_read(u8 offset) const;
+    [[nodiscard]] u8 lightgun_offscreen_read(u8 offset) const;
+    void             drive_board_write(u8 value);
     void io_port_a_write(u8 value);
     void lamp_output_w(u8 value);
 
@@ -352,6 +359,10 @@ private:
     /// into the memory map when `m_game.protection` asks for it, so titles
     /// that do not need it see no behaviour change.
     Sega3155838Comp m_doa_comp;
+
+    /// The 315-5881 stream cipher on the security board. Same arrangement as
+    /// above: always constructed, only decoded when `m_game.protection` asks.
+    Sega3155881Crypt m_crypt;
 
     // -- memory ------------------------------------------------------------
 
@@ -384,6 +395,11 @@ private:
     /// DOA protection chip's RAM window at 0x01d80000, matching MAME's
     /// model2_0229_mem. Only reachable when `m_game.protection` asks for it.
     std::vector<u8>  m_doa_ram;
+
+    /// The 315-5881's staging RAM at 0x01d80000, matching MAME's
+    /// model2_5881_mem. The program writes the ciphertext here and the chip
+    /// reads it back through its callback, so this is the whole data path.
+    std::vector<u8>  m_crypt_ram;
 
     // -- interrupt latch ---------------------------------------------------
     // Twelve sources folded onto the i960's four external lines:
@@ -418,6 +434,18 @@ private:
     u32  m_geo_write_start_address = 0;
     u32  m_geo_read_start_address  = 0;
     bool m_ctrlmode       = false;  ///< port B returns EEPROM data instead of IN0
+
+    /// Which of the lightgun interface board's byte lanes the program selected.
+    u8 m_lightgun_mux = 0;
+
+    /// Gear selector state for a cabinet with a shifter. The gate holds the
+    /// last gear when nothing is pressed, so the program never reads neutral
+    /// mid-shift.
+    u8 m_gear_selected = 0;
+
+    /// Last byte latched to the drive board. Nothing consumes it yet; the games
+    /// that need one only require the write to be accepted.
+    u8 m_drive_board_latch = 0;
     bool m_palette_dirty  = true;
 
     /// Toggled on every read of the DOA protection chip's busy-flag stub at

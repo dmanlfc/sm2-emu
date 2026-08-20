@@ -840,7 +840,7 @@ int main(int argc, char** argv)
                 // Inputs are levels, sampled whenever the program polls the I/O
                 // controller during the frame, so they have to be set before the
                 // frame runs rather than after.
-                input.poll(&machine->inputs(), loaded->game.inputs);
+                input.poll(&machine->inputs(), loaded->game);
                 if (options.coin_at != 0) {
                     // Scripted coin, start and character confirmation, so an
                     // unattended capture can reach the game itself rather than

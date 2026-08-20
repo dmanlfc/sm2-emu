@@ -16,6 +16,7 @@
 
 #include "core/types.h"
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -72,13 +73,79 @@ enum class InputFlags : u32 {
     return (static_cast<u32>(set) & static_cast<u32>(wanted)) != 0;
 }
 
+/// A control wired to one channel of the I/O controller's analogue mux.
+///
+/// These are MAME's ioport names for the Model 2 analogue inputs. They are kept
+/// as distinct logical controls rather than collapsed to "axis 0/1/2" because
+/// the host binding differs per control -- a pedal rests at one end of its
+/// travel and a wheel rests in the middle -- and because the channel a control
+/// sits on is not consistent between titles. Manx TT and Motor Raid put the
+/// handlebars on channel 2 with throttle on 0, where every other racer has
+/// steering on 0.
+enum class AnalogControl : u8 {
+    None,
+    Steer,      ///< Wheel or paddle, rests centred.
+    Accel,      ///< Pedal, rests released.
+    Brake,      ///< Pedal, rests released.
+    Throttle,   ///< Pedal (Manx TT) or lever (Wave Runner).
+    Bank,       ///< Manx TT / Motor Raid handlebars.
+    StickX,
+    StickY,
+    Gun1X,      ///< Analogue stick standing in for a gun: Gunblade, BEL,
+    Gun1Y,      ///< Rail Chase 2. Not the serial lightgun interface.
+    Gun2X,
+    Gun2Y,
+    Handle,     ///< Wave Runner handlebars.
+    Roll,
+    Pitch,
+    Slide,
+    Curving,
+    Swing,
+    Inclining,
+    Bat1,       ///< Dynamite Baseball bat swing.
+    Bat2,
+};
+
+/// One analogue mux channel, mirroring the fields of MAME's PORT_BIT for an
+/// analogue input: the value at rest, the travel limits from PORT_MINMAX, and
+/// PORT_REVERSE.
+struct AnalogChannel {
+    AnalogControl control = AnalogControl::None;
+    u8            minimum = 0x00;
+    u8            maximum = 0xff;
+    u8            rest    = 0x80;
+    bool          reverse = false;
+};
+
+/// One axis of the lightgun interface board.
+///
+/// The guns are 10-bit and reach the program over RS-422 channel 2 rather than
+/// through the analogue mux, and each title calibrates its own travel, so the
+/// raw range is part of the game's data rather than a property of the hardware.
+struct LightgunAxis {
+    u16 minimum = 0;
+    u16 maximum = 0x3ff;
+    u16 rest    = 0x200;
+};
+
+/// The four axes of a two-gun cabinet, in the order the interface board's mux
+/// presents them: P1 Y, P1 X, P2 Y, P2 X.
+struct LightgunSpec {
+    bool         present = false;
+    LightgunAxis p1y;
+    LightgunAxis p1x;
+    LightgunAxis p2y;
+    LightgunAxis p2x;
+};
+
 /// A protection chip a title's main board needs. One value per chip/mode
 /// combination rather than a child element, since so far every title needing
-/// one needs exactly one fixed configuration of it; a title needing a keyed
-/// variant (315-5881) can extend this the same way once that device lands.
+/// one needs exactly one fixed configuration of it apart from the 315-5881's
+/// per-title key, which rides along in `GameSpec::protection_key`.
 enum class Protection {
     None,
     Sega315_5838_Doa,  ///< 315-5838/317-0229 compression chip, DOA hack mode.
+    Sega315_5881,      ///< 315-5881 stream cipher. Needs `protection_key`.
 };
 
 /// One ROM chip's contribution to a region.
@@ -87,6 +154,34 @@ struct FileSpec {
     u32         offset  = 0;      ///< Destination byte offset within the region.
     u32         crc32   = 0;      ///< Expected CRC32.
     bool        has_crc = false;  ///< False means identify by name alone.
+};
+
+/// A word of an assembled region overwritten after loading.
+///
+/// This is MAME's per-game `init_` ROM patches, which exist because a couple of
+/// programs contain outright bugs the hardware happened to survive and an
+/// emulator does not. Zero Gunner and Pilot Kids overwrite their own interrupt
+/// table and never repair it; MAME rewrites one word of the vector so the
+/// program keeps running, and without it the i960 executes zeros.
+///
+/// This is a workaround, not emulation. Every patch names the MAME `init_`
+/// function it comes from, so none of them can quietly become folklore.
+struct RegionPatch {
+    u32 offset = 0;  ///< Byte offset within the assembled region.
+    u32 value  = 0;  ///< Replacement 32-bit little-endian word.
+};
+
+/// A block of an assembled region mirrored to another offset within it.
+///
+/// This is MAME's `ROM_COPY`, and it is not cosmetic: the Model 2 ROM boards
+/// alias their last populated bank across the rest of the address window, and
+/// games read the aliases. Without it those addresses read as `fill` and the
+/// program walks off a table of zeros -- Sky Target, Virtua Cop 2, Motor Raid,
+/// Manx TT and Dead or Alive all depend on one.
+struct RegionCopy {
+    u32 from = 0;  ///< Source offset within the assembled region.
+    u32 to   = 0;  ///< Destination offset within the same region.
+    u32 size = 0;
 };
 
 /// A flat byte array assembled from one or more ROM chips.
@@ -118,6 +213,16 @@ struct RegionSpec {
     bool required = true;
 
     std::vector<FileSpec> files;
+
+    /// Applied after every file has been placed, in declaration order, so a
+    /// copy may read bytes an earlier copy wrote -- matching MAME, where
+    /// ROM_COPY runs in the order it appears in the ROM_START block.
+    std::vector<RegionCopy> copies;
+
+    /// Applied last, after the copies, so a patch is never overwritten by a
+    /// mirror. MAME's driver init functions run after the whole ROM set is
+    /// loaded, which is the same ordering.
+    std::vector<RegionPatch> patches;
 };
 
 /// Everything the database knows about one game.
@@ -134,12 +239,32 @@ struct GameSpec {
     InputFlags inputs = InputFlags::None;
     Protection protection = Protection::None;
 
+    /// Key for a keyed protection chip, matching MAME's ROM_PARAMETER. Only the
+    /// 315-5881 uses one; roughly 30 of its bits have been recovered, which is
+    /// why it fits in 32.
+    u32 protection_key = 0;
+
     /// Bit of the operator port (IN0) that IPT_START1 sits on. Most Model 2A
     /// titles use MAME's default of 0x10, but several PORT_MODIFY their IN0
     /// layout and move it to 0x40 instead (Sky Target, Manx TT and everything
     /// that inherits from it, Indy 500, Wave Runner, Top Skater). Coin1 is
     /// always 0x01: no title in this database's scope remaps it.
     u8 start1_bit = 0x10;
+
+    /// How this title's machine config wires the analogue mux. Index is the
+    /// channel number; an entry with control None is an unconnected channel.
+    std::array<AnalogChannel, 8> analog{};
+
+    /// The serial lightgun interface board, when the cabinet has one.
+    LightgunSpec lightgun;
+
+    /// True when IN1 bits 0x70 read a gear selector rather than buttons, as
+    /// Sega Rally's and Daytona's do through MAME's daytona_gearbox_r.
+    bool gearbox = false;
+
+    /// True when the title latches bytes to a force-feedback drive board on the
+    /// I/O controller's port E.
+    bool drive_board = false;
 
     /// True when the set is known not to run yet, so the loader can warn.
     bool preliminary = false;

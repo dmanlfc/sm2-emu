@@ -132,7 +132,66 @@ namespace {
 [[nodiscard]] bool parse_protection(std::string_view text, Protection* out)
 {
     if (text == "315-5838-doa") { *out = Protection::Sega315_5838_Doa; return true; }
+    if (text == "315-5881")     { *out = Protection::Sega315_5881;     return true; }
     return false;
+}
+
+/// Names match MAME's ioport tags for these controls, lowercased, so a reader
+/// can grep either source for the same word.
+[[nodiscard]] bool parse_analog_control(std::string_view text, AnalogControl* out)
+{
+    struct Entry { std::string_view name; AnalogControl control; };
+    static constexpr Entry kEntries[] = {
+        {"steer",     AnalogControl::Steer},
+        {"accel",     AnalogControl::Accel},
+        {"brake",     AnalogControl::Brake},
+        {"throttle",  AnalogControl::Throttle},
+        {"bank",      AnalogControl::Bank},
+        {"stickx",    AnalogControl::StickX},
+        {"sticky",    AnalogControl::StickY},
+        {"p1x",       AnalogControl::Gun1X},
+        {"p1y",       AnalogControl::Gun1Y},
+        {"p2x",       AnalogControl::Gun2X},
+        {"p2y",       AnalogControl::Gun2Y},
+        {"handle",    AnalogControl::Handle},
+        {"roll",      AnalogControl::Roll},
+        {"pitch",     AnalogControl::Pitch},
+        {"slide",     AnalogControl::Slide},
+        {"curving",   AnalogControl::Curving},
+        {"swing",     AnalogControl::Swing},
+        {"inclining", AnalogControl::Inclining},
+        {"bat1",      AnalogControl::Bat1},
+        {"bat2",      AnalogControl::Bat2},
+    };
+    for (const Entry& entry : kEntries) {
+        if (text == entry.name) {
+            *out = entry.control;
+            return true;
+        }
+    }
+    return false;
+}
+
+/// Reads MAME's PORT_MINMAX/rest/PORT_REVERSE attributes off one element.
+[[nodiscard]] bool parse_analog_range(const pugi::xml_node& node, u32 default_rest,
+                                      u32 default_max, u32* minimum, u32* maximum,
+                                      u32* rest, bool* reverse, const char* context)
+{
+    if (!attribute_integer(node, "min", 0, minimum, context)
+        || !attribute_integer(node, "max", default_max, maximum, context)
+        || !attribute_integer(node, "rest", default_rest, rest, context)
+        || !attribute_bool(node, "reverse", false, reverse, context)) {
+        return false;
+    }
+    if (*minimum > *maximum) {
+        SM2_ERROR("%s: min 0x%x is above max 0x%x", context, *minimum, *maximum);
+        return false;
+    }
+    if (*maximum > default_max) {
+        SM2_ERROR("%s: max 0x%x does not fit the channel's width", context, *maximum);
+        return false;
+    }
+    return true;
 }
 
 /// Directory holding the running executable, empty if it cannot be determined.
@@ -295,6 +354,10 @@ bool GameDatabase::load(const std::string& path)
             return false;
         }
 
+        if (!attribute_integer(game_node, "key", 0, &game.protection_key, context.c_str())) {
+            return false;
+        }
+
         for (const pugi::xml_node input_node : game_node.child("inputs").children("input")) {
             const pugi::xml_attribute type = input_node.attribute("type");
             InputFlags                flag = InputFlags::None;
@@ -305,6 +368,79 @@ bool GameDatabase::load(const std::string& path)
                 return false;
             }
             game.inputs = game.inputs | flag;
+        }
+
+        if (!attribute_bool(game_node, "gearbox", false, &game.gearbox, context.c_str())
+            || !attribute_bool(game_node, "drive_board", false, &game.drive_board,
+                               context.c_str())) {
+            return false;
+        }
+
+        for (const pugi::xml_node channel_node :
+             game_node.child("analog").children("channel")) {
+            u32 index = 0;
+            if (!attribute_integer(channel_node, "index", 0, &index, context.c_str())) {
+                return false;
+            }
+            if (index >= game.analog.size()) {
+                SM2_ERROR("%s: analog channel %u is outside the mux's %zu channels",
+                          context.c_str(), index, game.analog.size());
+                return false;
+            }
+
+            AnalogChannel& channel = game.analog[index];
+            const pugi::xml_attribute control = channel_node.attribute("control");
+            if (!control || !parse_analog_control(control.value(), &channel.control)) {
+                SM2_ERROR("%s: unrecognised analog control '%s' on channel %u",
+                          context.c_str(), control.value(), index);
+                return false;
+            }
+
+            // A pedal rests released and everything else rests centred, matching
+            // the default values in MAME's PORT_BIT declarations.
+            const bool pedal = channel.control == AnalogControl::Accel
+                            || channel.control == AnalogControl::Brake
+                            || channel.control == AnalogControl::Bat1
+                            || channel.control == AnalogControl::Bat2;
+            u32 minimum = 0;
+            u32 maximum = 0;
+            u32 rest    = 0;
+            if (!parse_analog_range(channel_node, pedal ? 0x00 : 0x80, 0xff, &minimum,
+                                    &maximum, &rest, &channel.reverse,
+                                    context.c_str())) {
+                return false;
+            }
+            channel.minimum = static_cast<u8>(minimum);
+            channel.maximum = static_cast<u8>(maximum);
+            channel.rest    = static_cast<u8>(rest);
+        }
+
+        for (const pugi::xml_node axis_node :
+             game_node.child("lightgun").children("axis")) {
+            const std::string_view name = axis_node.attribute("name").value();
+            LightgunAxis*          axis = nullptr;
+            if (name == "p1y")      { axis = &game.lightgun.p1y; }
+            else if (name == "p1x") { axis = &game.lightgun.p1x; }
+            else if (name == "p2y") { axis = &game.lightgun.p2y; }
+            else if (name == "p2x") { axis = &game.lightgun.p2x; }
+            else {
+                SM2_ERROR("%s: unrecognised lightgun axis '%s'", context.c_str(),
+                          axis_node.attribute("name").value());
+                return false;
+            }
+
+            u32  minimum = 0;
+            u32  maximum = 0;
+            u32  rest    = 0;
+            bool reverse = false;
+            if (!parse_analog_range(axis_node, 0x200, 0x3ff, &minimum, &maximum, &rest,
+                                    &reverse, context.c_str())) {
+                return false;
+            }
+            axis->minimum = static_cast<u16>(minimum);
+            axis->maximum = static_cast<u16>(maximum);
+            axis->rest    = static_cast<u16>(rest);
+            game.lightgun.present = true;
         }
 
         for (const pugi::xml_node region_node : game_node.child("roms").children("region")) {
@@ -370,6 +506,38 @@ bool GameDatabase::load(const std::string& path)
                 }
 
                 region.files.push_back(std::move(file));
+            }
+
+            for (const pugi::xml_node copy_node : region_node.children("copy")) {
+                RegionCopy copy;
+                if (!attribute_integer(copy_node, "from", 0, &copy.from, region_context.c_str())
+                    || !attribute_integer(copy_node, "to", 0, &copy.to, region_context.c_str())
+                    || !attribute_integer(copy_node, "size", 0, &copy.size,
+                                          region_context.c_str())) {
+                    return false;
+                }
+                if (copy.size == 0) {
+                    SM2_ERROR("%s: a <copy> element needs a non-zero size",
+                              region_context.c_str());
+                    return false;
+                }
+                region.copies.push_back(copy);
+            }
+
+            for (const pugi::xml_node patch_node : region_node.children("patch")) {
+                RegionPatch patch;
+                if (!attribute_integer(patch_node, "offset", 0, &patch.offset,
+                                       region_context.c_str())
+                    || !attribute_integer(patch_node, "value", 0, &patch.value,
+                                          region_context.c_str())) {
+                    return false;
+                }
+                if ((patch.offset % 4) != 0) {
+                    SM2_ERROR("%s: patch offset 0x%x is not word-aligned",
+                              region_context.c_str(), patch.offset);
+                    return false;
+                }
+                region.patches.push_back(patch);
             }
 
             game.regions.push_back(std::move(region));
@@ -464,8 +632,23 @@ bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
         if (game.manufacturer.empty()) { game.manufacturer = parent.manufacturer; }
         if (game.year == 0)            { game.year = parent.year; }
         if (game.inputs == InputFlags::None) { game.inputs = parent.inputs; }
-        if (game.protection == Protection::None) { game.protection = parent.protection; }
+        if (game.protection == Protection::None) {
+            game.protection     = parent.protection;
+            game.protection_key = parent.protection_key;
+        }
         if (game.start1_bit == 0) { game.start1_bit = parent.start1_bit; }
+
+        // Revisions share a cabinet, so the control wiring is inherited whole
+        // rather than per channel: a clone that declares any analogue channel
+        // of its own is describing a different machine config and keeps it.
+        const bool declares_analog =
+            std::any_of(game.analog.begin(), game.analog.end(), [](const AnalogChannel& c) {
+                return c.control != AnalogControl::None;
+            });
+        if (!declares_analog)          { game.analog = parent.analog; }
+        if (!game.lightgun.present)    { game.lightgun = parent.lightgun; }
+        if (!game.gearbox)             { game.gearbox = parent.gearbox; }
+        if (!game.drive_board)         { game.drive_board = parent.drive_board; }
         // A clone cannot be more validated than its parent unless it has been
         // explicitly boot-tested as well. Keep preliminary status conservative
         // across revisions so --list-games does not advertise an unverified set.
