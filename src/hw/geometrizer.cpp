@@ -331,6 +331,24 @@ inline u16 Geometrizer::float_to_zval(float floatval, s32 z_adjust)
 		return 0xffff; // above 14 is too large
 }
 
+/// Vertices a clipped polygon may have.
+///
+/// Clipping a *convex* polygon against one half-space yields at most n+1
+/// vertices, so a quad through the four clip planes reaches exactly 8 and no
+/// more — which is why `Polygon::v` and the scratch arrays below are all 8 long.
+///
+/// Geometry that is not convex, or whose coordinates have gone non-finite,
+/// breaks that bound: the inside/outside test can then toggle on more than two
+/// edges and emit up to two vertices per input edge. MAME has the same arrays
+/// and the same unbounded loop, and silently overruns them when that happens.
+/// Top Skater does exactly this, which the stack protector catches as a crash.
+/// The count is therefore capped here. Well-formed geometry never reaches the
+/// cap, so nothing that currently renders is affected.
+constexpr s32 kMaxClippedVertices = 8;
+
+static_assert(kMaxClippedVertices == std::size(Polygon{}.v),
+			  "the clip output bound must match the vertex array it is copied into");
+
 static s32 clip_polygon(PolyVertex *v, s32 num_vertices, PolyVertex *vout, ClipPlane clip_plane)
 {
 	s32 outcount = 0;
@@ -341,7 +359,7 @@ static s32 clip_polygon(PolyVertex *v, s32 num_vertices, PolyVertex *vout, ClipP
 	float curdot = dot_product(*cur, clip_plane.normal);
 	s32 curin = (curdot >= clip_plane.distance) ? 1 : 0;
 
-	for (s32 i = 0; i < num_vertices; i++)
+	for (s32 i = 0; i < num_vertices && outcount < kMaxClippedVertices; i++)
 	{
 		const s32 nextvert = (i + 1) % num_vertices;
 
@@ -353,7 +371,8 @@ static s32 clip_polygon(PolyVertex *v, s32 num_vertices, PolyVertex *vout, ClipP
 		const s32 nextin = (nextdot >= clip_plane.distance) ? 1 : 0;
 
 		/* Add a clipped vertex if one end of the current edge is inside the plane and the other is outside */
-		if ((curin != nextin) && !std::isnan(curdot) && !std::isnan(nextdot))
+		if ((curin != nextin) && !std::isnan(curdot) && !std::isnan(nextdot)
+			&& outcount < kMaxClippedVertices)
 		{
 			const float scale = (clip_plane.distance - curdot) / (nextdot - curdot);
 

@@ -317,6 +317,14 @@ private:
     void lamp_output_w(u8 value);
     void drive_board_write(u8 value);
 
+    // -- lightgun interface board (837-12079) -------------------------------
+    // Hangs off the I/O controller's RS-422 channel 2, exactly as on Model 2A.
+    // MAME wires the same pair of callbacks in model2c_state::hotd.
+    [[nodiscard]] u8 lightgun_mux_read();
+    void             lightgun_mux_write(u8 value);
+    [[nodiscard]] u8 lightgun_data_read(u8 offset) const;
+    [[nodiscard]] u8 lightgun_offscreen_read(u8 offset) const;
+
     void note_unmapped_read(u32 address, u32 width);
     void note_unmapped_write(u32 address, u32 value, u32 width);
 
@@ -386,6 +394,7 @@ private:
 
     u8  m_gear_selected      = 0;
     u8  m_drive_board_latch  = 0;
+    u8  m_lightgun_mux       = 0;
     bool m_palette_dirty     = true;
 
     u64 m_texture_generation = 1;

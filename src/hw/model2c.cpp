@@ -477,6 +477,17 @@ void Model2C::reset()
         m_io.set_output(4, [this](u8 value) { drive_board_write(value); });
     }
 
+    // The lightgun interface board hangs off RS-422 channel 2 rather than any of
+    // the parallel ports, same as on Model 2A. MAME wires this in
+    // model2c_state::hotd via serial_ch2_rd_callback/serial_ch2_wr_callback.
+    // Without it House of the Dead polls the gun board forever and never gets as
+    // far as counting a coin.
+    m_lightgun_mux = 0;
+    if (m_game.lightgun.present) {
+        m_io.set_serial2([this] { return lightgun_mux_read(); },
+                         [this](u8 value) { lightgun_mux_write(value); });
+    }
+
     m_cpu.reset();
 }
 
@@ -683,6 +694,63 @@ void Model2C::io_port_a_write(u8 value)
 }
 
 void Model2C::lamp_output_w(u8 /*value*/) {}
+
+// ---------------------------------------------------------------------------
+// Lightgun interface board (837-12079)
+// ---------------------------------------------------------------------------
+//
+// Identical to Model 2A's board and wired the same way; House of the Dead and
+// Behind Enemy Lines use it. Kept as its own copy rather than shared with
+// hw::Model2 because the two machines have no common base holding the input
+// state, and MAME likewise repeats the wiring per machine class.
+
+u8 Model2C::lightgun_data_read(u8 offset) const
+{
+    // Four 10-bit axes presented as eight byte lanes, in the board's own order:
+    // P1 Y, P1 X, P2 Y, P2 X.
+    const std::array<u16, 4> axes = {
+        m_inputs.gun_p1y, m_inputs.gun_p1x, m_inputs.gun_p2y, m_inputs.gun_p2x,
+    };
+    const u16 value = axes[(offset >> 1) & 3];
+    return (offset & 1) != 0 ? static_cast<u8>(value >> 8) : static_cast<u8>(value);
+}
+
+u8 Model2C::lightgun_offscreen_read(u8 offset) const
+{
+    // Bit 0 is set while player 1 is aimed off the screen, bit 1 for player 2,
+    // which is how a game distinguishes a reload from a miss. The border comes
+    // from each axis's own calibrated travel rather than from the raster, because
+    // the gun's range and the visible area are not the same thing.
+    constexpr float kBorderFraction = 0.05f;
+
+    const auto offscreen = [](u16 value, const rom::LightgunAxis& axis) {
+        const int border = static_cast<int>(
+            static_cast<float>(axis.maximum - axis.minimum) * kBorderFraction);
+        return value <= axis.minimum + border || value >= axis.maximum - border;
+    };
+
+    u16 data = 0xfffc;
+    if (offscreen(m_inputs.gun_p1x, m_game.lightgun.p1x)
+        || offscreen(m_inputs.gun_p1y, m_game.lightgun.p1y)) {
+        data |= 1;
+    }
+    if (offscreen(m_inputs.gun_p2x, m_game.lightgun.p2x)
+        || offscreen(m_inputs.gun_p2y, m_game.lightgun.p2y)) {
+        data |= 2;
+    }
+    return static_cast<u8>((data >> ((offset & 1) * 8)) & 0xff);
+}
+
+u8 Model2C::lightgun_mux_read()
+{
+    return m_lightgun_mux < 8 ? lightgun_data_read(m_lightgun_mux)
+                              : lightgun_offscreen_read(0);
+}
+
+void Model2C::lightgun_mux_write(u8 value)
+{
+    m_lightgun_mux = value;
+}
 
 void Model2C::drive_board_write(u8 value)
 {
