@@ -209,6 +209,13 @@ void SHARC::build_opcode_table()
 
 void SHARC::reset()
 {
+    // MAME's device_reset clears both internal SRAM banks. Note that on Model
+    // 2B the host does NOT reset the SHARC when it boots it (model2b_state::
+    // copro_boot only releases the halt line), precisely so that the microcode
+    // just uploaded into these banks survives.
+    std::memset(m_blocks, 0, sizeof(m_blocks));
+    m_short_word_sign_extend = false;
+
     std::memset(m_r, 0, sizeof(m_r));
     std::memset(m_reg_alt, 0, sizeof(m_reg_alt));
     std::memset(m_pcstack, 0, sizeof(m_pcstack));
@@ -331,7 +338,7 @@ s32 SHARC::run(s32 cycles)
         m_astat_old_old = m_astat_old;
         m_astat_old = m_astat;
 
-        m_opcode = m_bus->pm_read48(m_pc);
+        m_opcode = pm_read48(m_pc);
 
         if (m_trace_hook)
             m_trace_hook(m_trace_context, m_pc, m_opcode);
@@ -747,6 +754,12 @@ void SHARC::systemreg_write_latency_effect()
             for (int i = 0; i < 8; i++)
                 std::swap(m_r[i].r, m_reg_alt[i].r);
         }
+        if (diff & MODE1_SSE) {
+            // Short word sign extension. MAME switches the m_dm_short_view
+            // memory view here; we flip the equivalent flag consulted by
+            // dm_read32's short-word window.
+            m_short_word_sign_extend = (data & MODE1_SSE) != 0;
+        }
     }
     m_systemreg_latency_reg = -1;
 }
@@ -802,13 +815,13 @@ void SHARC::schedule_dma_op(int channel, u32 src, u32 dst, s32 src_modifier,
 void SHARC::schedule_chained_dma_op(int channel, u32 dma_chain_ptr, int chained_direction)
 {
     u32 op_ptr = 0x20000 + (dma_chain_ptr & 0x1ffff);
-    u32 int_index    = m_bus->dm_read32(op_ptr - 0);
-    u32 int_modifier = m_bus->dm_read32(op_ptr - 1);
-    u32 int_count    = m_bus->dm_read32(op_ptr - 2);
-    u32 chain_ptr    = m_bus->dm_read32(op_ptr - 3);
-    u32 ext_index    = m_bus->dm_read32(op_ptr - 5);
-    u32 ext_modifier = m_bus->dm_read32(op_ptr - 6);
-    u32 ext_count    = m_bus->dm_read32(op_ptr - 7);
+    u32 int_index    = dm_read32(op_ptr - 0);
+    u32 int_modifier = dm_read32(op_ptr - 1);
+    u32 int_count    = dm_read32(op_ptr - 2);
+    u32 chain_ptr    = dm_read32(op_ptr - 3);
+    u32 ext_index    = dm_read32(op_ptr - 5);
+    u32 ext_modifier = dm_read32(op_ptr - 6);
+    u32 ext_count    = dm_read32(op_ptr - 7);
 
     if (chained_direction) {
         m_dma_op[channel].dst = ext_index;
@@ -845,29 +858,29 @@ void SHARC::dma_run_cycle(int channel)
 
     switch (pmode) {
     case DMA_PMODE_NO_PACKING: {
-        u32 data = m_bus->dm_read32(src);
-        m_bus->dm_write32(dst, data);
+        u32 data = dm_read32(src);
+        dm_write32(dst, data);
         src += u32(src_modifier);
         dst += u32(dst_modifier);
         src_count--;
         break;
     }
     case DMA_PMODE_16_32: {
-        u32 data = ((m_bus->dm_read32(src) & 0xffff) << 16) | (m_bus->dm_read32(src + 1) & 0xffff);
-        m_bus->dm_write32(dst, data);
+        u32 data = ((dm_read32(src) & 0xffff) << 16) | (dm_read32(src + 1) & 0xffff);
+        dm_write32(dst, data);
         src += u32(src_modifier * 2);
         dst += u32(dst_modifier);
         src_count -= 2;
         break;
     }
     case DMA_PMODE_8_48: {
-        u64 data = (u64(m_bus->dm_read32(src + 0) & 0xff) <<  0) |
-                   (u64(m_bus->dm_read32(src + 1) & 0xff) <<  8) |
-                   (u64(m_bus->dm_read32(src + 2) & 0xff) << 16) |
-                   (u64(m_bus->dm_read32(src + 3) & 0xff) << 24) |
-                   (u64(m_bus->dm_read32(src + 4) & 0xff) << 32) |
-                   (u64(m_bus->dm_read32(src + 5) & 0xff) << 40);
-        m_bus->pm_write48(dst, data);
+        u64 data = (u64(dm_read32(src + 0) & 0xff) <<  0) |
+                   (u64(dm_read32(src + 1) & 0xff) <<  8) |
+                   (u64(dm_read32(src + 2) & 0xff) << 16) |
+                   (u64(dm_read32(src + 3) & 0xff) << 24) |
+                   (u64(dm_read32(src + 4) & 0xff) << 32) |
+                   (u64(dm_read32(src + 5) & 0xff) << 40);
+        pm_write48(dst, data);
         src += u32(src_modifier * 6);
         dst += u32(dst_modifier);
         src_count -= 6;
@@ -905,20 +918,20 @@ void SHARC::dma_op(int channel)
     switch (pmode) {
     case DMA_PMODE_NO_PACKING:
         for (s32 i = 0; i < src_count; i++) {
-            m_bus->dm_write32(dst, m_bus->dm_read32(src));
+            dm_write32(dst, dm_read32(src));
             src += u32(src_modifier); dst += u32(dst_modifier);
         }
         break;
     case DMA_PMODE_8_48: {
         s32 length = src_count / 6;
         for (s32 i = 0; i < length; i++) {
-            u64 data = (u64(m_bus->dm_read32(src+0) & 0xff) <<  0) |
-                       (u64(m_bus->dm_read32(src+1) & 0xff) <<  8) |
-                       (u64(m_bus->dm_read32(src+2) & 0xff) << 16) |
-                       (u64(m_bus->dm_read32(src+3) & 0xff) << 24) |
-                       (u64(m_bus->dm_read32(src+4) & 0xff) << 32) |
-                       (u64(m_bus->dm_read32(src+5) & 0xff) << 40);
-            m_bus->pm_write48(dst, data);
+            u64 data = (u64(dm_read32(src+0) & 0xff) <<  0) |
+                       (u64(dm_read32(src+1) & 0xff) <<  8) |
+                       (u64(dm_read32(src+2) & 0xff) << 16) |
+                       (u64(dm_read32(src+3) & 0xff) << 24) |
+                       (u64(dm_read32(src+4) & 0xff) << 32) |
+                       (u64(dm_read32(src+5) & 0xff) << 40);
+            pm_write48(dst, data);
             src += u32(src_modifier * 6); dst += u32(dst_modifier);
         }
         break;
@@ -967,6 +980,170 @@ void SHARC::sharc_dma_exec(int channel)
 }
 
 // ============================================================================
+// Memory access — on-chip SRAM decode
+// ============================================================================
+//
+// Derived from MAME's adsp21062_device::pgm_2m and data_2m internal address
+// maps. Both program and data windows address the same two SRAM banks:
+//
+//   program space   0x20000-0x24fff  block 0 (48-bit words, packed)
+//                   0x28000-0x2cfff  block 1  } mirrors of the block 1
+//                   0x30000-0x34fff  block 1  } window (MAME: .mirror(0x18000)
+//                   0x38000-0x3cfff  block 1  } with block 0 overlaid at base)
+//
+//   data space      0x00000-0x000ff  IOP registers
+//                   0x20000-0x27fff  block 0 (32-bit words)
+//                   0x28000-0x3ffff  block 1 (three mirrors, as above)
+//                   0x40000-0x4ffff  block 0 (16-bit short words)
+//                   0x50000-0x7ffff  block 1 (16-bit short words)
+//
+// Anything outside these windows is off-chip and goes to the Bus.
+
+// The 48-bit program words are packed into 32-bit storage three words per two
+// locations. MAME documents the layout as (slot, storage words used):
+//   0 012 -> 0h 0l 1h    1 453 -> 2h 2l 1l    2 678 -> 3h 3l 4h
+//   3 ab9 -> 5h 5l 4l    4 cde -> 6h 6l 7h
+u64 SHARC::block_pm_read48(unsigned block, u32 offset) const
+{
+    const u32 slot = offset >> 12;
+    const u32 base = (offset & 0xfff) + (slot >> 1) * (3u << 12);
+    const u32* words = m_blocks[block];
+    if (slot & 1) {
+        return (u64(words[base + 0x2000]) << 16) | (words[base + 0x1000] & 0xffff);
+    }
+    return (u64(words[base]) << 16) | (words[base + 0x1000] >> 16);
+}
+
+void SHARC::block_pm_write48(unsigned block, u32 offset, u64 data, u64 mem_mask)
+{
+    const u32 slot = offset >> 12;
+    const u32 base = (offset & 0xfff) + (slot >> 1) * (3u << 12);
+    u32* words = m_blocks[block];
+    const bool accessing_low16 = (mem_mask & 0xffff) != 0;
+    if (slot & 1) {
+        if (accessing_low16) {
+            words[base + 0x1000] =
+                (words[base + 0x1000] & 0xffff0000u) | u32(data & 0xffff);
+        }
+        words[base + 0x2000] = u32((words[base + 0x2000] & ~(mem_mask >> 16))
+                                   | ((data & mem_mask) >> 16));
+    } else {
+        words[base] = u32((words[base] & ~(mem_mask >> 16))
+                          | ((data & mem_mask) >> 16));
+        if (accessing_low16) {
+            words[base + 0x1000] =
+                (words[base + 0x1000] & 0xffffu) | (u32(data & 0xffff) << 16);
+        }
+    }
+}
+
+u64 SHARC::pm_read48(u32 address)
+{
+    if (address >= 0x20000 && address <= 0x3ffff) {
+        const u32 offset = address & 0x7fff;
+        if (offset <= 0x4fff) {
+            // Block 0 occupies the base window; the three mirrors are block 1.
+            return block_pm_read48(address < 0x28000 ? 0 : 1, offset);
+        }
+        return 0;
+    }
+    return m_bus->pm_read48(address);
+}
+
+void SHARC::pm_write48(u32 address, u64 data)
+{
+    if (address >= 0x20000 && address <= 0x3ffff) {
+        const u32 offset = address & 0x7fff;
+        if (offset <= 0x4fff) {
+            block_pm_write48(address < 0x28000 ? 0 : 1, offset, data,
+                             0x0000ffffffffffffULL);
+        }
+        return;
+    }
+    m_bus->pm_write48(address, data);
+}
+
+// When the PM bus carries 32-bit data it is aligned to the upper 32 bits of
+// the 48-bit word, leaving the low 16 bits untouched (MAME: pm_read32/
+// pm_write32 in sharcinternal.ipp).
+u32 SHARC::pm_read32(u32 address)
+{
+    if (address >= 0x20000 && address <= 0x3ffff) {
+        return u32(pm_read48(address) >> 16);
+    }
+    return m_bus->pm_read32(address);
+}
+
+void SHARC::pm_write32(u32 address, u32 data)
+{
+    if (address >= 0x20000 && address <= 0x3ffff) {
+        const u32 offset = address & 0x7fff;
+        if (offset <= 0x4fff) {
+            block_pm_write48(address < 0x28000 ? 0 : 1, offset,
+                             u64(data) << 16, 0x0000ffffffff0000ULL);
+        }
+        return;
+    }
+    m_bus->pm_write32(address, data);
+}
+
+u32 SHARC::dm_read32(u32 address)
+{
+    if (address < 0x100) {
+        return iop_read(address);
+    }
+    // Normal-word windows onto the two banks.
+    if (address >= 0x20000 && address <= 0x3ffff) {
+        return m_blocks[address < 0x28000 ? 0 : 1][address & 0x7fff];
+    }
+    // Short-word (16-bit) windows: block 0 at 0x40000, block 1 above it.
+    if (address >= 0x40000 && address <= 0x7ffff) {
+        const unsigned block = address < 0x50000 ? 0 : 1;
+        const u32 index = address & 0xffff;
+        const u32 word  = m_blocks[block][index >> 1];
+        const u16 half  = u16((index & 1) ? (word >> 16) : word);
+        if (m_short_word_sign_extend) {
+            return u32(s32(s16(half)));
+        }
+        return half;
+    }
+    return m_bus->dm_read32(address);
+}
+
+void SHARC::dm_write32(u32 address, u32 data)
+{
+    if (address < 0x100) {
+        iop_write(address, data);
+        return;
+    }
+    if (address >= 0x20000 && address <= 0x3ffff) {
+        m_blocks[address < 0x28000 ? 0 : 1][address & 0x7fff] = data;
+        return;
+    }
+    if (address >= 0x40000 && address <= 0x7ffff) {
+        const unsigned block = address < 0x50000 ? 0 : 1;
+        const u32 index = address & 0xffff;
+        u32& word = m_blocks[block][index >> 1];
+        if (index & 1) {
+            word = (word & 0x0000ffffu) | (u32(data & 0xffff) << 16);
+        } else {
+            word = (word & 0xffff0000u) | u32(data & 0xffff);
+        }
+        return;
+    }
+    m_bus->dm_write32(address, data);
+}
+
+u32 SHARC::iop_read(u32 offset) const
+{
+    switch (offset) {
+    case 0x00: return 0;               // System configuration
+    case 0x37: return m_dma_status;    // DMA status
+    default:   return 0;
+    }
+}
+
+// ============================================================================
 // External host interface
 // ============================================================================
 
@@ -1000,17 +1177,17 @@ void SHARC::external_dma_write(u32 address, u64 data)
 
     switch (pmode) {
     case 0: { // no packing
-        m_bus->pm_write32(index, u32(data));
+        pm_write32(index, u32(data));
         m_dma[6].int_index += m_dma[6].int_modifier;
         break;
     }
     case 2: { // 16/48 packing
         unsigned word = address % 3;
         unsigned shift = (mswf ? (2 - word) : word) * 16;
-        u64 r = m_bus->pm_read48(index);
+        u64 r = pm_read48(index);
         r &= ~(u64(0xffff) << shift);
         r |= (data & 0xffff) << shift;
-        m_bus->pm_write48(index, r);
+        pm_write48(index, r);
         if (word == 2)
             m_dma[6].int_index += m_dma[6].int_modifier;
         break;
@@ -1029,7 +1206,15 @@ void SHARC::iop_write(u32 offset, u32 data)
 {
     switch (offset) {
     case 0x00: m_syscon = data; break;
-    case 0x02: break;
+    case 0x02: break;  // External memory wait-state configuration
+    case 0x04:
+        // External port DMA buffer 0. Last Bronx uploads its SHARC microcode
+        // through here rather than through the FIFO port, so the 16/48 packing
+        // counter lives with the register rather than with the caller.
+        external_dma_write(m_extdma_shift, data);
+        ++m_extdma_shift;
+        if (m_extdma_shift == 3) m_extdma_shift = 0;
+        break;
     case 0x1c:
         m_dma[6].control = data;
         if (data & 0x1) sharc_dma_exec(6);
@@ -1843,13 +2028,13 @@ void SHARC::sharcop_compute_dreg_dm_dreg_pm()
 
     if (compute) COMPUTE(compute);
 
-    if (pmd) { m_bus->pm_write32(m_dag2.i[pmi], parallel_pm_dreg); }
-    else     { REG(pm_dreg) = s32(m_bus->pm_read32(m_dag2.i[pmi])); }
+    if (pmd) { pm_write32(m_dag2.i[pmi], parallel_pm_dreg); }
+    else     { REG(pm_dreg) = s32(pm_read32(m_dag2.i[pmi])); }
     m_dag2.i[pmi] += m_dag2.m[pmm];
     update_circular_buffer_pm(pmi);
 
-    if (dmd) { m_bus->dm_write32(m_dag1.i[dmi], parallel_dm_dreg); }
-    else     { REG(dm_dreg) = s32(m_bus->dm_read32(m_dag1.i[dmi])); }
+    if (dmd) { dm_write32(m_dag1.i[dmi], parallel_dm_dreg); }
+    else     { REG(dm_dreg) = s32(dm_read32(m_dag1.i[dmi])); }
     m_dag1.i[dmi] += m_dag1.m[dmm];
     update_circular_buffer_dm(dmi);
 }
@@ -1876,11 +2061,11 @@ void SHARC::sharcop_compute_ureg_dmpm_premod()
         u32 parallel_ureg = GET_UREG(ureg);
         if (compute) COMPUTE(compute);
         if (g) {
-            if (d) { if (ureg == 0xdb) m_bus->pm_write48(m_dag2.i[i]+m_dag2.m[m], m_px); else m_bus->pm_write32(m_dag2.i[i]+m_dag2.m[m], parallel_ureg); }
-            else   { if (ureg == 0xdb) m_px = m_bus->pm_read48(m_dag2.i[i]+m_dag2.m[m]); else SET_UREG(ureg, m_bus->pm_read32(m_dag2.i[i]+m_dag2.m[m])); }
+            if (d) { if (ureg == 0xdb) pm_write48(m_dag2.i[i]+m_dag2.m[m], m_px); else pm_write32(m_dag2.i[i]+m_dag2.m[m], parallel_ureg); }
+            else   { if (ureg == 0xdb) m_px = pm_read48(m_dag2.i[i]+m_dag2.m[m]); else SET_UREG(ureg, pm_read32(m_dag2.i[i]+m_dag2.m[m])); }
         } else {
-            if (d) m_bus->dm_write32(m_dag1.i[i]+m_dag1.m[m], parallel_ureg);
-            else   SET_UREG(ureg, m_bus->dm_read32(m_dag1.i[i]+m_dag1.m[m]));
+            if (d) dm_write32(m_dag1.i[i]+m_dag1.m[m], parallel_ureg);
+            else   SET_UREG(ureg, dm_read32(m_dag1.i[i]+m_dag1.m[m]));
         }
     }
 }
@@ -1899,12 +2084,12 @@ void SHARC::sharcop_compute_ureg_dmpm_postmod()
         u32 parallel_ureg = GET_UREG(ureg);
         if (compute) COMPUTE(compute);
         if (g) {
-            if (d) { if (ureg == 0xdb) m_bus->pm_write48(m_dag2.i[i], m_px); else m_bus->pm_write32(m_dag2.i[i], parallel_ureg); }
-            else   { if (ureg == 0xdb) m_px = m_bus->pm_read48(m_dag2.i[i]); else SET_UREG(ureg, m_bus->pm_read32(m_dag2.i[i])); }
+            if (d) { if (ureg == 0xdb) pm_write48(m_dag2.i[i], m_px); else pm_write32(m_dag2.i[i], parallel_ureg); }
+            else   { if (ureg == 0xdb) m_px = pm_read48(m_dag2.i[i]); else SET_UREG(ureg, pm_read32(m_dag2.i[i])); }
             m_dag2.i[i] += m_dag2.m[m]; update_circular_buffer_pm(i);
         } else {
-            if (d) m_bus->dm_write32(m_dag1.i[i], parallel_ureg);
-            else   SET_UREG(ureg, m_bus->dm_read32(m_dag1.i[i]));
+            if (d) dm_write32(m_dag1.i[i], parallel_ureg);
+            else   SET_UREG(ureg, dm_read32(m_dag1.i[i]));
             m_dag1.i[i] += m_dag1.m[m]; update_circular_buffer_dm(i);
         }
     }
@@ -1916,8 +2101,8 @@ void SHARC::sharcop_compute_dm_to_dreg_immmod() {
     int mod = op_get_reladdr(m_opcode); int compute = op_get_compute(m_opcode);
     if (IF_CONDITION_CODE(cond)) {
         if (compute) COMPUTE(compute);
-        if (u) { REG(dreg) = s32(m_bus->dm_read32(m_dag1.i[i])); m_dag1.i[i] += u32(mod); update_circular_buffer_dm(i); }
-        else   { REG(dreg) = s32(m_bus->dm_read32(m_dag1.i[i] + u32(mod))); }
+        if (u) { REG(dreg) = s32(dm_read32(m_dag1.i[i])); m_dag1.i[i] += u32(mod); update_circular_buffer_dm(i); }
+        else   { REG(dreg) = s32(dm_read32(m_dag1.i[i] + u32(mod))); }
     }
 }
 void SHARC::sharcop_compute_dreg_to_dm_immmod() {
@@ -1927,8 +2112,8 @@ void SHARC::sharcop_compute_dreg_to_dm_immmod() {
     u32 parallel_dreg = UIREG(dreg);
     if (IF_CONDITION_CODE(cond)) {
         if (compute) COMPUTE(compute);
-        if (u) { m_bus->dm_write32(m_dag1.i[i], parallel_dreg); m_dag1.i[i] += u32(mod); update_circular_buffer_dm(i); }
-        else   { m_bus->dm_write32(m_dag1.i[i] + u32(mod), parallel_dreg); }
+        if (u) { dm_write32(m_dag1.i[i], parallel_dreg); m_dag1.i[i] += u32(mod); update_circular_buffer_dm(i); }
+        else   { dm_write32(m_dag1.i[i] + u32(mod), parallel_dreg); }
     }
 }
 void SHARC::sharcop_compute_pm_to_dreg_immmod() {
@@ -1937,8 +2122,8 @@ void SHARC::sharcop_compute_pm_to_dreg_immmod() {
     int mod = op_get_reladdr(m_opcode); int compute = op_get_compute(m_opcode);
     if (IF_CONDITION_CODE(cond)) {
         if (compute) COMPUTE(compute);
-        if (u) { REG(dreg) = s32(m_bus->pm_read32(m_dag2.i[i])); m_dag2.i[i] += u32(mod); update_circular_buffer_pm(i); }
-        else   { REG(dreg) = s32(m_bus->pm_read32(m_dag2.i[i] + u32(mod))); }
+        if (u) { REG(dreg) = s32(pm_read32(m_dag2.i[i])); m_dag2.i[i] += u32(mod); update_circular_buffer_pm(i); }
+        else   { REG(dreg) = s32(pm_read32(m_dag2.i[i] + u32(mod))); }
     }
 }
 void SHARC::sharcop_compute_dreg_to_pm_immmod() {
@@ -1948,8 +2133,8 @@ void SHARC::sharcop_compute_dreg_to_pm_immmod() {
     u32 parallel_dreg = UIREG(dreg);
     if (IF_CONDITION_CODE(cond)) {
         if (compute) COMPUTE(compute);
-        if (u) { m_bus->pm_write32(m_dag2.i[i], parallel_dreg); m_dag2.i[i] += u32(mod); update_circular_buffer_pm(i); }
-        else   { m_bus->pm_write32(m_dag2.i[i] + u32(mod), parallel_dreg); }
+        if (u) { pm_write32(m_dag2.i[i], parallel_dreg); m_dag2.i[i] += u32(mod); update_circular_buffer_pm(i); }
+        else   { pm_write32(m_dag2.i[i] + u32(mod), parallel_dreg); }
     }
 }
 void SHARC::sharcop_compute_ureg_to_ureg() {
@@ -1974,10 +2159,10 @@ void SHARC::sharcop_imm_shift_dreg_dmpm() {
         u32 parallel_dreg = UIREG(dreg);
         SHIFT_OPERATION_IMM(shiftop, data, rn, rx);
         if (g) {
-            if (d) { m_bus->pm_write32(m_dag2.i[i], parallel_dreg); } else { REG(dreg) = s32(m_bus->pm_read32(m_dag2.i[i])); }
+            if (d) { pm_write32(m_dag2.i[i], parallel_dreg); } else { REG(dreg) = s32(pm_read32(m_dag2.i[i])); }
             m_dag2.i[i] += m_dag2.m[m]; update_circular_buffer_pm(i);
         } else {
-            if (d) { m_bus->dm_write32(m_dag1.i[i], parallel_dreg); } else { REG(dreg) = s32(m_bus->dm_read32(m_dag1.i[i])); }
+            if (d) { dm_write32(m_dag1.i[i], parallel_dreg); } else { REG(dreg) = s32(dm_read32(m_dag1.i[i])); }
             m_dag1.i[i] += m_dag1.m[m]; update_circular_buffer_dm(i);
         }
     }
@@ -2092,7 +2277,7 @@ void SHARC::sharcop_indirect_jump_compute_dreg_dm() {
     else {
         u32 compute = op_get_compute(m_opcode); u32 parallel_dreg = UIREG(dreg);
         if (compute) COMPUTE(compute);
-        if (d) { m_bus->dm_write32(m_dag1.i[dmi], parallel_dreg); } else { REG(dreg) = s32(m_bus->dm_read32(m_dag1.i[dmi])); }
+        if (d) { dm_write32(m_dag1.i[dmi], parallel_dreg); } else { REG(dreg) = s32(dm_read32(m_dag1.i[dmi])); }
         m_dag1.i[dmi] += m_dag1.m[dmm]; update_circular_buffer_dm(dmi);
     }
 }
@@ -2103,7 +2288,7 @@ void SHARC::sharcop_relative_jump_compute_dreg_dm() {
     else {
         u32 compute = op_get_compute(m_opcode); u32 parallel_dreg = UIREG(dreg);
         if (compute) COMPUTE(compute);
-        if (d) { m_bus->dm_write32(m_dag1.i[dmi], parallel_dreg); } else { REG(dreg) = s32(m_bus->dm_read32(m_dag1.i[dmi])); }
+        if (d) { dm_write32(m_dag1.i[dmi], parallel_dreg); } else { REG(dreg) = s32(dm_read32(m_dag1.i[dmi])); }
         m_dag1.i[dmi] += m_dag1.m[dmm]; update_circular_buffer_dm(dmi);
     }
 }
@@ -2157,48 +2342,48 @@ void SHARC::sharcop_do_until() {
 void SHARC::sharcop_dm_to_ureg_direct() {
     int ureg = (m_opcode >> 32) & 0xff;
     u32 address = u32(m_opcode);
-    SET_UREG(ureg, m_bus->dm_read32(address));
+    SET_UREG(ureg, dm_read32(address));
 }
 void SHARC::sharcop_ureg_to_dm_direct() {
     int ureg = (m_opcode >> 32) & 0xff;
     u32 address = u32(m_opcode);
-    m_bus->dm_write32(address, GET_UREG(ureg));
+    dm_write32(address, GET_UREG(ureg));
 }
 void SHARC::sharcop_pm_to_ureg_direct() {
     int ureg = (m_opcode >> 32) & 0xff;
     u32 address = u32(m_opcode);
-    if (ureg == 0xdb) m_px = m_bus->pm_read48(address);
-    else SET_UREG(ureg, m_bus->pm_read32(address));
+    if (ureg == 0xdb) m_px = pm_read48(address);
+    else SET_UREG(ureg, pm_read32(address));
 }
 void SHARC::sharcop_ureg_to_pm_direct() {
     int ureg = (m_opcode >> 32) & 0xff;
     u32 address = u32(m_opcode);
-    if (ureg == 0xdb) m_bus->pm_write48(address, m_px);
-    else m_bus->pm_write32(address, GET_UREG(ureg));
+    if (ureg == 0xdb) pm_write48(address, m_px);
+    else pm_write32(address, GET_UREG(ureg));
 }
 void SHARC::sharcop_dm_to_ureg_indirect() {
     int ureg = (m_opcode >> 32) & 0xff; u32 offset = u32(m_opcode); int i = (m_opcode >> 41) & 0x7;
-    SET_UREG(ureg, m_bus->dm_read32(m_dag1.i[i] + offset));
+    SET_UREG(ureg, dm_read32(m_dag1.i[i] + offset));
 }
 void SHARC::sharcop_ureg_to_dm_indirect() {
     int ureg = (m_opcode >> 32) & 0xff; u32 offset = u32(m_opcode); int i = (m_opcode >> 41) & 0x7;
-    m_bus->dm_write32(m_dag1.i[i] + offset, GET_UREG(ureg));
+    dm_write32(m_dag1.i[i] + offset, GET_UREG(ureg));
 }
 void SHARC::sharcop_pm_to_ureg_indirect() {
     int ureg = (m_opcode >> 32) & 0xff; u32 offset = u32(m_opcode & 0xffffff); int i = (m_opcode >> 41) & 0x7;
-    if (ureg == 0xdb) m_px = m_bus->pm_read48(m_dag2.i[i] + offset);
-    else SET_UREG(ureg, m_bus->pm_read32(m_dag2.i[i] + offset));
+    if (ureg == 0xdb) m_px = pm_read48(m_dag2.i[i] + offset);
+    else SET_UREG(ureg, pm_read32(m_dag2.i[i] + offset));
 }
 void SHARC::sharcop_ureg_to_pm_indirect() {
     int ureg = (m_opcode >> 32) & 0xff; u32 offset = u32(m_opcode); int i = (m_opcode >> 41) & 0x7;
-    if (ureg == 0xdb) m_bus->pm_write48(m_dag2.i[i] + offset, m_px);
-    else m_bus->pm_write32(m_dag2.i[i] + offset, GET_UREG(ureg));
+    if (ureg == 0xdb) pm_write48(m_dag2.i[i] + offset, m_px);
+    else pm_write32(m_dag2.i[i] + offset, GET_UREG(ureg));
 }
 void SHARC::sharcop_imm_to_dmpm() {
     int i = (m_opcode >> 41) & 0x7; int m = (m_opcode >> 38) & 0x7;
     int g = (m_opcode >> 37) & 0x1; u32 data = u32(m_opcode);
-    if (g) { m_bus->pm_write32(m_dag2.i[i], data); m_dag2.i[i] += m_dag2.m[m]; update_circular_buffer_pm(i); }
-    else   { m_bus->dm_write32(m_dag1.i[i], data); m_dag1.i[i] += m_dag1.m[m]; update_circular_buffer_dm(i); }
+    if (g) { pm_write32(m_dag2.i[i], data); m_dag2.i[i] += m_dag2.m[m]; update_circular_buffer_pm(i); }
+    else   { dm_write32(m_dag1.i[i], data); m_dag1.i[i] += m_dag1.m[m]; update_circular_buffer_dm(i); }
 }
 void SHARC::sharcop_imm_to_ureg() {
     int ureg = (m_opcode >> 32) & 0xff; u32 data = u32(m_opcode);

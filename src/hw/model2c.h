@@ -17,7 +17,7 @@
 #include "core/types.h"
 #include "cpu/bus.h"
 #include "cpu/i960/i960.h"
-#include "cpu/sharc/sharc.h"
+#include "cpu/mb86235/mb86235.h"
 #include "hw/copro_fifo.h"
 #include "hw/geometrizer.h"
 #include "hw/eeprom_93c46.h"
@@ -39,37 +39,49 @@
 namespace sm2::hw {
 
 // ===========================================================================
-// CoproSharc — the ADSP-21062 coprocessor subsystem for Model 2B.
+// CoproTgpx4 — the MB86235 coprocessor subsystem for Model 2C.
 //
-// Derived from MAME's model2b_state copro handling (BSD-3-Clause,
-// copyright-holders R. Belmont, Olivier Galibert, ElSemi, Angelo Salese).
+// Derived from MAME's model2c_state in src/mame/sega/model2.cpp (BSD-3-Clause,
+// copyright-holders R. Belmont, Olivier Galibert, ElSemi, Angelo Salese,
+// Matthew Daniels): copro_tgpx4_map, copro_tgpx4_data_map, copro_fifo_w,
+// copro_halt, copro_boot and copro_function_port_w.
 //
-// The SHARC replaces the MB86234 TGP. The host uploads microcode via DMA
-// (16-bit words packed into the SHARC's external port), then the SHARC
-// processes FIFO commands and writes results to buffer RAM, feeding the
-// existing Geometrizer.
+// The MB86235 "TGPx4" replaces Model 2B's SHARC. Unlike the SHARC, whose
+// microcode lives in on-chip SRAM, the TGPx4's program memory is board RAM
+// (MAME's copro_tgpx4_map maps 0x00000000-0x00000fff as RAM shared as
+// "copro_tgpx4_program"), so this class owns it. The host uploads it through
+// the same FIFO port the commands later travel over.
 // ===========================================================================
 
-class CoproSharc final : public cpu::sharc::Bus {
+class CoproTgpx4 final : public cpu::mb86235::Bus {
 public:
-    /// Depth of each host FIFO (MAME uses 16 for model2b).
-    static constexpr usize kFifoDepth = 16;
+    /// Words of board-supplied microcode RAM, 64 bits each.
+    static constexpr u32 kProgramWords = cpu::mb86235::MB86235::kProgramWords;
 
-    CoproSharc();
+    /// Depth of each host FIFO. MAME's model2c_state::machine_start uses 8,
+    /// half of Model 2B's 16.
+    static constexpr usize kFifoDepth = 8;
 
-    CoproSharc(const CoproSharc&)            = delete;
-    CoproSharc& operator=(const CoproSharc&) = delete;
+    /// Words of display list buffer the coprocessor can reach through its
+    /// external bus.
+    static constexpr u32 kBufferWords = 0x8000;
+
+    CoproTgpx4();
+
+    CoproTgpx4(const CoproTgpx4&)            = delete;
+    CoproTgpx4& operator=(const CoproTgpx4&) = delete;
 
     /// Wire up external resources.
     ///
-    /// `data_rom` is the copro_data ROM the SHARC reads through its DM space.
-    /// `buffer_ram` is the shared display list buffer.
+    /// `data_rom` is the copro_data ROM the TGPx4 reads through the upper half
+    /// of its external bus. `buffer_ram` is the shared display list buffer,
+    /// which it both reads and writes; it must outlive this object.
     void attach(std::span<const u32> data_rom, std::span<u32> buffer_ram);
 
     void reset();
 
-    [[nodiscard]] cpu::sharc::SHARC& cpu() { return m_cpu; }
-    [[nodiscard]] const cpu::sharc::SHARC& cpu() const { return m_cpu; }
+    [[nodiscard]] cpu::mb86235::MB86235& cpu() { return m_cpu; }
+    [[nodiscard]] const cpu::mb86235::MB86235& cpu() const { return m_cpu; }
 
     [[nodiscard]] CoproFifo& fifo_in() { return m_fifo_in; }
     [[nodiscard]] CoproFifo& fifo_out() { return m_fifo_out; }
@@ -83,15 +95,15 @@ public:
 
     /// Write to the control register at 0x00980000.
     ///
-    /// Bit 31 rising: start microcode upload, halt the SHARC, reset counter.
-    /// Bit 31 falling: boot the SHARC, release halt.
+    /// Bit 31 rising: start a microcode upload and reset the word counter.
+    /// Bit 31 falling: boot, which only releases the halt line.
     void control_write(u32 value);
     [[nodiscard]] u32 control_read() const { return m_control; }
 
     /// Write to the FIFO port at 0x00884000.
     ///
-    /// During an upload: 16-bit words sent via external_dma_write to SHARC PM.
-    /// Normal mode: push to the input FIFO.
+    /// During an upload each pair of host writes assembles one 64-bit program
+    /// word, low half first. Otherwise the value is pushed to the input FIFO.
     void host_fifo_write(u32 value);
 
     /// Read a result from the output FIFO.
@@ -104,37 +116,42 @@ public:
     /// True when no result is waiting.
     [[nodiscard]] bool output_empty() const { return m_fifo_out.empty(); }
 
-    /// Words of microcode uploaded since the last upload began.
+    /// Host writes accepted since the last upload began. Two of these make one
+    /// 64-bit program word.
     [[nodiscard]] u32 uploaded_words() const { return m_upload_count; }
 
-    /// Write to SHARC IOP register from the host bus (at 0x008c0000).
-    void iop_write(u32 offset, u32 data);
-
-    /// Copro status register at 0x00980014.
+    /// Copro status register at 0x00980014 (MAME's copro_status_r).
     [[nodiscard]] u32 status() const { return m_upload_count == 0 ? 0xffffffffu : 0u; }
 
-    // -- cpu::sharc::Bus ---------------------------------------------------
+    // -- cpu::mb86235::Bus -------------------------------------------------
 
-    [[nodiscard]] u64 pm_read48(u32 address) override;
-    void pm_write48(u32 address, u64 data) override;
-    [[nodiscard]] u32 pm_read32(u32 address) override;
-    void pm_write32(u32 address, u32 data) override;
-    [[nodiscard]] u32 dm_read32(u32 address) override;
-    void dm_write32(u32 address, u32 data) override;
-    void external_dma_write(u32 address, u64 data) override;
+    [[nodiscard]] u64 program_read(u32 address) override;
+    void program_write(u32 address, u64 data) override;
+    [[nodiscard]] u32 external_read(u32 address) override;
+    void external_write(u32 address, u32 data) override;
+
+    [[nodiscard]] bool fifo_in_empty() const override { return m_fifo_in.empty(); }
+    [[nodiscard]] bool fifo_in_full() const override { return m_fifo_in.full(); }
+    [[nodiscard]] bool fifo_out_empty() const override { return m_fifo_out.empty(); }
+    [[nodiscard]] bool fifo_out_full() const override { return m_fifo_out.full(); }
+
+    [[nodiscard]] u32 fifo_in_pop() override;
+    void fifo_out_push(u32 value) override;
+    void fifo_in_clear() override { m_fifo_in.clear(); }
+    void fifo_out_clear() override { m_fifo_out.clear(); }
 
 private:
-    cpu::sharc::SHARC m_cpu;
+    cpu::mb86235::MB86235 m_cpu;
 
     CoproFifo m_fifo_in;
     CoproFifo m_fifo_out;
 
-    // Note: there is deliberately no program-memory storage here. The SHARC's
-    // microcode lives in the CPU's own on-chip SRAM banks (see
-    // cpu::sharc::SHARC), which is where the DMA upload writes it and where
-    // instruction fetches read it from. MAME models this the same way: the
-    // Model 2B board only supplies the SHARC's *data* space (copro_sharc_map),
-    // and its program space is entirely internal to the chip.
+    /// The board's microcode RAM. Model 2B deliberately has no equivalent
+    /// member because the SHARC keeps its program on-chip; the TGPx4's program
+    /// space is external, so it lives here and is what program_read fetches
+    /// from.
+    std::vector<u64> m_program;
+
     std::span<const u32> m_data_rom;
     std::span<u32>       m_buffer_ram;
 
@@ -143,21 +160,24 @@ private:
 };
 
 // ===========================================================================
-// Model2B — Sega Model 2B-CRX.
+// Model2C — Sega Model 2C-CRX.
 //
-// Derived from MAME's model2b_state (BSD-3-Clause, copyright-holders
-// R. Belmont, Olivier Galibert, ElSemi, Angelo Salese, Matthew Daniels).
+// Derived from MAME's model2c_state in src/mame/sega/model2.cpp (BSD-3-Clause,
+// copyright-holders R. Belmont, Olivier Galibert, ElSemi, Angelo Salese,
+// Matthew Daniels).
 //
-// The i960 is still the main CPU (same core, same Bus pattern). The SHARC
-// replaces the MB86233 TGP as the geometry coprocessor. The sound board is
-// the same 68000/SCSP as Model 2A.
+// The same i960 main CPU, I/O controller, tilemap chip, geometrizer and
+// 68000/SCSP sound board as Model 2B. What differs is the coprocessor (MB86235
+// TGPx4 instead of an ADSP-21062 SHARC), the UART's address, and the texture
+// RAM layout.
 // ===========================================================================
 
-class Model2B final : public cpu::Bus, public Model2MachineBase {
+class Model2C final : public cpu::Bus, public Model2MachineBase {
 public:
-    // -- video timing (same as Model 2A) -----------------------------------
+    // -- video timing (same as Model 2A/2B) --------------------------------
     static constexpr u32 kDotClock        = 16'000'000;
     static constexpr u32 kCpuClock        = 25'000'000;
+    static constexpr u32 kCoproClock      = 20'000'000;
     static constexpr u32 kHorizontalTotal = 656;
     static constexpr u32 kVerticalTotal   = 424;
     static constexpr u32 kVisibleWidth    = 496;
@@ -171,11 +191,11 @@ public:
     static constexpr u32 kUartBitRate     = 31'250;
     static constexpr u32 kUartBitsPerByte = 10;
 
-    Model2B();
-    ~Model2B() override;
+    Model2C();
+    ~Model2C() override;
 
-    Model2B(const Model2B&)            = delete;
-    Model2B& operator=(const Model2B&) = delete;
+    Model2C(const Model2C&)            = delete;
+    Model2C& operator=(const Model2C&) = delete;
 
     [[nodiscard]] bool init(const rom::GameSpec& game, rom::RomSet roms) override;
     void reset() override;
@@ -198,8 +218,8 @@ public:
     [[nodiscard]] cpu::i960::I960& cpu() { return m_cpu; }
     [[nodiscard]] const cpu::i960::I960& cpu() const { return m_cpu; }
 
-    [[nodiscard]] CoproSharc& copro() { return m_copro; }
-    [[nodiscard]] const CoproSharc& copro() const { return m_copro; }
+    [[nodiscard]] CoproTgpx4& copro() { return m_copro; }
+    [[nodiscard]] const CoproTgpx4& copro() const { return m_copro; }
 
     [[nodiscard]] Geometrizer& geometry() { return m_geometry; }
     [[nodiscard]] const Geometrizer& geometry() const { return m_geometry; }
@@ -306,7 +326,7 @@ private:
     Io315_5649      m_io;
     Eeprom93c46     m_eeprom;
     Model2Video     m_video;
-    CoproSharc      m_copro;
+    CoproTgpx4      m_copro;
     Geometrizer     m_geometry;
     Model2Sound     m_sound;
     I8251           m_uart;

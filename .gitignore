@@ -32,6 +32,9 @@ roms/
 .DS_Store
 *.swp
 
+# Kiro spec/session workspace
+.kiro/
+
 # Optional local/development content
 tests/
 tools/

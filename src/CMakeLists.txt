@@ -62,6 +62,7 @@ target_link_libraries(sm2_render
 add_library(sm2_cpu STATIC
     cpu/i960/i960.cpp
     cpu/mb86233/mb86233.cpp
+    cpu/mb86235/mb86235.cpp
     cpu/sharc/sharc.cpp
 )
 target_link_libraries(sm2_cpu
@@ -141,6 +142,7 @@ add_library(sm2_hw STATIC
     hw/machine_factory.cpp
     hw/model2.cpp
     hw/model2b.cpp
+    hw/model2c.cpp
     hw/model2_debug.cpp
     hw/model2_sound.cpp
     hw/model2_video.cpp

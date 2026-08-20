@@ -665,8 +665,8 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
     }
 
     if (!board_implemented(chosen->board)) {
-        SM2_ERROR("'%s' is a %s board, which is not implemented yet. Only "
-                  "Model 2A-CRX is supported.", chosen->name.c_str(),
+        SM2_ERROR("'%s' is a %s board, which is not implemented yet. The CRX "
+                  "boards (2A, 2B and 2C) are supported.", chosen->name.c_str(),
                   board_name(chosen->board));
         return std::nullopt;
     }

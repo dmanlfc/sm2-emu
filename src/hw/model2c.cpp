@@ -13,16 +13,16 @@
 // express written permission of the author.
 //
 //
-// Sega Model 2B-CRX.
+// Sega Model 2C-CRX.
 //
-// Derived from MAME's model2b_state in src/mame/sega/model2.cpp (BSD-3-Clause,
+// Derived from MAME's model2c_state in src/mame/sega/model2.cpp (BSD-3-Clause,
 // copyright-holders R. Belmont, Olivier Galibert, ElSemi, Angelo Salese,
 // Matthew Daniels).
 //
-// The address decode follows MAME's model2b_crx_mem region for region so the
+// The address decode follows MAME's model2c_crx_mem region for region so the
 // two can be compared directly.
 
-#include "hw/model2b.h"
+#include "hw/model2c.h"
 
 #include "core/log.h"
 
@@ -37,7 +37,7 @@ namespace sm2::hw {
 namespace {
 
 // ---------------------------------------------------------------------------
-// Little-endian access helpers (same as model2.cpp)
+// Little-endian access helpers (same as model2.cpp / model2b.cpp)
 // ---------------------------------------------------------------------------
 
 [[nodiscard]] inline u16 load16(const u8* p)
@@ -72,21 +72,24 @@ inline void store32(u8* p, u32 v) { std::memcpy(p, &v, sizeof(v)); }
 }
 
 // ---------------------------------------------------------------------------
-// Model 2B memory map
+// Model 2C memory map
 // ---------------------------------------------------------------------------
-// Differences from Model 2A are noted inline.
+// Differences from Model 2B are noted inline. Everything not noted is shared,
+// because MAME's model2c_crx_mem and model2b_crx_mem are both model2_base_mem
+// plus a short list of overrides.
 
 constexpr u32 kRomMainCpu      = 0x00000000;  // 2 MB
-constexpr u32 kScratchRam      = 0x00200000;  // 256 KB (same as 2A)
+constexpr u32 kScratchRam      = 0x00200000;  // 256 KB
 constexpr u32 kWorkRam         = 0x00500000;  // 1 MB
 constexpr u32 kGeoPort         = 0x00800000;  // 16 KB, Geometrizer function ports
 constexpr u32 kGeoProgram      = 0x00804000;  // 16 KB, Geometrizer upload / write-through
 constexpr u32 kCoproFunction   = 0x00880000;  // 16 KB, copro function port
 constexpr u32 kCoproFifo       = 0x00884000;  // 16 KB, copro FIFO read/write
-constexpr u32 kSharcIop        = 0x008c0000;  // 4 KB, SHARC IOP register write
+// Model 2C has nothing at 0x008c0000: that window was the SHARC's IOP register
+// file, and the TGPx4 has no equivalent.
 constexpr u32 kBufferRam       = 0x00900000;  // 128 KB, mirror 0x60000
 constexpr u32 kVideoRegs       = 0x00980000;  // copro control, geo control, videoctl
-constexpr u32 kUart            = 0x009c0000;  // UART (Model 2B position)
+constexpr u32 kUart            = 0x01c80000;  // UART (Model 2C position, as 2A)
 constexpr u32 kCpuControl      = 0x00e00000;
 constexpr u32 kIrqRegs         = 0x00e80000;
 constexpr u32 kTimerRegs       = 0x00f00000;
@@ -96,7 +99,7 @@ constexpr u32 kPaletteRam      = 0x01800000;  // 16 KB
 constexpr u32 kColorXlat       = 0x01810000;  // 48 KB
 constexpr u32 kZClip           = 0x0181c000;
 constexpr u32 kCommRam         = 0x01a00000;  // 16 KB, mirror 0x10000
-constexpr u32 kIoController    = 0x01c00000;  // Same as 2A
+constexpr u32 kIoController    = 0x01c00000;
 constexpr u32 kNvram           = 0x01d00000;  // 16 KB
 constexpr u32 kCryptRam        = 0x01d80000;  // 64 KB, 315-5881 staging buffer
 constexpr u32 kCryptReady      = 0x01d90000;
@@ -108,32 +111,57 @@ constexpr u32 kRomMainData     = 0x02000000;  // 32 MB window
 constexpr u32 kRomMainDataHigh = 0x06000000;  // 16 MB at offset 0x1000000
 constexpr u32 kRenderMode      = 0x10000000;
 constexpr u32 kPolygonCount    = 0x10400000;
-// Model 2B texture RAM: at 0x11000000, not 0x12000000.
-constexpr u32 kTextureRam0     = 0x11000000;  // 1 MB + 1 MB mirror
-constexpr u32 kTextureRam1     = 0x11200000;  // 1 MB + 1 MB mirror
-constexpr u32 kLumaRam         = 0x11400000;  // byte-wide, 0x10000 entries
+// Model 2C texture RAM: one 2 MB window each, mapped once. Model 2B maps 1 MB
+// each twice instead; this is the one video-memory difference between them.
+constexpr u32 kTextureRam0     = 0x11000000;  // 2 MB
+constexpr u32 kTextureRam1     = 0x11200000;  // 2 MB
+constexpr u32 kLumaRam         = 0x11400000;  // 0x11400000-0x1140ffff, byte-wide
+constexpr u32 kLumaWindow      = 0x00010000;
 constexpr u32 kFramebufferA    = 0x11600000;  // 512 KB
 constexpr u32 kFramebufferB    = 0x11680000;  // 512 KB
 
+/// True when `address`, with the mirrored bits masked out, falls in
+/// [base, base + size).
 [[nodiscard]] inline bool in_mirrored(u32 address, u32 base, u32 size, u32 mirror)
 {
     const u32 folded = address & ~mirror;
     return folded >= base && folded < base + size;
 }
 
+// -- the coprocessor's own external bus (MAME's copro_tgpx4_data_map) --------
+
+/// Word address and mirror of the display list buffer window.
+constexpr u32 kCoproBufferBase   = 0x00400000;
+constexpr u32 kCoproBufferSize   = 0x00008000;
+constexpr u32 kCoproBufferMirror = 0x003f8000;
+
+/// Word address range of the copro_data ROM.
+constexpr u32 kCoproRomBase = 0x00800000;
+constexpr u32 kCoproRomSize = 0x00200000;
+
 }  // namespace
 
 // ===========================================================================
-// CoproSharc implementation
+// CoproTgpx4 implementation
 // ===========================================================================
 
-CoproSharc::CoproSharc()
+CoproTgpx4::CoproTgpx4()
     : m_cpu(*this)
+    , m_program(kProgramWords, 0)
 {
     m_fifo_in.configure(kFifoDepth);
     m_fifo_out.configure(kFifoDepth);
 
-    // Coprocessor-side flow control (SHARC halts/resumes based on FIFO state).
+    // Coprocessor-side flow control, wired exactly as MAME's
+    // model2c_state::machine_start does. This is the TGP pattern that Model 2A
+    // uses (see CoproTgp's constructor), not Model 2B's: the SHARC learned the
+    // FIFO state through its FLAG inputs, and the MB86235 does not have those --
+    // it reads the IFE/IFF/OFE/OFF conditions directly, which the Bus answers.
+    //
+    // The coprocessor is the destination of the input FIFO and the source of the
+    // output one. The host's half of both is wired by Model2C::init, because
+    // only the machine can halt the host CPU.
+    m_fifo_in.set_on_empty_retry([this] { m_cpu.stall(); });
     m_fifo_in.set_on_empty_halt([this] { m_cpu.set_halted(true); });
     m_fifo_in.set_on_unempty([this] { m_cpu.set_halted(false); });
 
@@ -141,15 +169,17 @@ CoproSharc::CoproSharc()
     m_fifo_out.set_on_unfull([this] { m_cpu.set_halted(false); });
 }
 
-void CoproSharc::attach(std::span<const u32> data_rom, std::span<u32> buffer_ram)
+void CoproTgpx4::attach(std::span<const u32> data_rom, std::span<u32> buffer_ram)
 {
     m_data_rom   = data_rom;
     m_buffer_ram = buffer_ram;
 }
 
-void CoproSharc::reset()
+void CoproTgpx4::reset()
 {
     m_cpu.reset();
+    // Held until the host uploads microcode and releases it, matching MAME's
+    // model2c_state::machine_reset, which asserts INPUT_LINE_HALT on the TGPx4.
     m_cpu.set_halted(true);
 
     m_fifo_in.clear();
@@ -158,12 +188,15 @@ void CoproSharc::reset()
     m_control      = 0;
     m_upload_count = 0;
 
-    // SHARC starts with flag0=1 (FIFO-in empty), flag1=0 (FIFO-out not full).
-    m_cpu.set_flag_input(0, 1);
-    m_cpu.set_flag_input(1, 0);
+    // m_program is deliberately left alone. It is board RAM, and a reset pulse
+    // does not clear RAM -- MAME's copro_tgpx4_map shares it as a plain .ram()
+    // region, which machine_reset does not touch either.
+    //
+    // There are also no set_flag_input calls here: those were the SHARC's way of
+    // learning the FIFO state and have no counterpart on this part.
 }
 
-s32 CoproSharc::run(s32 cycles)
+s32 CoproTgpx4::run(s32 cycles)
 {
     if (m_cpu.halted()) return 0;
     return m_cpu.run(cycles);
@@ -171,142 +204,126 @@ s32 CoproSharc::run(s32 cycles)
 
 // -- host side -------------------------------------------------------------
 
-void CoproSharc::control_write(u32 value)
+void CoproTgpx4::control_write(u32 value)
 {
     if (((value ^ m_control) & 0x80000000u) != 0) {
         if ((value & 0x80000000u) != 0) {
-            SM2_DEBUG("copro_sharc: microcode upload started");
+            SM2_DEBUG("copro_tgpx4: microcode upload started");
             m_upload_count = 0;
-            // MAME's model2b_state::copro_halt() is deliberately empty — unlike
-            // the TGP on Model 2A, the SHARC is not halted for the upload. It
-            // is already halted from machine reset and stays that way until the
-            // boot write below.
+            // MAME's model2c_state::copro_halt() is deliberately empty. The
+            // TGPx4 is already halted from machine reset and stays that way
+            // until the boot write below.
         } else {
-            SM2_DEBUG("copro_sharc: booting, %u 16-bit word(s) uploaded", m_upload_count);
-            // model2b_state::copro_boot() only clears the halt line. It must
-            // NOT reset the core: a reset would clear the on-chip SRAM banks
-            // that the microcode was just DMA'd into.
+            SM2_DEBUG("copro_tgpx4: booting, %u host write(s) uploaded (%u program "
+                      "word(s))", m_upload_count, m_upload_count / 2);
+            // model2c_state::copro_boot() only clears the halt line. It must NOT
+            // reset the core: reset() re-asserts halt, which would undo this.
             m_cpu.set_halted(false);
         }
     }
     m_control = value;
 }
 
-void CoproSharc::host_fifo_write(u32 value)
+void CoproTgpx4::host_fifo_write(u32 value)
 {
     if ((m_control & 0x80000000u) != 0) {
-        // Upload mode: 16-bit words sent to SHARC via external DMA.
-        m_cpu.external_dma_write(m_upload_count, static_cast<u64>(value & 0xffff));
+        // Microcode upload. Program words are 64 bits and the host bus is 32,
+        // so two consecutive writes assemble one word, low half first: an even
+        // counter fills bits 31:0 and the following odd one fills bits 63:32.
+        // This is the one substantial difference from Model 2B, whose SHARC
+        // takes 16-bit halves through a DMA port instead.
+        const u32 index = m_upload_count / 2;
+        if (index < m_program.size()) {
+            if ((m_upload_count & 1) != 0) {
+                m_program[index] = (m_program[index] & 0x00000000ffffffffULL)
+                                 | (static_cast<u64>(value) << 32);
+            } else {
+                m_program[index] = (m_program[index] & 0xffffffff00000000ULL) | value;
+            }
+        }
         ++m_upload_count;
         return;
     }
     m_fifo_in.push(value);
-    // Update FLAG0: tells the SHARC whether fifo_in is empty.
-    m_cpu.set_flag_input(0, m_fifo_in.empty() ? 1 : 0);
 }
 
-u32 CoproSharc::host_fifo_read()
+u32 CoproTgpx4::host_fifo_read()
 {
-    u32 value = m_fifo_out.pop();
-    // Update FLAG1: tells the SHARC whether fifo_in is full (back-pressure).
-    m_cpu.set_flag_input(1, m_fifo_in.full() ? 1 : 0);
-    return value;
+    return m_fifo_out.pop();
 }
 
-void CoproSharc::function_port_write(u32 byte_offset, u32 value)
+void CoproTgpx4::function_port_write(u32 byte_offset, u32 value)
 {
-    // The function address lives in the offset (MAME: a = (offset >> 2) & 0xff,
-    // where offset is the dword count, so: a = (byte_offset >> 4) & 0xff).
+    // Identical to Model 2B. The function number lives in the port's own
+    // address: MAME's copro_function_port_w takes `a = (offset >> 2) & 0xff`
+    // where offset is a dword index, so sixteen bytes per function.
     const u32 function = (byte_offset >> 4) & 0xff;
     const u32 command  = (value & 0x800fffffu) | (function << 23);
     m_fifo_in.push(command);
-    m_cpu.set_flag_input(0, m_fifo_in.empty() ? 1 : 0);
 }
 
-void CoproSharc::iop_write(u32 offset, u32 data)
+// -- cpu::mb86235::Bus implementation --------------------------------------
+
+u64 CoproTgpx4::program_read(u32 address)
 {
-    m_cpu.external_iop_write(offset, data);
+    // MAME's copro_tgpx4_map: 0x00000000-0x00000fff of RAM, board-supplied.
+    return address < m_program.size() ? m_program[address] : 0;
 }
 
-// -- sharc::Bus implementation ---------------------------------------------
-
-// The Model 2B board does not map anything into the SHARC's program space —
-// MAME only installs copro_sharc_map on AS_DATA. Program accesses are serviced
-// entirely by the chip's internal SRAM banks inside cpu::sharc::SHARC, so these
-// only ever see out-of-range addresses.
-u64 CoproSharc::pm_read48(u32 /*address*/) { return 0; }
-
-void CoproSharc::pm_write48(u32 /*address*/, u64 /*data*/) {}
-
-u32 CoproSharc::pm_read32(u32 /*address*/) { return 0; }
-
-void CoproSharc::pm_write32(u32 /*address*/, u32 /*data*/) {}
-
-u32 CoproSharc::dm_read32(u32 address)
+void CoproTgpx4::program_write(u32 address, u64 data)
 {
-    // MAME's copro_sharc_map:
-    //   0x0400000–0x0bfffff  FIFO-in read
-    //   0x0c00000–0x13fffff  FIFO-out write (read returns 0)
-    //   0x1400000–0x1bfffff  buffer RAM
-    //   0x1c00000–0x1dfffff  copro_data ROM
-    if (address >= 0x0400000 && address <= 0x0bfffff) {
-        u32 value = m_fifo_in.pop();
-        // Update FLAG0 after consuming a word.
-        m_cpu.set_flag_input(0, m_fifo_in.empty() ? 1 : 0);
-        return value;
+    if (address < m_program.size()) {
+        m_program[address] = data;
     }
-    if (address >= 0x0c00000 && address <= 0x13fffff) {
-        return 0;  // Write-only region
+}
+
+u32 CoproTgpx4::external_read(u32 address)
+{
+    // MAME's copro_tgpx4_data_map.
+    if (in_mirrored(address, kCoproBufferBase, kCoproBufferSize, kCoproBufferMirror)) {
+        // The mirror repeats the 0x8000-word window every 0x8000 words up to
+        // 0x007fffff, so the low fifteen bits are the index.
+        const u32 index = address & (kCoproBufferSize - 1);
+        return index < m_buffer_ram.size() ? m_buffer_ram[index] : 0;
     }
-    if (address >= 0x1400000 && address <= 0x1bfffff) {
-        const u32 index = (address - 0x1400000) & 0x7fff;
-        if (index < m_buffer_ram.size()) {
-            return m_buffer_ram[index];
-        }
-        return 0;
-    }
-    if (address >= 0x1c00000 && address <= 0x1dfffff) {
-        const u32 index = address - 0x1c00000;
-        if (index < m_data_rom.size()) {
-            return m_data_rom[index];
-        }
-        return 0;
+    if (address >= kCoproRomBase && address < kCoproRomBase + kCoproRomSize) {
+        const u32 index = address - kCoproRomBase;
+        return index < m_data_rom.size() ? m_data_rom[index] : 0;
     }
     return 0;
 }
 
-void CoproSharc::dm_write32(u32 address, u32 data)
+void CoproTgpx4::external_write(u32 address, u32 data)
 {
-    if (address >= 0x0c00000 && address <= 0x13fffff) {
-        m_fifo_out.push(data);
-        // Update FLAG1.
-        m_cpu.set_flag_input(1, m_fifo_in.full() ? 1 : 0);
-        return;
-    }
-    if (address >= 0x1400000 && address <= 0x1bfffff) {
-        const u32 index = (address - 0x1400000) & 0x7fff;
+    if (in_mirrored(address, kCoproBufferBase, kCoproBufferSize, kCoproBufferMirror)) {
+        const u32 index = address & (kCoproBufferSize - 1);
         if (index < m_buffer_ram.size()) {
             m_buffer_ram[index] = data;
         }
         return;
     }
+    // The copro_data window is ROM, and nothing else is decoded.
 }
 
-// Unused: the host DMA upload path goes through cpu::sharc::SHARC::
-// external_dma_write, which applies the 16/48 packing and writes into the
-// chip's own program memory. This Bus hook exists only for boards that map
-// external memory into the SHARC's program space; Model 2B does not.
-void CoproSharc::external_dma_write(u32 /*address*/, u64 /*data*/) {}
+u32 CoproTgpx4::fifo_in_pop()
+{
+    return m_fifo_in.pop();
+}
+
+void CoproTgpx4::fifo_out_push(u32 value)
+{
+    m_fifo_out.push(value);
+}
 
 // ===========================================================================
-// Model2B implementation
+// Model2C implementation
 // ===========================================================================
 
-Model2B::Model2B() : m_cpu(*this) {}
+Model2C::Model2C() : m_cpu(*this) {}
 
-Model2B::~Model2B() = default;
+Model2C::~Model2C() = default;
 
-bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
+bool Model2C::init(const rom::GameSpec& game, rom::RomSet roms)
 {
     m_game = game;
     m_roms = std::move(roms);
@@ -315,7 +332,7 @@ bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
     m_rom_main_data = m_roms.region("main_data");
 
     if (m_rom_maincpu.empty()) {
-        SM2_ERROR("model2b: the 'maincpu' region is missing");
+        SM2_ERROR("model2c: the 'maincpu' region is missing");
         return false;
     }
 
@@ -328,8 +345,9 @@ bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
     m_palette_ram.assign(0x4000 / 2, 0);
     m_colorxlat.assign(0xc000 / 2, 0);
     m_luma_ram.assign(0x10000, 0);
-    m_texture_ram0.assign(0x100000 / 4, 0);
-    m_texture_ram1.assign(0x100000 / 4, 0);
+    // 2 MB per texture sheet, mapped once rather than as a 1 MB mirrored pair.
+    m_texture_ram0.assign(0x200000 / 4, 0);
+    m_texture_ram1.assign(0x200000 / 4, 0);
     m_framebuffer_a.assign(0x80000 / 2, 0);
     m_framebuffer_b.assign(0x80000 / 2, 0);
     m_nvram.assign(0x4000, 0xff);
@@ -337,9 +355,10 @@ bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
     m_comm_ram.assign(0x4000, 0);
     m_crypt_ram.assign(0x10000, 0);
 
-    // 315-5881 protection chip setup.
+    // 315-5881 protection chip setup. model2c_5881_mem exists, so this is wired
+    // exactly as on Model 2B; dynamcopc is the set that needs it.
     if (game.protection == rom::Protection::Sega315_5881 && game.protection_key == 0) {
-        SM2_WARN("model2b: %s needs a 315-5881 key and the database has none",
+        SM2_WARN("model2c: %s needs a 315-5881 key and the database has none",
                  game.name.c_str());
     }
     m_crypt.set_key(game.protection_key);
@@ -351,8 +370,9 @@ bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
     // Video stage.
     m_video.attach(m_tile_ram, m_char_ram, m_palette_ram, m_colorxlat);
 
-    // SHARC coprocessor: reads copro_data ROM and writes into the display list
-    // buffer. The table ROM is not used by the SHARC (it had its own math).
+    // TGPx4 coprocessor: reads the copro_data ROM and reads and writes the
+    // display list buffer, both through its external bus. There is no
+    // mathematical table ROM on this board -- the part does its own arithmetic.
     m_rom_copro_data = m_roms.region("copro_data");
     m_copro.attach(as_words(m_rom_copro_data), m_buffer_ram);
 
@@ -368,19 +388,22 @@ bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
     m_sound.set_midi_out_handler([this](u8 value) { m_uart.write_rxd(value); });
     m_uart.set_ready_handler([this] { sound_ready_w(); });
 
-    // Host-side FIFO flow control: halt/release the i960 on FIFO events.
+    // Host-side FIFO flow control, from MAME's model2c_state::machine_start:
+    // a read of an empty output FIFO re-executes the instruction and then halts
+    // the i960, and a write that fills the input FIFO halts it too. Both are
+    // released by the coprocessor making progress.
     m_copro.fifo_out().set_on_empty_retry([this] { m_cpu.stall(); });
     m_copro.fifo_out().set_on_empty_halt([this] { m_cpu.set_halted(true); });
     m_copro.fifo_out().set_on_unempty([this] { m_cpu.set_halted(false); });
     m_copro.fifo_in().set_on_full([this] { m_cpu.set_halted(true); });
     m_copro.fifo_in().set_on_unfull([this] { m_cpu.set_halted(false); });
 
-    SM2_INFO("model2b: %s board, %s", rom::board_name(game.board), game.title.c_str());
+    SM2_INFO("model2c: %s board, %s", rom::board_name(game.board), game.title.c_str());
     reset();
     return true;
 }
 
-void Model2B::reset()
+void Model2C::reset()
 {
     m_intreq = 0;
     m_intena = 0;
@@ -406,6 +429,8 @@ void Model2B::reset()
     m_unmapped_writes.clear();
 
     m_video.reset();
+    // CoproTgpx4::reset asserts the coprocessor's halt line, which is what
+    // model2c_state::machine_reset does.
     m_copro.reset();
     m_geometry.reset();
     m_sound.reset();
@@ -414,7 +439,7 @@ void Model2B::reset()
     m_copro_debt    = 0;
     m_in_copro_sync = false;
 
-    // Display-list buffer pattern (same as 2A).
+    // Display-list buffer pattern (same as 2A/2B).
     std::fill(m_buffer_ram.begin(), m_buffer_ram.end(), 0x07800f0fu);
 
     // Analogue controls at rest.
@@ -437,7 +462,7 @@ void Model2B::reset()
     m_uart.configure(kCpuClock, kUartBitRate, kUartBitsPerByte);
     m_uart.reset();
 
-    // I/O controller callbacks (same as 2A).
+    // I/O controller callbacks (same as 2A/2B).
     m_io.set_output(0, [this](u8 value) { io_port_a_write(value); });
     m_io.set_input(1, [this] { return io_port_b_read(); });
     m_io.set_input(2, [this] { return io_port_c_read(); });
@@ -459,7 +484,7 @@ void Model2B::reset()
 // Scheduling
 // ---------------------------------------------------------------------------
 
-void Model2B::run_frame()
+void Model2C::run_frame()
 {
     for (u32 line = 0; line < kVerticalTotal; ++line) {
         const u64 line_end   = m_frame_start + static_cast<u64>(line + 1) * kCyclesPerLine;
@@ -499,11 +524,14 @@ void Model2B::run_frame()
     ++m_frames;
 }
 
-void Model2B::step_copro(u32 host_cycles)
+void Model2C::step_copro(u32 host_cycles)
 {
-    // The SHARC runs at 32 MHz vs the i960's 25 MHz, so the ratio is 32/25.
-    // To keep integer arithmetic: debt accumulates in 25ths.
-    m_copro_debt += host_cycles * 32;
+    // MAME clocks the TGPx4 from a 20 MHz crystal (MB86235(config,
+    // m_copro_tgpx4, 20_MHz_XTAL)) against the i960's 25 MHz, so the ratio is
+    // 20/25 -- the coprocessor is slower than the host here, where Model 2B's
+    // 32 MHz SHARC was faster. To keep integer arithmetic the debt accumulates
+    // in 25ths and the remainder carries across slices, so the ratio is exact.
+    m_copro_debt += host_cycles * 20;
     const s32 cycles = static_cast<s32>(m_copro_debt / 25);
     m_copro_debt %= 25;
 
@@ -512,7 +540,7 @@ void Model2B::step_copro(u32 host_cycles)
     }
 }
 
-void Model2B::sync_copro()
+void Model2C::sync_copro()
 {
     if (m_in_copro_sync) return;
     m_in_copro_sync = true;
@@ -523,6 +551,8 @@ void Model2B::sync_copro()
         const s32 used  = m_copro.run(slice);
         if (used <= 0) break;
         remaining -= used;
+        // Borrow from the coprocessor's future share so this time is not spent
+        // twice. The debt is in 25ths, and one coprocessor cycle is 25 of them.
         const u32 owed = static_cast<u32>(used) * 25;
         m_copro_debt = m_copro_debt > owed ? m_copro_debt - owed : 0;
     }
@@ -530,7 +560,7 @@ void Model2B::sync_copro()
     m_in_copro_sync = false;
 }
 
-u64 Model2B::next_timer_deadline() const
+u64 Model2C::next_timer_deadline() const
 {
     u64 deadline = ~0ULL;
     for (const Timer& timer : m_timers) {
@@ -541,7 +571,7 @@ u64 Model2B::next_timer_deadline() const
     return deadline;
 }
 
-void Model2B::service_timers()
+void Model2C::service_timers()
 {
     for (u32 index = 0; index < m_timers.size(); ++index) {
         Timer& timer = m_timers[index];
@@ -554,7 +584,7 @@ void Model2B::service_timers()
     }
 }
 
-void Model2B::on_vblank_start()
+void Model2C::on_vblank_start()
 {
     if ((m_videocontrol & 1) == 0 || (m_frames & 1) == 0) {
         m_geometry.set_read_start_address(m_geo_read_start_address);
@@ -567,7 +597,7 @@ void Model2B::on_vblank_start()
 // Interrupts
 // ---------------------------------------------------------------------------
 
-void Model2B::raise_interrupt(u32 line)
+void Model2C::raise_interrupt(u32 line)
 {
     if ((m_intena & line) != 0) {
         m_intreq |= line;
@@ -575,7 +605,7 @@ void Model2B::raise_interrupt(u32 line)
     }
 }
 
-void Model2B::irq_update()
+void Model2C::irq_update()
 {
     const u32 active = m_intreq & m_intena;
     m_cpu.set_irq_line(cpu::i960::I960_IRQ0,
@@ -592,7 +622,7 @@ void Model2B::irq_update()
                                               : cpu::i960::kClearLine);
 }
 
-void Model2B::sound_ready_w()
+void Model2C::sound_ready_w()
 {
     const u32 line = 1u << 10;
     if ((m_uart.txrdy() || m_uart.rxrdy()) && (m_intena & line) != 0) {
@@ -605,7 +635,7 @@ void Model2B::sound_ready_w()
 // Timer registers
 // ---------------------------------------------------------------------------
 
-u32 Model2B::timers_r(u32 index)
+u32 Model2C::timers_r(u32 index)
 {
     if (index >= m_timers.size()) return 0;
     const Timer& timer = m_timers[index];
@@ -615,7 +645,7 @@ u32 Model2B::timers_r(u32 index)
     return static_cast<u32>(timer.original - elapsed);
 }
 
-void Model2B::timers_w(u32 index, u32 value)
+void Model2C::timers_w(u32 index, u32 value)
 {
     if (index >= m_timers.size()) return;
     Timer& timer   = m_timers[index];
@@ -629,7 +659,7 @@ void Model2B::timers_w(u32 index, u32 value)
 // I/O helpers
 // ---------------------------------------------------------------------------
 
-u8 Model2B::io_port_b_read()
+u8 Model2C::io_port_b_read()
 {
     const u8 panel = m_inputs.in0;
     if (!m_ctrlmode) {
@@ -639,12 +669,12 @@ u8 Model2B::io_port_b_read()
                            | (panel & 0x0f));
 }
 
-u8 Model2B::io_port_c_read()
+u8 Model2C::io_port_c_read()
 {
     return m_inputs.in1;
 }
 
-void Model2B::io_port_a_write(u8 value)
+void Model2C::io_port_a_write(u8 value)
 {
     m_ctrlmode = bit(value, 0) != 0;
     m_eeprom.set_di(bit(value, 5) != 0);
@@ -652,9 +682,9 @@ void Model2B::io_port_a_write(u8 value)
     m_eeprom.set_clk(bit(value, 7) != 0);
 }
 
-void Model2B::lamp_output_w(u8 /*value*/) {}
+void Model2C::lamp_output_w(u8 /*value*/) {}
 
-void Model2B::drive_board_write(u8 value)
+void Model2C::drive_board_write(u8 value)
 {
     m_drive_board_latch = value;
 }
@@ -663,7 +693,7 @@ void Model2B::drive_board_write(u8 value)
 // Address decode — flat memory windows
 // ---------------------------------------------------------------------------
 
-Model2B::Window Model2B::resolve(u32 address)
+Model2C::Window Model2C::resolve(u32 address)
 {
     const auto window = [](auto& storage, u32 offset, bool writable, u16 flags,
                            Notify notify = Notify::None) {
@@ -745,18 +775,20 @@ Model2B::Window Model2B::resolve(u32 address)
     if (address >= kFramebufferB && address < kFramebufferB + 0x80000) {
         return window(m_framebuffer_b, address - kFramebufferB, true, cpu::kBusFlagBurst);
     }
-    // Model 2B texture RAM: 1 MB each at 0x11000000 and 0x11200000, with mirrors.
-    if (in_mirrored(address, kTextureRam0, 0x100000, 0x100000)) {
-        return window(m_texture_ram0, address & 0xfffff, false, cpu::kBusFlagBurst);
+    // Model 2C texture RAM: 2 MB each, mapped once. Reads come straight from the
+    // backing store; writes go through the packing transform in register_write,
+    // so this window is read-only.
+    if (address >= kTextureRam0 && address < kTextureRam0 + 0x200000) {
+        return window(m_texture_ram0, address - kTextureRam0, false, cpu::kBusFlagBurst);
     }
-    if (in_mirrored(address, kTextureRam1, 0x100000, 0x100000)) {
-        return window(m_texture_ram1, address & 0xfffff, false, cpu::kBusFlagBurst);
+    if (address >= kTextureRam1 && address < kTextureRam1 + 0x200000) {
+        return window(m_texture_ram1, address - kTextureRam1, false, cpu::kBusFlagBurst);
     }
 
     return {};
 }
 
-u16 Model2B::register_flags(u32 address)
+u16 Model2C::register_flags(u32 address)
 {
     if (address >= kGeoProgram && address < kGeoProgram + 0x4000) {
         return cpu::kBusFlagBurst;
@@ -767,7 +799,7 @@ u16 Model2B::register_flags(u32 address)
     if (in_mirrored(address, 0x01020000, 4, 0x100000)) {
         return cpu::kBusFlagBurst;
     }
-    if (address >= kLumaRam && address < kLumaRam + 0x20000) {
+    if (address >= kLumaRam && address < kLumaRam + kLumaWindow) {
         return cpu::kBusFlagBurst;
     }
     return cpu::kBusFlagNone;
@@ -777,7 +809,7 @@ u16 Model2B::register_flags(u32 address)
 // Register reads
 // ---------------------------------------------------------------------------
 
-u32 Model2B::register_read(u32 address, u32 width)
+u32 Model2C::register_read(u32 address, u32 width)
 {
     if (address >= kGeoPort && address < kGeoPort + 0x4000) {
         const u32 offset = address - kGeoPort;
@@ -825,8 +857,10 @@ u32 Model2B::register_read(u32 address, u32 width)
         return 0;
     }
 
-    // UART at 0x009c0000 (Model 2B position).
-    if (address >= kUart && address < kUart + 0x08) {
+    // UART at 0x01c80000, umask16(0x00ff): eight bits wide on byte lanes 0 and
+    // 2, so register N sits at byte offset 2N. Model 2A puts it here too;
+    // Model 2B is the odd one out at 0x009c0000.
+    if (address >= kUart && address < kUart + 0x04) {
         if (width == 4) {
             const u32 data   = m_uart.read(0);
             const u32 status = m_uart.read(1);
@@ -868,8 +902,8 @@ u32 Model2B::register_read(u32 address, u32 width)
         return 0;
     }
 
-    if (address >= kLumaRam && address < kLumaRam + 0x20000) {
-        // Model 2B luma: umask16(0x00ff), so one byte per 16-bit half-word.
+    if (address >= kLumaRam && address < kLumaRam + kLumaWindow) {
+        // umask16(0x00ff), so one byte per 16-bit half-word.
         const u32 index = (address - kLumaRam) / 2;
         return index < m_luma_ram.size() ? m_luma_ram[index] : 0;
     }
@@ -891,17 +925,17 @@ u32 Model2B::register_read(u32 address, u32 width)
 // Register writes
 // ---------------------------------------------------------------------------
 
-void Model2B::register_write(u32 address, u32 value, u32 width)
+void Model2C::register_write(u32 address, u32 value, u32 width)
 {
-    // Texture RAM. Model 2B uses a simpler scheme: direct writes, 1 MB each.
-    // Two 16-bit halves packed per 32-bit entry (same as 2A's logic).
-    if (in_mirrored(address, kTextureRam0, 0x100000, 0x100000)
-        || in_mirrored(address, kTextureRam1, 0x100000, 0x100000)) {
-        std::vector<u32>& sheet = in_mirrored(address, kTextureRam0, 0x100000, 0x100000)
-                                      ? m_texture_ram0
-                                      : m_texture_ram1;
-        const u32 offset = (address & 0xfffff) / 4;
-        const u32 index  = offset >> 1;
+    // Texture RAM. Two 16-bit halves are packed into each 32-bit entry, so a
+    // write's destination is half its window offset. Reads bypass this, which
+    // means the two disagree; games only ever write, and the renderer reads the
+    // packed form, so it does not matter. Carried over from MAME.
+    if (address >= kTextureRam0 && address < kTextureRam1 + 0x200000) {
+        const bool        first  = address < kTextureRam1;
+        std::vector<u32>& sheet  = first ? m_texture_ram0 : m_texture_ram1;
+        const u32         offset = (address - (first ? kTextureRam0 : kTextureRam1)) / 4;
+        const u32         index  = offset >> 1;
         if (index < sheet.size()) {
             if ((offset & 1) == 0) {
                 sheet[index] = (sheet[index] & 0xffff0000) | (value & 0xffff);
@@ -961,14 +995,6 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
         return;
     }
 
-    // SHARC IOP register write at 0x008c0000. MAME maps this as a dword
-    // handler (external_iop_write), so the register index it receives is the
-    // byte offset divided by four, not the byte offset itself.
-    if (address >= kSharcIop && address < kSharcIop + 0x1000) {
-        m_copro.iop_write((address - kSharcIop) >> 2, value);
-        return;
-    }
-
     if (address >= kVideoRegs && address < kVideoRegs + 0x40) {
         const u32 offset = address - kVideoRegs;
         if (offset < 0x04) {
@@ -979,9 +1005,9 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
             if (((value ^ m_geoctl) & 0x80000000) != 0) {
                 if ((value & 0x80000000) != 0) {
                     m_geocnt = 0;
-                    SM2_DEBUG("model2b: geometrizer upload started");
+                    SM2_DEBUG("model2c: geometrizer upload started");
                 } else {
-                    SM2_DEBUG("model2b: geometrizer boot, %u words uploaded", m_geocnt);
+                    SM2_DEBUG("model2c: geometrizer boot, %u words uploaded", m_geocnt);
                 }
             }
             m_geoctl = value;
@@ -991,12 +1017,14 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
             m_videocontrol = value;
             return;
         }
-        // 0x00980020: bank control, always written as 0. Ignored.
+        // The remaining offsets in this block are read-only status or, on
+        // Model 2B, the SHARC upload bank register. Nothing on 2C writes them,
+        // and swallowing a stray write keeps the log clean.
         return;
     }
 
-    // UART at 0x009c0000 (Model 2B position).
-    if (address >= kUart && address < kUart + 0x08) {
+    // UART at 0x01c80000 (Model 2C position, as Model 2A).
+    if (address >= kUart && address < kUart + 0x04) {
         m_uart.write((address - kUart) >> 1, static_cast<u8>(value));
         return;
     }
@@ -1059,8 +1087,8 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
         return;
     }
 
-    if (address >= kLumaRam && address < kLumaRam + 0x20000) {
-        // Model 2B: umask16(0x00ff) means one byte per 16-bit half-word.
+    if (address >= kLumaRam && address < kLumaRam + kLumaWindow) {
+        // umask16(0x00ff) means one byte per 16-bit half-word.
         const u32 index = (address - kLumaRam) / 2;
         if (index < m_luma_ram.size()) {
             m_luma_ram[index] = static_cast<u8>(value & 0xff);
@@ -1094,28 +1122,28 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
 // Bus interface
 // ---------------------------------------------------------------------------
 
-u8 Model2B::read8(u32 address)
+u8 Model2C::read8(u32 address)
 {
     const Window w = resolve(address);
     if (w.base != nullptr) return *w.base;
     return static_cast<u8>(register_read(address, 1) & 0xff);
 }
 
-u16 Model2B::read16(u32 address)
+u16 Model2C::read16(u32 address)
 {
     const Window w = resolve(address);
     if (w.base != nullptr && w.size >= 2) return load16(w.base);
     return static_cast<u16>(register_read(address, 2) & 0xffff);
 }
 
-u32 Model2B::read32(u32 address)
+u32 Model2C::read32(u32 address)
 {
     const Window w = resolve(address);
     if (w.base != nullptr && w.size >= 4) return load32(w.base);
     return register_read(address, 4);
 }
 
-std::pair<u32, u16> Model2B::read32_flags(u32 address)
+std::pair<u32, u16> Model2C::read32_flags(u32 address)
 {
     const Window w = resolve(address);
     if (w.base != nullptr && w.size >= 4) {
@@ -1127,7 +1155,7 @@ std::pair<u32, u16> Model2B::read32_flags(u32 address)
     return {register_read(address, 4), flags};
 }
 
-void Model2B::write8(u32 address, u8 value)
+void Model2C::write8(u32 address, u8 value)
 {
     const Window w = resolve(address);
     if (w.base != nullptr && w.writable) {
@@ -1139,7 +1167,7 @@ void Model2B::write8(u32 address, u8 value)
     register_write(address, value, 1);
 }
 
-void Model2B::write16(u32 address, u16 value)
+void Model2C::write16(u32 address, u16 value)
 {
     const Window w = resolve(address);
     if (w.base != nullptr && w.writable && w.size >= 2) {
@@ -1151,7 +1179,7 @@ void Model2B::write16(u32 address, u16 value)
     register_write(address, value, 2);
 }
 
-void Model2B::write32(u32 address, u32 value)
+void Model2C::write32(u32 address, u32 value)
 {
     const Window w = resolve(address);
     if (w.base != nullptr && w.writable && w.size >= 4) {
@@ -1163,7 +1191,7 @@ void Model2B::write32(u32 address, u32 value)
     register_write(address, value, 4);
 }
 
-u16 Model2B::write32_flags(u32 address, u32 value)
+u16 Model2C::write32_flags(u32 address, u32 value)
 {
     const Window w = resolve(address);
     const u16 flags = w.base != nullptr ? w.flags : register_flags(address);
@@ -1183,7 +1211,7 @@ u16 Model2B::write32_flags(u32 address, u32 value)
 // Video
 // ---------------------------------------------------------------------------
 
-void Model2B::note_video_write(const Window& w, u32 width)
+void Model2C::note_video_write(const Window& w, u32 width)
 {
     switch (w.notify) {
         case Notify::None: return;
@@ -1200,7 +1228,7 @@ void Model2B::note_video_write(const Window& w, u32 width)
     }
 }
 
-void Model2B::compose_video()
+void Model2C::compose_video()
 {
     if (m_palette_dirty) {
         m_video.refresh_pens();
@@ -1213,7 +1241,7 @@ void Model2B::compose_video()
 // Diagnostics
 // ---------------------------------------------------------------------------
 
-void Model2B::log_burst_summary() const
+void Model2C::log_burst_summary() const
 {
     bool any = false;
     for (u32 region = 0; region < kBurstRegions; ++region) {
@@ -1228,25 +1256,25 @@ void Model2B::log_burst_summary() const
     }
 }
 
-void Model2B::note_unmapped_read(u32 address, u32 width)
+void Model2C::note_unmapped_read(u32 address, u32 width)
 {
     ++m_unmapped_reads[address & 0xfff00000u];
     if (m_log_unmapped) {
-        SM2_DEBUG("model2b: unmapped read%u at %08x (ip %08x)", width * 8, address,
+        SM2_DEBUG("model2c: unmapped read%u at %08x (ip %08x)", width * 8, address,
                   m_cpu.pip());
     }
 }
 
-void Model2B::note_unmapped_write(u32 address, u32 value, u32 width)
+void Model2C::note_unmapped_write(u32 address, u32 value, u32 width)
 {
     ++m_unmapped_writes[address & 0xfff00000u];
     if (m_log_unmapped) {
-        SM2_DEBUG("model2b: unmapped write%u at %08x = %08x (ip %08x)", width * 8,
+        SM2_DEBUG("model2c: unmapped write%u at %08x = %08x (ip %08x)", width * 8,
                   address, value, m_cpu.pip());
     }
 }
 
-void Model2B::log_unmapped_summary() const
+void Model2C::log_unmapped_summary() const
 {
     if (m_unmapped_reads.empty() && m_unmapped_writes.empty()) return;
     SM2_INFO("unmapped accesses, by 1 MB region:");
@@ -1262,12 +1290,12 @@ void Model2B::log_unmapped_summary() const
 // Persistence
 // ---------------------------------------------------------------------------
 
-void Model2B::set_nvram_directory(const std::string& directory)
+void Model2C::set_nvram_directory(const std::string& directory)
 {
     m_nvram_directory = directory;
 }
 
-void Model2B::load_nvram()
+void Model2C::load_nvram()
 {
     if (m_nvram_directory.empty() || m_game.name.empty()) return;
     const std::filesystem::path base = std::filesystem::path(m_nvram_directory);
@@ -1289,7 +1317,7 @@ void Model2B::load_nvram()
     (void)m_eeprom.load((base / (m_game.name + ".eeprom")).string());
 }
 
-void Model2B::save_nvram() const
+void Model2C::save_nvram() const
 {
     if (m_nvram_directory.empty() || m_game.name.empty()) return;
 

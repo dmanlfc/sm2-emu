@@ -31,8 +31,9 @@
 namespace sm2::rom {
 
 /// Which Model 2 board variant, which decides the coprocessor and sound
-/// hardware. Only Model2A is implemented; the rest are here so the database can
-/// describe them and the loader can refuse them with a clear message.
+/// hardware. The three CRX boards (2A, 2B and 2C) are implemented; the original
+/// Model 2 is here so the database can describe it and the loader can refuse it
+/// with a clear message.
 enum class Board {
     Model2,   ///< Original. TGP + Model 1 sound board.
     Model2A,  ///< 2A-CRX. TGP + 68000/SCSP.

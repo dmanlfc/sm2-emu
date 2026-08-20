@@ -26,6 +26,12 @@ namespace sm2::render::vk {
 namespace {
 
 /// True when the format stores blue in the first byte.
+///
+/// This is a straight byte-order adaptation for whatever image `record()` is
+/// handed, not a correction for a bug elsewhere. Today main.cpp captures the
+/// renderer's own native R8G8B8A8_UNORM attachment, so the swap below stays
+/// off; it fires only if a caller points the capture at a BGRA image (as it
+/// did when captures were still read out of the swapchain).
 [[nodiscard]] bool is_bgr(VkFormat format)
 {
     switch (format) {

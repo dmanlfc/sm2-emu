@@ -230,6 +230,24 @@ private:
     // -- Internal state -----------------------------------------------------
     Bus* m_bus = nullptr;
 
+    // -- On-chip SRAM -------------------------------------------------------
+    //
+    // The ADSP-21062 has 2 Mbit of internal SRAM split into two banks of
+    // 0x8000 32-bit words. Program memory (48-bit words) and data memory
+    // (32-bit words, plus a 16-bit "short word" view) are different windows
+    // onto the *same* physical storage, which is why the microcode upload
+    // (48-bit PM writes via DMA channel 6) and the SHARC's own data accesses
+    // have to share it.
+    //
+    // Derived from MAME's adsp21062_device::pgm_2m/data_2m internal address
+    // maps and its pm_r/pm_w/dm_short_r/dm_short_w block accessors.
+    static constexpr u32 kBlockWords = 0x8000;
+    u32 m_blocks[2][kBlockWords]{};
+
+    /// Mirrors MAME's `m_dm_short_view` enable state, toggled by MODE1's SSE
+    /// bit (short-word sign extension) with the usual 2-cycle latency.
+    bool m_short_word_sign_extend = false;
+
     REG_UNION m_r[16]{};
     REG_UNION m_reg_alt[16]{};
 
@@ -329,6 +347,26 @@ private:
     static const int s_num_ops;
 
     void build_opcode_table();
+
+    // -- Memory access ------------------------------------------------------
+    //
+    // These decode the on-chip windows first and fall through to the external
+    // Bus for anything else, exactly as MAME's internal address maps do. The
+    // core always goes through these rather than touching `m_bus` directly.
+    [[nodiscard]] u64 pm_read48(u32 address);
+    void pm_write48(u32 address, u64 data);
+    [[nodiscard]] u32 pm_read32(u32 address);
+    void pm_write32(u32 address, u32 data);
+    [[nodiscard]] u32 dm_read32(u32 address);
+    void dm_write32(u32 address, u32 data);
+
+    /// Read/write a 48-bit program word packed into `block`'s 32-bit storage.
+    /// `offset` is relative to the start of the program window.
+    [[nodiscard]] u64 block_pm_read48(unsigned block, u32 offset) const;
+    void block_pm_write48(unsigned block, u32 offset, u64 data, u64 mem_mask);
+
+    /// IOP register read (data space 0x00000-0x000ff).
+    [[nodiscard]] u32 iop_read(u32 offset) const;
 
     // -- PC / flow control --------------------------------------------------
     void CHANGE_PC(u32 newpc);

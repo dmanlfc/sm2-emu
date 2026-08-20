@@ -17,6 +17,7 @@
 #include "core/log.h"
 #include "hw/model2.h"
 #include "hw/model2b.h"
+#include "hw/model2c.h"
 
 namespace sm2::hw {
 
@@ -55,14 +56,24 @@ std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game, rom
             return machine;
         }
 
+        case rom::Board::Model2C: {
+            if (!rom::board_implemented(game.board)) {
+                break;
+            }
+            auto machine = std::make_unique<Model2C>();
+            if (!machine->init(game, std::move(roms))) {
+                return nullptr;
+            }
+            return machine;
+        }
+
         // Not implemented yet.
         case rom::Board::Model2:
-        case rom::Board::Model2C:
             break;
     }
 
-    SM2_ERROR("'%s' is a %s board, which is not implemented yet. Only "
-              "Model 2A-CRX is supported.", game.name.c_str(),
+    SM2_ERROR("'%s' is a %s board, which is not implemented yet. The CRX "
+              "boards (2A, 2B and 2C) are supported.", game.name.c_str(),
               rom::board_name(game.board));
     return nullptr;
 }

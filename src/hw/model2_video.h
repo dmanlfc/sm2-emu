@@ -123,7 +123,12 @@ private:
     /// component value at this shade, through the gamma ramp.
     [[nodiscard]] u8 translate(u32 block_base, u32 component, u32 shade) const;
 
-    /// A 15-bit BGR palette word resolved at a given shade.
+    /// A 15-bit palette word resolved at a given shade, returned as RGBA8.
+    ///
+    /// The word is xRRRRRGGGGGBBBBB: bits 0-4 are red, 5-9 green, 10-14 blue,
+    /// matching MAME's model2_state::palette_w. (An earlier comment here called
+    /// it BGR, which sent a debugging session looking for a red/blue swap that
+    /// does not exist — the channel order is correct throughout.)
     [[nodiscard]] u32 shade_colour(u16 colour, u32 shade) const;
 
     Segaic24Tile m_tiles;
