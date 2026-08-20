@@ -16,6 +16,7 @@
 
 #include "core/log.h"
 #include "hw/model2.h"
+#include "hw/model2_original.h"
 #include "hw/model2b.h"
 #include "hw/model2c.h"
 
@@ -67,14 +68,21 @@ std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game, rom
             return machine;
         }
 
-        // Not implemented yet.
-        case rom::Board::Model2:
-            break;
+        case rom::Board::Model2: {
+            if (!rom::board_implemented(game.board)) {
+                break;
+            }
+            auto machine = std::make_unique<Model2Original>();
+            if (!machine->init(game, std::move(roms))) {
+                return nullptr;
+            }
+            return machine;
+        }
     }
 
-    SM2_ERROR("'%s' is a %s board, which is not implemented yet. The CRX "
-              "boards (2A, 2B and 2C) are supported.", game.name.c_str(),
-              rom::board_name(game.board));
+    SM2_ERROR("'%s' is a %s board, which is not implemented yet. The original "
+              "Model 2 and the CRX boards (2A, 2B and 2C) are supported.",
+              game.name.c_str(), rom::board_name(game.board));
     return nullptr;
 }
 

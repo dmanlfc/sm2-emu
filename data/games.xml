@@ -755,7 +755,15 @@
       <channel index="2" control="brake" rest="0x00"/>
     </analog>
 
+    <!-- The I/O board carries its own Z80 firmware, which MAME ships as a
+         separate device set shared by every title using that board. -->
+    <devices>
+      <device name="model1io"/>
+    </devices>
     <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-14869c.25" offset="0x000000" crc="0x24b68e64"/>
+      </region>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-16722a.12" offset="0x000000" crc="0x48b94318"/>
         <file name="epr-16723a.13" offset="0x000002" crc="0x8af8b32d"/>
@@ -789,17 +797,27 @@
         <file name="mpr-16520.ic22" offset="0x800002" crc="0xd66bd9bd"/>
         <file name="mpr-16772.ic19" offset="0xc00000" crc="0x770ed912"/>
         <file name="mpr-16771.ic23" offset="0xc00002" crc="0xa2205124"/>
+      </region>
+      <region name="textures" size="0x1000000" stride="4" chunk="2">
         <file name="mpr-16522.25" offset="0x000000" crc="0x55d39a57"/>
         <file name="mpr-16521.24" offset="0x000002" crc="0xaf1934fb"/>
         <file name="mpr-16770.27" offset="0x800000" crc="0xf9fa7bfb"/>
         <file name="mpr-16769.26" offset="0x800002" crc="0xe57429e9"/>
       </region>
-      <region name="cpu3" size="0x20000" stride="2" chunk="2" byte_swap="true">
+      <region name="cpu3" size="0x20000">
         <file name="epr-16726.bin" offset="0x000000" crc="0xc179b8c7"/>
+      </region>
+      <!-- Model 1 sound board (68000 + YM3438 + 2x MultiPCM). Not emulated yet;
+           MAME splits these as m1audio:sndcpu / m1audio:pcm1 / m1audio:pcm2. -->
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true" required="false">
         <file name="epr-16720.7" offset="0x000000" crc="0x8e73cffd"/>
         <file name="epr-16721.8" offset="0x020000" crc="0x1bb3b7b7"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000" required="false">
         <file name="mpr-16491.32" offset="0x000000" crc="0x89920903"/>
         <file name="mpr-16492.33" offset="0x200000" crc="0x459e701b"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000" required="false">
         <file name="mpr-16493.4" offset="0x000000" crc="0x9990db15"/>
         <file name="mpr-16494.5" offset="0x200000" crc="0x600e1d6c"/>
       </region>
@@ -1069,7 +1087,15 @@
       <input type="buttons3"/>
     </inputs>
 
+    <!-- The I/O board carries its own Z80 firmware, which MAME ships as a
+         separate device set shared by every title using that board. -->
+    <devices>
+      <device name="model1io"/>
+    </devices>
     <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-14869c.25" offset="0x000000" crc="0x24b68e64"/>
+      </region>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-16976.12" offset="0x000000" crc="0xd036dff0"/>
         <file name="epr-16977.13" offset="0x000002" crc="0xe91194bd"/>
@@ -1098,9 +1124,19 @@
         <file name="mpr-16967.25" offset="0x000000" crc="0xb8b84c9d"/>
         <file name="mpr-16966.24" offset="0x000002" crc="0x7484efe9"/>
       </region>
-      <region name="cpu4" size="0x20000" stride="2" chunk="2" byte_swap="true">
+      <!-- MAME: ROM_REGION(0x20000, "cpu4", ROMREGION_ERASE00) — the comm
+           program socket is present but unpopulated on this board. -->
+      <region name="cpu4" size="0x20000" required="false"/>
+      <!-- Model 1 sound board (68000 + YM3438 + 2x MultiPCM). MAME splits these
+           into m1audio:sndcpu / m1audio:pcm1 / m1audio:pcm2; they were
+           previously all piled into cpu4 at overlapping offsets. -->
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true" required="false">
         <file name="epr-16985.7" offset="0x000000" crc="0x8c4d9056"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000" required="false">
         <file name="mpr-16986.32" offset="0x000000" crc="0x559612f9"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000" required="false">
         <file name="mpr-16988.4" offset="0x000000" crc="0xbc705875"/>
         <file name="mpr-16989.5" offset="0x200000" crc="0x1b616b31"/>
       </region>
@@ -4791,7 +4827,15 @@
       <axis name="p2x" min="0x080" max="0x273" rest="0x179"/>
     </lightgun>
 
+    <!-- The I/O board carries its own Z80 firmware, which MAME ships as a
+         separate device set shared by every title using that board. -->
+    <devices>
+      <device name="model1io2"/>
+    </devices>
     <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-17181.6" offset="0x000000" crc="0x1add2b82"/>
+      </region>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-17166b.12" offset="0x000000" crc="0xa5647c59"/>
         <file name="epr-17167b.13" offset="0x000002" crc="0xf5dde26a"/>

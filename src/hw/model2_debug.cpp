@@ -498,9 +498,9 @@ bool dump_render_list_wireframe(const Model2MachineBase& machine, const std::str
     return true;
 }
 
-bool run_copro_selftest(Model2& machine)
+bool run_copro_selftest(CoproTgp& copro)
 {
-    CoproTgp& tgp = machine.copro();
+    CoproTgp& tgp = copro;
 
     // The units live in the io space, which the bank register must not be pointing
     // at external memory for.

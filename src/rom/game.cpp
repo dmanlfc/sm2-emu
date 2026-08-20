@@ -32,12 +32,10 @@ const char* board_name(Board board)
 bool board_implemented(Board board)
 {
     switch (board) {
+        case Board::Model2:  return true;
         case Board::Model2A: return true;
         case Board::Model2B: return true;
         case Board::Model2C: return true;
-
-        case Board::Model2:
-            return false;
     }
     return false;
 }

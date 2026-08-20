@@ -30,13 +30,17 @@ namespace sm2::hw {
 /// what satisfies "Property 5: Machine dispatch is exhaustive and
 /// side-effect-free on rejection" in the model2-fleet-compatibility design.
 ///
-/// For rom::Board::Model2A this constructs today's hw::Model2 and calls its
-/// init() with `roms`, returning it as the shared interface. Every other
-/// board is not implemented yet: this returns nullptr and logs a clear
-/// rejection, in the same style as RomLoader::load's own board rejection,
-/// without touching `roms` or allocating any device state -- so a later
-/// wave's real implementation is never fighting stale partial construction
-/// left behind by an earlier failed attempt.
+/// All four boards are implemented: Model2A constructs hw::Model2, Model2B
+/// hw::Model2B, Model2C hw::Model2C and Model2 hw::Model2Original. Each case
+/// calls the machine's init() with `roms` and returns it as the shared
+/// interface, or nullptr if that init() fails.
+///
+/// A board whose rom::board_implemented() is false -- there are none today --
+/// returns nullptr and logs a clear rejection, in the same style as
+/// RomLoader::load's own board rejection, without touching `roms` or
+/// allocating any device state, so a later wave's real implementation is never
+/// fighting stale partial construction left behind by an earlier failed
+/// attempt.
 [[nodiscard]] std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game,
                                                                  rom::RomSet roms);
 

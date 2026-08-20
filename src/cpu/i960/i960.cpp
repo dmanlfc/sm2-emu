@@ -702,10 +702,29 @@ void I960::execute_burst_stall_op(u32 opcode)
 	{
 		// count down 1 icount for every op
 		m_icount--;
+
+		// Deviation from MAME: the address has to advance across the rest of the
+		// burst exactly as it does in the ldl/ldt/ldq/stl/stt/stq loops this
+		// resumes, which means honouring the target's BURST capability. MAME's
+		// resume loop reuses m_stall_state.t1 for every remaining word. That is
+		// correct for a FIFO port -- the case this path was written for, where
+		// every word of the burst comes from the same address, which is also why
+		// the flag is consulted instead of the address being incremented
+		// unconditionally -- but wrong for burst-capable memory, where it
+		// collapses the rest of the transfer onto a single location. A stalled
+		// ldq against ROM then leaves all of its destination registers holding
+		// the same word, and the stq that follows writes that word four times.
+		// Sega Touring Car uploads its font through such a copy and ends up with
+		// every glyph row quadrupled.
+		u16 flags;
 		if(m_stall_state.iswriteop == true)
-			i960_write_dword_unaligned(m_stall_state.t1, m_r[m_stall_state.t2+i]);
+			flags = i960_write_dword_unaligned_flags(m_stall_state.t1, m_r[m_stall_state.t2+i]);
 		else
-			m_r[m_stall_state.t2+i] = i960_read_dword_unaligned(m_stall_state.t1);
+		{
+			auto pack = i960_read_dword_unaligned_flags(m_stall_state.t1);
+			m_r[m_stall_state.t2+i] = pack.first;
+			flags = pack.second;
+		}
 
 		// if the host returned stall just save the index and try again on a later moment
 		if(m_stalled == true)
@@ -713,6 +732,9 @@ void I960::execute_burst_stall_op(u32 opcode)
 			m_stall_state.index = i;
 			return;
 		}
+
+		if(flags & BURST)
+			m_stall_state.t1 += 4;
 	}
 
 	// clear stall burst mode

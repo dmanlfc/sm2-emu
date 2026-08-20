@@ -64,6 +64,7 @@ add_library(sm2_cpu STATIC
     cpu/mb86233/mb86233.cpp
     cpu/mb86235/mb86235.cpp
     cpu/sharc/sharc.cpp
+    cpu/z80/z80.cpp
 )
 target_link_libraries(sm2_cpu
     PUBLIC
@@ -140,12 +141,17 @@ add_library(sm2_hw STATIC
     hw/i8251.cpp
     hw/io_315_5649.cpp
     hw/machine_factory.cpp
+    hw/mb8421.cpp
+    hw/model1io.cpp
     hw/model2.cpp
     hw/model2b.cpp
     hw/model2c.cpp
     hw/model2_debug.cpp
+    hw/model2_original.cpp
     hw/model2_sound.cpp
     hw/model2_video.cpp
+    hw/msm6253.cpp
+    hw/sega_315_5338a.cpp
     hw/sega_315_5838_comp.cpp
     hw/sega_315_5881_crypt.cpp
     hw/segaic24.cpp

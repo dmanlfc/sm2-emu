@@ -376,6 +376,20 @@ bool GameDatabase::load(const std::string& path)
             return false;
         }
 
+        // Device ROM sets: <devices><device name="model1io2"/></devices>. These
+        // hold firmware belonging to a board's device rather than to the title,
+        // so MAME ships them as their own sets and several titles share one.
+        for (const pugi::xml_node device_node :
+             game_node.child("devices").children("device")) {
+            const std::string device_name = device_node.attribute("name").value();
+            if (device_name.empty()) {
+                SM2_ERROR("%s: a <device> element has no name attribute",
+                          context.c_str());
+                return false;
+            }
+            game.device_sets.push_back(device_name);
+        }
+
         for (const pugi::xml_node channel_node :
              game_node.child("analog").children("channel")) {
             u32 index = 0;
@@ -649,6 +663,7 @@ bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
         if (!game.lightgun.present)    { game.lightgun = parent.lightgun; }
         if (!game.gearbox)             { game.gearbox = parent.gearbox; }
         if (!game.drive_board)         { game.drive_board = parent.drive_board; }
+        if (game.device_sets.empty())  { game.device_sets = parent.device_sets; }
         // A clone cannot be more validated than its parent unless it has been
         // explicitly boot-tested as well. Keep preliminary status conservative
         // across revisions so --list-games does not advertise an unverified set.

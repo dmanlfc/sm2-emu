@@ -643,31 +643,64 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
         chosen = best;
     }
 
+    // A sibling archive named `stem`, preferring zip but accepting 7z, because
+    // either format turns up in the wild for both parent sets and device sets.
+    const auto find_sibling_archive =
+        [&archive_path](const std::string& stem) -> std::optional<std::filesystem::path> {
+        const std::filesystem::path directory =
+            std::filesystem::path(archive_path).parent_path();
+        for (const char* extension : {".zip", ".7z"}) {
+            std::error_code exists_error;
+            const std::filesystem::path candidate = directory / (stem + extension);
+            if (std::filesystem::exists(candidate, exists_error)) {
+                return candidate;
+            }
+        }
+        return std::nullopt;
+    };
+
     // -- open the parent archive if needed ---------------------------------
     if (!chosen->parent.empty()) {
         const MatchScore score = score_game(archives, *chosen);
         if (!score.complete()) {
-            const std::filesystem::path parent_path =
-                std::filesystem::path(archive_path).parent_path()
-                / (chosen->parent + ".zip");
-            if (std::filesystem::exists(parent_path, error)) {
+            if (const auto parent_path = find_sibling_archive(chosen->parent)) {
                 SM2_INFO("'%s' is a clone; also reading %s", chosen->name.c_str(),
-                         parent_path.string().c_str());
-                if (!archives.open(parent_path.string())) {
+                         parent_path->string().c_str());
+                if (!archives.open(parent_path->string())) {
                     return std::nullopt;
                 }
             } else {
                 SM2_WARN("'%s' is a clone of '%s' and some chips are missing, but "
-                         "%s was not found", chosen->name.c_str(),
-                         chosen->parent.c_str(), parent_path.string().c_str());
+                         "no %s.zip or %s.7z was found beside the archive",
+                         chosen->name.c_str(), chosen->parent.c_str(),
+                         chosen->parent.c_str(), chosen->parent.c_str());
             }
         }
     }
 
+    // -- open any device ROM sets ------------------------------------------
+    // Unlike the parent archive these are opened unconditionally: the firmware
+    // in them belongs to a device the board carries, so it is never present in
+    // the game's own archive and scoring the game would not reveal the need.
+    for (const std::string& device_set : chosen->device_sets) {
+        if (const auto device_path = find_sibling_archive(device_set)) {
+            SM2_INFO("'%s' needs the '%s' device set; also reading %s",
+                     chosen->name.c_str(), device_set.c_str(),
+                     device_path->string().c_str());
+            if (!archives.open(device_path->string())) {
+                return std::nullopt;
+            }
+        } else {
+            SM2_WARN("'%s' needs the '%s' device ROM set, but no %s.zip or %s.7z "
+                     "was found beside the archive", chosen->name.c_str(),
+                     device_set.c_str(), device_set.c_str(), device_set.c_str());
+        }
+    }
+
     if (!board_implemented(chosen->board)) {
-        SM2_ERROR("'%s' is a %s board, which is not implemented yet. The CRX "
-                  "boards (2A, 2B and 2C) are supported.", chosen->name.c_str(),
-                  board_name(chosen->board));
+        SM2_ERROR("'%s' is a %s board, which is not implemented yet. The original "
+                  "Model 2 and the CRX boards (2A, 2B and 2C) are supported.",
+                  chosen->name.c_str(), board_name(chosen->board));
         return std::nullopt;
     }
     if (chosen->preliminary) {

@@ -31,9 +31,7 @@
 namespace sm2::rom {
 
 /// Which Model 2 board variant, which decides the coprocessor and sound
-/// hardware. The three CRX boards (2A, 2B and 2C) are implemented; the original
-/// Model 2 is here so the database can describe it and the loader can refuse it
-/// with a clear message.
+/// hardware. All four are implemented.
 enum class Board {
     Model2,   ///< Original. TGP + Model 1 sound board.
     Model2A,  ///< 2A-CRX. TGP + 68000/SCSP.
@@ -269,6 +267,16 @@ struct GameSpec {
 
     /// True when the set is known not to run yet, so the loader can warn.
     bool preliminary = false;
+
+    /// Names of MAME device ROM sets this title needs alongside its own chips.
+    ///
+    /// Some boards carry firmware that belongs to a device rather than to a
+    /// game, so MAME ships it as its own set and every title using that device
+    /// shares it: the original Model 2's I/O board is `model1io` (Desert Tank,
+    /// Daytona) or `model1io2` (Virtua Cop), each holding a Z80 program. The
+    /// loader looks for `<name>.zip` or `<name>.7z` beside the game's archive,
+    /// the same way it finds a clone's parent.
+    std::vector<std::string> device_sets;
 
     std::vector<RegionSpec> regions;
 

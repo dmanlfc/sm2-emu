@@ -22,7 +22,7 @@
 
 namespace sm2::hw {
 
-class Model2;
+class CoproTgp;
 class Model2MachineBase;
 
 /// Decode the System 24 tilemap layers and write them out for inspection.
@@ -62,9 +62,15 @@ bool dump_render_list_wireframe(const Model2MachineBase& machine, const std::str
 ///
 /// This is the one check that uses the real table ROM, so it is the only one that
 /// can say the answers are actually right rather than merely self-consistent.
-/// Needs a machine with ROMs loaded. Returns false if any unit is out of
-/// tolerance.
-bool run_copro_selftest(Model2& machine);
+/// Needs a coprocessor with its table ROM attached. Returns false if any unit is
+/// out of tolerance.
+///
+/// Takes the coprocessor rather than a machine because two boards carry this
+/// one: Model 2A (hw::Model2) and the original Model 2 (hw::Model2Original),
+/// whose MAME state class derives from the same model2_tgp_state and inherits
+/// its coprocessor wiring unchanged. Model 2B's SHARC and Model 2C's MB86235
+/// have no equivalent tables, so there is nothing here for them.
+bool run_copro_selftest(CoproTgp& copro);
 
 /// The tilemap chip's scroll, control and window mask state.
 ///

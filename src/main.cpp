@@ -22,6 +22,7 @@
 #include "core/types.h"
 #include "hw/machine_factory.h"
 #include "hw/model2.h"
+#include "hw/model2_original.h"
 #include "hw/model2b.h"
 #include "hw/model2c.h"
 #include "hw/model2_debug.h"
@@ -472,20 +473,25 @@ int main(int argc, char** argv)
     // -- the machine -------------------------------------------------------
     // hw::create_machine dispatches on loaded->game.board and does the
     // construction and init() that main.cpp used to do directly against
-    // hw::Model2. Three boards are implemented (2A, 2B and 2C), so this hands
-    // back one of three concrete classes on success; downcasting here keeps
-    // every accessor below (cpu(), copro(), sound(), uart(), and the
-    // debug/render call sites) written against the concrete class unchanged,
-    // matching hw::Model2MachineBase's own documented split between the shared
-    // interface and board-specific accessors.
+    // hw::Model2. All four boards are implemented, so this hands back one of
+    // four concrete classes on success; downcasting here keeps every accessor
+    // below (cpu(), copro(), sound(), uart(), and the debug/render call sites)
+    // written against the concrete class unchanged, matching
+    // hw::Model2MachineBase's own documented split between the shared interface
+    // and board-specific accessors.
     //
-    // The main CPU, sound board and sound link are the same types on all three,
-    // so they are resolved once here into pointers rather than re-tested at
-    // every use. Only the coprocessor genuinely differs.
+    // The main CPU and the sound link are the same types on all four, so they
+    // are resolved once here into pointers rather than re-tested at every use.
+    // The coprocessor genuinely differs, and so does the sound board: the
+    // original Model 2 carries the Model 1 audio board (68000 + YM3438 + two
+    // MultiPCMs), which is a different board from the 68000/SCSP one the CRX
+    // family shares and is not emulated, so `sound_board` stays null for it and
+    // every use of it below is guarded.
     std::unique_ptr<hw::Model2MachineBase> machine_iface;
-    hw::Model2*  machine    = nullptr;
-    hw::Model2B* machine_2b = nullptr;
-    hw::Model2C* machine_2c = nullptr;
+    hw::Model2*         machine      = nullptr;
+    hw::Model2B*        machine_2b   = nullptr;
+    hw::Model2C*        machine_2c   = nullptr;
+    hw::Model2Original* machine_orig = nullptr;
 
     cpu::i960::I960* main_cpu    = nullptr;
     hw::Model2Sound* sound_board = nullptr;
@@ -496,9 +502,10 @@ int main(int argc, char** argv)
         if (!machine_iface) {
             return 1;
         }
-        machine    = dynamic_cast<hw::Model2*>(machine_iface.get());
-        machine_2b = dynamic_cast<hw::Model2B*>(machine_iface.get());
-        machine_2c = dynamic_cast<hw::Model2C*>(machine_iface.get());
+        machine      = dynamic_cast<hw::Model2*>(machine_iface.get());
+        machine_2b   = dynamic_cast<hw::Model2B*>(machine_iface.get());
+        machine_2c   = dynamic_cast<hw::Model2C*>(machine_iface.get());
+        machine_orig = dynamic_cast<hw::Model2Original*>(machine_iface.get());
         if (machine != nullptr) {
             main_cpu    = &machine->cpu();
             sound_board = &machine->sound();
@@ -511,6 +518,9 @@ int main(int argc, char** argv)
             main_cpu    = &machine_2c->cpu();
             sound_board = &machine_2c->sound();
             sound_link  = &machine_2c->uart();
+        } else if (machine_orig != nullptr) {
+            main_cpu   = &machine_orig->cpu();
+            sound_link = &machine_orig->uart();
         } else {
             SM2_ERROR("internal error: create_machine returned an unexpected "
                       "machine type");
@@ -540,10 +550,12 @@ int main(int argc, char** argv)
             recorded.reserve(static_cast<usize>(options.boot_test) * 800 * 2);
         }
 
-        // Unified accessors: every implemented board shares these types.
-        auto&       the_cpu   = *main_cpu;
-        auto&       the_sound = *sound_board;
-        const auto& the_uart  = *sound_link;
+        // Unified accessors: every implemented board shares these types. The
+        // sound board is a pointer rather than a reference because the original
+        // Model 2 has none of this kind -- see the note where it is resolved.
+        auto&            the_cpu   = *main_cpu;
+        hw::Model2Sound* the_sound = sound_board;
+        const auto&      the_uart  = *sound_link;
 
         SM2_INFO("running %u frame(s) headless", options.boot_test);
         const u64 start = SDL_GetPerformanceCounter();
@@ -559,11 +571,13 @@ int main(int argc, char** argv)
             // Draining every frame whether or not it is being recorded: the sound
             // board drops samples nothing collects, and leaving that to happen
             // would put gaps in a recording.
-            const std::span<const s16> produced = the_sound.pending_samples();
-            if (!options.dump_audio.empty()) {
-                recorded.insert(recorded.end(), produced.begin(), produced.end());
+            if (the_sound != nullptr) {
+                const std::span<const s16> produced = the_sound->pending_samples();
+                if (!options.dump_audio.empty()) {
+                    recorded.insert(recorded.end(), produced.begin(), produced.end());
+                }
+                the_sound->clear_pending_samples();
             }
-            the_sound.clear_pending_samples();
 
             if (the_cpu.faulted()) {
                 SM2_ERROR("the CPU faulted on frame %u", frame);
@@ -626,6 +640,55 @@ int main(int argc, char** argv)
                         "(peak overflow %zu)\n",
                         copro.fifo_in().size(), copro.fifo_in().peak_overflow(),
                         copro.fifo_out().size(), copro.fifo_out().peak_overflow());
+        } else if (machine_orig != nullptr) {
+            // The original Model 2 carries the same MB86234 as Model 2A, wired the
+            // same way, so the same figures apply. What is board-specific here is
+            // the I/O board: it is a whole second computer, and if its Z80 is not
+            // executing sensibly the program sees no inputs at all, so its state
+            // belongs next to the coprocessor's rather than buried in a log.
+            const hw::CoproTgp& copro = machine_orig->copro();
+            std::printf("copro uploaded    : %u word(s)\n", copro.uploaded_words());
+            std::printf("copro instructions: %llu\n",
+                        (unsigned long long)copro.cpu().instructions());
+            std::printf("copro state       : %s%s\n", copro.cpu().state_string().c_str(),
+                        copro.cpu().halted() ? " HALTED" : "");
+            std::printf("copro fifos       : in %zu (peak overflow %zu), out %zu "
+                        "(peak overflow %zu)\n",
+                        copro.fifo_in().size(), copro.fifo_in().peak_overflow(),
+                        copro.fifo_out().size(), copro.fifo_out().peak_overflow());
+
+            const hw::CoproTgp::Activity& work = copro.activity();
+            std::printf("copro work        : %llu command(s), %llu result(s), "
+                        "%llu table lookup(s)\n",
+                        (unsigned long long)work.commands_received,
+                        (unsigned long long)work.results_sent,
+                        (unsigned long long)work.table_reads);
+            std::printf("copro memory      : display list %llu read / %llu written, "
+                        "data ROM %llu read\n",
+                        (unsigned long long)work.buffer_reads,
+                        (unsigned long long)work.buffer_writes,
+                        (unsigned long long)work.data_rom_reads);
+
+            const hw::Model1io&           ioboard = machine_orig->ioboard();
+            const hw::Model1io::Counters& io      = ioboard.counters();
+            std::printf("io board          : %s, z80 pc %04x sp %04x%s\n",
+                        ioboard.present() ? "firmware loaded" : "NO FIRMWARE",
+                        ioboard.cpu().pc(), ioboard.cpu().sp(),
+                        ioboard.cpu().halted() ? " HALTED" : "");
+            std::printf("io board z80      : %llu instruction(s), %llu cycle(s)\n",
+                        (unsigned long long)ioboard.cpu().instructions(),
+                        (unsigned long long)ioboard.cpu().cycles());
+            std::printf("io board traffic  : dual-port RAM %llu read / %llu written, "
+                        "%llu conversion(s), %llu output latch(es)\n",
+                        (unsigned long long)io.dual_port_reads,
+                        (unsigned long long)io.dual_port_writes,
+                        (unsigned long long)io.analog_samples,
+                        (unsigned long long)io.output_writes);
+            std::printf("io board unmapped : %llu read(s), %llu write(s), "
+                        "%llu I/O port access(es)\n",
+                        (unsigned long long)io.unmapped_reads,
+                        (unsigned long long)io.unmapped_writes,
+                        (unsigned long long)(io.io_port_reads + io.io_port_writes));
         } else {
             const hw::CoproTgpx4& copro = machine_2c->copro();
             // Two host writes make one 64-bit program word, so both figures are
@@ -649,11 +712,27 @@ int main(int argc, char** argv)
                         copro.fifo_out().size(), copro.fifo_out().peak_overflow());
         }
 
-        if (the_sound.present()) {
-            const hw::Model2Sound::Counters& snd = the_sound.counters();
-            std::printf("sound 68000       : %s\n", the_sound.cpu().state_string().c_str());
+        // The link is reported whether or not there is a board behind it, because
+        // on the original Model 2 the link is all there is: the M1 audio board is
+        // not emulated, so "bytes sent" is the only evidence that the program's
+        // sound handshake completed rather than stalled.
+        {
+            const hw::I8251::Counters& uart = the_uart.counters();
+            std::printf("sound link        : %llu byte(s) to the board, %llu back, "
+                        "%llu overrun(s), %llu status reads\n",
+                        (unsigned long long)uart.bytes_sent,
+                        (unsigned long long)uart.bytes_received,
+                        (unsigned long long)uart.overruns,
+                        (unsigned long long)uart.status_reads);
+        }
+
+        if (the_sound == nullptr) {
+            std::printf("sound board       : Model 1 audio board, not emulated\n");
+        } else if (the_sound->present()) {
+            const hw::Model2Sound::Counters& snd = the_sound->counters();
+            std::printf("sound 68000       : %s\n", the_sound->cpu().state_string().c_str());
             std::printf("sound cycles      : %llu\n",
-                        (unsigned long long)the_sound.cpu().cycles());
+                        (unsigned long long)the_sound->cpu().cycles());
             std::printf("sound scsp        : %llu write(s), %llu read(s)\n",
                         (unsigned long long)snd.scsp_writes,
                         (unsigned long long)snd.scsp_reads);
@@ -664,22 +743,14 @@ int main(int argc, char** argv)
                         (unsigned long long)snd.unmapped_reads,
                         (unsigned long long)snd.unmapped_writes);
 
-            const hw::I8251::Counters& uart = the_uart.counters();
-            std::printf("sound link        : %llu byte(s) to the board, %llu back, "
-                        "%llu overrun(s), %llu status reads\n",
-                        (unsigned long long)uart.bytes_sent,
-                        (unsigned long long)uart.bytes_received,
-                        (unsigned long long)uart.overruns,
-                        (unsigned long long)uart.status_reads);
-
-            const hw::Scsp::Stats& scsp = the_sound.scsp().stats();
+            const hw::Scsp::Stats& scsp = the_sound->scsp().stats();
             std::printf("scsp audio        : %llu sample(s) at %u Hz, peak %d/32767, "
                         "%llu dropped\n",
-                        (unsigned long long)scsp.samples, the_sound.sample_rate(),
+                        (unsigned long long)scsp.samples, the_sound->sample_rate(),
                         scsp.peak_output, (unsigned long long)snd.samples_dropped);
             std::printf("scsp slots        : %llu key-on(s), %u sounding now\n",
                         (unsigned long long)scsp.slot_starts,
-                        the_sound.scsp().active_slots());
+                        the_sound->scsp().active_slots());
             std::printf("scsp events       : %llu timer irq(s), %llu DMA(s), "
                         "MIDI %llu in / %llu out\n",
                         (unsigned long long)scsp.timer_interrupts,
@@ -696,7 +767,12 @@ int main(int argc, char** argv)
         machine_iface->log_unmapped_summary();
         machine_iface->log_burst_summary();
 
-        if (machine && !hw::run_copro_selftest(*machine)) {
+        // Both TGP boards, since both read the same table ROM through the same
+        // coprocessor.
+        hw::CoproTgp* tgp = machine != nullptr        ? &machine->copro()
+                          : machine_orig != nullptr   ? &machine_orig->copro()
+                                                      : nullptr;
+        if (tgp != nullptr && !hw::run_copro_selftest(*tgp)) {
             SM2_ERROR("the coprocessor's mathematical units are out of tolerance");
             exit_code_boot_test = 1;
         }
@@ -714,10 +790,14 @@ int main(int argc, char** argv)
             hw::dump_render_list_wireframe(*machine_iface, options.dump_tilemap);
         }
 
-        if (!options.dump_audio.empty()
-            && !hw::write_wav(options.dump_audio, recorded,
-                              the_sound.sample_rate())) {
-            exit_code_boot_test = 1;
+        if (!options.dump_audio.empty()) {
+            if (the_sound == nullptr) {
+                SM2_WARN("--dump-audio: this board's sound hardware is not "
+                         "emulated, so there is nothing to record");
+            } else if (!hw::write_wav(options.dump_audio, recorded,
+                                      the_sound->sample_rate())) {
+                exit_code_boot_test = 1;
+            }
         }
 
         machine_iface->save_nvram();
@@ -826,7 +906,7 @@ int main(int argc, char** argv)
         // surfaces over a recognisable background rather than a blank window.
         hw::Model2Video idle_video;
 
-        if (machine) {
+        if (machine_iface) {
             window.set_title(std::string("sm2-emu — ") + loaded->game.title);
         }
 
@@ -922,14 +1002,17 @@ int main(int argc, char** argv)
 
                 // The sound board produced about 767 stereo frames while that ran.
                 // Handed over every frame rather than buffered here, so the only
-                // buffering is SDL's.
-                const std::span<const s16> produced = sound_board->pending_samples();
-                audio.submit(produced);
-                if (!options.dump_audio.empty()) {
-                    recorded_audio.insert(recorded_audio.end(), produced.begin(),
-                                          produced.end());
+                // buffering is SDL's. Null on the original Model 2, whose sound
+                // board is not emulated.
+                if (sound_board != nullptr) {
+                    const std::span<const s16> produced = sound_board->pending_samples();
+                    audio.submit(produced);
+                    if (!options.dump_audio.empty()) {
+                        recorded_audio.insert(recorded_audio.end(), produced.begin(),
+                                              produced.end());
+                    }
+                    sound_board->clear_pending_samples();
                 }
-                sound_board->clear_pending_samples();
 
                 auto& cpu = *main_cpu;
                 if (cpu.faulted()) {
