@@ -129,6 +129,12 @@ namespace {
     return false;
 }
 
+[[nodiscard]] bool parse_protection(std::string_view text, Protection* out)
+{
+    if (text == "315-5838-doa") { *out = Protection::Sega315_5838_Doa; return true; }
+    return false;
+}
+
 /// Directory holding the running executable, empty if it cannot be determined.
 [[nodiscard]] std::filesystem::path executable_directory()
 {
@@ -273,6 +279,22 @@ bool GameDatabase::load(const std::string& path)
             return false;
         }
 
+        // Zero is not a valid bit here (coin1 always owns 0x01), so it doubles as
+        // "not specified" until the clone merge below fills in a default.
+        u32 start1_bit = 0;
+        if (!attribute_integer(game_node, "start1", 0, &start1_bit, context.c_str())) {
+            return false;
+        }
+        game.start1_bit = static_cast<u8>(start1_bit);
+
+        const pugi::xml_attribute protection_attribute = game_node.attribute("protection");
+        if (protection_attribute
+            && !parse_protection(protection_attribute.value(), &game.protection)) {
+            SM2_ERROR("%s: unrecognised protection '%s'", context.c_str(),
+                      protection_attribute.value());
+            return false;
+        }
+
         for (const pugi::xml_node input_node : game_node.child("inputs").children("input")) {
             const pugi::xml_attribute type = input_node.attribute("type");
             InputFlags                flag = InputFlags::None;
@@ -365,6 +387,14 @@ bool GameDatabase::load(const std::string& path)
         return false;
     }
 
+    // Anything that never inherited a start1 bit from a parent, and never
+    // declared its own, gets MAME's default Model 2 mapping.
+    for (GameSpec& game : m_games) {
+        if (game.start1_bit == 0) {
+            game.start1_bit = 0x10;
+        }
+    }
+
     SM2_INFO("loaded %zu game definition(s) from %s", m_games.size(), path.c_str());
     return true;
 }
@@ -434,6 +464,8 @@ bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
         if (game.manufacturer.empty()) { game.manufacturer = parent.manufacturer; }
         if (game.year == 0)            { game.year = parent.year; }
         if (game.inputs == InputFlags::None) { game.inputs = parent.inputs; }
+        if (game.protection == Protection::None) { game.protection = parent.protection; }
+        if (game.start1_bit == 0) { game.start1_bit = parent.start1_bit; }
         // A clone cannot be more validated than its parent unless it has been
         // explicitly boot-tested as well. Keep preliminary status conservative
         // across revisions so --list-games does not advertise an unverified set.

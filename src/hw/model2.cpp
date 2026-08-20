@@ -107,6 +107,11 @@ constexpr u32 kCommRam         = 0x01a00000;  // 16 KB, mirror 0x10000
 constexpr u32 kIoController    = 0x01c00000;  // 16 registers on byte lanes 0 and 2
 constexpr u32 kUart            = 0x01c80000;
 constexpr u32 kNvram           = 0x01d00000;  // 16 KB
+constexpr u32 kDoaRam          = 0x01d80000;  // 315-5838 protection RAM window
+constexpr u32 kDoaSrcAddr      = 0x01d87ff0;  // 315-5838 sequential read offset
+constexpr u32 kDoaDataW        = 0x01d87ff4;  // 315-5838 protection input, unused in hack mode
+constexpr u32 kDoaProtR        = 0x01d87ff8;  // 315-5838 decompressed data
+constexpr u32 kDoaUnk          = 0x01d8400c;  // toggling busy-flag stub
 constexpr u32 kRomMainData     = 0x02000000;  // 32 MB window
 constexpr u32 kRomMainDataHigh = 0x06000000;  // 16 MB window at region offset 0x1000000
 constexpr u32 kRenderMode      = 0x10000000;
@@ -163,6 +168,7 @@ bool Model2::init(const rom::GameSpec& game, rom::RomSet roms)
     m_nvram.assign(0x4000, 0xff);
     m_cpu_control.assign(0x40, 0);
     m_comm_ram.assign(0x4000, 0);
+    m_doa_ram.assign(0x8000, 0);
 
     // The video stage keeps decoded copies of this memory, so it has to be
     // attached after the allocation above and before anything can write to it.
@@ -255,6 +261,8 @@ void Model2::reset()
     std::fill(m_buffer_ram.begin(), m_buffer_ram.end(), 0x07800f0fu);
 
     m_io.reset();
+    m_doa_comp.reset();
+    m_doa_unk_toggle = false;
 
     // The serial link to the sound board. 500 kHz clock divided by 16 is the
     // 31.25 kHz standard Sega and MIDI rate, and the frame is eight data bits
@@ -627,6 +635,12 @@ Model2::Window Model2::resolve(u32 address)
     if (address >= kNvram && address < kNvram + 0x4000) {
         return window(m_nvram, address - kNvram, true, cpu::kBusFlagBurst);
     }
+    if (m_game.protection == rom::Protection::Sega315_5838_Doa
+        && address >= kDoaRam && address < kDoaRam + 0x8000
+        && !(address >= kDoaUnk && address < kDoaUnk + 4)
+        && !(address >= kDoaSrcAddr && address < kDoaProtR + 4)) {
+        return window(m_doa_ram, address - kDoaRam, true, cpu::kBusFlagNone);
+    }
     if (address >= kCpuControl && address < kCpuControl + 0x38) {
         // Wait-state configuration. Plain memory, and notably the one memory
         // region MAME does not flag as burst-capable.
@@ -802,6 +816,24 @@ u32 Model2::register_read(u32 address, u32 width)
         // Byte-wide on lane 0, so one entry per 32-bit word.
         const u32 index = (address - kLumaRam) / 4;
         return index < m_luma_ram.size() ? m_luma_ram[index] : 0;
+    }
+
+    if (m_game.protection == rom::Protection::Sega315_5838_Doa) {
+        if (address >= kDoaProtR && address < kDoaProtR + 4) {
+            // doa only reads 16 bits at a time; ST-V titles sharing this chip
+            // read 32, so a 32-bit access packs two sequential 16-bit reads,
+            // matching MAME's doa_prot_r.
+            if (width == 4) {
+                const u32 high = m_doa_comp.data_r();
+                const u32 low  = m_doa_comp.data_r();
+                return (high << 16) | low;
+            }
+            return m_doa_comp.data_r();
+        }
+        if (address >= kDoaUnk && address < kDoaUnk + 4) {
+            m_doa_unk_toggle = !m_doa_unk_toggle;
+            return m_doa_unk_toggle ? 0xffff : 0xfff0;
+        }
     }
 
     note_unmapped_read(address, width);
@@ -1028,6 +1060,17 @@ void Model2::register_write(u32 address, u32 value, u32 width)
         return;
     }
 
+    if (m_game.protection == rom::Protection::Sega315_5838_Doa) {
+        if (address >= kDoaSrcAddr && address < kDoaSrcAddr + 4) {
+            m_doa_comp.srcaddr_w(value);
+            return;
+        }
+        if (address >= kDoaDataW && address < kDoaDataW + 4) {
+            m_doa_comp.data_w_doa(value);
+            return;
+        }
+    }
+
     note_unmapped_write(address, value, width);
 }
 
@@ -1085,6 +1128,9 @@ void Model2::write8(u32 address, u8 value)
 {
     const Window w = resolve(address);
     if (w.base != nullptr && w.writable) {
+        if (address >= kPaletteRam && address < kPaletteRam + 0x4000) {
+            SM2_TRACE("model2: palette8 write offset=%04x value=%02x", address - kPaletteRam, value);
+        }
         *w.base = value;
         note_video_write(w, 1);
         return;
@@ -1101,6 +1147,9 @@ void Model2::write16(u32 address, u16 value)
 {
     const Window w = resolve(address);
     if (w.base != nullptr && w.writable && w.size >= 2) {
+        if (address >= kPaletteRam && address < kPaletteRam + 0x4000) {
+            SM2_TRACE("model2: palette16 write offset=%04x value=%04x", address - kPaletteRam, value);
+        }
         store16(w.base, value);
         note_video_write(w, 2);
         return;
@@ -1115,6 +1164,9 @@ void Model2::write32(u32 address, u32 value)
 {
     const Window w = resolve(address);
     if (w.base != nullptr && w.writable && w.size >= 4) {
+        if (address >= kPaletteRam && address < kPaletteRam + 0x4000) {
+            SM2_TRACE("model2: palette32 write offset=%04x value=%08x", address - kPaletteRam, value);
+        }
         store32(w.base, value);
         note_video_write(w, 4);
         return;
@@ -1135,6 +1187,9 @@ u16 Model2::write32_flags(u32 address, u32 value)
     }
 
     if (w.base != nullptr && w.writable && w.size >= 4) {
+        if (address >= kPaletteRam && address < kPaletteRam + 0x4000) {
+            SM2_TRACE("model2: palette32f write offset=%04x value=%08x", address - kPaletteRam, value);
+        }
         store32(w.base, value);
         note_video_write(w, 4);
         return flags;

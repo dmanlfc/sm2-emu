@@ -121,7 +121,12 @@ public:
     /// Exists so a capture can reach the game itself without anyone at the
     /// controls. Enough to get past the attract mode and the selection screens,
     /// which is what a rendering check needs; it is not a replay system.
-    [[nodiscard]] static ScriptedPress scripted_press(u32 frame, u32 coin_frame);
+    ///
+    /// `start1_bit` is the game's own IN0 bit for IPT_START1, since several
+    /// titles move it off MAME's default 0x10 (`rom::GameSpec::start1_bit`);
+    /// passing 0x10 reproduces the previous fixed behaviour.
+    [[nodiscard]] static ScriptedPress scripted_press(u32 frame, u32 coin_frame,
+                                                       u8 start1_bit = kStart1);
 
     /// Describe the bindings, for the help text.
     static void print_bindings();

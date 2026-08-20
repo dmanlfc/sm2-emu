@@ -72,6 +72,15 @@ enum class InputFlags : u32 {
     return (static_cast<u32>(set) & static_cast<u32>(wanted)) != 0;
 }
 
+/// A protection chip a title's main board needs. One value per chip/mode
+/// combination rather than a child element, since so far every title needing
+/// one needs exactly one fixed configuration of it; a title needing a keyed
+/// variant (315-5881) can extend this the same way once that device lands.
+enum class Protection {
+    None,
+    Sega315_5838_Doa,  ///< 315-5838/317-0229 compression chip, DOA hack mode.
+};
+
 /// One ROM chip's contribution to a region.
 struct FileSpec {
     std::string name;             ///< Filename inside the archive.
@@ -123,6 +132,14 @@ struct GameSpec {
 
     Board      board  = Board::Model2A;
     InputFlags inputs = InputFlags::None;
+    Protection protection = Protection::None;
+
+    /// Bit of the operator port (IN0) that IPT_START1 sits on. Most Model 2A
+    /// titles use MAME's default of 0x10, but several PORT_MODIFY their IN0
+    /// layout and move it to 0x40 instead (Sky Target, Manx TT and everything
+    /// that inherits from it, Indy 500, Wave Runner, Top Skater). Coin1 is
+    /// always 0x01: no title in this database's scope remaps it.
+    u8 start1_bit = 0x10;
 
     /// True when the set is known not to run yet, so the loader can warn.
     bool preliminary = false;

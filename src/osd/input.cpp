@@ -416,7 +416,7 @@ void Input::print_bindings()
     std::printf("are both live, so a second player can join on the keyboard.\n");
 }
 
-Input::ScriptedPress Input::scripted_press(u32 frame, u32 coin_frame)
+Input::ScriptedPress Input::scripted_press(u32 frame, u32 coin_frame, u8 start1_bit)
 {
     // Each press is a pulse rather than a hold: the program looks for the
     // transition, so a permanently held coin counts once and a permanently held
@@ -431,14 +431,23 @@ Input::ScriptedPress Input::scripted_press(u32 frame, u32 coin_frame)
         u8  in0;
         u8  in1;
     };
-    // Two coins because the default setting asks for two per credit, then start,
-    // then a button to confirm the highlighted character. The wait before the
-    // confirmation lets the selection screen appear.
-    static constexpr Event kScript[] = {
+    // Two coins because the default setting asks for two per credit, then a
+    // run of start presses to walk through however many confirmation screens
+    // stand between the coin and gameplay -- a fighting game needs only one
+    // (the character highlighted at boot is already fine), but a menu-heavy
+    // racer like Motor Raid asks for player, then mode, then course, each on
+    // its own screen with its own dwell time before the next input reads.
+    // Pressing start on a screen that does not need it is harmless: Model 2's
+    // start button has no effect once play has begun. Start1's bit varies by
+    // game (several PORT_MODIFY it away from 0x10), hence the parameter.
+    const Event kScript[] = {
         {0 * kStep, kCoin1, 0},
         {1 * kStep, kCoin1, 0},
-        {2 * kStep, kStart1, 0},
+        {2 * kStep, start1_bit, 0},
         {2 * kStep + 120, 0, kButton1},
+        {4 * kStep, start1_bit, 0},
+        {6 * kStep, start1_bit, 0},
+        {8 * kStep, start1_bit, 0},
     };
 
     ScriptedPress press;

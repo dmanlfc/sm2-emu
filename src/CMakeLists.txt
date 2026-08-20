@@ -142,6 +142,7 @@ add_library(sm2_hw STATIC
     hw/model2_debug.cpp
     hw/model2_sound.cpp
     hw/model2_video.cpp
+    hw/sega_315_5838_comp.cpp
     hw/segaic24.cpp
 )
 target_link_libraries(sm2_hw

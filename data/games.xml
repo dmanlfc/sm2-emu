@@ -213,7 +213,7 @@
        data region (collision/height map). Most likely next game to run
        after VF2.
        =================================================================== -->
-  <game name="skytargt" board="model2a" preliminary="true">
+  <game name="skytargt" board="model2a" start1="0x40" preliminary="true">
     <title>Sky Target</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -435,11 +435,12 @@
   <!-- ===================================================================
        Dead or Alive (Revision A). Model 2A. Sega Game ID# 836-12884.
 
-       3D fighter, same input layout as VF2. No protection chip on the 2A
-       revision (unlike the 2B version which uses 315-5881). Copro data
+       3D fighter, same input layout as VF2. Uses the 315-5838/317-0229 chip,
+       but only for a boot-time string check (protection="315-5838-doa"); no
+       315-5881 decryption on this board like the 2B version has. Copro data
        region is empty.
        =================================================================== -->
-  <game name="doaa" board="model2a" preliminary="true">
+  <game name="doaa" board="model2a" protection="315-5838-doa" preliminary="true">
     <title>Dead or Alive</title>
     <version>Revision A</version>
     <manufacturer>Tecmo</manufacturer>
@@ -1018,7 +1019,10 @@
     </roms>
   </game>
 
-  <game name="doaae" parent="doa" board="model2a" preliminary="true">
+  <!-- Named parent="doa" (the Model 2B set) for the metadata that happens to
+       match, but doaae is a Model 2A board and needs its own protection
+       attribute: "doa" is model2b and does not use the DOA hack mode. -->
+  <game name="doaae" parent="doa" board="model2a" protection="315-5838-doa" preliminary="true">
     <title>Dead or Alive</title>
     <version>Export, Model 2A, Revision A</version>
     <manufacturer>Tecmo</manufacturer>
@@ -2019,7 +2023,7 @@
   </game>
 
 
-  <game name="indy500" board="model2b" preliminary="true">
+  <game name="indy500" board="model2b" start1="0x40" preliminary="true">
     <title>INDY 500 Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -2298,7 +2302,7 @@
   </game>
 
 
-  <game name="manxtt" board="model2a" preliminary="true">
+  <game name="manxtt" board="model2a" start1="0x40" preliminary="true">
     <title>Manx TT Superbike - DX/Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -2510,7 +2514,7 @@
   </game>
 
 
-  <game name="motoraid" board="model2a" preliminary="true">
+  <game name="motoraid" board="model2a" start1="0x40" preliminary="true">
     <title>Motor Raid - Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1997</year>
@@ -3874,7 +3878,7 @@
   </game>
 
 
-  <game name="topskatr" board="model2c" preliminary="true">
+  <game name="topskatr" board="model2c" start1="0x40" preliminary="true">
     <title>Top Skater</title>
     <manufacturer>Sega</manufacturer>
     <year>1997</year>
@@ -4519,7 +4523,7 @@
   </game>
 
 
-  <game name="waverunr" board="model2c" preliminary="true">
+  <game name="waverunr" board="model2c" start1="0x40" preliminary="true">
     <title>Wave Runner</title>
     <manufacturer>Sega</manufacturer>
     <year>1996</year>

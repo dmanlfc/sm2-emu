@@ -144,12 +144,13 @@ u32 CoproTgp::host_fifo_read()
 void CoproTgp::function_port_write(u32 byte_offset, u32 value)
 {
     // The port's own address carries the function number, which the host folds
-    // into the command word. Sixteen bytes per function, six bits of function
-    // number, matching the geometrizer's identical function-port convention
-    // (kGeoPort in model2.cpp uses the same offset >> 4 with a 6-bit mask). Bits
-    // 22:20 of the value are discarded because that is where the function number
-    // lands.
-    const u32 function = (byte_offset >> 4) & 0x3f;
+    // into the command word. Sixteen bytes per function, eight bits of function
+    // number (MAME's copro_function_port_w: `a = (offset >> 2) & 0xff`, offset
+    // being a dword count, so `a == (byte_offset >> 4) & 0xff`) -- twice the
+    // width of the geometrizer's own function port, which is a separate decode
+    // (`geo_w`'s `& 0x3f`). Bits 22:20 of the value are discarded because that is
+    // where the function number lands.
+    const u32 function = (byte_offset >> 4) & 0xff;
     const u32 command  = (value & 0x800fffffu) | (function << 23);
     m_fifo_in.push(command);
 }
@@ -259,12 +260,19 @@ u32 CoproTgp::external_read(u16 offset) const
         if (m_data_rom.empty()) {
             return 0;
         }
-        return m_data_rom[address & (m_data_rom.size() - 1)];
+        const u32 index  = address & (m_data_rom.size() - 1);
+        const u32 result = m_data_rom[index];
+        SM2_TRACE("copro: external_read[rom]  bank=%08x offset=%04x address=%06x index=%06x -> %08x",
+                  m_bank, offset, address, index, result);
+        return result;
     }
     if ((address & 0x400000u) != 0) {
         ++m_activity.buffer_reads;
-        const u32 index = address & (kBufferWords - 1);
-        return index < m_buffer_ram.size() ? m_buffer_ram[index] : 0u;
+        const u32 index  = address & (kBufferWords - 1);
+        const u32 result = index < m_buffer_ram.size() ? m_buffer_ram[index] : 0u;
+        SM2_TRACE("copro: external_read[buf]  bank=%08x offset=%04x address=%06x index=%06x -> %08x",
+                  m_bank, offset, address, index, result);
+        return result;
     }
     return 0;
 }
@@ -272,6 +280,7 @@ u32 CoproTgp::external_read(u16 offset) const
 void CoproTgp::external_write(u16 offset, u32 value)
 {
     const u32 address = (m_bank & 0xff0000u) | offset;
+    SM2_TRACE("copro: external_write bank=%06x offset=%04x address=%06x value=%08x", m_bank, offset, address, value);
 
     // Only the display list buffer is writable; the data ROM half is not.
     if ((address & 0x400000u) != 0) {
@@ -397,6 +406,7 @@ void CoproTgp::write_rf(u8 address, u32 value)
             break;
         case 3:
             m_bank = value;
+            SM2_TRACE("copro: bank register set to %08x", value);
             break;
         default:
             break;

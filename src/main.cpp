@@ -516,8 +516,8 @@ int main(int argc, char** argv)
         const u64 start = SDL_GetPerformanceCounter();
         for (u32 frame = 0; frame < options.boot_test; ++frame) {
             if (options.coin_at != 0) {
-                const osd::Input::ScriptedPress press =
-                    osd::Input::scripted_press(frame, options.coin_at);
+                const osd::Input::ScriptedPress press = osd::Input::scripted_press(
+                    frame, options.coin_at, loaded->game.start1_bit);
                 machine->inputs().in0 = static_cast<u8>(0xff & ~press.in0);
                 machine->inputs().in1 = static_cast<u8>(0xff & ~press.in1);
             }
@@ -845,8 +845,8 @@ int main(int argc, char** argv)
                     // Scripted coin, start and character confirmation, so an
                     // unattended capture can reach the game itself rather than
                     // only the attract mode.
-                    const osd::Input::ScriptedPress press =
-                        osd::Input::scripted_press(frames_presented, options.coin_at);
+                    const osd::Input::ScriptedPress press = osd::Input::scripted_press(
+                        frames_presented, options.coin_at, loaded->game.start1_bit);
                     machine->inputs().in0 &= static_cast<u8>(~press.in0);
                     machine->inputs().in1 &= static_cast<u8>(~press.in1);
                 }

@@ -381,6 +381,35 @@ void print_render_list_summary(const Model2& machine)
                 by_path[0], by_path[1], by_path[2], by_path[3]);
     std::printf("stippled           : %u of %zu\n", checkered, list.polygons.size());
     std::printf("windows used       : %u\n", windows + 1);
+    {
+        std::printf("colour bases       :");
+        u32 shown = 0;
+        for (const RenderPolygon& poly : list.polygons) {
+            const u32 colour_base = (poly.texheader[3] >> 6) & 0x3ff;
+            const u32 components  = machine.video().polygon_colour_components(colour_base);
+            if (shown < 20) {
+                std::printf(" %u[r%u g%u b%u]", colour_base, components & 0x1f,
+                            (components >> 8) & 0x1f, (components >> 16) & 0x1f);
+                ++shown;
+            }
+        }
+        std::printf(" ...\n");
+        u32 nonzero = 0;
+        for (u32 idx = 0; idx < 0x400; ++idx) {
+            if (machine.video().polygon_colour_components(idx) != 0) {
+                ++nonzero;
+            }
+        }
+        std::printf("polygon palette    : %u/1024 non-zero entries\n", nonzero);
+        u32 nonzero_all = 0;
+        for (const u16 entry : machine.palette_ram()) {
+            if (entry != 0) {
+                ++nonzero_all;
+            }
+        }
+        std::printf("full palette RAM   : %u/%zu non-zero entries\n", nonzero_all,
+                    machine.palette_ram().size());
+    }
     std::printf("screen extent      : x %.1f..%.1f, y %.1f..%.1f (raster is %ux%u)\n",
                 static_cast<double>(min_x), static_cast<double>(max_x),
                 static_cast<double>(min_y), static_cast<double>(max_y),

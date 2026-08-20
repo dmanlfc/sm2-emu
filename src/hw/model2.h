@@ -25,6 +25,7 @@
 #include "hw/model2_machine_base.h"
 #include "hw/model2_sound.h"
 #include "hw/model2_video.h"
+#include "hw/sega_315_5838_comp.h"
 #include "rom/game.h"
 #include "rom/rom_set.h"
 
@@ -347,6 +348,11 @@ private:
     /// this link everywhere, and the frame is 8-N-1.
     I8251           m_uart;
 
+    /// The DOA boot-check protection chip. Always constructed, but only wired
+    /// into the memory map when `m_game.protection` asks for it, so titles
+    /// that do not need it see no behaviour change.
+    Sega3155838Comp m_doa_comp;
+
     // -- memory ------------------------------------------------------------
 
     rom::RomSet m_roms;
@@ -374,6 +380,10 @@ private:
     std::vector<u8>  m_nvram;         ///< 16 KB battery-backed SRAM at 0x01d00000
     std::vector<u8>  m_cpu_control;   ///< 0x38 bytes of wait-state registers
     std::vector<u8>  m_comm_ram;      ///< 16 KB link board shared RAM
+
+    /// DOA protection chip's RAM window at 0x01d80000, matching MAME's
+    /// model2_0229_mem. Only reachable when `m_game.protection` asks for it.
+    std::vector<u8>  m_doa_ram;
 
     // -- interrupt latch ---------------------------------------------------
     // Twelve sources folded onto the i960's four external lines:
@@ -409,6 +419,10 @@ private:
     u32  m_geo_read_start_address  = 0;
     bool m_ctrlmode       = false;  ///< port B returns EEPROM data instead of IN0
     bool m_palette_dirty  = true;
+
+    /// Toggled on every read of the DOA protection chip's busy-flag stub at
+    /// 0x01d8400c, matching MAME's doa_unk_r.
+    bool m_doa_unk_toggle = false;
 
     /// Both start at one so that a renderer whose copies start at zero uploads
     /// once before the first frame.
