@@ -27,6 +27,7 @@
 #include "hw/model2_machine_base.h"
 #include "hw/model2_sound.h"
 #include "hw/model2_video.h"
+#include "hw/sega_315_5838_comp.h"
 #include "hw/sega_315_5881_crypt.h"
 #include "rom/game.h"
 #include "rom/rom_set.h"
@@ -336,6 +337,7 @@ private:
     Model2Sound     m_sound;
     I8251           m_uart;
     Sega3155881Crypt m_crypt;
+    Sega3155838Comp  m_doa_comp;
 
     // -- memory ------------------------------------------------------------
 
@@ -364,6 +366,7 @@ private:
     std::vector<u8>  m_cpu_control;
     std::vector<u8>  m_comm_ram;
     std::vector<u8>  m_crypt_ram;
+    std::vector<u8>  m_doa_ram;
 
     // -- interrupt latch ---------------------------------------------------
     u32 m_intreq = 0;
@@ -392,6 +395,7 @@ private:
     u8  m_gear_selected      = 0;
     u8  m_drive_board_latch  = 0;
     u8  m_motion_command     = 0;
+    bool m_doa_unk_toggle    = false;
     bool m_palette_dirty     = true;
 
     u64 m_texture_generation = 1;

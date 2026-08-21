@@ -90,7 +90,18 @@ u8 I8251::read(u32 reg)
 
     // The status register's ready bits are not gated by the command register's
     // enables; only the pins are.
+    //
+    // DSR reads asserted unless something drives the pin, which nothing on a
+    // Model 2 board does: MAME's i8251 constructs with `m_dsr(1)` and its
+    // `write_dsr` is never bound in any Model 2 machine configuration. A driver
+    // that checks the far end is present before sending its next byte therefore
+    // sees this bit set on hardware, and Zero Gunner and Pilot Kids both do --
+    // with the bit clear they sent one byte and then polled this register
+    // thirty-eight million times waiting for it.
     u8 status = m_errors;
+    if (m_dsr) {
+        status |= kStatusDsr;
+    }
     if (m_tx_holding_empty) {
         status |= kStatusTxRdy;
     }

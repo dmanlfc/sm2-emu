@@ -80,6 +80,11 @@ public:
     /// A byte arriving from the other end of the link.
     void write_rxd(u8 value);
 
+    /// The DSR pin, inverted the way MAME's `write_dsr` inverts it. No Model 2
+    /// board drives this, so it stays asserted; the setter exists so that a board
+    /// which does wire it has somewhere to say so.
+    void write_dsr(bool level) { m_dsr = !level; }
+
     // -- inspection ---------------------------------------------------------
 
     struct Counters {
@@ -122,6 +127,10 @@ private:
     bool m_tx_holding_empty = true;
     bool m_tx_shift_empty   = true;
     bool m_rx_full          = false;
+
+    /// Data set ready, as the status register reports it. Comes up asserted and
+    /// is not cleared by a reset, matching MAME's constructor initialiser.
+    bool m_dsr              = true;
 
     /// Errors, which are sticky until the command register's error reset.
     u8 m_errors = 0;

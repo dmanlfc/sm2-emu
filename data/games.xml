@@ -1138,7 +1138,7 @@
   </game>
 
 
-  <game name="doa" board="model2b" preliminary="true">
+  <game name="doa" board="model2b" protection="315-5838-doa" preliminary="true">
     <title>Dead or Alive</title>
     <manufacturer>Tecmo</manufacturer>
     <year>1996</year>

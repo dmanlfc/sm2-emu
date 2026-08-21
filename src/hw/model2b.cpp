@@ -100,6 +100,14 @@ constexpr u32 kCommCtl         = 0x01a04000;  // CN and FG, mirror 0x10000
 constexpr u32 kIoController    = 0x01c00000;  // Same as 2A
 constexpr u32 kNvram           = 0x01d00000;  // 16 KB
 constexpr u32 kCryptRam        = 0x01d80000;  // 64 KB, 315-5881 staging buffer
+// The 315-5838 shares the same corner of the map but only a 32 KB window of
+// it, and Dead or Alive is the only title here that fits one. Addresses from
+// MAME's model2_0229_mem, which both the 2A and 2B variants include.
+constexpr u32 kDoaRam          = 0x01d80000;  // 32 KB of plain RAM
+constexpr u32 kDoaSrcAddr      = 0x01d87ff0;  // sequential read offset
+constexpr u32 kDoaDataW        = 0x01d87ff4;  // unused in hack mode
+constexpr u32 kDoaProtR        = 0x01d87ff8;  // decompressed data
+constexpr u32 kDoaUnk          = 0x01d8400c;  // toggling busy-flag stub
 constexpr u32 kCryptReady      = 0x01d90000;
 constexpr u32 kCryptAddrLo     = 0x01d90008;
 constexpr u32 kCryptAddrHi     = 0x01d9000a;
@@ -337,6 +345,7 @@ bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
     m_cpu_control.assign(0x40, 0);
     m_comm_ram.assign(0x4000, 0);
     m_crypt_ram.assign(0x10000, 0);
+    m_doa_ram.assign(0x8000, 0);
 
     // 315-5881 protection chip setup.
     if (game.protection == rom::Protection::Sega315_5881 && game.protection_key == 0) {
@@ -442,6 +451,8 @@ void Model2B::reset()
     m_uart.configure(kCpuClock, kUartBitRate, kUartBitsPerByte);
     m_uart.reset();
     m_comm.reset();
+    m_doa_comp.reset();
+    m_doa_unk_toggle = false;
 
     // I/O controller callbacks (same as 2A).
     m_io.set_output(0, [this](u8 value) { io_port_a_write(value); });
@@ -770,6 +781,12 @@ Model2B::Window Model2B::resolve(u32 address)
     if (address >= kNvram && address < kNvram + 0x4000) {
         return window(m_nvram, address - kNvram, true, cpu::kBusFlagBurst);
     }
+    if (m_game.protection == rom::Protection::Sega315_5838_Doa
+        && address >= kDoaRam && address < kDoaRam + 0x8000
+        && !(address >= kDoaUnk && address < kDoaUnk + 4)
+        && !(address >= kDoaSrcAddr && address < kDoaProtR + 4)) {
+        return window(m_doa_ram, address - kDoaRam, true, cpu::kBusFlagNone);
+    }
     if (m_game.protection == rom::Protection::Sega315_5881
         && address >= kCryptRam && address < kCryptRam + 0x10000) {
         return window(m_crypt_ram, address - kCryptRam, true, cpu::kBusFlagBurst);
@@ -874,12 +891,11 @@ u32 Model2B::register_read(u32 address, u32 width)
 
     // UART at 0x009c0000 (Model 2B position).
     if (address >= kUart && address < kUart + 0x08) {
-        if (width == 4) {
-            const u32 data   = m_uart.read(0);
-            const u32 status = m_uart.read(1);
-            return data | (status << 16);
-        }
-        return m_uart.read((address - kUart) >> 1);
+        // MAME maps this range umask32(0x000000ff), so the two registers sit one
+        // dword apart on byte lane 0: data at 0x009c0000 and status at 0x009c0004.
+        // The 2A and 2C boards put the same part at 0x01c80000 with umask16, half
+        // that stride, which is why this differs from theirs.
+        return m_uart.read((address - kUart) >> 2);
     }
 
     if (address >= kIrqRegs && address < kIrqRegs + 0x08) {
@@ -934,6 +950,23 @@ u32 Model2B::register_read(u32 address, u32 width)
         // Model 2B luma: umask16(0x00ff), so one byte per 16-bit half-word.
         const u32 index = (address - kLumaRam) / 2;
         return index < m_luma_ram.size() ? m_luma_ram[index] : 0;
+    }
+
+    if (m_game.protection == rom::Protection::Sega315_5838_Doa) {
+        if (address >= kDoaProtR && address < kDoaProtR + 4) {
+            // doa reads 16 bits at a time; a 32-bit access packs two sequential
+            // 16-bit reads, matching MAME's doa_prot_r.
+            if (width == 4) {
+                const u32 high = m_doa_comp.data_r();
+                const u32 low  = m_doa_comp.data_r();
+                return (high << 16) | low;
+            }
+            return m_doa_comp.data_r();
+        }
+        if (address >= kDoaUnk && address < kDoaUnk + 4) {
+            m_doa_unk_toggle = !m_doa_unk_toggle;
+            return m_doa_unk_toggle ? 0xffff : 0xfff0;
+        }
     }
 
     if (m_game.protection == rom::Protection::Sega315_5881) {
@@ -1044,7 +1077,7 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
 
     // UART at 0x009c0000 (Model 2B position).
     if (address >= kUart && address < kUart + 0x08) {
-        m_uart.write((address - kUart) >> 1, static_cast<u8>(value));
+        m_uart.write((address - kUart) >> 2, static_cast<u8>(value));
         return;
     }
 
@@ -1127,6 +1160,17 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
             ++m_table_generation;
         }
         return;
+    }
+
+    if (m_game.protection == rom::Protection::Sega315_5838_Doa) {
+        if (address >= kDoaSrcAddr && address < kDoaSrcAddr + 4) {
+            m_doa_comp.srcaddr_w(value);
+            return;
+        }
+        if (address >= kDoaDataW && address < kDoaDataW + 4) {
+            m_doa_comp.data_w_doa(value);
+            return;
+        }
     }
 
     if (m_game.protection == rom::Protection::Sega315_5881) {
