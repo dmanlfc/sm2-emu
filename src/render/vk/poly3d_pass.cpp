@@ -1074,12 +1074,20 @@ void Poly3DPass::build(const hw::Model2MachineBase* machine, const hw::Model2Vid
     refresh_machine_data(*machine, video);
 
     for (const hw::RenderPolygon& poly : machine->render_list().polygons) {
-        // Untextured and translucent is the one combination the hardware draws
-        // nothing for: with no texel there is nothing to alpha-test, and the pixel
-        // stage simply returns. It also claims no pixels, so it is left out here
-        // rather than drawn and discarded.
-        if ((poly.texheader[0] & kHeaderTranslucent) != 0
-            && (poly.texheader[0] & kHeaderTextured) == 0) {
+        // MAME draws nothing at all for translucent polygons, whether textured or
+        // not. The untextured case is obvious (there is no texel to test against),
+        // but the textured case also returns immediately: model2rd.ipp's textured
+        // scanline functions both begin with `if (Translucent) return;`. The
+        // hardware treats translucent polygons as transparent holes that let the
+        // tilemap behind them show through; they claim no pixels and must not fill
+        // the stencil either, because a later polygon sorted behind them in the
+        // same bucket is allowed to draw there.
+        //
+        // Getting this wrong makes every checker-stippled surface (Wave Runner's
+        // water, for example) show as opaque: the translucent polygons that should
+        // be invisible instead fill the stencil, blocking the stipple holes from
+        // reaching the tilemap below.
+        if ((poly.texheader[0] & kHeaderTranslucent) != 0) {
             ++m_blank_polygons;
             continue;
         }
