@@ -1074,20 +1074,16 @@ void Poly3DPass::build(const hw::Model2MachineBase* machine, const hw::Model2Vid
     refresh_machine_data(*machine, video);
 
     for (const hw::RenderPolygon& poly : machine->render_list().polygons) {
-        // MAME draws nothing at all for translucent polygons, whether textured or
-        // not. The untextured case is obvious (there is no texel to test against),
-        // but the textured case also returns immediately: model2rd.ipp's textured
-        // scanline functions both begin with `if (Translucent) return;`. The
-        // hardware treats translucent polygons as transparent holes that let the
-        // tilemap behind them show through; they claim no pixels and must not fill
-        // the stencil either, because a later polygon sorted behind them in the
-        // same bucket is allowed to draw there.
-        //
-        // Getting this wrong makes every checker-stippled surface (Wave Runner's
-        // water, for example) show as opaque: the translucent polygons that should
-        // be invisible instead fill the stencil, blocking the stipple holes from
-        // reaching the tilemap below.
-        if ((poly.texheader[0] & kHeaderTranslucent) != 0) {
+        // Untextured and translucent is the one combination the hardware draws
+        // nothing for: `draw_scanline_solid` in model2rd.ipp begins with
+        // `if (Translucent) return;` because with no texel there is nothing to
+        // alpha-test. The *textured* translucent path does draw -- it alpha-tests
+        // each filtered texel and skips the ones below half -- so it must not be
+        // culled here. Virtua Fighter 2 draws its sky with 181 textured
+        // translucent polygons, and culling them leaves a flat band where the sky
+        // should be.
+        if ((poly.texheader[0] & kHeaderTranslucent) != 0
+            && (poly.texheader[0] & kHeaderTextured) == 0) {
             ++m_blank_polygons;
             continue;
         }
