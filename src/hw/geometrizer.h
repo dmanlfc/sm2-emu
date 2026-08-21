@@ -94,6 +94,53 @@ struct RenderPolygon {
     u8 window = 0;
 };
 
+/// Why the geometry stage discarded what it discarded, and the register state it
+/// used to decide.
+///
+/// A frame that renders almost nothing looks the same from the outside whether the
+/// display list was empty, the polygons faced away, or the frustum was degenerate.
+/// These counters separate those cases, which is the difference between guessing
+/// and measuring.
+struct GeometryStats {
+    // check_culling, one counter per test, in the order the original tests them.
+    u32 cull_backface = 0;
+    u32 cull_linktype = 0;
+    u32 cull_master_z = 0;
+    u32 cull_behind   = 0;
+
+    /// Which frustum plane reduced a polygon below three vertices: left, right,
+    /// top, bottom.
+    u32 clip_kill[4]{};
+
+    /// Geometry engine opcodes executed, indexed by the five-bit opcode.
+    u32 opcodes[32]{};
+
+    /// Words of display list walked, and jumps taken.
+    u32 words = 0;
+    u32 jumps = 0;
+
+    /// Byte offset the walk started from. The display list is double-buffered and
+    /// the program moves this between frames, so a stuck value is a symptom in its
+    /// own right.
+    u32 read_start = 0;
+
+    /// Register state as the last window command left it.
+    s16   viewport[4]{};
+    s16   center[4][2]{};
+    u16   center_sel    = 0;
+    float focus[2]{};
+    float light[3]{};
+    float lod           = 0.0F;
+    u32   geo_mode      = 0;
+    u8    master_z_clip = 0;
+    s32   z_adjust      = 0;
+
+    /// Polygons whose vertices were not all finite. Non-finite coordinates make
+    /// every clip test false, so they are discarded silently and would otherwise
+    /// look like ordinary clipping.
+    u32 non_finite = 0;
+};
+
 /// A frame's worth of polygons in draw order.
 struct RenderList {
     std::vector<RenderPolygon> polygons;
@@ -105,12 +152,15 @@ struct RenderList {
     u32 culled    = 0;
     u32 clipped_away = 0;
 
+    GeometryStats stats;
+
     void clear()
     {
         polygons.clear();
         generated    = 0;
         culled       = 0;
         clipped_away = 0;
+        stats        = GeometryStats{};
     }
 };
 
@@ -309,6 +359,8 @@ private:
     /// the earlier stages discarded.
     u32 m_culled     = 0;
     u32 m_degenerate = 0;
+
+    GeometryStats m_stats;
 
     bool m_pool_exhausted         = false;
     bool m_unknown_command_warned = false;

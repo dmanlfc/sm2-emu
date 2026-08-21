@@ -48,6 +48,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <optional>
 #include <span>
 #include <string>
@@ -94,6 +95,18 @@ struct Options {
     /// alone.
     sm2::u32 coin_at = 0;
 
+    /// Write one line per frame recording what the geometry engine produced, so a
+    /// whole run can be compared against MAME's own count rather than a single
+    /// instant. Comparing curves rather than instants is what makes the comparison
+    /// survive the two emulators sitting on different attract pages.
+    std::string poly_log;
+
+    /// Also render each captured frame on the CPU, through the port of MAME's own
+    /// rasteriser, and write it beside the screenshot. Both come from the same
+    /// machine state, so a difference between them is the renderer and nothing
+    /// else.
+    bool soft_render = false;
+
     /// Run this many frames headless, report, and exit. Zero means run normally.
     sm2::u32 boot_test    = 0;
 
@@ -126,12 +139,18 @@ void print_usage()
         "                      program got to, and exit\n"
         "      --run-frames <n>  Quit after presenting n frames\n"
         "      --screenshot <f>  Write the last presented frame to this PPM file\n"
+        "      --soft-render   Also render each captured frame on the CPU with a\n"
+        "                      port of MAME's own rasteriser, beside the screenshot,\n"
+        "                      so the renderer can be compared against it\n"
         "      --screenshot-interval <n>  Capture every n frames instead, numbering\n"
         "                      each file after the frame it came from\n"
         "      --coin-at <n>   Insert two coins and press start around frame n, so\n"
         "                      an unattended run reaches the game itself\n"
         "      --dump-audio <f>  Write everything the sound board produced to this\n"
         "                      WAV file, so it can be listened to or compared\n"
+        "      --poly-log <f>  With --boot-test, append one line per frame with\n"
+        "                      what the geometry engine produced, for comparison\n"
+        "                      against MAME's own polygon count\n"
         "      --dump-tilemap <d>  With --boot-test, write the decoded tilemap\n"
         "                      layers, character RAM and the composed frame to\n"
         "                      this directory\n"
@@ -182,6 +201,8 @@ void print_usage()
         } else if (std::strcmp(arg, "--validation") == 0) {
             out->config.validation = true;
             out->given.validation  = true;
+        } else if (std::strcmp(arg, "--soft-render") == 0) {
+            out->soft_render = true;
         } else if (std::strcmp(arg, "--no-vsync") == 0) {
             out->config.vsync = false;
             out->given.vsync  = true;
@@ -246,6 +267,7 @@ void print_usage()
             out->given.nvram_dir = true;
         } else if (takes_value("--dump-audio", &out->dump_audio)) {
             // handled
+        } else if (takes_value("--poly-log", &out->poly_log)) {
         } else if (takes_value("--dump-tilemap", &out->dump_tilemap)) {
             // handled
         } else if (takes_value("--gpu", &out->config.gpu)) {
@@ -558,6 +580,16 @@ int main(int argc, char** argv)
         const auto&      the_uart  = *sound_link;
 
         SM2_INFO("running %u frame(s) headless", options.boot_test);
+
+        std::FILE* poly_log = nullptr;
+        if (!options.poly_log.empty()) {
+            poly_log = std::fopen(options.poly_log.c_str(), "w");
+            if (poly_log != nullptr) {
+                std::fprintf(poly_log,
+                             "# frame seconds kept culled clipped read_start\n");
+            }
+        }
+
         const u64 start = SDL_GetPerformanceCounter();
         for (u32 frame = 0; frame < options.boot_test; ++frame) {
             if (options.coin_at != 0) {
@@ -567,6 +599,24 @@ int main(int argc, char** argv)
                 machine_iface->inputs().in1 = static_cast<u8>(0xff & ~press.in1);
             }
             machine_iface->run_frame();
+
+            // A numbered software frame every so often, so one headless run can be
+            // searched for the instant that lines up with a MAME capture instead of
+            // guessing the time.
+            if (options.soft_render && !options.dump_tilemap.empty()
+                && options.screenshot_interval != 0
+                && (frame % options.screenshot_interval) == 0) {
+                machine_iface->compose_video();
+                hw::dump_software_frame(*machine_iface, options.dump_tilemap,
+                                        static_cast<int>(frame));
+            }
+
+            if (poly_log != nullptr) {
+                const hw::RenderList& list = machine_iface->render_list();
+                std::fprintf(poly_log, "%u %.4f %zu %u %u %05x\n", frame,
+                             static_cast<double>(frame) / 57.52, list.polygons.size(),
+                             list.culled, list.clipped_away, list.stats.read_start);
+            }
 
             // Draining every frame whether or not it is being recorded: the sound
             // board drops samples nothing collects, and leaving that to happen
@@ -584,6 +634,10 @@ int main(int argc, char** argv)
                 break;
             }
         }
+        if (poly_log != nullptr) {
+            std::fclose(poly_log);
+        }
+
         const double seconds = static_cast<double>(SDL_GetPerformanceCounter() - start)
                              / static_cast<double>(SDL_GetPerformanceFrequency());
 
@@ -788,6 +842,9 @@ int main(int argc, char** argv)
             hw::dump_tilemaps(*machine_iface, options.dump_tilemap);
             hw::dump_composed_frame(*machine_iface, options.dump_tilemap);
             hw::dump_render_list_wireframe(*machine_iface, options.dump_tilemap);
+            hw::dump_display_list(*machine_iface, options.dump_tilemap);
+            hw::dump_framebuffer(*machine_iface, options.dump_tilemap);
+            hw::dump_software_frame(*machine_iface, options.dump_tilemap);
         }
 
         if (!options.dump_audio.empty()) {
@@ -1052,7 +1109,12 @@ int main(int argc, char** argv)
             // colours a magnifying filter has already mixed with their neighbours.
             const VkImageView native = present.begin_frame();
             tilemaps.record_below(native, video.background());
-            polygons.composite();
+            // Render test mode cuts the DSP out: the framebuffer bank the host has
+            // been drawing into is shown instead of the 3D pass, and has already
+            // been composed into the layers below.
+            if (!machine_iface || !machine_iface->render_test_mode()) {
+                polygons.composite();
+            }
             tilemaps.record_above();
 
             // Read back the finished native frame, before it is scaled, so a
@@ -1072,6 +1134,13 @@ int main(int argc, char** argv)
                 SM2_ERROR("frame capture failed");
                 exit_code = 1;
                 break;
+            }
+            if (capture_this_frame && options.soft_render && machine_iface) {
+                // The same machine state the GPU just drew, drawn again on the CPU.
+                hw::dump_software_frame(*machine_iface,
+                                        std::filesystem::path(options.screenshot)
+                                            .parent_path()
+                                            .string());
             }
 
             // Then the one magnification, into the swapchain.

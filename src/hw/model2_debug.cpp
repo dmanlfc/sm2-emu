@@ -18,6 +18,8 @@
 
 #include "hw/model2_debug.h"
 
+#include "hw/model2_softrender.h"
+
 #include "core/log.h"
 #include "core/types.h"
 #include "hw/model2.h"
@@ -318,6 +320,39 @@ void print_render_list_summary(const Model2MachineBase& machine)
     std::printf("clipped to nothing : %u\n", list.clipped_away);
     std::printf("in the sort buckets: %u\n", list.generated);
 
+    const GeometryStats& stats = list.stats;
+    std::printf("culled because     : backface %u, linktype 0 %u, master z %u,"
+                " wholly behind %u\n",
+                stats.cull_backface, stats.cull_linktype, stats.cull_master_z,
+                stats.cull_behind);
+    std::printf("clipped away by    : left %u, right %u, top %u, bottom %u"
+                " (non-finite %u)\n",
+                stats.clip_kill[0], stats.clip_kill[1], stats.clip_kill[2],
+                stats.clip_kill[3], stats.non_finite);
+    std::printf("display list       : from %05x, %u word(s), %u jump(s), opcodes",
+                stats.read_start, stats.words, stats.jumps);
+    for (u32 opcode = 0; opcode < 32; ++opcode) {
+        if (stats.opcodes[opcode] != 0) {
+            std::printf(" %02x:%u", opcode, stats.opcodes[opcode]);
+        }
+    }
+    std::printf("\n");
+    std::printf("crtc offsets       : x %d, y %d%s\n", machine.video().crtc_x_offset(),
+                machine.video().crtc_y_offset(),
+                machine.render_test_mode() ? "  (render test mode)" : "");
+    std::printf("viewport           : %d,%d..%d,%d  centre[%u] %d,%d\n",
+                stats.viewport[0], stats.viewport[1], stats.viewport[2],
+                stats.viewport[3], stats.center_sel,
+                stats.center[stats.center_sel & 3][0],
+                stats.center[stats.center_sel & 3][1]);
+    std::printf("geo registers      : mode %08x focus %.3f,%.3f lod %.4f"
+                " light %.3f,%.3f,%.3f zclip %02x zsort %08x\n",
+                stats.geo_mode, static_cast<double>(stats.focus[0]),
+                static_cast<double>(stats.focus[1]), static_cast<double>(stats.lod),
+                static_cast<double>(stats.light[0]), static_cast<double>(stats.light[1]),
+                static_cast<double>(stats.light[2]), stats.master_z_clip,
+                static_cast<unsigned>(stats.z_adjust));
+
     if (list.polygons.empty()) {
         std::printf("\nThe geometry engine produced nothing this frame.\n");
         return;
@@ -418,6 +453,197 @@ void print_render_list_summary(const Model2MachineBase& machine)
     std::printf("view depth         : %.4f..%.4f\n", static_cast<double>(min_z),
                 static_cast<double>(max_z));
     std::printf("touching the raster: %u of %zu\n", on_screen, list.polygons.size());
+}
+
+bool dump_software_frame(const Model2MachineBase& machine, const std::string& directory,
+                         int frame_number)
+{
+    std::error_code error;
+    std::filesystem::create_directories(directory, error);
+    if (error) {
+        return false;
+    }
+
+    SoftRenderer     renderer;
+    std::vector<u32> frame(static_cast<usize>(SoftRenderer::kWidth) * SoftRenderer::kHeight, 0);
+    renderer.render(machine, machine.render_list(), frame);
+
+    char numbered[32] = {};
+    if (frame_number >= 0) {
+        std::snprintf(numbered, sizeof(numbered), "/software_%06d.ppm", frame_number);
+    }
+    const std::string path =
+        directory + (frame_number >= 0 ? numbered : "/software_frame.ppm");
+    std::FILE*        out  = std::fopen(path.c_str(), "wb");
+    if (out == nullptr) {
+        SM2_ERROR("could not write '%s'", path.c_str());
+        return false;
+    }
+    std::fprintf(out, "P6\n%u %u\n255\n", SoftRenderer::kWidth, SoftRenderer::kHeight);
+    std::vector<u8> row(static_cast<usize>(SoftRenderer::kWidth) * 3);
+    for (u32 y = 0; y < SoftRenderer::kHeight; ++y) {
+        for (u32 x = 0; x < SoftRenderer::kWidth; ++x) {
+            const u32 pixel = frame[static_cast<usize>(y) * SoftRenderer::kWidth + x];
+            row[x * 3 + 0]  = static_cast<u8>(pixel >> 0);
+            row[x * 3 + 1]  = static_cast<u8>(pixel >> 8);
+            row[x * 3 + 2]  = static_cast<u8>(pixel >> 16);
+        }
+        std::fwrite(row.data(), 1, row.size(), out);
+    }
+    std::fclose(out);
+    SM2_INFO("software renderer wrote %u 3D pixel(s) to %s", renderer.pixels_drawn(),
+             path.c_str());
+    return true;
+}
+
+bool dump_framebuffer(const Model2MachineBase& machine, const std::string& directory)
+{
+    std::error_code error;
+    std::filesystem::create_directories(directory, error);
+    if (error) {
+        return false;
+    }
+    for (int bank = 0; bank < 2; ++bank) {
+        const std::span<const u16> pixels = machine.framebuffer(bank);
+        if (pixels.empty()) {
+            continue;
+        }
+        const std::string path =
+            directory + (bank == 0 ? "/framebuffer_a.bin" : "/framebuffer_b.bin");
+        std::FILE* out = std::fopen(path.c_str(), "wb");
+        if (out == nullptr) {
+            return false;
+        }
+        std::fwrite(pixels.data(), sizeof(u16), pixels.size(), out);
+        std::fclose(out);
+    }
+
+    // The colour tables too, since a framebuffer or tilemap word means nothing
+    // without them.
+    const auto write_words = [&](const char* name, std::span<const u16> data) {
+        const std::string path = directory + name;
+        std::FILE*        out  = std::fopen(path.c_str(), "wb");
+        if (out != nullptr) {
+            std::fwrite(data.data(), sizeof(u16), data.size(), out);
+            std::fclose(out);
+        }
+    };
+    {
+        for (int sheet = 0; sheet < 2; ++sheet) {
+            const std::span<const u32> data = machine.texture_ram(sheet);
+            if (data.empty()) {
+                continue;
+            }
+            const std::string path =
+                directory + (sheet == 0 ? "/texture0.bin" : "/texture1.bin");
+            std::FILE* out = std::fopen(path.c_str(), "wb");
+            if (out != nullptr) {
+                std::fwrite(data.data(), sizeof(u32), data.size(), out);
+                std::fclose(out);
+            }
+        }
+    }
+    write_words("/colorxlat.bin", machine.colour_translate());
+    write_words("/palette_ram.bin", machine.palette_ram());
+    {
+        const std::span<const u8> ram = machine.work_ram();
+        if (!ram.empty()) {
+            const std::string path = directory + "/work_ram.bin";
+            std::FILE*        out  = std::fopen(path.c_str(), "wb");
+            if (out != nullptr) {
+                std::fwrite(ram.data(), 1, ram.size(), out);
+                std::fclose(out);
+            }
+        }
+    }
+    return true;
+}
+
+bool dump_display_list(const Model2MachineBase& machine, const std::string& directory)
+{
+    std::error_code error;
+    std::filesystem::create_directories(directory, error);
+    if (error) {
+        SM2_ERROR("could not create '%s': %s", directory.c_str(), error.message().c_str());
+        return false;
+    }
+
+    const std::span<const u32> list = machine.buffer_ram();
+    if (list.empty()) {
+        return false;
+    }
+
+    const std::string binary = directory + "/display_list.bin";
+    std::FILE*        raw    = std::fopen(binary.c_str(), "wb");
+    if (raw == nullptr) {
+        SM2_ERROR("could not write '%s'", binary.c_str());
+        return false;
+    }
+    std::fwrite(list.data(), sizeof(u32), list.size(), raw);
+    std::fclose(raw);
+
+    // The disassembly walks the list the way the geometry engine does, so it stops
+    // where the engine stops rather than running off the end of a mostly-unused
+    // buffer.
+    static constexpr const char* kOpcodeNames[32] = {
+        "nop",     "object",  "direct",  "window",  "texture", "polygon", "texparam",
+        "mode",    "zsort",   "focus",   "light",   "matrix",  "translate", "mempush",
+        "test",    "end",     "dummy",   "object",  "direct",  "window",  "log",
+        "polygon", "lod",     "mode",    "zsort",   "focus",   "light",   "matrix",
+        "translate", "upload", "jump",   "end",
+    };
+
+    const std::string text = directory + "/display_list.txt";
+    std::FILE*        out  = std::fopen(text.c_str(), "w");
+    if (out == nullptr) {
+        SM2_ERROR("could not write '%s'", text.c_str());
+        return false;
+    }
+
+    std::fprintf(out, "# read start %05x, %zu words\n",
+                 machine.geometry_read_start_address(), list.size());
+
+    u32 index = machine.geometry_read_start_address() / 4;
+    for (u32 step = 0; step < 0x8000 && index < list.size(); ++step) {
+        const u32 opcode = list[index];
+        if ((opcode & 0x80000000u) != 0) {
+            std::fprintf(out, "%05x: %08x  jump %05x\n", index * 4, opcode,
+                         opcode & 0x1ffff);
+            index = (opcode & 0x1ffff) / 4;
+            continue;
+        }
+        const u32 command = (opcode >> 23) & 0x1f;
+        std::fprintf(out, "%05x: %08x  %-9s", index * 4, opcode, kOpcodeNames[command]);
+        ++index;
+
+        // Fixed-length commands, so the operands land on the right lines. Object
+        // and direct data walk polygon memory rather than the list, so only their
+        // header words are here.
+        static constexpr u8 kOperands[32] = {
+            0, 4, 2, 6, 0, 0, 0, 1, 1, 2, 3, 12, 3, 2, 0, 0,
+            1, 4, 2, 6, 0, 0, 1, 1, 1, 2, 3, 12, 3, 0, 1, 0,
+        };
+        u32 operands = kOperands[command];
+        if (command == 0x04 || command == 0x14) {
+            operands = 2 + (index + 1 < list.size() ? list[index + 1] : 0);
+        } else if (command == 0x05 || command == 0x15) {
+            operands = 2 + (index + 1 < list.size() ? list[index + 1] : 0);
+        } else if (command == 0x06) {
+            operands = 2 + 2 * (index + 1 < list.size() ? list[index + 1] : 0);
+        }
+        operands = std::min<u32>(operands, 64);
+
+        for (u32 word = 0; word < operands && index < list.size(); ++word, ++index) {
+            std::fprintf(out, " %08x", list[index]);
+        }
+        std::fprintf(out, "\n");
+
+        if (command == 0x0f || command == 0x1f) {
+            break;
+        }
+    }
+    std::fclose(out);
+    return true;
 }
 
 bool dump_render_list_wireframe(const Model2MachineBase& machine, const std::string& directory)

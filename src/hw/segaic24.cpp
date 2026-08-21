@@ -333,9 +333,20 @@ void Segaic24Tile::draw_split(const DrawState& state,
     // Both layers of the pair share the vertical scroll here, and the row scroll
     // table is always the even layer's: MAME binds it before the layer index is
     // flipped, so the odd layer never has one of its own in these modes.
+    //
+    // The scroll sign is the opposite of the plain path's, which looks like a
+    // mistake and is not. MAME reaches the split modes through the tilemap
+    // engine's own scroll registers -- set_scrollx(0, -(hscr & 0x1ff)) and
+    // set_scrolly(0, vscr & 0x1ff) -- where a positive scroll moves the map
+    // towards higher screen coordinates, so the source coordinate is
+    // screen - scroll. The plain path instead passes an explicit source origin to
+    // draw_rect, where the sense is reversed. Net effect: horizontal scroll is
+    // added here and subtracted there, vertical the other way round. Matched
+    // because MAME's output is the target, and because vf2, vcop2, Last Bronx and
+    // Gunblade NY all reach this path.
     const int screen_width  = static_cast<int>(kScreenWidth);
     const int screen_height = static_cast<int>(kScreenHeight);
-    const int v             = static_cast<int>(vscr & 0x1ff);
+    const int v             = static_cast<int>((0u - vscr) & 0x1ff);
 
     if ((hscr & 0x8000) != 0) {
         const u32 table = kRowScrollTable + 0x200 * layer;
@@ -350,7 +361,7 @@ void Segaic24Tile::draw_split(const DrawState& state,
             for (int y = 0; y < screen_height; ++y) {
                 const u32 chosen = y >= boundary ? (first ^ 1) : first;
                 const int h      = static_cast<int>(
-                    (0u - static_cast<u32>(tile_word(table + static_cast<u32>(y)))) & 0x1ff);
+                    static_cast<u32>(tile_word(table + static_cast<u32>(y))) & 0x1ff);
                 draw_region(state, chosen, h, (v + y) & 0x1ff, 0, y, screen_width, y + 1);
             }
             return;
@@ -361,7 +372,7 @@ void Segaic24Tile::draw_split(const DrawState& state,
         for (int y = 0; y < screen_height; ++y) {
             const u32 raw      = tile_word(table + static_cast<u32>(y));
             const int boundary = static_cast<int>(raw & 0x1ff);
-            const int h        = static_cast<int>((0u - raw) & 0x1ff);
+            const int h        = static_cast<int>(raw & 0x1ff);
             const u32 left     = (raw & 0x200) != 0 ? layer : (layer ^ 1);
 
             const int split = std::clamp(boundary, 0, screen_width);
@@ -372,7 +383,7 @@ void Segaic24Tile::draw_split(const DrawState& state,
         return;
     }
 
-    const int h = static_cast<int>((0u - hscr) & 0x1ff);
+    const int h = static_cast<int>(hscr & 0x1ff);
 
     if (mode == 1) {
         // A fixed horizon.
@@ -386,15 +397,9 @@ void Segaic24Tile::draw_split(const DrawState& state,
     }
 
     // Modes 2 and 3 without row scroll: a fixed vertical boundary, which is how a
-    // game splits the screen for two players or insets a window.
-    //
-    // The boundary is the unnegated scroll value while the source origin is
-    // the negated one. That asymmetry is in the original: MAME applies
-    // set_scrollx(0, -(hscr & 0x1ff)) to both layers (negated), then clips each
-    // to its own side of the boundary (unnegated). draw_region's mapping of
-    // source = h + (X - x0) already accounts for that because h is negated and
-    // x0 is the clip start, not the boundary — so the right half's origin
-    // (h + boundary) gives each screen pixel the same source as MAME.
+    // game splits the screen for two players or insets a window. The boundary and
+    // the scroll are the same register, so each half's source origin is its own
+    // clip start plus the scroll.
     const int boundary = std::clamp(static_cast<int>(hscr & 0x1ff), 0, screen_width);
     const u32 left     = (hscr & 0x200) != 0 ? layer : (layer ^ 1);
 

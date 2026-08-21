@@ -558,6 +558,12 @@ void Model2B::on_vblank_start()
 {
     if ((m_videocontrol & 1) == 0 || (m_frames & 1) == 0) {
         m_geometry.set_read_start_address(m_geo_read_start_address);
+        // The CRTC sync registers move the projected image relative to the
+        // monitor, and MAME applies them in model2_3d_project on every board.
+        // Leaving them at zero here shifted the whole 3D scene: Wave Runner's
+        // came out 90 lines high and 8 columns right, leaving the bottom of the
+        // screen empty.
+        m_geometry.set_crtc_offsets(m_video.crtc_x_offset(), m_video.crtc_y_offset());
         m_geometry.run(&m_render_list);
     }
     raise_interrupt(1u << 0);
@@ -746,11 +752,20 @@ Model2B::Window Model2B::resolve(u32 address)
         return window(m_framebuffer_b, address - kFramebufferB, true, cpu::kBusFlagBurst);
     }
     // Model 2B texture RAM: 1 MB each at 0x11000000 and 0x11200000, with mirrors.
+    //
+    // Plain memory, unlike the original and 2A boards. Those decode texture RAM
+    // through a write handler that packs two 16-bit halves into each 32-bit entry
+    // (MAME's tex0_w/tex1_w); 2B and 2C map it as .ram() with no handler at all,
+    // so a write lands where it is addressed. Applying the 2A transform here
+    // halves every destination address and drops the upper half of each sheet,
+    // which is what was streaking Wave Runner's textures.
     if (in_mirrored(address, kTextureRam0, 0x100000, 0x100000)) {
-        return window(m_texture_ram0, address & 0xfffff, false, cpu::kBusFlagBurst);
+        return window(m_texture_ram0, address & 0xfffff, true, cpu::kBusFlagBurst,
+                      Notify::TextureRam);
     }
     if (in_mirrored(address, kTextureRam1, 0x100000, 0x100000)) {
-        return window(m_texture_ram1, address & 0xfffff, false, cpu::kBusFlagBurst);
+        return window(m_texture_ram1, address & 0xfffff, true, cpu::kBusFlagBurst,
+                      Notify::TextureRam);
     }
 
     return {};
@@ -893,26 +908,6 @@ u32 Model2B::register_read(u32 address, u32 width)
 
 void Model2B::register_write(u32 address, u32 value, u32 width)
 {
-    // Texture RAM. Model 2B uses a simpler scheme: direct writes, 1 MB each.
-    // Two 16-bit halves packed per 32-bit entry (same as 2A's logic).
-    if (in_mirrored(address, kTextureRam0, 0x100000, 0x100000)
-        || in_mirrored(address, kTextureRam1, 0x100000, 0x100000)) {
-        std::vector<u32>& sheet = in_mirrored(address, kTextureRam0, 0x100000, 0x100000)
-                                      ? m_texture_ram0
-                                      : m_texture_ram1;
-        const u32 offset = (address & 0xfffff) / 4;
-        const u32 index  = offset >> 1;
-        if (index < sheet.size()) {
-            if ((offset & 1) == 0) {
-                sheet[index] = (sheet[index] & 0xffff0000) | (value & 0xffff);
-            } else {
-                sheet[index] = (sheet[index] & 0x0000ffff) | ((value & 0xffff) << 16);
-            }
-            ++m_texture_generation;
-        }
-        return;
-    }
-
     if (address >= kGeoPort && address < kGeoPort + 0x4000) {
         const u32 offset = address - kGeoPort;
         if (offset < 0x1000) {
@@ -964,6 +959,11 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
     // SHARC IOP register write at 0x008c0000. MAME maps this as a dword
     // handler (external_iop_write), so the register index it receives is the
     // byte offset divided by four, not the byte offset itself.
+    //
+    // This is also how Last Bronx uploads its microcode: it configures DMA
+    // channel 6 through these registers and then streams the program through
+    // register 4, the external port buffer, instead of using the FIFO port with
+    // the upload bit set the way every other Model 2B game does.
     if (address >= kSharcIop && address < kSharcIop + 0x1000) {
         m_copro.iop_write((address - kSharcIop) >> 2, value);
         return;
@@ -1053,7 +1053,10 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
     if (address >= 0x01c00040 && address < 0x01c00044) return;
 
     if (address >= kRenderMode && address < kRenderMode + 0x200000) {
-        m_render_test = bit(value, 0) != 0;
+        if ((bit(value, 0) != 0) != m_render_test) {
+            m_render_test = bit(value, 0) != 0;
+            SM2_DEBUG("model2: render test mode %s", m_render_test ? "on" : "off");
+        }
         m_render_mode = bit(value, 2) != 0;
         m_render_unk  = bit(value, 14) != 0;
         return;
@@ -1113,6 +1116,42 @@ u32 Model2B::read32(u32 address)
     const Window w = resolve(address);
     if (w.base != nullptr && w.size >= 4) return load32(w.base);
     return register_read(address, 4);
+}
+
+// The i960 reaches an unaligned multi-word access one byte at a time and takes
+// the region's burst capability from the first of those bytes, so a byte access
+// has to report the same flags a dword access would. Without this the base class
+// default of "no burst" applies, the address stops advancing part-way through an
+// unaligned ldl/ldt/ldq or stl/stt/stq, and the rest of the transfer collapses
+// onto one location -- which shows up as a table read from ROM arriving with
+// every entry equal to the first. MAME has the same structure and gets the flags
+// right because its read_byte_flags goes through the same dispatch table as
+// read_dword_flags.
+std::pair<u8, u16> Model2B::read8_flags(u32 address)
+{
+    const Window w = resolve(address);
+    if (w.base != nullptr) {
+        if ((w.flags & cpu::kBusFlagBurst) == 0) {
+            ++m_no_burst_reads[address >> 20];
+        }
+        return {*w.base, w.flags};
+    }
+    const u16 flags = register_flags(address);
+    if ((flags & cpu::kBusFlagBurst) == 0) {
+        ++m_no_burst_reads[address >> 20];
+    }
+    return {static_cast<u8>(register_read(address, 1) & 0xff), flags};
+}
+
+u16 Model2B::write8_flags(u32 address, u8 value)
+{
+    const Window w = resolve(address);
+    const u16    flags = w.base != nullptr ? w.flags : register_flags(address);
+    if ((flags & cpu::kBusFlagBurst) == 0) {
+        ++m_no_burst_writes[address >> 20];
+    }
+    write8(address, value);
+    return flags;
 }
 
 std::pair<u32, u16> Model2B::read32_flags(u32 address)
@@ -1197,6 +1236,9 @@ void Model2B::note_video_write(const Window& w, u32 width)
         case Notify::CharRam:
             m_video.tiles().note_char_write(w.offset, width);
             return;
+        case Notify::TextureRam:
+            ++m_texture_generation;
+            return;
     }
 }
 
@@ -1207,6 +1249,14 @@ void Model2B::compose_video()
         m_palette_dirty = false;
     }
     m_video.compose();
+
+    // Render test mode replaces the 3D output with a framebuffer bank, chosen by
+    // frame parity as MAME's draw_framebuffer chooses it. Drawn here rather than
+    // in the renderer because it is opaque 2D output that belongs under the
+    // category-one tilemap layers, which is exactly where the tilemap surface is.
+    if (m_render_test) {
+        m_video.draw_framebuffer(framebuffer((m_frames & 1) != 0 ? 1 : 0));
+    }
 }
 
 // ---------------------------------------------------------------------------

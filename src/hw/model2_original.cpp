@@ -939,7 +939,10 @@ void Model2Original::register_write(u32 address, u32 value, u32 width)
     }
 
     if (address >= kRenderMode && address < kRenderMode + 0x200000) {
-        m_render_test = bit(value, 0) != 0;
+        if ((bit(value, 0) != 0) != m_render_test) {
+            m_render_test = bit(value, 0) != 0;
+            SM2_DEBUG("model2: render test mode %s", m_render_test ? "on" : "off");
+        }
         m_render_mode = bit(value, 2) != 0;
         m_render_unk  = bit(value, 14) != 0;
         return;
@@ -986,6 +989,42 @@ u32 Model2Original::read32(u32 address)
         return load32(w.base);
     }
     return register_read(address, 4);
+}
+
+// The i960 reaches an unaligned multi-word access one byte at a time and takes
+// the region's burst capability from the first of those bytes, so a byte access
+// has to report the same flags a dword access would. Without this the base class
+// default of "no burst" applies, the address stops advancing part-way through an
+// unaligned ldl/ldt/ldq or stl/stt/stq, and the rest of the transfer collapses
+// onto one location -- which shows up as a table read from ROM arriving with
+// every entry equal to the first. MAME has the same structure and gets the flags
+// right because its read_byte_flags goes through the same dispatch table as
+// read_dword_flags.
+std::pair<u8, u16> Model2Original::read8_flags(u32 address)
+{
+    const Window w = resolve(address);
+    if (w.base != nullptr) {
+        if ((w.flags & cpu::kBusFlagBurst) == 0) {
+            ++m_no_burst_reads[address >> 20];
+        }
+        return {*w.base, w.flags};
+    }
+    const u16 flags = register_flags(address);
+    if ((flags & cpu::kBusFlagBurst) == 0) {
+        ++m_no_burst_reads[address >> 20];
+    }
+    return {static_cast<u8>(register_read(address, 1) & 0xff), flags};
+}
+
+u16 Model2Original::write8_flags(u32 address, u8 value)
+{
+    const Window w = resolve(address);
+    const u16    flags = w.base != nullptr ? w.flags : register_flags(address);
+    if ((flags & cpu::kBusFlagBurst) == 0) {
+        ++m_no_burst_writes[address >> 20];
+    }
+    write8(address, value);
+    return flags;
 }
 
 std::pair<u32, u16> Model2Original::read32_flags(u32 address)
@@ -1095,6 +1134,14 @@ void Model2Original::compose_video()
         m_palette_dirty = false;
     }
     m_video.compose();
+
+    // Render test mode replaces the 3D output with a framebuffer bank, chosen by
+    // frame parity as MAME's draw_framebuffer chooses it. Drawn here rather than
+    // in the renderer because it is opaque 2D output that belongs under the
+    // category-one tilemap layers, which is exactly where the tilemap surface is.
+    if (m_render_test) {
+        m_video.draw_framebuffer(framebuffer((m_frames & 1) != 0 ? 1 : 0));
+    }
 }
 
 // ---------------------------------------------------------------------------

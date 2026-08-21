@@ -149,6 +149,7 @@ add_library(sm2_hw STATIC
     hw/model2_debug.cpp
     hw/model2_original.cpp
     hw/model2_sound.cpp
+    hw/model2_softrender.cpp
     hw/model2_video.cpp
     hw/msm6253.cpp
     hw/sega_315_5338a.cpp

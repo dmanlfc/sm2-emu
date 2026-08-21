@@ -46,6 +46,31 @@ bool dump_tilemaps(const Model2MachineBase& machine, const std::string& director
 /// blank screen does.
 void print_render_list_summary(const Model2MachineBase& machine);
 
+/// Write the geometry engine's input verbatim, plus a disassembly of it.
+///
+/// The display list is the seam between the coprocessor and the geometry engine,
+/// so it is the one place that says which side of that seam a missing-polygon
+/// problem is on. MAME's equivalent is the `bufferram` share at 0x00900000, which
+/// its Lua interface can dump, so the two are directly comparable as bytes.
+bool dump_display_list(const Model2MachineBase& machine, const std::string& directory);
+
+/// Write both framebuffer banks verbatim. MAME's equivalent lives at 0x11600000
+/// and 0x11680000 in i960 space, so the two are comparable as bytes.
+bool dump_framebuffer(const Model2MachineBase& machine, const std::string& directory);
+
+/// Render the frame on the CPU with the software port of MAME's rasteriser and
+/// write it as a PPM.
+///
+/// The point is attribution. A difference between this and MAME is a difference
+/// in the emulated hardware or in the port; a difference between this and the
+/// Vulkan output is a difference in the renderer. Without it, a wrong pixel could
+/// be either and the argument has nowhere to go.
+/// `frame_number` of -1 writes software_frame.ppm; anything else numbers the file
+/// after the frame, so a whole run can be emitted and searched for the instant
+/// that lines up with a MAME capture.
+bool dump_software_frame(const Model2MachineBase& machine, const std::string& directory,
+                         int frame_number = -1);
+
 /// Draw this frame's polygons as a wireframe and write it as a PPM.
 ///
 /// A wireframe rather than filled triangles on purpose: it shows the geometry

@@ -70,6 +70,16 @@ public:
     /// deferred character decode.
     void compose();
 
+    /// Draw one framebuffer bank over the layers already in `below()`.
+    ///
+    /// Only used in render test mode, where the DSP stops drawing and clearing the
+    /// framebuffer and the host draws into it directly. Opaque over the whole
+    /// raster, as in MAME's draw_framebuffer, so it hides the tilemap pair
+    /// underneath it; the category-one layers still go on top.
+    ///
+    /// `pixels` is one bank, 512 pixels per line, xGGGGGRRRRRBBBBB.
+    void draw_framebuffer(std::span<const u16> pixels);
+
     /// Tilemap pixels that belong behind the 3D output, RGBA8, kWidth by kHeight.
     [[nodiscard]] std::span<const u32> below() const { return m_below; }
 

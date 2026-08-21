@@ -155,6 +155,7 @@ void Geometrizer::run(RenderList* out)
 
     m_culled     = 0;
     m_degenerate = 0;
+    m_stats      = GeometryStats{};
 
     geo_parse();
     build_render_list(out);
@@ -201,6 +202,24 @@ void Geometrizer::build_render_list(RenderList* out)
     out->generated    = raster->poly_list_index;
     out->culled       = m_culled;
     out->clipped_away = m_degenerate;
+
+    m_stats.read_start    = m_geo_read_start_address;
+    m_stats.center_sel    = raster->center_sel;
+    m_stats.master_z_clip = raster->master_z_clip;
+    m_stats.z_adjust      = raster->z_adjust;
+    m_stats.geo_mode      = m_geo->mode;
+    m_stats.lod           = m_geo->lod;
+    m_stats.focus[0]      = m_geo->focus.x;
+    m_stats.focus[1]      = m_geo->focus.y;
+    m_stats.light[0]      = m_geo->light.x;
+    m_stats.light[1]      = m_geo->light.y;
+    m_stats.light[2]      = m_geo->light.p[0];
+    for (u32 index = 0; index < 4; ++index) {
+        m_stats.viewport[index]  = raster->viewport[index];
+        m_stats.center[index][0] = raster->center[index][0];
+        m_stats.center[index][1] = raster->center[index][1];
+    }
+    out->stats = m_stats;
 
     if (raster->poly_list_index == 0) {
         return;
@@ -399,20 +418,32 @@ inline bool Geometrizer::check_culling(RasterState *raster, u32 attr, float min_
 	{
 		/* if it's the backface, cull it */
 		if (raster->command_buffer[9] & 0x00800000)
+		{
+			++m_stats.cull_backface;
 			return true;
+		}
 	}
 
 	/* if the linktype is 0, then we can also cull it */
 	if (((attr >> 8) & 3) == 0)
+	{
+		++m_stats.cull_linktype;
 		return true;
+	}
 
 	/* if the minimum z value is bigger than the master z clip value, don't render */
 	if (raster->master_z_clip != 0xff && (s32)(1.0 / min_z) > raster->master_z_clip)
+	{
+		++m_stats.cull_master_z;
 		return true;
+	}
 
 	/* if the maximum z value is < 0 then we can safely clip the entire Polygon */
 	if (max_z < 0)
+	{
+		++m_stats.cull_behind;
 		return true;
+	}
 
 	return false;
 }
@@ -565,12 +596,28 @@ void Geometrizer::model2_3d_process_polygon(RasterState *raster, u32 attr)
 
 		clipped_verts = NumVerts;
 
+		// Counted for diagnostics. Not part of the original: a vertex that is not
+		// finite makes every half-space test below false, so the polygon vanishes
+		// through the same path as one that is merely off screen.
+		for (int i = 0; i < NumVerts; i++)
+		{
+			if (!std::isfinite(object.v[i].x) || !std::isfinite(object.v[i].y)
+				|| !std::isfinite(object.v[i].pz))
+			{
+				++m_stats.non_finite;
+				break;
+			}
+		}
+
 		/* do clipping */
 		for (int i = 0; i < 4; i++)
 		{
+			const s32 before = clipped_verts;
 			clipped_verts = clip_polygon(verts_in, clipped_verts, verts_out, raster->clip_plane[raster->center_sel][i]);
 			for (int j = 0; j < clipped_verts; j++)
 				verts_in[j] = verts_out[j];
+			if (before > 2 && clipped_verts <= 2)
+				++m_stats.clip_kill[i];
 		}
 
 		if (clipped_verts <= 2)
@@ -2261,12 +2308,19 @@ void Geometrizer::geo_parse()
 			/* update our pointer */
 			input = &m_bufferram[address];
 
+			++m_stats.jumps;
+
 			/* go again */
 			continue;
 		}
 
+		++m_stats.opcodes[(opcode >> 23) & 0x1f];
+
 		/* process it */
+		u32 *before = input;
 		input = geo_process_command(m_geo.get(), opcode, input, &end_code);
+		if (input != nullptr && input > before)
+			m_stats.words += static_cast<u32>(input - before);
 	}
 }
 

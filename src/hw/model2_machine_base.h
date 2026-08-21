@@ -184,6 +184,25 @@ public:
     /// engine reads.
     [[nodiscard]] virtual std::span<const u32> buffer_ram() const = 0;
 
+    /// The host CPU's work RAM, for state comparison against MAME's own.
+    [[nodiscard]] virtual std::span<const u8> work_ram() const = 0;
+
+    /// Byte offset in the display list where the geometry engine starts each
+    /// frame. Needed to walk the buffer the way the engine does.
+    [[nodiscard]] virtual u32 geometry_read_start_address() const = 0;
+
+    /// Render test mode, bit 0 of the render mode register at 0x10000000.
+    ///
+    /// The manual describes it as letting the host reach memories that are
+    /// otherwise always being reloaded. In practice it stops the DSP drawing and
+    /// clearing the framebuffer and shows one of the two framebuffer banks
+    /// directly, which is how Last Bronx draws its title screen.
+    [[nodiscard]] virtual bool render_test_mode() const = 0;
+
+    /// The two framebuffer banks, xGGGGGRRRRRBBBBB at 512 pixels per line. Which
+    /// one is shown alternates with the frame number.
+    [[nodiscard]] virtual std::span<const u16> framebuffer(int bank) const = 0;
+
     /// Cleared by the renderer once it has taken a palette change into account.
     [[nodiscard]] virtual bool palette_dirty() const = 0;
     virtual void               clear_palette_dirty() = 0;

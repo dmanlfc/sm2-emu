@@ -236,6 +236,19 @@ public:
                           : std::span<const u32>(m_texture_ram1);
     }
     [[nodiscard]] std::span<const u32> buffer_ram() const override { return m_buffer_ram; }
+    [[nodiscard]] std::span<const u8> work_ram() const override { return m_work_ram; }
+
+    [[nodiscard]] u32 geometry_read_start_address() const override
+    {
+        return m_geo_read_start_address;
+    }
+    [[nodiscard]] bool render_test_mode() const override { return m_render_test; }
+
+    [[nodiscard]] std::span<const u16> framebuffer(int bank) const override
+    {
+        return bank == 0 ? std::span<const u16>(m_framebuffer_a)
+                         : std::span<const u16>(m_framebuffer_b);
+    }
 
     [[nodiscard]] bool palette_dirty() const override { return m_palette_dirty; }
     void clear_palette_dirty() override { m_palette_dirty = false; }
@@ -256,11 +269,13 @@ public:
     void write8(u32 address, u8 value) override;
     void write16(u32 address, u16 value) override;
     void write32(u32 address, u32 value) override;
+    std::pair<u8, u16>  read8_flags(u32 address) override;
+    u16                 write8_flags(u32 address, u8 value) override;
     std::pair<u32, u16> read32_flags(u32 address) override;
     u16 write32_flags(u32 address, u32 value) override;
 
 private:
-    enum class Notify : u8 { None, Palette, TileRam, CharRam };
+    enum class Notify : u8 { None, Palette, TileRam, CharRam, TextureRam };
 
     struct Window {
         u8*   base     = nullptr;

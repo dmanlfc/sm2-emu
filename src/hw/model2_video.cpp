@@ -169,6 +169,54 @@ void Model2Video::compose()
     }
 }
 
+void Model2Video::draw_framebuffer(std::span<const u16> pixels)
+{
+    if (pixels.empty()) {
+        return;
+    }
+
+    // Derived from MAME's model2_state::draw_framebuffer. The framebuffer is 512
+    // pixels wide and the visible raster is a window into it whose position is the
+    // inverse of the CRTC offsets that move the 3D projection.
+    //
+    // The source index is deliberately one linear offset rather than a clamped
+    // (x, y) pair: the horizontal offset is negative, so the leftmost columns of
+    // each raster line come from the end of the line above it in the buffer. That
+    // wrap is what the hardware reads and what MAME reproduces, and clamping the
+    // two axes separately blanks those columns instead.
+    constexpr s32 kFramebufferWidth  = 512;
+    constexpr s32 kFramebufferHeight = 512;
+    const s32     x_offset           = -m_crtc_x_offset;
+    const s32     y_offset           = (kFramebufferHeight - static_cast<s32>(kHeight))
+                            - m_crtc_y_offset;
+
+    // MAME's loops stop one short of the clip rectangle's last row and column, so
+    // the bottom row and right column keep the tilemap pixel underneath. Matched
+    // here because the target is its output, not its intent.
+    const u32 last_x = kWidth - 1;
+    const u32 last_y = kHeight - 1;
+
+    // Note the component order: unlike palette RAM, which is xBBBBBGGGGGRRRRR,
+    // the framebuffer is xGGGGGRRRRRBBBBB. It is still resolved through the scroll
+    // colour table, so a framebuffer pixel and a tilemap pixel of the same colour
+    // come out the same.
+    for (u32 y = 0; y < last_y; ++y) {
+        const s32 row = (static_cast<s32>(y) + y_offset) * kFramebufferWidth;
+        for (u32 x = 0; x < last_x; ++x) {
+            const s32 index = (static_cast<s32>(x) + x_offset) + row;
+            const u16 value = (index >= 0 && static_cast<usize>(index) < pixels.size())
+                                ? pixels[static_cast<usize>(index)]
+                                : u16{0};
+
+            const u8 red   = translate(kRedBlockBase, (value >> 5) & 0x1f, kFlatShade);
+            const u8 green = translate(kGreenBlockBase, (value >> 10) & 0x1f, kFlatShade);
+            const u8 blue  = translate(kBlueBlockBase, (value >> 0) & 0x1f, kFlatShade);
+
+            m_below[static_cast<usize>(y) * kWidth + x] = pack_rgba(red, green, blue);
+        }
+    }
+}
+
 void Model2Video::set_horizontal_sync(u16 value)
 {
     m_crtc_x_offset = static_cast<s16>(84 + static_cast<s16>(value));

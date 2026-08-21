@@ -1576,28 +1576,65 @@ void SHARC::compute_float_scaled(int fn, int rx, int ry) {
     m_astat |= AF;
 }
 void SHARC::compute_recips(int fn, int fx) {
+    // MAME's compute_recips, which its own comment marks as verified against
+    // hardware. Zero returns a signed infinity rather than a NaN, and a result
+    // exponent outside the normal range collapses to zero rather than wrapping.
     CLEAR_ALU_FLAGS();
-    u32 val = UIREG(fx);
-    if (IS_FLOAT_NAN(val) || IS_FLOAT_ZERO(val)) { REG(fn) = s32(FLOAT_CANONICAL_NAN); m_astat |= AI; m_stky |= AIS; }
-    else {
-        int exp = -(float_get_unbiased_exponent(val) + 1);
-        u32 mantissa = s_recips_mantissa_lookup[(val >> 16) & 0x7f];
-        REG(fn) = s32((val & FLOAT_SIGN_MASK) | float_make_biased_exponent(exp) | mantissa);
+    const u32 val = UIREG(fx);
+    u32       r   = 0;
+    if (IS_FLOAT_NAN(val)) {
+        r = FLOAT_CANONICAL_NAN;
+        m_astat |= AI;
+        m_stky |= AIS;
+    } else if (IS_FLOAT_ZERO(val)) {
+        r = (val & FLOAT_SIGN_MASK) | FLOAT_INFINITY;
+        m_astat |= AV;
+    } else {
+        int res_exponent = -float_get_unbiased_exponent(val) - 1;
+        u32 res_mantissa = s_recips_mantissa_lookup[(val & FLOAT_MANTISSA_MASK) >> 16];
+        u32 biased       = 0;
+        if (res_exponent > 125 || res_exponent < -126) {
+            biased       = 0;
+            res_mantissa = 0;
+        } else {
+            biased = u32((res_exponent + FLOAT_EXPONENT_BIAS) & 0xff) << FLOAT_EXPONENT_SHIFT;
+        }
+        r = (val & FLOAT_SIGN_MASK) | biased | res_mantissa;
+        if ((val & FLOAT_SIGN_MASK) != 0) m_astat |= AN;
+        if (IS_FLOAT_ZERO(r)) m_astat |= AZ;
     }
+    REG(fn) = s32(r);
     m_astat |= AF;
 }
 void SHARC::compute_rsqrts(int fn, int fx) {
-    CLEAR_ALU_FLAGS();
-    u32 val = UIREG(fx);
-    if (IS_FLOAT_NAN(val) || IS_FLOAT_ZERO(val) || (val & FLOAT_SIGN_MASK)) {
-        REG(fn) = s32(FLOAT_CANONICAL_NAN); m_astat |= AI; m_stky |= AIS;
+    // MAME's compute_rsqrts, also marked verified. Three details matter and were
+    // all wrong here: the table index takes mantissa bits 17..22 together with the
+    // *biased* exponent's least significant bit at bit 23 (one field, `val &
+    // 0xffffff` shifted right by 17), not mantissa bits 16..21 with the unbiased
+    // exponent's parity; and the exponent halving is an arithmetic shift, which
+    // floors, rather than a division, which truncates towards zero and so differs
+    // for every odd negative exponent. A wrong inverse square root means every
+    // normalised vector is wrong, which is why this showed up as geometry scale
+    // and lighting faults on Model 2B rather than as anything obviously numeric.
+    const u32 val = UIREG(fx);
+    u32       r   = 0;
+    if (val > 0x80000000u) {
+        r = FLOAT_CANONICAL_NAN;  // non-zero negative
+    } else if (IS_FLOAT_NAN(val)) {
+        r = FLOAT_CANONICAL_NAN;
     } else {
-        int exp = float_get_unbiased_exponent(val);
-        int idx = ((val >> 16) & 0x3f) | ((exp & 1) ? 0x40 : 0);
-        exp = -(exp / 2) - 1;
-        u32 mantissa = s_rsqrts_mantissa_lookup[idx];
-        REG(fn) = s32(float_make_biased_exponent(exp) | mantissa);
+        const u32 mantissa = val & 0xffffff;  // mantissa plus the exponent's LSB
+        const int res_exponent = -(float_get_unbiased_exponent(val) >> 1) - 1;
+        r = (val & FLOAT_SIGN_MASK) | float_make_biased_exponent(res_exponent)
+          | s_rsqrts_mantissa_lookup[mantissa >> 17];
     }
+    CLEAR_ALU_FLAGS();
+    if (val == 0x80000000u) m_astat |= AN;
+    if (IS_FLOAT_ZERO(r)) m_astat |= AZ;
+    if (IS_FLOAT_ZERO(val)) m_astat |= AV;
+    if (IS_FLOAT_NAN(val) || (val & FLOAT_SIGN_MASK) != 0) m_astat |= AI;
+    if ((m_astat & AI) != 0) m_stky |= AIS;
+    REG(fn) = s32(r);
     m_astat |= AF;
 }
 void SHARC::compute_fcopysign(int fn, int fx, int fy) {
