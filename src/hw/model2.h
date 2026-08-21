@@ -22,6 +22,7 @@
 #include "hw/eeprom_93c46.h"
 #include "hw/i8251.h"
 #include "hw/io_315_5649.h"
+#include "hw/m2comm.h"
 #include "hw/model2_machine_base.h"
 #include "hw/model2_sound.h"
 #include "hw/model2_video.h"
@@ -162,6 +163,9 @@ public:
     void set_nvram_directory(const std::string& directory) override;
     void load_nvram() override;
     void save_nvram() const override;
+
+    /// Copy the set's shipped EEPROM image over the chip, if it ships one.
+    void seed_eeprom_from_rom();
 
     // -- diagnostics -------------------------------------------------------
 
@@ -359,6 +363,9 @@ private:
     Model2Video     m_video;
     CoproTgp        m_copro;
     Geometrizer     m_geometry;
+    /// The link board. Present on every Model 2 machine configuration in
+    /// MAME, and a linked title will not leave its network check without one.
+    M2Comm          m_comm;
 
     /// The sound board: its own 68000, RAM and ROM, on its own clock. Stepped
     /// from run_frame. The only link to the CPU board is a serial one, which is

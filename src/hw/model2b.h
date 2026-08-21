@@ -23,6 +23,7 @@
 #include "hw/eeprom_93c46.h"
 #include "hw/i8251.h"
 #include "hw/io_315_5649.h"
+#include "hw/m2comm.h"
 #include "hw/model2_machine_base.h"
 #include "hw/model2_sound.h"
 #include "hw/model2_video.h"
@@ -221,6 +222,9 @@ public:
     void load_nvram() override;
     void save_nvram() const override;
 
+    /// Copy the set's shipped EEPROM image over the chip, if it ships one.
+    void seed_eeprom_from_rom();
+
     void set_log_unmapped(bool enable) override { m_log_unmapped = enable; }
     void log_burst_summary() const override;
     void log_unmapped_summary() const override;
@@ -312,6 +316,9 @@ private:
     void lamp_output_w(u8 value);
     void drive_board_write(u8 value);
 
+    /// The motion base's answer on port D, for a cabinet that has one.
+    [[nodiscard]] u8 motion_base_read() const;
+
     void note_unmapped_read(u32 address, u32 width);
     void note_unmapped_write(u32 address, u32 value, u32 width);
 
@@ -323,6 +330,9 @@ private:
     Model2Video     m_video;
     CoproSharc      m_copro;
     Geometrizer     m_geometry;
+    /// The link board. Present on every Model 2 machine configuration in
+    /// MAME, and a linked title will not leave its network check without one.
+    M2Comm          m_comm;
     Model2Sound     m_sound;
     I8251           m_uart;
     Sega3155881Crypt m_crypt;
@@ -381,6 +391,7 @@ private:
 
     u8  m_gear_selected      = 0;
     u8  m_drive_board_latch  = 0;
+    u8  m_motion_command     = 0;
     bool m_palette_dirty     = true;
 
     u64 m_texture_generation = 1;

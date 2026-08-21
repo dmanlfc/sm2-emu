@@ -67,7 +67,7 @@ private:
     enum class State {
         Idle,      ///< Chip deselected.
         Command,   ///< Shifting in start bit, opcode and address.
-        Reading,   ///< Shifting out a word, preceded by a dummy zero.
+        Reading,   ///< Shifting out a word; the dummy zero is already on the line.
         Writing,   ///< Shifting in a word to store.
         Complete,  ///< Command finished, waiting for chip select to drop.
     };
@@ -87,9 +87,13 @@ private:
     u32 m_shift = 0;
     u32 m_bits  = 0;
 
-    u32 m_address    = 0;
-    u16 m_read_data  = 0;
-    u32 m_read_bit   = 0;
+    u32 m_address = 0;
+
+    /// The outgoing word, held in the top of a 32-bit register so that bit 31 is
+    /// always the current line level. This is MAME's shape, and copying it is
+    /// what keeps the dummy bit and the run of ones after the word right.
+    u32 m_read_data = 0;
+    u32 m_read_bit  = 0;
     bool m_write_enabled = false;
     bool m_dirty         = false;
 };

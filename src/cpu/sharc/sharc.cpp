@@ -293,10 +293,10 @@ void SHARC::reset()
 
 void SHARC::set_pc(u32 value)
 {
-    m_pc     = value;
-    m_daddr  = value + 1;
-    m_faddr  = value + 2;
-    m_nfaddr = value + 3;
+    // Same convention as an executed branch: the next instruction to retire is
+    // the one at `value`. run() advances the pipeline before fetching, so daddr
+    // rather than pc holds the address that is about to execute.
+    CHANGE_PC(value);
 }
 
 s32 SHARC::run(s32 cycles)
@@ -922,6 +922,19 @@ void SHARC::dma_op(int channel)
             src += u32(src_modifier); dst += u32(dst_modifier);
         }
         break;
+    case DMA_PMODE_16_32: {
+        // Two 16-bit external words pack into one internal 32-bit word, high half
+        // first. dma_run_cycle already had this; the burst path did not, so a
+        // program that configured 16-to-32 packing and let the transfer complete
+        // in one go moved nothing at all.
+        const s32 length = src_count / 2;
+        for (s32 i = 0; i < length; i++) {
+            const u32 data = ((dm_read32(src + 0) & 0xffff) << 16) | (dm_read32(src + 1) & 0xffff);
+            dm_write32(dst, data);
+            src += u32(src_modifier * 2); dst += u32(dst_modifier);
+        }
+        break;
+    }
     case DMA_PMODE_8_48: {
         s32 length = src_count / 6;
         for (s32 i = 0; i < length; i++) {
@@ -1724,29 +1737,42 @@ void SHARC::compute_dual_fadd_fsub(int fa, int fs, int fx, int fy) {
 
 void SHARC::compute_mul_ssfr_add(int rm, int rxm, int rym, int ra, int rxa, int rya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
-    s64 mul_r = s64(s32(REG(rxm))) * s64(s32(REG(rym)));
-    REG(rm) = s32(u32(u64(mul_r) >> 31));
-    u32 add = u32(REG(rxa)) + u32(REG(rya));
+    const s64 mul_r = s64(s32(REG(rxm))) * s64(s32(REG(rym)));
+    const u32 mul   = u32(u64(mul_r) >> 31);
+    const u32 add   = u32(REG(rxa)) + u32(REG(rya));
+    REG(rm) = s32(mul);
     REG(ra) = s32(add);
     m_astat &= ~AF;
 }
 void SHARC::compute_mul_ssfr_sub(int rm, int rxm, int rym, int ra, int rxa, int rya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
-    s64 mul_r = s64(s32(REG(rxm))) * s64(s32(REG(rym)));
-    REG(rm) = s32(u32(u64(mul_r) >> 31));
-    u32 sub = u32(REG(rxa)) - u32(REG(rya));
+    const s64 mul_r = s64(s32(REG(rxm))) * s64(s32(REG(rym)));
+    const u32 mul   = u32(u64(mul_r) >> 31);
+    const u32 sub   = u32(REG(rxa)) - u32(REG(rya));
+    REG(rm) = s32(mul);
     REG(ra) = s32(sub);
     m_astat &= ~AF;
 }
+// A multi-function instruction computes the multiplier and ALU results from the
+// register file as it stood at the start of the instruction, then writes both.
+// Writing the multiplier result first, as this used to, lets it be read back as an
+// ALU input in the same instruction: the operand fields allow that overlap (fxm is
+// R0-R3, fym R4-R7, fxa R8-R11, fya R12-R15, while fm and fa are any of R0-R15),
+// and a matrix or dot-product routine is exactly the code that arranges it. MAME
+// computes into temporaries for the same reason.
 void SHARC::compute_fmul_fadd(int fm, int fxm, int fym, int fa, int fxa, int fya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
-    m_r[fm] = FMUL(fxm, fym);
-    FREG(fa) = FADD(fxa, fya).f;
+    const REG_UNION mul = FMUL(fxm, fym);
+    const REG_UNION alu = FADD(fxa, fya);
+    FREG(fm) = mul.f;
+    FREG(fa) = alu.f;
 }
 void SHARC::compute_fmul_fsub(int fm, int fxm, int fym, int fa, int fxa, int fya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
-    m_r[fm] = FMUL(fxm, fym);
-    FREG(fa) = FSUB(fxa, fya).f;
+    const REG_UNION mul = FMUL(fxm, fym);
+    const REG_UNION alu = FSUB(fxa, fya);
+    FREG(fm) = mul.f;
+    FREG(fa) = alu.f;
 }
 void SHARC::compute_fmul_float_scaled(int fm, int fxm, int fym, int fa, int rxa, int rya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
@@ -1760,29 +1786,39 @@ void SHARC::compute_fmul_fix_scaled(int fm, int fxm, int fym, int ra, int fxa, i
 }
 void SHARC::compute_fmul_favg(int fm, int fxm, int fym, int fa, int fxa, int fya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
-    m_r[fm] = FMUL(fxm, fym);
-    FREG(fa) = FAVG(fxa, fya).f;
+    const REG_UNION mul = FMUL(fxm, fym);
+    const REG_UNION alu = FAVG(fxa, fya);
+    FREG(fm) = mul.f;
+    FREG(fa) = alu.f;
 }
 void SHARC::compute_fmul_fabs(int fm, int fxm, int fym, int fa, int fxa) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
-    m_r[fm] = FMUL(fxm, fym);
-    m_r[fa] = FABS(fxa);
+    const REG_UNION mul = FMUL(fxm, fym);
+    const REG_UNION alu = FABS(fxa);
+    m_r[fm] = mul;
+    m_r[fa] = alu;
 }
 void SHARC::compute_fmul_fmax(int fm, int fxm, int fym, int fa, int fxa, int fya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
-    m_r[fm] = FMUL(fxm, fym);
-    m_r[fa] = FMAX(fxa, fya);
+    const REG_UNION mul = FMUL(fxm, fym);
+    const REG_UNION alu = FMAX(fxa, fya);
+    m_r[fm] = mul;
+    m_r[fa] = alu;
 }
 void SHARC::compute_fmul_fmin(int fm, int fxm, int fym, int fa, int fxa, int fya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
-    m_r[fm] = FMUL(fxm, fym);
-    m_r[fa] = FMIN(fxa, fya);
+    const REG_UNION mul = FMUL(fxm, fym);
+    const REG_UNION alu = FMIN(fxa, fya);
+    m_r[fm] = mul;
+    m_r[fa] = alu;
 }
 void SHARC::compute_fmul_dual_fadd_fsub(int fm, int fxm, int fym, int fa, int fs, int fxa, int fya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
-    m_r[fm] = FMUL(fxm, fym);
+    const REG_UNION mul = FMUL(fxm, fym);
     auto [add_r, sub_r] = FADD_FSUB(fxa, fya);
-    m_r[fa] = add_r; m_r[fs] = sub_r;
+    m_r[fm] = mul;
+    m_r[fa] = add_r;
+    m_r[fs] = sub_r;
 }
 void SHARC::compute_multi_mr_to_reg(int ai, int rk) {
     if (ai == 0) REG(rk) = s32(u32(m_mrf));

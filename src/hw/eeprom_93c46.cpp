@@ -118,24 +118,25 @@ void Eeprom93c46::set_clk(bool level)
             break;
 
         case State::Reading:
+            // MAME's STATE_READING_DATA, which the Model 2 program agrees with:
+            // the dummy zero costs no clock -- it is already on the line from
+            // decode_command -- and the first clock of the read phase puts out
+            // the word's top bit. Charging the dummy a clock instead shifts the
+            // whole stream by one bit, which the program cannot see when the
+            // word is 0xffff and cannot miss when a set ships a real EEPROM
+            // image: Manx TT revision C then reads its Twin-mode flag wrong and
+            // reverts to DX, where it sits on the motion-base self-test forever.
             if (m_read_bit == 0) {
-                // The device emits a dummy zero before the data word.
-                m_do       = false;
-                m_read_bit = 1;
-                break;
+                m_read_data = static_cast<u32>(m_memory[m_address]) << 16;
+            } else {
+                // Past the word, the register clocks in ones. MAME's Model 2
+                // configurations leave streaming disabled, so the address does
+                // not advance and a program that overclocks a read sees ones
+                // rather than the next word.
+                m_read_data = (m_read_data << 1) | 1u;
             }
-            if (m_read_bit > 16) {
-                // Sequential read: once a word is exhausted the address
-                // auto-increments and the next one streams out without a new
-                // command. This has to happen at the start of the clock that
-                // needs the new data, not at the end of the previous one, or the
-                // word's last bit is overwritten before it is sampled.
-                m_address   = (m_address + 1) % kWordCount;
-                m_read_data = m_memory[m_address];
-                m_read_bit  = 1;
-            }
-            m_do = ((m_read_data >> (16 - m_read_bit)) & 1) != 0;
             ++m_read_bit;
+            m_do = ((m_read_data >> 31) & 1) != 0;
             break;
 
         case State::Writing:
@@ -187,8 +188,11 @@ void Eeprom93c46::decode_command()
     switch (opcode) {
         case kOpRead:
             m_address   = address;
-            m_read_data = m_memory[m_address];
+            m_read_data = 0;
             m_read_bit  = 0;
+            // The dummy zero the part emits before the word is already on the
+            // line at this point, so it costs no clock.
+            m_do        = false;
             m_state     = State::Reading;
             break;
 

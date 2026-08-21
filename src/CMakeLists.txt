@@ -140,6 +140,7 @@ add_library(sm2_hw STATIC
     hw/eeprom_93c46.cpp
     hw/i8251.cpp
     hw/io_315_5649.cpp
+    hw/m2comm.cpp
     hw/machine_factory.cpp
     hw/mb8421.cpp
     hw/model1io.cpp

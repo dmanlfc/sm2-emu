@@ -20,6 +20,7 @@
 #include "hw/copro_tgp.h"
 #include "hw/geometrizer.h"
 #include "hw/i8251.h"
+#include "hw/m2comm.h"
 #include "hw/mb8421.h"
 #include "hw/model1io.h"
 #include "hw/model2_machine_base.h"
@@ -137,6 +138,9 @@ public:
     void load_nvram() override;
     void save_nvram() const override;
 
+    /// Copy the set's shipped EEPROM image over the chip, if it ships one.
+    void seed_eeprom_from_rom();
+
     void set_log_unmapped(bool enable) override { m_log_unmapped = enable; }
     void log_burst_summary() const override;
     void log_unmapped_summary() const override;
@@ -241,6 +245,10 @@ private:
     /// Z80 last left in the shared RAM.
     Model1io m_ioboard;
     Mb8421   m_dpram;
+
+    /// The link board. Present on every Model 2 machine configuration in MAME,
+    /// and a linked title will not leave its network check without one.
+    M2Comm   m_comm;
 
     /// The uPD71051 that carries sound commands off the board.
     ///

@@ -60,6 +60,7 @@
 #include "rom/game.h"
 #include "rom/rom_set.h"
 
+#include <algorithm>
 #include <array>
 #include <span>
 #include <string>
@@ -67,6 +68,28 @@
 namespace sm2::hw {
 
 class Model2Video;
+
+/// Copy a set's shipped power-on image over battery-backed storage.
+///
+/// MAME's nvram_device and eeprom_base_device take their contents from a ROM
+/// region named after the device when the set provides one, and the comment in
+/// nvram_default says the region "always wins" over the all-ones default. Three
+/// Model 2 sets depend on it. Manx TT ships an EEPROM image that selects DX or
+/// Twin mode -- revision D picks DX and revision C picks Twin -- and Hanguk Pro
+/// Yagu 98 ships both an EEPROM and a 16 KB backup-RAM image.
+///
+/// Ignoring it is not cosmetic: with a blank EEPROM, revision C comes up in DX
+/// mode and sits on the motion-base self-test screen forever, which is exactly
+/// where it was stuck while MAME went straight into a race.
+///
+/// A saved image from a previous run takes precedence over both, matching the
+/// order MAME reads them in: nvram_default first, then the .nv file on top.
+inline bool apply_default_image(std::span<const u8> shipped, std::span<u8> storage)
+{
+    if (shipped.size() != storage.size()) return false;
+    std::copy(shipped.begin(), shipped.end(), storage.begin());
+    return true;
+}
 
 /// State of every operator and player control, in hardware polarity.
 ///

@@ -3399,7 +3399,7 @@
   </game>
 
 
-  <game name="rchase2" board="model2b" preliminary="true">
+  <game name="rchase2" board="model2b" motion_base="true" preliminary="true">
     <title>Rail Chase 2</title>
     <manufacturer>Sega</manufacturer>
     <year>1994</year>
@@ -3729,7 +3729,7 @@
   </game>
 
 
-  <game name="sgt24h" drive_board="true" board="model2b" preliminary="true">
+  <game name="sgt24h" drive_board="true" board="model2b" start1="0x40" preliminary="true">
     <title>Super GT 24h</title>
     <manufacturer>Jaleco</manufacturer>
     <year>1996</year>
@@ -3834,7 +3834,7 @@
   </game>
 
 
-  <game name="srallyc" gearbox="true" drive_board="true" board="model2a" preliminary="true">
+  <game name="srallyc" gearbox="true" drive_board="true" board="model2a" start1="0x40" preliminary="true">
     <title>Sega Rally Championship - Twin/DX</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -4196,7 +4196,7 @@
   </game>
 
 
-  <game name="stcc" board="model2c" preliminary="true">
+  <game name="stcc" board="model2c" start1="0x40" preliminary="true">
     <title>Sega Touring Car Championship</title>
     <manufacturer>Sega</manufacturer>
     <year>1996</year>

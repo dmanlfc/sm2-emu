@@ -265,6 +265,16 @@ struct GameSpec {
     /// I/O controller's port E.
     bool drive_board = false;
 
+    /// True when the cabinet's motion base answers on the I/O controller's ports
+    /// D and E and the title refuses to start until it does.
+    ///
+    /// Rail Chase 2's is the only one in scope. MAME does not emulate its board
+    /// either: `rchase2_drive_board_r`/`_w` acknowledge four commands and no
+    /// more, with the comment "simulate this so that it passes the initial
+    /// checks". Without the acknowledgement the title stops on a diagram of the
+    /// main and drive boards reading NET_BAD.
+    bool motion_base = false;
+
     /// True when the set is known not to run yet, so the loader can warn.
     bool preliminary = false;
 

@@ -99,6 +99,7 @@ constexpr u32 kPaletteRam      = 0x01800000;  // 16 KB
 constexpr u32 kColorXlat       = 0x01810000;  // 48 KB
 constexpr u32 kZClip           = 0x0181c000;
 constexpr u32 kCommRam         = 0x01a00000;  // 16 KB, mirror 0x10000
+constexpr u32 kCommCtl         = 0x01a04000;  // CN and FG, mirror 0x10000
 constexpr u32 kDualPortRam     = 0x01c00000;  // 2K x 8 on byte lanes 0 and 2
 constexpr u32 kDualPortWindow  = 0x1000;      // i960 bytes the 2K occupies
 constexpr u32 kUart            = 0x01c80000;
@@ -163,6 +164,10 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
     // The video stage keeps decoded copies of this memory, so it has to be
     // attached after the allocation above and before anything can write to it.
     m_video.attach(m_tile_ram, m_char_ram, m_palette_ram, m_colorxlat);
+
+    // The link board's 16 KB is the same storage the i960 reaches at
+    // 0x01a00000; the board keeps it so the access stays a burst window.
+    m_comm.attach_shared(m_comm_ram);
 
     // The coprocessor. Identical to Model 2A's, because MAME's model2o_state
     // derives from model2_tgp_state and inherits its copro maps unchanged.
@@ -289,6 +294,7 @@ void Model2Original::reset()
 
     m_uart.configure(kCpuClock, kUartBitRate, kUartBitsPerByte);
     m_uart.reset();
+    m_comm.reset();
 
     m_cpu.reset();
 }
@@ -433,6 +439,9 @@ void Model2Original::on_vblank_start()
     }
 
     raise_interrupt(1u << 0);
+    // MAME's screen_vblank calls the link board here, after the geometry pass
+    // and the interrupt. It is what steps the ring protocol.
+    m_comm.vblank();
 }
 
 // ---------------------------------------------------------------------------
@@ -710,6 +719,21 @@ u32 Model2Original::register_read(u32 address, u32 width)
         return timers_r((address - kTimerRegs) / 4);
     }
 
+    // Link board handshake registers, on byte lanes 0 and 2 of one dword and
+    // mirrored at 0x01a14000 exactly as MAME maps them. Without these the i960
+    // reads an unmapped bus and a linked title never finishes its network check.
+    if (in_mirrored(address, kCommCtl, 4, 0x10000)) {
+        const u32 offset = address & 3;
+        if (width == 4) {
+            return static_cast<u32>(m_comm.cn_read())
+                 | (static_cast<u32>(m_comm.fg_read()) << 16);
+        }
+        if (offset == 0) return m_comm.cn_read();
+        if (offset == 2) return m_comm.fg_read();
+        return 0xffffffff;
+    }
+
+
     // The dual-port RAM's right-hand port: eight bits wide on byte lanes 0 and 2
     // of each 32-bit word, which is what MAME's umask32(0x00ff00ff) says, so RAM
     // byte N lives at i960 byte offset N*2 and the 2K occupies 4K of address
@@ -916,8 +940,16 @@ void Model2Original::register_write(u32 address, u32 value, u32 width)
         return;
     }
 
-    if (address >= 0x01a04000 && address < 0x01a04004) {
-        return;  // link board control, no board fitted
+    if (in_mirrored(address, kCommCtl, 4, 0x10000)) {
+        const u32 offset = address & 3;
+        if (width == 4) {
+            m_comm.cn_write(static_cast<u8>(value & 0xff));
+            m_comm.fg_write(static_cast<u8>((value >> 16) & 0xff));
+            return;
+        }
+        if (offset == 0) m_comm.cn_write(static_cast<u8>(value & 0xff));
+        else if (offset == 2) m_comm.fg_write(static_cast<u8>(value & 0xff));
+        return;
     }
 
     if (address >= kDualPortRam && address < kDualPortRam + kDualPortWindow) {
@@ -1208,11 +1240,23 @@ void Model2Original::set_nvram_directory(const std::string& directory)
     m_nvram_directory = directory;
 }
 
+void Model2Original::seed_eeprom_from_rom()
+{
+    // ROM_REGION16_LE, so the words are already in the order the chip
+    // stores them and a straight copy is right on a little-endian host.
+    (void)apply_default_image(m_roms.region("eeprom"), m_ioboard.eeprom().bytes());
+}
+
 void Model2Original::load_nvram()
 {
     if (m_nvram_directory.empty() || m_game.name.empty()) {
         return;
     }
+    // A set can ship power-on images for both, and MAME applies those before it
+    // reads any saved file. Do the same, so a saved image still wins.
+    (void)apply_default_image(m_roms.region("backup1"), m_nvram);
+    seed_eeprom_from_rom();
+
     const std::filesystem::path base = std::filesystem::path(m_nvram_directory);
 
     const std::filesystem::path nvram_path = base / (m_game.name + ".nv");

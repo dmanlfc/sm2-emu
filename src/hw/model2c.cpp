@@ -99,6 +99,7 @@ constexpr u32 kPaletteRam      = 0x01800000;  // 16 KB
 constexpr u32 kColorXlat       = 0x01810000;  // 48 KB
 constexpr u32 kZClip           = 0x0181c000;
 constexpr u32 kCommRam         = 0x01a00000;  // 16 KB, mirror 0x10000
+constexpr u32 kCommCtl         = 0x01a04000;  // CN and FG, mirror 0x10000
 constexpr u32 kIoController    = 0x01c00000;
 constexpr u32 kNvram           = 0x01d00000;  // 16 KB
 constexpr u32 kCryptRam        = 0x01d80000;  // 64 KB, 315-5881 staging buffer
@@ -370,6 +371,10 @@ bool Model2C::init(const rom::GameSpec& game, rom::RomSet roms)
     // Video stage.
     m_video.attach(m_tile_ram, m_char_ram, m_palette_ram, m_colorxlat);
 
+    // The link board's 16 KB is the same storage the i960 reaches at
+    // 0x01a00000; the board keeps it so the access stays a burst window.
+    m_comm.attach_shared(m_comm_ram);
+
     // TGPx4 coprocessor: reads the copro_data ROM and reads and writes the
     // display list buffer, both through its external bus. There is no
     // mathematical table ROM on this board -- the part does its own arithmetic.
@@ -461,6 +466,7 @@ void Model2C::reset()
 
     m_uart.configure(kCpuClock, kUartBitRate, kUartBitsPerByte);
     m_uart.reset();
+    m_comm.reset();
 
     // I/O controller callbacks (same as 2A/2B).
     m_io.set_output(0, [this](u8 value) { io_port_a_write(value); });
@@ -608,6 +614,9 @@ void Model2C::on_vblank_start()
         m_geometry.run(&m_render_list);
     }
     raise_interrupt(1u << 0);
+    // MAME's screen_vblank calls the link board here, after the geometry pass
+    // and the interrupt. It is what steps the ring protocol.
+    m_comm.vblank();
 }
 
 // ---------------------------------------------------------------------------
@@ -955,6 +964,21 @@ u32 Model2C::register_read(u32 address, u32 width)
         return timers_r((address - kTimerRegs) / 4);
     }
 
+    // Link board handshake registers, on byte lanes 0 and 2 of one dword and
+    // mirrored at 0x01a14000 exactly as MAME maps them. Without these the i960
+    // reads an unmapped bus and a linked title never finishes its network check.
+    if (in_mirrored(address, kCommCtl, 4, 0x10000)) {
+        const u32 offset = address & 3;
+        if (width == 4) {
+            return static_cast<u32>(m_comm.cn_read())
+                 | (static_cast<u32>(m_comm.fg_read()) << 16);
+        }
+        if (offset == 0) return m_comm.cn_read();
+        if (offset == 2) return m_comm.fg_read();
+        return 0xffffffff;
+    }
+
+
     if (address >= kIoController && address < kIoController + 0x20) {
         const u32 offset = address - kIoController;
         if (width == 4) {
@@ -1120,7 +1144,17 @@ void Model2C::register_write(u32 address, u32 value, u32 width)
         return;
     }
 
-    if (address >= 0x01a04000 && address < 0x01a04004) return;
+    if (in_mirrored(address, kCommCtl, 4, 0x10000)) {
+        const u32 offset = address & 3;
+        if (width == 4) {
+            m_comm.cn_write(static_cast<u8>(value & 0xff));
+            m_comm.fg_write(static_cast<u8>((value >> 16) & 0xff));
+            return;
+        }
+        if (offset == 0) m_comm.cn_write(static_cast<u8>(value & 0xff));
+        else if (offset == 2) m_comm.fg_write(static_cast<u8>(value & 0xff));
+        return;
+    }
 
     if (address >= kIoController && address < kIoController + 0x20) {
         const u32 offset = address - kIoController;
@@ -1403,9 +1437,21 @@ void Model2C::set_nvram_directory(const std::string& directory)
     m_nvram_directory = directory;
 }
 
+void Model2C::seed_eeprom_from_rom()
+{
+    // ROM_REGION16_LE, so the words are already in the order the chip
+    // stores them and a straight copy is right on a little-endian host.
+    (void)apply_default_image(m_roms.region("eeprom"), m_eeprom.bytes());
+}
+
 void Model2C::load_nvram()
 {
     if (m_nvram_directory.empty() || m_game.name.empty()) return;
+    // A set can ship power-on images for both, and MAME applies those before it
+    // reads any saved file. Do the same, so a saved image still wins.
+    (void)apply_default_image(m_roms.region("backup1"), m_nvram);
+    seed_eeprom_from_rom();
+
     const std::filesystem::path base = std::filesystem::path(m_nvram_directory);
 
     const std::filesystem::path nvram_path = base / (m_game.name + ".nv");
