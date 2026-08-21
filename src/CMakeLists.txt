@@ -144,6 +144,7 @@ add_library(sm2_hw STATIC
     hw/machine_factory.cpp
     hw/mb8421.cpp
     hw/model1io.cpp
+    hw/model1io2.cpp
     hw/model2.cpp
     hw/model2b.cpp
     hw/model2c.cpp
@@ -157,6 +158,8 @@ add_library(sm2_hw STATIC
     hw/sega_315_5838_comp.cpp
     hw/sega_315_5881_crypt.cpp
     hw/segaic24.cpp
+    hw/z80ctc.cpp
+    hw/z80pio.cpp
 )
 target_link_libraries(sm2_hw
     PUBLIC

@@ -22,6 +22,7 @@
 #include "hw/i8251.h"
 #include "hw/m2comm.h"
 #include "hw/mb8421.h"
+#include "hw/model1io2.h"
 #include "hw/model1io.h"
 #include "hw/model2_machine_base.h"
 #include "hw/model2_video.h"
@@ -119,6 +120,36 @@ public:
     /// The I/O board, for reporting whether its Z80 is executing sensibly.
     [[nodiscard]] Model1io& ioboard() { return m_ioboard; }
     [[nodiscard]] const Model1io& ioboard() const { return m_ioboard; }
+
+    /// The boot-test report's view of whichever I/O board this title fits, so the
+    /// report does not have to know which one it is. Virtua Cop's is a different
+    /// board with a different CPU; everything else on this hardware uses the
+    /// plain one.
+    struct IoBoardReport {
+        const char* kind    = "Model 1 I/O";
+        bool        present = false;
+        u16         pc      = 0;
+        u16         sp      = 0;
+        bool        halted  = false;
+        u64         instructions = 0;
+        u64         cycles       = 0;
+        u64         dual_port_reads  = 0;
+        u64         dual_port_writes = 0;
+        u64         analog_samples   = 0;
+        u64         output_writes    = 0;
+        u64         unmapped_reads   = 0;
+        u64         unmapped_writes  = 0;
+        u64         io_port_accesses = 0;
+        /// Only the advanced board has these; zero elsewhere.
+        u64 fpga_words     = 0;
+        u64 lightgun_reads = 0;
+        u64 interrupts     = 0;
+    };
+    [[nodiscard]] IoBoardReport io_board_report() const;
+
+    /// The settings EEPROM, which lives on whichever I/O board is fitted.
+    [[nodiscard]] Eeprom93c46& io_eeprom();
+    [[nodiscard]] const Eeprom93c46& io_eeprom() const;
 
     /// The dual-port RAM the I/O board and the i960 share.
     [[nodiscard]] const Mb8421& dual_port_ram() const { return m_dpram; }
@@ -232,6 +263,9 @@ private:
     void note_unmapped_read(u32 address, u32 width);
     void note_unmapped_write(u32 address, u32 value, u32 width);
 
+    /// Bind the advanced board to the panel, the guns and the shared RAM.
+    void wire_advanced_io_board();
+
     // -- devices -----------------------------------------------------------
 
     cpu::i960::I960 m_cpu;
@@ -244,6 +278,13 @@ private:
     /// program never touches a switch directly, it reads whatever the board's
     /// Z80 last left in the shared RAM.
     Model1io m_ioboard;
+
+    /// Virtua Cop fits the advanced board instead. Both are constructed and
+    /// only the one the title declares is wired and stepped; each is a Z80
+    /// and a few kilobytes, so keeping the idle one costs nothing and avoids
+    /// an indirection on the hot interleave path.
+    Model1io2 m_ioboard2;
+    bool      m_uses_advanced_io = false;
     Mb8421   m_dpram;
 
     /// The link board. Present on every Model 2 machine configuration in MAME,

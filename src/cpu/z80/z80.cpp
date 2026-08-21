@@ -898,9 +898,9 @@ void Z80::reti()
     PC = pop16();
     WZ = PC;
     m_iff1 = m_iff2;
-    // MAME also walks the daisy chain here so the interrupting peripheral can
-    // clear its in-service latch. There is no daisy chain in this port; a board
-    // that needs one can watch for the opcode through the trace hook.
+    // MAME walks the daisy chain here so the interrupting peripheral can clear
+    // its in-service latch. The bus does that for whichever board has one.
+    m_bus->interrupt_return();
 }
 
 void Z80::rst(u16 address)

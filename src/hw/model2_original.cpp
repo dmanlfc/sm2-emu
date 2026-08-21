@@ -26,6 +26,7 @@
 #include "core/log.h"
 
 #include <algorithm>
+#include <string>
 #include <bit>
 #include <cstdio>
 #include <cstring>
@@ -188,12 +189,25 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
         SM2_WARN("model2o: no 'ioboard' region; the I/O board has no firmware and "
                  "the program will see no inputs");
     }
-    m_ioboard.attach(m_roms.region("ioboard"));
+    // Virtua Cop's cabinet fits the advanced board -- MAME replaces the device
+    // outright in model2o_state::vcop -- and its firmware is not interchangeable
+    // with the plain one: a different CPU, a different memory map, and a window
+    // onto the FPGA that digitises the guns.
+    m_uses_advanced_io = std::find(m_game.device_sets.begin(), m_game.device_sets.end(),
+                                  std::string{"model1io2"}) != m_game.device_sets.end();
+
+    if (m_uses_advanced_io) {
+        m_ioboard2.attach(m_roms.region("ioboard"));
+        wire_advanced_io_board();
+    } else {
+        m_ioboard.attach(m_roms.region("ioboard"));
+    }
 
     // The 2K dual-port RAM between the two. The i960 reaches its right-hand port
     // through the memory map; the I/O board's expander reaches the left-hand port
     // over the serial side of its 315-5338A. That is the entire connection between
     // the two computers.
+    if (!m_uses_advanced_io) {
     m_ioboard.set_dual_port([this](u32 address) { return m_dpram.left_read(address); },
                             [this](u32 address, u8 value) {
                                 m_dpram.left_write(address, value);
@@ -219,6 +233,7 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
         m_ioboard.set_drive([this] { return m_drive_board_latch; },
                             [this](u8 value) { drive_board_write(value); });
     }
+    }  // !m_uses_advanced_io
 
     // Host side of the coprocessor FIFO flow control, exactly as Model 2A wires
     // it: only the machine can halt the host CPU, which is why this is not in
@@ -291,6 +306,7 @@ void Model2Original::reset()
 
     m_dpram.reset();
     m_ioboard.reset();
+    m_ioboard2.reset();
 
     m_uart.configure(kCpuClock, kUartBitRate, kUartBitsPerByte);
     m_uart.reset();
@@ -328,7 +344,11 @@ void Model2Original::run_frame()
             // i960 time is over a hundred Z80 instructions, which is long enough
             // for the board to overwrite a structure the program is halfway
             // through reading.
-            m_ioboard.run(spent);
+            if (m_uses_advanced_io) {
+                m_ioboard2.run(spent);
+            } else {
+                m_ioboard.run(spent);
+            }
 
             // TxRDY going high is what raises the sound interrupt, so the UART is
             // ticked with the CPU rather than once a scanline.
@@ -1244,7 +1264,99 @@ void Model2Original::seed_eeprom_from_rom()
 {
     // ROM_REGION16_LE, so the words are already in the order the chip
     // stores them and a straight copy is right on a little-endian host.
-    (void)apply_default_image(m_roms.region("eeprom"), m_ioboard.eeprom().bytes());
+    (void)apply_default_image(m_roms.region("eeprom"), io_eeprom().bytes());
+}
+
+// ---------------------------------------------------------------------------
+// The advanced I/O board
+// ---------------------------------------------------------------------------
+
+void Model2Original::wire_advanced_io_board()
+{
+    // Same shared RAM, reached the same way: over the serial side of the board's
+    // 315-5338A into the dual-port RAM's left-hand port.
+    m_ioboard2.set_dual_port(
+        [this](u32 address) { return m_dpram.left_read(address); },
+        [this](u32 address, u8 value) { m_dpram.left_write(address, value); });
+
+    // MAME's model2o_state::vcop binds all three input ports here, unlike the
+    // plain board's two: this cabinet has a second gun and a connector on IN2.
+    m_ioboard2.set_input(0, [this] { return m_inputs.in0; });
+    m_ioboard2.set_input(1, [this] { return m_inputs.in1; });
+    m_ioboard2.set_input(2, [this] { return m_inputs.in2; });
+
+    m_ioboard2.set_output([this](u8 value) { lamp_output_w(value); });
+
+    // The guns, in the order the FPGA reports them: P1 Y, P1 X, P2 Y, P2 X. The
+    // ranges come from the title's own calibration rather than from the hardware,
+    // and the board needs them because its off-screen test is defined relative to
+    // each axis's travel.
+    const rom::LightgunSpec& gun = m_game.lightgun;
+    m_ioboard2.set_lightgun(0, [this] { return m_inputs.gun_p1y; });
+    m_ioboard2.set_lightgun(1, [this] { return m_inputs.gun_p1x; });
+    m_ioboard2.set_lightgun(2, [this] { return m_inputs.gun_p2y; });
+    m_ioboard2.set_lightgun(3, [this] { return m_inputs.gun_p2x; });
+    m_ioboard2.set_lightgun_range(0, gun.p1y.minimum, gun.p1y.maximum);
+    m_ioboard2.set_lightgun_range(1, gun.p1x.minimum, gun.p1x.maximum);
+    m_ioboard2.set_lightgun_range(2, gun.p2y.minimum, gun.p2y.maximum);
+    m_ioboard2.set_lightgun_range(3, gun.p2x.minimum, gun.p2x.maximum);
+
+    if (!gun.present) {
+        SM2_WARN("model2o: %s fits the advanced I/O board but declares no lightgun "
+                 "calibration; its guns will read as pointed off screen",
+                 m_game.name.c_str());
+    }
+}
+
+Eeprom93c46& Model2Original::io_eeprom()
+{
+    return m_uses_advanced_io ? m_ioboard2.eeprom() : m_ioboard.eeprom();
+}
+
+const Eeprom93c46& Model2Original::io_eeprom() const
+{
+    return m_uses_advanced_io ? m_ioboard2.eeprom() : m_ioboard.eeprom();
+}
+
+Model2Original::IoBoardReport Model2Original::io_board_report() const
+{
+    IoBoardReport report;
+    if (m_uses_advanced_io) {
+        const Model1io2::Counters& io = m_ioboard2.counters();
+        report.kind             = "Model 1 I/O (advanced)";
+        report.present          = m_ioboard2.present();
+        report.pc               = m_ioboard2.cpu().pc();
+        report.sp               = m_ioboard2.cpu().sp();
+        report.halted           = m_ioboard2.cpu().halted();
+        report.instructions     = m_ioboard2.cpu().instructions();
+        report.cycles           = m_ioboard2.cpu().cycles();
+        report.dual_port_reads  = io.dual_port_reads;
+        report.dual_port_writes = io.dual_port_writes;
+        report.analog_samples   = io.analog_samples;
+        report.output_writes    = io.output_writes;
+        report.unmapped_reads   = io.unmapped_reads;
+        report.unmapped_writes  = io.unmapped_writes;
+        report.fpga_words       = io.fpga_words;
+        report.lightgun_reads   = io.lightgun_reads;
+        report.interrupts       = io.interrupts;
+        return report;
+    }
+
+    const Model1io::Counters& io = m_ioboard.counters();
+    report.present          = m_ioboard.present();
+    report.pc               = m_ioboard.cpu().pc();
+    report.sp               = m_ioboard.cpu().sp();
+    report.halted           = m_ioboard.cpu().halted();
+    report.instructions     = m_ioboard.cpu().instructions();
+    report.cycles           = m_ioboard.cpu().cycles();
+    report.dual_port_reads  = io.dual_port_reads;
+    report.dual_port_writes = io.dual_port_writes;
+    report.analog_samples   = io.analog_samples;
+    report.output_writes    = io.output_writes;
+    report.unmapped_reads   = io.unmapped_reads;
+    report.unmapped_writes  = io.unmapped_writes;
+    report.io_port_accesses = io.io_port_reads + io.io_port_writes;
+    return report;
 }
 
 void Model2Original::load_nvram()
@@ -1277,7 +1389,7 @@ void Model2Original::load_nvram()
     // board, but it holds the same thing and is saved beside the NVRAM under the
     // same name, so a set that later gains a second board variant keeps its
     // settings.
-    (void)m_ioboard.eeprom().load((base / (m_game.name + ".eeprom")).string());
+    (void)io_eeprom().load((base / (m_game.name + ".eeprom")).string());
 }
 
 void Model2Original::save_nvram() const
@@ -1305,7 +1417,7 @@ void Model2Original::save_nvram() const
         SM2_WARN("could not write nvram to '%s'", nvram_path.string().c_str());
     }
 
-    (void)m_ioboard.eeprom().save((base / (m_game.name + ".eeprom")).string());
+    (void)io_eeprom().save((base / (m_game.name + ".eeprom")).string());
 }
 
 }  // namespace sm2::hw

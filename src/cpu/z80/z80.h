@@ -59,6 +59,11 @@ public:
     /// opcode to execute. 0xff is what a bus with nothing driving it reads back,
     /// which in mode 0 is `RST 38h` and so happens to match mode 1.
     [[nodiscard]] virtual u8 interrupt_vector() { return 0xff; }
+
+    /// RETI retired. A daisy chain needs this so the peripheral being
+    /// serviced can release its in-service latch and let a lower-priority
+    /// one through; a board with a single interrupting device can ignore it.
+    virtual void interrupt_return() {}
 };
 
 // ============================================================================

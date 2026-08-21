@@ -723,26 +723,31 @@ int main(int argc, char** argv)
                         (unsigned long long)work.buffer_writes,
                         (unsigned long long)work.data_rom_reads);
 
-            const hw::Model1io&           ioboard = machine_orig->ioboard();
-            const hw::Model1io::Counters& io      = ioboard.counters();
-            std::printf("io board          : %s, z80 pc %04x sp %04x%s\n",
-                        ioboard.present() ? "firmware loaded" : "NO FIRMWARE",
-                        ioboard.cpu().pc(), ioboard.cpu().sp(),
-                        ioboard.cpu().halted() ? " HALTED" : "");
+            const hw::Model2Original::IoBoardReport io = machine_orig->io_board_report();
+            std::printf("io board          : %s, %s, z80 pc %04x sp %04x%s\n",
+                        io.kind, io.present ? "firmware loaded" : "NO FIRMWARE",
+                        io.pc, io.sp, io.halted ? " HALTED" : "");
             std::printf("io board z80      : %llu instruction(s), %llu cycle(s)\n",
-                        (unsigned long long)ioboard.cpu().instructions(),
-                        (unsigned long long)ioboard.cpu().cycles());
+                        (unsigned long long)io.instructions,
+                        (unsigned long long)io.cycles);
             std::printf("io board traffic  : dual-port RAM %llu read / %llu written, "
                         "%llu conversion(s), %llu output latch(es)\n",
                         (unsigned long long)io.dual_port_reads,
                         (unsigned long long)io.dual_port_writes,
                         (unsigned long long)io.analog_samples,
                         (unsigned long long)io.output_writes);
+            if (io.fpga_words != 0 || io.lightgun_reads != 0 || io.interrupts != 0) {
+                std::printf("io board gun fpga : %llu configuration word(s), "
+                            "%llu coordinate read(s), %llu timer interrupt(s)\n",
+                            (unsigned long long)io.fpga_words,
+                            (unsigned long long)io.lightgun_reads,
+                            (unsigned long long)io.interrupts);
+            }
             std::printf("io board unmapped : %llu read(s), %llu write(s), "
                         "%llu I/O port access(es)\n",
                         (unsigned long long)io.unmapped_reads,
                         (unsigned long long)io.unmapped_writes,
-                        (unsigned long long)(io.io_port_reads + io.io_port_writes));
+                        (unsigned long long)io.io_port_accesses);
         } else {
             const hw::CoproTgpx4& copro = machine_2c->copro();
             // Two host writes make one 64-bit program word, so both figures are
