@@ -870,17 +870,18 @@
       <region name="cpu3" size="0x20000">
         <file name="epr-16726.bin" offset="0x000000" crc="0xc179b8c7"/>
       </region>
-      <!-- Model 1 sound board (68000 + YM3438 + 2x MultiPCM). Not emulated yet;
-           MAME splits these as m1audio:sndcpu / m1audio:pcm1 / m1audio:pcm2. -->
-      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true" required="false">
+      <!-- Model 1 sound board (68000 + YM3438 + 2x MultiPCM), named as MAME
+           splits it: m1audio:sndcpu / m1audio:pcm1 / m1audio:pcm2. Required,
+           because the board reads all three and there is no sound without them. -->
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-16720.7" offset="0x000000" crc="0x8e73cffd"/>
         <file name="epr-16721.8" offset="0x020000" crc="0x1bb3b7b7"/>
       </region>
-      <region name="m1audio:pcm1" size="0x400000" required="false">
+      <region name="m1audio:pcm1" size="0x400000">
         <file name="mpr-16491.32" offset="0x000000" crc="0x89920903"/>
         <file name="mpr-16492.33" offset="0x200000" crc="0x459e701b"/>
       </region>
-      <region name="m1audio:pcm2" size="0x400000" required="false">
+      <region name="m1audio:pcm2" size="0x400000">
         <file name="mpr-16493.4" offset="0x000000" crc="0x9990db15"/>
         <file name="mpr-16494.5" offset="0x200000" crc="0x600e1d6c"/>
       </region>
@@ -963,11 +964,13 @@
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
       </region>
-      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true" required="false">
+      <!-- This revision respins the sound program; pcm1 and pcm2 come from the
+           parent unchanged. Required, as on the parent. -->
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-16489.7" offset="0x000000" crc="0xc20e543e"/>
         <file name="epr-16490.8" offset="0x020000" crc="0xc24edaab"/>
       </region>
-      <region name="textures" size="0x1000000" stride="4" chunk="2" required="false">
+      <region name="textures" size="0x1000000" stride="4" chunk="2">
         <file name="mpr-16522.25" offset="0x000000" crc="0x55d39a57"/>
         <file name="mpr-16521.24" offset="0x000002" crc="0xaf1934fb"/>
         <file name="mpr-16517.27" offset="0x800000" crc="0x4705d3dd"/>
@@ -1176,14 +1179,15 @@
       <region name="cpu4" size="0x20000" required="false"/>
       <!-- Model 1 sound board (68000 + YM3438 + 2x MultiPCM). MAME splits these
            into m1audio:sndcpu / m1audio:pcm1 / m1audio:pcm2; they were
-           previously all piled into cpu4 at overlapping offsets. -->
-      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true" required="false">
+           previously all piled into cpu4 at overlapping offsets. Required,
+           because the board reads all three and there is no sound without them. -->
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-16985.7" offset="0x000000" crc="0x8c4d9056"/>
       </region>
-      <region name="m1audio:pcm1" size="0x400000" required="false">
+      <region name="m1audio:pcm1" size="0x400000">
         <file name="mpr-16986.32" offset="0x000000" crc="0x559612f9"/>
       </region>
-      <region name="m1audio:pcm2" size="0x400000" required="false">
+      <region name="m1audio:pcm2" size="0x400000">
         <file name="mpr-16988.4" offset="0x000000" crc="0xbc705875"/>
         <file name="mpr-16989.5" offset="0x200000" crc="0x1b616b31"/>
       </region>
@@ -2805,6 +2809,13 @@
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
       </region>
+      <!-- The Deluxe cabinet carries a Model 1 sound board for extra sounds, on
+           top of the 68000/SCSP board every Model 2A has. MAME adds it in
+           model2a_state::manxttdx, which is the machine both manxtt and manxttdx
+           use, and forks the host UART's transmitter to both boards.
+           hw::Model2 has no slot for a second board, so these load and go
+           unread; optional until it does. There is no pcm2 region because MAME
+           declares that one ERASE00 with no chips in it. -->
       <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true" required="false">
         <file name="epr-18742.7" offset="0x000000" crc="0x1b78da74"/>
       </region>
@@ -4924,15 +4935,17 @@
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
       </region>
-      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true" required="false">
+      <!-- Model 1 sound board (68000 + YM3438 + 2x MultiPCM). Required, because
+           the board reads all three and there is no sound without them. -->
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-17170.7" offset="0x000000" crc="0x06a38ae2"/>
         <file name="epr-17171.8" offset="0x020000" crc="0xb5e436f8"/>
       </region>
-      <region name="m1audio:pcm1" size="0x400000" required="false">
+      <region name="m1audio:pcm1" size="0x400000">
         <file name="mpr-17172.32" offset="0x000000" crc="0xab22cac3"/>
         <file name="mpr-17173.33" offset="0x200000" crc="0x3cb4005c"/>
       </region>
-      <region name="m1audio:pcm2" size="0x400000" required="false">
+      <region name="m1audio:pcm2" size="0x400000">
         <file name="mpr-17174.4" offset="0x000000" crc="0xa50369cc"/>
         <file name="mpr-17175.5" offset="0x200000" crc="0x9136d43c"/>
       </region>
