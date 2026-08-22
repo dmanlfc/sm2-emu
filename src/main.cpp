@@ -50,6 +50,7 @@
 #include <cstring>
 #include <filesystem>
 #include <optional>
+#include <set>
 #include <span>
 #include <string>
 #include <vector>
@@ -90,6 +91,12 @@ struct Options {
     /// Capture a frame every this many frames instead of only the last one. Each
     /// goes to the screenshot path with the frame number appended.
     sm2::u32 screenshot_interval = 0;
+
+    /// Capture exactly these frames. A comparison against another emulator has to
+    /// search a window of frames around each sample to find the one that lines up,
+    /// and an interval cannot express "these three windows and nothing else"
+    /// without writing hundreds of frames nobody looks at.
+    std::set<sm2::u32> screenshot_frames;
 
     /// Insert coins and press start around this frame. Zero leaves the panel
     /// alone.
@@ -144,6 +151,8 @@ void print_usage()
         "                      so the renderer can be compared against it\n"
         "      --screenshot-interval <n>  Capture every n frames instead, numbering\n"
         "                      each file after the frame it came from\n"
+        "      --screenshot-frames <list>  Capture exactly these frames, comma\n"
+        "                      separated, numbering each file after its frame\n"
         "      --coin-at <n>   Insert two coins and press start around frame n, so\n"
         "                      an unattended run reaches the game itself\n"
         "      --dump-audio <f>  Write everything the sound board produced to this\n"
@@ -259,6 +268,29 @@ void print_usage()
                 static_cast<sm2::u32>(std::strtoul(argv[++index], nullptr, 10));
             if (out->screenshot_interval == 0) {
                 SM2_ERROR("--screenshot-interval needs a count of at least one");
+                return false;
+            }
+        } else if (std::strcmp(arg, "--screenshot-frames") == 0) {
+            if (index + 1 >= argc) {
+                SM2_ERROR("--screenshot-frames requires a list of frame numbers");
+                return false;
+            }
+            const char* list = argv[++index];
+            while (*list != '\0') {
+                char*             end   = nullptr;
+                const sm2::u32    value = static_cast<sm2::u32>(std::strtoul(list, &end, 10));
+                if (end == list) {
+                    SM2_ERROR("--screenshot-frames does not accept '%s'", argv[index]);
+                    return false;
+                }
+                out->screenshot_frames.insert(value);
+                list = end;
+                while (*list == ',' || *list == ' ') {
+                    ++list;
+                }
+            }
+            if (out->screenshot_frames.empty()) {
+                SM2_ERROR("--screenshot-frames needs at least one frame number");
                 return false;
             }
         } else if (takes_value("--screenshot", &out->screenshot)) {
@@ -603,9 +635,12 @@ int main(int argc, char** argv)
             // A numbered software frame every so often, so one headless run can be
             // searched for the instant that lines up with a MAME capture instead of
             // guessing the time.
-            if (options.soft_render && !options.dump_tilemap.empty()
-                && options.screenshot_interval != 0
-                && (frame % options.screenshot_interval) == 0) {
+            const bool wanted_frame =
+                options.screenshot_frames.empty()
+                    ? options.screenshot_interval != 0
+                          && (frame % options.screenshot_interval) == 0
+                    : options.screenshot_frames.count(frame) != 0;
+            if (options.soft_render && !options.dump_tilemap.empty() && wanted_frame) {
                 machine_iface->compose_video();
                 hw::dump_software_frame(*machine_iface, options.dump_tilemap,
                                         static_cast<int>(frame));
@@ -1127,11 +1162,16 @@ int main(int argc, char** argv)
             // produced it.
             const bool last_frame =
                 options.run_frames != 0 && frames_presented + 1 >= options.run_frames;
+            const bool numbered_series =
+                options.screenshot_interval != 0 || !options.screenshot_frames.empty();
             const bool capture_this_frame =
                 !options.screenshot.empty()
-                && (options.screenshot_interval != 0
-                        ? (frames_presented % options.screenshot_interval) == 0 || last_frame
-                        : last_frame || options.run_frames == 0);
+                && (!options.screenshot_frames.empty()
+                        ? options.screenshot_frames.count(frames_presented) != 0
+                        : options.screenshot_interval != 0
+                              ? (frames_presented % options.screenshot_interval) == 0
+                                    || last_frame
+                              : last_frame || options.run_frames == 0);
             if (capture_this_frame
                 && !capture.record(present.native_image(),
                                    render::vk::PresentPass::native_extent(),
@@ -1142,10 +1182,15 @@ int main(int argc, char** argv)
             }
             if (capture_this_frame && options.soft_render && machine_iface) {
                 // The same machine state the GPU just drew, drawn again on the CPU.
+                // Numbered when a series was asked for, or a later capture would
+                // overwrite the one before it.
                 hw::dump_software_frame(*machine_iface,
                                         std::filesystem::path(options.screenshot)
                                             .parent_path()
-                                            .string());
+                                            .string(),
+                                        numbered_series
+                                            ? static_cast<int>(frames_presented)
+                                            : -1);
             }
 
             // Then the one magnification, into the swapchain.
@@ -1203,7 +1248,7 @@ int main(int argc, char** argv)
             // complete once the submission is. Waiting for the device here stalls
             // the pipeline, which is acceptable in a diagnostic mode and is why
             // this is not the default path.
-            if (capture_this_frame && options.screenshot_interval != 0) {
+            if (capture_this_frame && numbered_series) {
                 context.wait_idle();
                 if (!capture.save(numbered_path(options.screenshot, frames_presented))) {
                     exit_code = 1;
@@ -1269,7 +1314,8 @@ int main(int argc, char** argv)
         // After wait_idle, so the readback buffer holds a completed copy. A series
         // has already written each of its frames as it went.
         if (!options.screenshot.empty() && options.screenshot_interval == 0
-            && exit_code == 0 && !capture.save(options.screenshot)) {
+            && options.screenshot_frames.empty() && exit_code == 0
+            && !capture.save(options.screenshot)) {
             exit_code = 1;
         }
 
