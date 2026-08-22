@@ -20,6 +20,7 @@
 #include "hw/copro_tgp.h"
 #include "hw/geometrizer.h"
 #include "hw/i8251.h"
+#include "hw/m1audio.h"
 #include "hw/m2comm.h"
 #include "hw/mb8421.h"
 #include "hw/model1io2.h"
@@ -157,6 +158,10 @@ public:
     /// The serial link that would carry sound commands. See m_uart.
     [[nodiscard]] const I8251& uart() const { return m_uart; }
 
+    /// The Model 1 audio board. Mutable because main.cpp drains its samples.
+    [[nodiscard]] M1Audio& sound() { return m_m1audio; }
+    [[nodiscard]] const M1Audio& sound() const { return m_m1audio; }
+
     [[nodiscard]] const RenderList& render_list() const override { return m_render_list; }
 
     [[nodiscard]] u64 cycles() const override { return m_cycles; }
@@ -291,23 +296,20 @@ private:
     /// and a linked title will not leave its network check without one.
     M2Comm   m_comm;
 
-    /// The uPD71051 that carries sound commands off the board.
+    /// The uPD71051 that carries sound commands off the board, and the board at
+    /// the other end of it.
     ///
-    /// The M1 audio board at the other end -- a 68000 with a YM3438 and two
-    /// MultiPCMs, MAME's SEGAM1AUDIO -- is not emulated. It is a different board
-    /// from the 68000/SCSP one the CRX family uses and shares nothing with it, so
-    /// hw::Model2Sound does not apply here and there is no sound at all on this
-    /// board yet.
+    /// The M1 audio board -- a 68000 with a YM3438 and two MultiPCMs, MAME's
+    /// SEGAM1AUDIO -- is a different board from the 68000/SCSP one the CRX family
+    /// uses and shares nothing with it, which is why hw::Model2Sound does not
+    /// apply here.
     ///
-    /// The UART itself is fully present, because the handshake is not optional:
-    /// the program enables the transmitter, unmasks the sound interrupt and waits
-    /// for TxRDY before it will proceed. With the transmitter enabled and nothing
-    /// consuming the bytes, that handshake completes -- transmitted bytes are
-    /// counted and dropped -- and nothing on the receive side ever asserts RxRDY,
-    /// which is the same as a sound board that never talks back. If a title turns
-    /// out to wait for a reply, that will show up as a stall here rather than as
-    /// an invented protocol.
-    I8251 m_uart;
+    /// The two are joined by exactly two wires: this UART's transmitter into the
+    /// sound board's receiver, and its transmitter back into this one's receiver.
+    /// The handshake is not optional -- the program enables the transmitter,
+    /// unmasks the sound interrupt and waits for TxRDY before it will proceed.
+    I8251   m_uart;
+    M1Audio m_m1audio;
 
     // -- memory ------------------------------------------------------------
 

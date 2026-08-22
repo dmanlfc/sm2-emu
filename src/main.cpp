@@ -20,9 +20,11 @@
 #include "core/config.h"
 #include "core/log.h"
 #include "core/types.h"
+#include "hw/m1audio.h"
 #include "hw/machine_factory.h"
 #include "hw/model2.h"
 #include "hw/model2_original.h"
+#include "hw/sound_board.h"
 #include "hw/model2b.h"
 #include "hw/model2c.h"
 #include "hw/model2_debug.h"
@@ -538,9 +540,10 @@ int main(int argc, char** argv)
     // are resolved once here into pointers rather than re-tested at every use.
     // The coprocessor genuinely differs, and so does the sound board: the
     // original Model 2 carries the Model 1 audio board (68000 + YM3438 + two
-    // MultiPCMs), which is a different board from the 68000/SCSP one the CRX
-    // family shares and is not emulated, so `sound_board` stays null for it and
-    // every use of it below is guarded.
+    // MultiPCMs) rather than the 68000/SCSP one the CRX family shares. Both are
+    // emulated, and both present hw::SoundBoard, so the audio path below is
+    // written once against that interface; the two places that need a specific
+    // board's registers say so with a cast.
     std::unique_ptr<hw::Model2MachineBase> machine_iface;
     hw::Model2*         machine      = nullptr;
     hw::Model2B*        machine_2b   = nullptr;
@@ -548,7 +551,7 @@ int main(int argc, char** argv)
     hw::Model2Original* machine_orig = nullptr;
 
     cpu::i960::I960* main_cpu    = nullptr;
-    hw::Model2Sound* sound_board = nullptr;
+    hw::SoundBoard*  sound_board = nullptr;
     const hw::I8251* sound_link  = nullptr;
 
     if (loaded.has_value()) {
@@ -573,8 +576,9 @@ int main(int argc, char** argv)
             sound_board = &machine_2c->sound();
             sound_link  = &machine_2c->uart();
         } else if (machine_orig != nullptr) {
-            main_cpu   = &machine_orig->cpu();
-            sound_link = &machine_orig->uart();
+            main_cpu    = &machine_orig->cpu();
+            sound_board = &machine_orig->sound();
+            sound_link  = &machine_orig->uart();
         } else {
             SM2_ERROR("internal error: create_machine returned an unexpected "
                       "machine type");
@@ -605,10 +609,11 @@ int main(int argc, char** argv)
         }
 
         // Unified accessors: every implemented board shares these types. The
-        // sound board is a pointer rather than a reference because the original
-        // Model 2 has none of this kind -- see the note where it is resolved.
+        // sound board is a pointer rather than a reference because a synthetic
+        // machine in the tests may have none -- see the note where it is
+        // resolved.
         auto&            the_cpu   = *main_cpu;
-        hw::Model2Sound* the_sound = sound_board;
+        hw::SoundBoard*  the_sound = sound_board;
         const auto&      the_uart  = *sound_link;
 
         SM2_INFO("running %u frame(s) headless", options.boot_test);
@@ -820,13 +825,22 @@ int main(int argc, char** argv)
                         (unsigned long long)uart.status_reads);
         }
 
+        // Past this point the report is board-specific: the two boards share no
+        // registers, so there is nothing to say about both at once beyond whether
+        // a program ROM turned up.
+        auto* const the_scsp_board = dynamic_cast<hw::Model2Sound*>(the_sound);
+        auto* const the_m1_board   = dynamic_cast<hw::M1Audio*>(the_sound);
+
         if (the_sound == nullptr) {
-            std::printf("sound board       : Model 1 audio board, not emulated\n");
-        } else if (the_sound->present()) {
-            const hw::Model2Sound::Counters& snd = the_sound->counters();
-            std::printf("sound 68000       : %s\n", the_sound->cpu().state_string().c_str());
+            std::printf("sound board       : none\n");
+        } else if (!the_sound->present()) {
+            std::printf("sound 68000       : no program ROM\n");
+        } else if (the_scsp_board != nullptr) {
+            const hw::Model2Sound::Counters& snd = the_scsp_board->counters();
+            std::printf("sound 68000       : %s\n",
+                        the_scsp_board->cpu().state_string().c_str());
             std::printf("sound cycles      : %llu\n",
-                        (unsigned long long)the_sound->cpu().cycles());
+                        (unsigned long long)the_scsp_board->cpu().cycles());
             std::printf("sound scsp        : %llu write(s), %llu read(s)\n",
                         (unsigned long long)snd.scsp_writes,
                         (unsigned long long)snd.scsp_reads);
@@ -837,22 +851,64 @@ int main(int argc, char** argv)
                         (unsigned long long)snd.unmapped_reads,
                         (unsigned long long)snd.unmapped_writes);
 
-            const hw::Scsp::Stats& scsp = the_sound->scsp().stats();
+            const hw::Scsp::Stats& scsp = the_scsp_board->scsp().stats();
             std::printf("scsp audio        : %llu sample(s) at %u Hz, peak %d/32767, "
                         "%llu dropped\n",
                         (unsigned long long)scsp.samples, the_sound->sample_rate(),
                         scsp.peak_output, (unsigned long long)snd.samples_dropped);
             std::printf("scsp slots        : %llu key-on(s), %u sounding now\n",
                         (unsigned long long)scsp.slot_starts,
-                        the_sound->scsp().active_slots());
+                        the_scsp_board->scsp().active_slots());
             std::printf("scsp events       : %llu timer irq(s), %llu DMA(s), "
                         "MIDI %llu in / %llu out\n",
                         (unsigned long long)scsp.timer_interrupts,
                         (unsigned long long)scsp.dma_transfers,
                         (unsigned long long)scsp.midi_in_bytes,
                         (unsigned long long)scsp.midi_out_bytes);
-        } else {
-            std::printf("sound 68000       : no program ROM\n");
+        } else if (the_m1_board != nullptr) {
+            const hw::M1Audio::Counters& snd = the_m1_board->counters();
+            std::printf("sound 68000       : %s\n",
+                        the_m1_board->cpu().state_string().c_str());
+            std::printf("sound cycles      : %llu\n",
+                        (unsigned long long)the_m1_board->cpu().cycles());
+            std::printf("sound link (board): %llu byte(s) in, %llu out, "
+                        "%llu reg read(s), %llu reg write(s)\n",
+                        (unsigned long long)snd.bytes_from_host,
+                        (unsigned long long)snd.bytes_to_host,
+                        (unsigned long long)snd.uart_reads,
+                        (unsigned long long)snd.uart_writes);
+            const hw::Ym3438::Stats& ym = the_m1_board->ym().stats();
+            std::printf("sound ym3438      : %llu write(s), %llu status read(s) "
+                        "(%llu non-zero)\n",
+                        (unsigned long long)snd.ym_writes,
+                        (unsigned long long)snd.ym_reads,
+                        (unsigned long long)snd.ym_status_reads);
+            std::printf("ym3438 audio      : %llu sample(s) at %u Hz, peak %d/32767\n",
+                        (unsigned long long)ym.samples, the_m1_board->ym().native_rate(),
+                        ym.peak_output);
+            std::printf("ym3438 timers     : %llu A, %llu B, %llu irq change(s)\n",
+                        (unsigned long long)ym.timer_a_expiries,
+                        (unsigned long long)ym.timer_b_expiries,
+                        (unsigned long long)ym.irq_changes);
+            std::printf("sound unmapped    : %llu read(s), %llu write(s)\n",
+                        (unsigned long long)snd.unmapped_reads,
+                        (unsigned long long)snd.unmapped_writes);
+
+            for (u32 chip = 0; chip < 2; ++chip) {
+                const hw::MultiPcm::Stats& pcm = the_m1_board->pcm(chip).stats();
+                std::printf("multipcm %u        : %llu reg write(s), %llu bank "
+                            "write(s), %llu key-on(s), %u sounding now\n",
+                            chip + 1, (unsigned long long)snd.pcm_writes[chip],
+                            (unsigned long long)snd.bank_writes[chip],
+                            (unsigned long long)pcm.key_ons,
+                            the_m1_board->pcm(chip).active_voices());
+                std::printf("multipcm %u audio  : %llu sample(s) at %u Hz, "
+                            "peak %d/32767\n",
+                            chip + 1, (unsigned long long)pcm.samples,
+                            the_m1_board->pcm(chip).sample_rate(), pcm.peak_output);
+            }
+            std::printf("sound dropped     : %llu sample(s)\n",
+                        (unsigned long long)snd.samples_dropped);
         }
 
         std::printf("wall time         : %.2f s for %.2f s emulated (%.2fx)\n",
@@ -1276,9 +1332,7 @@ int main(int argc, char** argv)
                           polygons.drawn_polygons(), polygons.triangles(),
                           polygons.blank_polygons(), frames_written_off,
                           audio.queued_milliseconds(),
-                          sound_board != nullptr
-                              ? sound_board->scsp().active_slots()
-                              : 0u);
+                          sound_board != nullptr ? sound_board->active_voices() : 0u);
 
                 std::string title = std::string("sm2-emu — ")
                                   + (loaded.has_value() ? loaded->game.title : "no game");

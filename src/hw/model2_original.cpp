@@ -244,14 +244,20 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
     m_copro.fifo_in().set_on_full([this] { m_cpu.set_halted(true); });
     m_copro.fifo_in().set_on_unfull([this] { m_cpu.set_halted(false); });
 
-    // The sound link. No transmit handler is installed: the M1 audio board is not
-    // emulated, so a byte that finishes on the wire is counted and dropped. See
-    // the note on Model2Original::m_uart.
+    // The sound board and the two wires that reach it. Nothing on the CPU board
+    // addresses it directly: the host's UART transmitter feeds the sound board's
+    // receiver and the sound board's transmitter comes back into this receiver,
+    // which is the whole connection.
+    m_m1audio.attach(m_roms.region("m1audio:sndcpu"), m_roms.region("m1audio:pcm1"),
+                     m_roms.region("m1audio:pcm2"));
+    m_uart.set_tx_handler([this](u8 value) { m_m1audio.write_txd(value); });
+    m_m1audio.set_rxd_handler([this](u8 value) { m_uart.write_rxd(value); });
     m_uart.set_ready_handler([this] { sound_ready_w(); });
 
     SM2_INFO("model2o: %s board, %s", rom::board_name(game.board), game.title.c_str());
-    SM2_INFO("model2o: the M1 audio board (68000 + YM3438 + 2x MultiPCM) is not "
-             "emulated; there will be no sound");
+    if (!m_m1audio.present()) {
+        SM2_WARN("model2o: this set declares no M1 audio ROMs; there will be no sound");
+    }
     reset();
     return true;
 }
@@ -312,6 +318,9 @@ void Model2Original::reset()
     m_uart.reset();
     m_comm.reset();
 
+    // After the UART, because reset() re-installs the sound board's own handlers.
+    m_m1audio.reset();
+
     m_cpu.reset();
 }
 
@@ -322,7 +331,8 @@ void Model2Original::reset()
 void Model2Original::run_frame()
 {
     for (u32 line = 0; line < kVerticalTotal; ++line) {
-        const u64 line_end = m_frame_start + static_cast<u64>(line + 1) * kCyclesPerLine;
+        const u64 line_end   = m_frame_start + static_cast<u64>(line + 1) * kCyclesPerLine;
+        const u64 line_start = m_cycles;
 
         while (m_cycles < line_end) {
             u64 target = std::min(line_end, next_timer_deadline());
@@ -363,6 +373,11 @@ void Model2Original::run_frame()
                 irq_update();
             }
         }
+
+        // The sound board shares nothing with the host but the serial line, so a
+        // scanline is fine enough: the only thing on it with a deadline is the
+        // output sample clock, and that is counted in host cycles either way.
+        m_m1audio.run(static_cast<u32>(m_cycles - line_start));
 
         // TxRDY and RxRDY are levels and the interrupt latch samples them. Doing
         // it once a scanline as well as on every UART tick is what lets the link

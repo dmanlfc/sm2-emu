@@ -363,3 +363,47 @@ else()
 endif()
 
 
+
+# ---------------------------------------------------------------------------
+# ymfm — the YM3438 on the Model 1 audio board
+# ---------------------------------------------------------------------------
+# Aaron Giles' Yamaha FM library, which is what MAME itself uses: MAME carries it
+# in 3rdparty/ymfm and its ym3438_device is a thin wrapper around ymfm::ym3438.
+# Taking the same library rather than porting it keeps the FM behaviour identical
+# to the reference by construction, and unlike the rest of MAME's sound devices
+# ymfm is deliberately standalone -- no emu.h, no device_t, no address spaces --
+# so it drops in behind a small interface object.
+#
+# MAME's vendored copy is not byte-identical to upstream. The differences are in
+# ADPCM-B and in ymfm.h's WAV writer, and ymfm_fm.h, ymfm_fm.ipp, ymfm_opn.h and
+# ymfm_ssg.* -- everything a YM3438 executes -- are identical, so this and MAME
+# run the same FM code. ADPCM-B belongs to the YM2608/YM2610 and is never reached
+# from ym2612's register map.
+#
+# Pinned by commit; ymfm has no releases.
+FetchContent_Declare(ymfm
+    GIT_REPOSITORY https://github.com/aaronsgiles/ymfm.git
+    GIT_TAG        81aec25ccbb98f4873a255f7551ac4dadac59b4a
+    GIT_PROGRESS   TRUE
+    SYSTEM
+)
+# ymfm has no CMakeLists.txt, so as with Musashi this populates the tree and
+# stops there, and the translation units a YM3438 needs are compiled below.
+FetchContent_MakeAvailable(ymfm)
+
+# ymfm_opn.h includes ymfm_adpcm.h and ymfm_ssg.h unconditionally, so both are
+# compiled even though a YM3438 has neither an ADPCM engine nor an SSG.
+add_library(sm2_ymfm STATIC
+    "${ymfm_SOURCE_DIR}/src/ymfm_opn.cpp"
+    "${ymfm_SOURCE_DIR}/src/ymfm_adpcm.cpp"
+    "${ymfm_SOURCE_DIR}/src/ymfm_ssg.cpp"
+)
+target_include_directories(sm2_ymfm SYSTEM PUBLIC "${ymfm_SOURCE_DIR}/src")
+target_compile_features(sm2_ymfm PRIVATE cxx_std_20)
+
+# Third-party C++ we do not intend to modify, so its warnings are not ours to fix.
+if(MSVC)
+    target_compile_options(sm2_ymfm PRIVATE /w)
+else()
+    target_compile_options(sm2_ymfm PRIVATE -w)
+endif()

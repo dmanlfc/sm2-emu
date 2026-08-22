@@ -120,6 +120,7 @@ target_link_libraries(sm2_rom
 
 add_library(sm2_hw_ported STATIC
     hw/geometrizer.cpp
+    hw/multipcm.cpp
     hw/scsp.cpp
     hw/scsp_dsp.cpp
 )
@@ -140,6 +141,7 @@ add_library(sm2_hw STATIC
     hw/eeprom_93c46.cpp
     hw/i8251.cpp
     hw/io_315_5649.cpp
+    hw/m1audio.cpp
     hw/m2comm.cpp
     hw/machine_factory.cpp
     hw/mb8421.cpp
@@ -158,6 +160,7 @@ add_library(sm2_hw STATIC
     hw/sega_315_5838_comp.cpp
     hw/sega_315_5881_crypt.cpp
     hw/segaic24.cpp
+    hw/ym3438.cpp
     hw/z80ctc.cpp
     hw/z80pio.cpp
 )
@@ -168,6 +171,9 @@ target_link_libraries(sm2_hw
         sm2_cpu_m68000
         sm2_hw_ported
         sm2_rom
+        # ymfm is the FM synthesis behind hw/ym3438; PUBLIC because ym3438.h
+        # exposes ymfm::ym3438 by value.
+        sm2_ymfm
     PRIVATE
         sm2_warnings
 )

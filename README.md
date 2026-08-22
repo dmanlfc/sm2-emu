@@ -348,6 +348,11 @@ fixed schedule, so a capture can reach the game itself:
 | 4 | Textures, the colour chain, translucency **(done)** |
 | 5 | Gamepad input, configuration, frame pacing, 68000 + SCSP sound **(done)** |
 | 6 | Presentation **(done)**, tilemap edge cases, accuracy, more games |
+| 7 | Expand compatibility to load and run more games |
+| 8 | Accelerate performance with Vulkan first to offload to GPU as much as possible |
+| 9 | Add OpenGL Desktop for MacOS & x86_64 Linux & OpenGL ES support for Arm on Linux |
+| 10 | Tidy everything up for a release with associated GUI with options |
+
 
 First playable target is Virtua Fighter 2, chosen because it needs the least
 hardware: no drive board, no lightgun, no protection, digital inputs only. Its

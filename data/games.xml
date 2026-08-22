@@ -518,7 +518,7 @@
        315-5881 decryption on this board like the 2B version has. Copro data
        region is empty.
        =================================================================== -->
-  <game name="doaa" board="model2a" protection="315-5838-doa" preliminary="true">
+  <game name="doaa" parent="doa" board="model2a" protection="315-5838-doa" preliminary="true">
     <title>Dead or Alive</title>
     <version>Revision A</version>
     <manufacturer>Tecmo</manufacturer>
@@ -591,12 +591,75 @@
     </roms>
   </game>
 
-  <game name="doaab" parent="doaa">
+  <game name="doaab" parent="doa" board="model2a" protection="315-5838-doa" preliminary="true">
+    <title>Dead or Alive</title>
     <version>Revision B</version>
+    <manufacturer>Tecmo</manufacturer>
+    <year>1996</year>
+
+    <inputs>
+      <input type="common"/>
+      <input type="joystick1"/>
+      <input type="joystick2"/>
+      <input type="buttons3"/>
+    </inputs>
+
     <roms>
       <region name="maincpu" size="0x200000" stride="4" chunk="2">
         <file name="epr-19310.12" offset="0x000000" crc="0x3c571e75"/>
         <file name="epr-19311.13" offset="0x000002" crc="0x8818363d"/>
+      </region>
+
+      <region name="main_data" size="0x2000000" stride="4" chunk="2">
+        <file name="mpr-19318.10" offset="0x0000000" crc="0xab431bfe"/>
+        <file name="mpr-19319.11" offset="0x0000002" crc="0xc5cb694d"/>
+        <file name="mpr-19316.8"  offset="0x0800000" crc="0x2d2d1b1a"/>
+        <file name="mpr-19317.9"  offset="0x0800002" crc="0x96b17bcf"/>
+        <file name="mpr-19314.6"  offset="0x1000000" crc="0xa8d963fb"/>
+        <file name="mpr-19315.7"  offset="0x1000002" crc="0x90ae5682"/>
+        <file name="mpr-19312.4"  offset="0x1800000" crc="0x1dcedb10"/>
+        <file name="mpr-19313.5"  offset="0x1800002" crc="0x8c63055e"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x1800000" to="0x1c00000" size="0x400000"/>
+      </region>
+
+      <region name="copro_data" size="0x800000" required="false"/>
+
+      <region name="polygons" size="0x2000000" stride="4" chunk="2" fill="0xff">
+        <file name="mpr-19322.16" offset="0x0000000" crc="0xd0e6ecf0"/>
+        <file name="mpr-19325.20" offset="0x0000002" crc="0x7cbe432d"/>
+        <file name="mpr-19323.17" offset="0x0800000" crc="0x453d3f4a"/>
+        <file name="mpr-19326.21" offset="0x0800002" crc="0xb976da02"/>
+        <file name="mpr-19324.18" offset="0x1000000" crc="0x0d6bf454"/>
+        <file name="mpr-19327.22" offset="0x1000002" crc="0x6a75634c"/>
+      </region>
+
+      <region name="textures" size="0x800000" stride="4" chunk="2" fill="0xff">
+        <file name="mpr-19321.25" offset="0x000000" crc="0x9c49e845"/>
+        <file name="mpr-19320.24" offset="0x000002" crc="0x190c017f"/>
+      </region>
+
+      <region name="audiocpu" size="0x080000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-19328.30" offset="0x000000" crc="0x400bdbfb"/>
+      </region>
+
+      <region name="samples" size="0x800000" stride="2" chunk="2" byte_swap="true">
+        <file name="mpr-19329.31" offset="0x000000" crc="0x8fd2708a"/>
+        <file name="mpr-19330.32" offset="0x200000" crc="0x0c69787d"/>
+        <file name="mpr-19331.36" offset="0x400000" crc="0xc18ea0b8"/>
+        <file name="mpr-19332.37" offset="0x600000" crc="0x2877f96f"/>
+      </region>
+
+      <region name="copro_tgp_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr-14742a.45" offset="0x000000" crc="0x90c6b117"/>
+        <file name="opr-14743a.46" offset="0x000002" crc="0xae7f446b"/>
+      </region>
+
+      <region name="other_data" size="0x80000" stride="4" chunk="2">
+        <file name="opr-14744.58" offset="0x000000" crc="0x730ea9e0"/>
+        <file name="opr-14745.59" offset="0x000002" crc="0x4c934d96"/>
+        <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
+        <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
       </region>
     </roms>
   </game>

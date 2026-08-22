@@ -31,13 +31,14 @@
 #include "cpu/m68000/m68000.h"
 #include "hw/scsp.h"
 #include "hw/scsp_dsp.h"
+#include "hw/sound_board.h"
 
 #include <span>
 #include <vector>
 
 namespace sm2::hw {
 
-class Model2Sound final : public cpu::Bus, public ScspMemory {
+class Model2Sound final : public SoundBoard, public cpu::Bus, public ScspMemory {
 public:
     Model2Sound();
     ~Model2Sound() override;
@@ -62,7 +63,7 @@ public:
     /// over a few minutes.
     void run(u32 host_cycles);
 
-    [[nodiscard]] bool present() const { return !m_program_rom.empty(); }
+    [[nodiscard]] bool present() const override { return !m_program_rom.empty(); }
 
     // -- the serial link to the CPU board ------------------------------------
 
@@ -75,10 +76,15 @@ public:
     // -- audio ---------------------------------------------------------------
 
     /// Samples generated since the last clear, interleaved stereo at 44100 Hz.
-    [[nodiscard]] std::span<const s16> pending_samples() const { return m_pending; }
-    void clear_pending_samples() { m_pending.clear(); }
+    [[nodiscard]] std::span<const s16> pending_samples() const override { return m_pending; }
+    void clear_pending_samples() override { m_pending.clear(); }
 
-    [[nodiscard]] u32 sample_rate() const { return m_scsp.sample_rate(); }
+    [[nodiscard]] u32 sample_rate() const override { return m_scsp.sample_rate(); }
+
+    /// SCSP slots currently keyed on. The Model 1 board counts MultiPCM channels
+    /// instead; neither number means anything precise, they just say whether the
+    /// board is making noise.
+    [[nodiscard]] u32 active_voices() const override { return m_scsp.active_slots(); }
 
     // -- cpu::Bus ----------------------------------------------------------
     //
