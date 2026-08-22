@@ -4910,7 +4910,7 @@
         <file name="mpr-17159.16" offset="0x000000" crc="0xe218727d"/>
         <file name="mpr-17156.20" offset="0x000002" crc="0xc4f4aabf"/>
       </region>
-      <region name="textures" size="0x1000000" stride="2" chunk="2" byte_swap="true">
+      <region name="textures" size="0x1000000" stride="4" chunk="2">
         <file name="mpr-17158.25" offset="0x000000" crc="0x1108d1ec"/>
         <file name="mpr-17157.24" offset="0x000002" crc="0xcf31e33d"/>
       </region>
@@ -4980,7 +4980,7 @@
         <file name="mpr-17159.16" offset="0x000000" crc="0xe218727d"/>
         <file name="mpr-17156.20" offset="0x000002" crc="0xc4f4aabf"/>
       </region>
-      <region name="textures" size="0x1000000" stride="2" chunk="2" byte_swap="true">
+      <region name="textures" size="0x1000000" stride="4" chunk="2">
         <file name="mpr-17158.25" offset="0x000000" crc="0x1108d1ec"/>
         <file name="mpr-17157.24" offset="0x000002" crc="0xcf31e33d"/>
       </region>
