@@ -241,6 +241,13 @@ public:
     /// 0x10400000. Sky Target reads this; nothing is known about why.
     [[nodiscard]] u32 polygon_count() const;
 
+    /// Wall-clock time run() took producing the render list it last built, in
+    /// nanoseconds. For the phase 8 benchmark (design.md requirement 1): this is
+    /// "the geometry engine" stage, separated from the i960's own instruction
+    /// execution because run_frame() interleaves the two and the CPU time alone
+    /// says nothing about which of them a GPU move would actually help.
+    [[nodiscard]] u64 last_run_nanoseconds() const { return m_last_run_ns; }
+
 private:
     // Everything below keeps MAME's names so the ported body reads the same as
     // its original.
@@ -364,6 +371,8 @@ private:
 
     bool m_pool_exhausted         = false;
     bool m_unknown_command_warned = false;
+
+    u64 m_last_run_ns = 0;
 };
 
 }  // namespace sm2::hw

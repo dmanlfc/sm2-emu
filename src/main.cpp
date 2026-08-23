@@ -19,6 +19,7 @@
 
 #include "core/config.h"
 #include "core/log.h"
+#include "core/profiler.h"
 #include "core/types.h"
 #include "hw/m1audio.h"
 #include "hw/machine_factory.h"
@@ -28,16 +29,13 @@
 #include "hw/model2b.h"
 #include "hw/model2c.h"
 #include "hw/model2_debug.h"
+#include "hw/model2_softrender.h"
 #include "osd/audio.h"
 #include "osd/frame_pacer.h"
 #include "osd/gui.h"
 #include "osd/input.h"
 #include "osd/window.h"
-#include "render/vk/context.h"
-#include "render/vk/frame_capture.h"
-#include "render/vk/poly3d_pass.h"
-#include "render/vk/present_pass.h"
-#include "render/vk/tilemap_pass.h"
+#include "render/backend.h"
 #include "rom/game_db.h"
 #include "rom/rom_loader.h"
 
@@ -47,6 +45,7 @@
 
 #include <imgui_impl_sdl3.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -116,11 +115,37 @@ struct Options {
     /// else.
     bool soft_render = false;
 
+    /// Which renderer actually draws the window: Vulkan (the GPU path) or
+    /// Software (the same CPU rasteriser --soft-render uses for comparison,
+    /// drawn here instead of alongside). F2 toggles this live so the two can be
+    /// compared without restarting.
+    bool start_in_software_renderer = false;
+
     /// Run this many frames headless, report, and exit. Zero means run normally.
     sm2::u32 boot_test    = 0;
 
     /// Quit after this many presented frames. Zero means run until asked to stop.
     sm2::u32 run_frames   = 0;
+
+    /// Quit after this many wall-clock seconds, in the windowed path. Unlike
+    /// --run-frames, this bounds real time rather than emulated frames, which is
+    /// what a throughput comparison between renderers needs to hold fixed: with
+    /// --no-throttle the frame *count* is exactly the thing being measured, so it
+    /// cannot also be the stopping condition.
+    sm2::u32 duration_seconds = 0;
+
+    /// Report where a frame's CPU and GPU time actually goes -- design.md
+    /// requirement 1's per-stage benchmark -- rather than only the whole-frame
+    /// rate --duration alone reports. Implies --duration's stopping behaviour if
+    /// duration_seconds is otherwise zero, since a stage breakdown needs the same
+    /// fixed window a throughput figure does.
+    bool profile = false;
+
+    /// Also write --profile's per-stage table to this CSV file, one row per
+    /// stage, so a before-and-after comparison is scriptable rather than
+    /// needing to parse the stdout table -- design.md requirement 1.4.
+    std::string profile_csv;
+
     bool     log_unmapped = false;
 };
 
@@ -147,10 +172,22 @@ void print_usage()
         "      --boot-test <n> Run n frames without a window, report where the\n"
         "                      program got to, and exit\n"
         "      --run-frames <n>  Quit after presenting n frames\n"
+        "      --duration <n>  Quit after n wall-clock seconds, and print the\n"
+        "                      average and p50/p95/p99 frame rate over the run.\n"
+        "                      Combine with --no-throttle for a throughput\n"
+        "                      comparison between --software and Vulkan\n"
+        "      --profile [n]   As --duration, but also break the frame down by\n"
+        "                      stage: the geometry engine, tilemap composition,\n"
+        "                      the 3D pass build, and each GPU pass via timestamp\n"
+        "                      queries. n defaults to 30 seconds if omitted\n"
+        "      --profile-csv <f>  With --profile, also write the per-stage table\n"
+        "                      to this CSV file, one row per stage\n"
         "      --screenshot <f>  Write the last presented frame to this PPM file\n"
         "      --soft-render   Also render each captured frame on the CPU with a\n"
         "                      port of MAME's own rasteriser, beside the screenshot,\n"
         "                      so the renderer can be compared against it\n"
+        "      --software      Start with the CPU rasteriser driving the window,\n"
+        "                      instead of Vulkan. F2 switches at runtime either way\n"
         "      --screenshot-interval <n>  Capture every n frames instead, numbering\n"
         "                      each file after the frame it came from\n"
         "      --screenshot-frames <list>  Capture exactly these frames, comma\n"
@@ -214,6 +251,8 @@ void print_usage()
             out->given.validation  = true;
         } else if (std::strcmp(arg, "--soft-render") == 0) {
             out->soft_render = true;
+        } else if (std::strcmp(arg, "--software") == 0) {
+            out->start_in_software_renderer = true;
         } else if (std::strcmp(arg, "--no-vsync") == 0) {
             out->config.vsync = false;
             out->given.vsync  = true;
@@ -251,6 +290,41 @@ void print_usage()
                 SM2_ERROR("--run-frames needs a frame count of at least one");
                 return false;
             }
+        } else if (std::strcmp(arg, "--duration") == 0) {
+            if (index + 1 >= argc) {
+                SM2_ERROR("--duration requires a second count");
+                return false;
+            }
+            out->duration_seconds =
+                static_cast<sm2::u32>(std::strtoul(argv[++index], nullptr, 10));
+            if (out->duration_seconds == 0) {
+                SM2_ERROR("--duration needs a second count of at least one");
+                return false;
+            }
+        } else if (std::strcmp(arg, "--profile") == 0) {
+            out->profile = true;
+            // The second count is optional here, unlike --duration: peek at the
+            // next token and consume it only if it is entirely digits, so
+            // "--profile vf2.zip" does not swallow the ROM path.
+            if (index + 1 < argc) {
+                const char* next        = argv[index + 1];
+                bool        all_digits  = next[0] != '\0';
+                for (const char* c = next; *c != '\0'; ++c) {
+                    if (*c < '0' || *c > '9') {
+                        all_digits = false;
+                        break;
+                    }
+                }
+                if (all_digits) {
+                    ++index;
+                    out->duration_seconds = static_cast<sm2::u32>(std::strtoul(next, nullptr, 10));
+                }
+            }
+            if (out->duration_seconds == 0) {
+                out->duration_seconds = 30;
+            }
+        } else if (takes_value("--profile-csv", &out->profile_csv)) {
+            // handled
         } else if (std::strcmp(arg, "--coin-at") == 0) {
             if (index + 1 >= argc) {
                 SM2_ERROR("--coin-at requires a frame number");
@@ -330,6 +404,19 @@ void print_usage()
         }
     }
     return true;
+}
+
+/// The value `fraction` of the way up a sorted copy of `values`, nearest-rank.
+/// Empty input returns zero rather than reading out of bounds.
+[[nodiscard]] double percentile(std::vector<double> values, double fraction)
+{
+    if (values.empty()) {
+        return 0.0;
+    }
+    std::sort(values.begin(), values.end());
+    const sm2::usize rank =
+        static_cast<sm2::usize>(fraction * static_cast<double>(values.size() - 1));
+    return values[rank];
 }
 
 /// Insert a zero-padded frame number before a path's extension.
@@ -436,7 +523,7 @@ int main(int argc, char** argv)
     }
 
     if (options.list_gpus) {
-        const std::vector<std::string> names = render::vk::Context::enumerate_device_names();
+        const std::vector<std::string> names = render::enumerate_render_devices();
         if (names.empty()) {
             std::printf("No Vulkan devices were found.\n\n"
                         "No driver (ICD) is registered with the loader.\n"
@@ -976,55 +1063,36 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        render::vk::ContextConfig context_config;
-        context_config.enable_validation = options.config.validation;
-        context_config.vsync             = options.config.vsync;
-        context_config.preferred_device  = options.config.gpu;
+        render::BackendConfig backend_config;
+        backend_config.enable_validation = options.config.validation;
+        backend_config.vsync             = options.config.vsync;
+        backend_config.preferred_device  = options.config.gpu;
 
-        render::vk::Context context;
-        if (!context.init(window, context_config)) {
-            SM2_ERROR("Vulkan initialisation failed");
+        // Only one backend exists today (Vulkan); create_vulkan_backend() is
+        // the one place that names it, matching hw::create_machine()'s own
+        // factory shape for the same reason -- everything else below is
+        // written against render::Backend so a later backend needs no change
+        // here.
+        const std::unique_ptr<render::Backend> backend = render::create_vulkan_backend();
+        if (!backend->init(window, backend_config)) {
+            SM2_ERROR("render backend initialisation failed");
             SDL_Quit();
             return 1;
         }
 
-        render::vk::TilemapPass tilemaps;
-        if (!tilemaps.init(context)) {
-            SM2_ERROR("could not create the 2D pipeline");
-            SDL_Quit();
-            return 1;
-        }
-
-        render::vk::Poly3DPass polygons;
-        if (!polygons.init(context)) {
-            SM2_ERROR("could not create the 3D pipeline");
-            SDL_Quit();
-            return 1;
-        }
-
-        // Owns the native-resolution frame the two passes above draw into, and
-        // scales it to the window once at the end.
-        render::vk::PresentPass present;
-        if (!present.init(context)) {
-            SM2_ERROR("could not create the presentation pipeline");
-            SDL_Quit();
-            return 1;
-        }
-
-        render::vk::FrameCapture capture;
-        if (!options.screenshot.empty() && !capture.init(context)) {
-            SM2_ERROR("could not set up frame capture");
-            SDL_Quit();
-            return 1;
-        }
-
-        // The settings overlay, drawn on top of the emulator's output.
+        // The settings overlay, drawn on top of the emulator's output. Owns
+        // only ImGui's context and its SDL3 platform backend; the backend
+        // above owns whichever GPU API actually draws what it builds.
         osd::Gui gui;
-        if (!gui.init(window.handle(), context.instance(), context.physical_device(),
-                      context.device(), context.graphics_family(),
-                      context.graphics_queue(), context.swapchain_format(),
-                      render::vk::Context::kFramesInFlight)) {
+        if (!gui.init(window.handle())) {
             SM2_ERROR("could not initialise the GUI overlay");
+            SDL_Quit();
+            return 1;
+        }
+        // After gui.init(): the backend's own ImGui renderer backend reads
+        // ImGui's global context, which must exist first.
+        if (!backend->init_overlay(gui)) {
+            SM2_ERROR("could not initialise the GUI overlay's renderer backend");
             SDL_Quit();
             return 1;
         }
@@ -1036,8 +1104,7 @@ int main(int argc, char** argv)
         }
 
         // GPU names for the settings dropdown.
-        const std::vector<std::string> gpu_names =
-            render::vk::Context::enumerate_device_names();
+        const std::vector<std::string> gpu_names = render::enumerate_render_devices();
 
         // A machine with no gamepad is not an error, so a failure here is worth
         // reporting but not worth refusing to run over: the keyboard covers
@@ -1059,9 +1126,13 @@ int main(int argc, char** argv)
         // surfaces over a recognisable background rather than a blank window.
         hw::Model2Video idle_video;
 
-        if (machine_iface) {
-            window.set_title(std::string("sm2-emu — ") + loaded->game.title);
-        }
+        // The CPU rasteriser, driven live instead of only alongside a capture, so
+        // the two renderers can be A/B'd without restarting. Only used when
+        // use_software_renderer is set and a machine is loaded; see F2 below.
+        hw::SoftRenderer soft_renderer;
+        std::vector<u32> soft_frame(static_cast<usize>(backend->native_width())
+                                        * backend->native_height(),
+                                    0);
 
         // Paced against real time rather than against the display, because the
         // machine's 57.5245 Hz divides into no monitor's refresh rate.
@@ -1074,19 +1145,100 @@ int main(int argc, char** argv)
         pacer.set_throttled(options.config.throttle);
         pacer.start(hw::Model2::kFrameNanoseconds);
 
-        SM2_INFO("entering main loop; Escape quits, P pauses, Tab fast-forwards");
+        SM2_INFO("entering main loop; Escape quits, P pauses, Tab fast-forwards, "
+                 "F2 switches renderer");
 
         /// Everything the sound board produced, when --dump-audio was given.
         std::vector<s16> recorded_audio;
+
+        // Per-stage CPU timers for --profile (design.md requirement 1.1). Built
+        // regardless of options.profile -- maybe_scope() below makes recording
+        // into them a no-op when profiling is off, which costs one branch per
+        // stage per frame rather than needing every call site to be conditional.
+        core::StageTimer stage_run_frame("run_frame");
+        core::StageTimer stage_geometry("geometry_engine");
+        core::StageTimer stage_compose("tilemap_compose");
+        // build() both triangulates and memcpys into the mapped host buffers, and
+        // -- when texture_generation changed -- also records the decode
+        // dispatch's vkCmdDispatch, so this one CPU scope covers design.md's
+        // "render-list build" and "host-buffer memcpys" together, plus a small,
+        // usually-once amount of command recording it was not practical to pull
+        // apart without splitting build() itself.
+        core::StageTimer stage_build("poly3d_build_and_memcpy");
+        core::StageTimer stage_tilemap_upload("tilemap_upload_memcpy");
+        // Everything else that issues vkCmd* for this frame: the 3D pass's own
+        // draw calls, both tilemap draws, and the present blit. Named plainly as
+        // "command recording" because build()'s occasional dispatch aside, this
+        // is the whole of it.
+        core::StageTimer stage_record("command_recording");
+        core::StageTimer stage_submit("submit_and_present");
+        core::StageTimer stage_software("software_renderer");
+        if (options.profile) {
+            const usize expected = static_cast<usize>(options.duration_seconds) * 120;
+            for (core::StageTimer* timer :
+                {&stage_run_frame, &stage_geometry, &stage_compose, &stage_build,
+                 &stage_tilemap_upload, &stage_record, &stage_submit, &stage_software}) {
+                timer->reserve(expected);
+            }
+        }
+        // GPU stage samples, read back once per frame from the backend
+        // (design.md requirement 1.2). Indexed by render::GpuStage.
+        std::array<std::vector<double>, static_cast<usize>(render::GpuStage::kCount)>
+            gpu_stage_samples;
+        bool gpu_timing_unavailable_warned = false;
 
         u32  frames_presented = 0;   ///< Since the loop started.
         u32  frames_written_off = 0; ///< Whole frames given up after a stall.
         bool paused             = false;
         bool fast_forward       = false;
         bool running            = true;
+        bool use_software_renderer = options.start_in_software_renderer;
         u64  last_title_ns      = SDL_GetTicksNS();
 
+        // --duration's deadline, and the per-frame wall-clock cost recorded for
+        // its summary. Frame time here is measured start-to-start rather than
+        // just the render, so it includes run_frame(), the pacer's wait() and
+        // everything else one iteration of this loop does -- the whole-loop cost
+        // is what a player experiences as the frame rate, which is the same
+        // reasoning FramePacer::measured_hz() already uses.
+        const u64 run_start_ns = SDL_GetTicksNS();
+        const u64 run_deadline_ns =
+            options.duration_seconds != 0
+                ? run_start_ns + static_cast<u64>(options.duration_seconds) * 1'000'000'000ULL
+                : 0;
+        std::vector<double> frame_times_ms;
+        if (run_deadline_ns != 0) {
+            // 57.52 Hz unthrottled on reasonable hardware comfortably exceeds
+            // this; reserving avoids reallocation skewing the very timings being
+            // measured.
+            frame_times_ms.reserve(static_cast<usize>(options.duration_seconds) * 2000);
+        }
+
+        // "sm2-emu — <game or 'no game'> [Vulkan|Software]", plus the rate and
+        // pause state once the loop is running. Shared by the initial title, the
+        // once-a-second refresh and the immediate refresh F2 does, so the three
+        // can never drift into different formats.
+        const auto build_title = [&]() {
+            std::string title = std::string("sm2-emu — ")
+                              + (loaded.has_value() ? loaded->game.title : "no game")
+                              + (use_software_renderer ? " [Software]" : " [Vulkan]");
+            if (paused) {
+                title += " — paused";
+            } else if (frames_presented != 0) {
+                char rate[32];
+                std::snprintf(rate, sizeof(rate), " — %.1f Hz", pacer.measured_hz());
+                title += rate;
+                if (!pacer.throttled()) {
+                    title += " (unthrottled)";
+                }
+            }
+            return title;
+        };
+        window.set_title(build_title());
+
         while (running) {
+            const u64 frame_start_ns = SDL_GetTicksNS();
+
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
                 // Let ImGui see every event so it can capture mouse/keyboard
@@ -1105,6 +1257,11 @@ int main(int argc, char** argv)
                             running = false;
                         } else if (event.key.key == SDLK_F1 && !event.key.repeat) {
                             gui.toggle();
+                        } else if (event.key.key == SDLK_F2 && !event.key.repeat) {
+                            use_software_renderer = !use_software_renderer;
+                            SM2_INFO("switched to the %s renderer",
+                                     use_software_renderer ? "software" : "Vulkan");
+                            window.set_title(build_title());
                         } else if (!gui.visible()) {
                             // Only process game keys when the overlay is hidden.
                             if (event.key.key == SDLK_P && !event.key.repeat) {
@@ -1151,7 +1308,20 @@ int main(int argc, char** argv)
                     machine_iface->inputs().in1 &= static_cast<u8>(~press.in1);
                 }
 
-                machine_iface->run_frame();
+                {
+                    auto scope = core::maybe_scope(stage_run_frame, options.profile);
+                    machine_iface->run_frame();
+                }
+                if (options.profile) {
+                    // Read straight back out rather than timed separately: the
+                    // geometry engine runs inside run_frame() (at vblank), not as
+                    // a call main.cpp makes itself, so there is no separate scope
+                    // to wrap -- see Geometrizer::last_run_nanoseconds()'s own
+                    // documentation of why this figure exists.
+                    stage_geometry.record_ms(
+                        static_cast<double>(machine_iface->geometry_stage_nanoseconds())
+                        / 1'000'000.0);
+                }
 
                 // The sound board produced about 767 stereo frames while that ran.
                 // Handed over every frame rather than buffered here, so the only
@@ -1175,7 +1345,7 @@ int main(int argc, char** argv)
                 }
             }
 
-            if (!context.begin_frame()) {
+            if (!backend->begin_frame()) {
                 // Minimised or the swapchain was rebuilt. Yield rather than
                 // spinning on a window we cannot draw into, and abandon the pacing
                 // deadline because an unknown amount of time is about to pass.
@@ -1186,32 +1356,121 @@ int main(int argc, char** argv)
 
             const hw::Model2Video& video =
                 machine_iface ? machine_iface->video() : idle_video;
+
+            // Only meaningful with a machine loaded: SoftRenderer::render() takes
+            // a Model2MachineBase, so there is nothing for it to draw against the
+            // idle placeholder and the Vulkan path below covers that case anyway.
+            const bool draw_with_software = use_software_renderer && machine_iface;
+
+            // Render test mode's framebuffer overlay (Model2Video::
+            // draw_framebuffer) overwrites `below` after the tilemap composite
+            // and has no GPU equivalent, so that mode always takes the CPU path.
+            const bool render_test = machine_iface && machine_iface->render_test_mode();
+
+            // Whether this frame's Vulkan draw uses tilemaps.compute() in place
+            // of the CPU-composited upload. Independent of need_cpu_compose
+            // below: a --soft-render comparison run wants both the GPU path
+            // exercised (this) and a fresh CPU oracle (that), in the same frame.
+            const bool use_gpu_tilemap = machine_iface && !use_software_renderer && !render_test;
+
+            // Whether Model2Video::compose(), the CPU tilemap composite, must
+            // run this frame: whenever something reads video.below()/above()
+            // directly -- the software renderer's live draw, a --soft-render
+            // comparison capture later in this same frame (hw::dump_software_frame,
+            // below), or render test mode's compose()-then-overlay sequence.
+            const bool need_cpu_compose =
+                machine_iface && (use_software_renderer || options.soft_render || render_test);
+
             if (machine_iface) {
-                machine_iface->compose_video();
+                if (need_cpu_compose) {
+                    auto scope = core::maybe_scope(stage_compose, options.profile);
+                    machine_iface->compose_video();
+                } else if (use_gpu_tilemap) {
+                    // compose_video()'s other job, done here directly since its
+                    // own compose() call -- the expensive part -- is what
+                    // tilemaps.compute() below replaces.
+                    if (machine_iface->palette_dirty()) {
+                        machine_iface->video().refresh_pens();
+                        machine_iface->clear_palette_dirty();
+                    }
+                }
             }
 
-            // Uploads and the 3D pass first. Both need a command buffer that is
-            // not inside a rendering scope: a transfer cannot be issued inside
-            // one, and the 3D pass opens a scope of its own on its offscreen
-            // target.
-            tilemaps.upload(video.below(), video.above());
-            polygons.build(machine_iface.get(), video);
-            polygons.render();
+            if (!draw_with_software) {
+                // Uploads and the 3D pass first. Both need a command buffer that is
+                // not inside a rendering scope: a transfer cannot be issued inside
+                // one, and the 3D pass opens a scope of its own on its offscreen
+                // target.
+                {
+                    auto scope = core::maybe_scope(stage_tilemap_upload, options.profile);
+                    if (use_gpu_tilemap) {
+                        backend->compute_tilemap(*machine_iface, video);
+                    } else {
+                        backend->upload_tilemap(video.below(), video.above());
+                    }
+                }
+                {
+                    auto scope = core::maybe_scope(stage_build, options.profile);
+                    backend->submit_polygons(machine_iface.get(), video);
+                }
+            }
+
+            // Command recording proper starts here: polygons.render() below, and
+            // everything up to and including present.record() further down
+            // (marked at its own call site) is vkCmd* issuance for this frame,
+            // with a capture's readback recording folded in between since it is
+            // also just a command, and nothing else interleaved in the
+            // non-software path. Not used when draw_with_software, since there
+            // is no Vulkan drawing to time in that path -- present.upload_from_host()
+            // is a transfer, not a draw, and stays out of this figure.
+            std::optional<core::StageTimer::Scope> record_scope;
+            if (options.profile && !draw_with_software) {
+                record_scope.emplace(stage_record);
+            }
+
+            if (!draw_with_software) {
+                backend->render_polygons();
+            }
 
             // The hardware's three-way composite, all of it at the native 496x384:
             // tilemap layers of priority category zero, then the 3D output, then
-            // category one. Nothing is magnified until present.record() below, so
-            // the two blends run on the hardware's own pixels rather than on
+            // category one. Nothing is magnified until blit_to_swapchain() below,
+            // so the two blends run on the hardware's own pixels rather than on
             // colours a magnifying filter has already mixed with their neighbours.
-            const VkImageView native = present.begin_frame();
-            tilemaps.record_below(native, video.background());
-            // Render test mode cuts the DSP out: the framebuffer bank the host has
-            // been drawing into is shown instead of the 3D pass, and has already
-            // been composed into the layers below.
-            if (!machine_iface || !machine_iface->render_test_mode()) {
-                polygons.composite();
+            if (options.profile) {
+                const render::GpuStageTimes gpu_times = backend->read_stage_times();
+                if (!backend->supports_gpu_timing() && !gpu_timing_unavailable_warned) {
+                    SM2_WARN("this device does not report GPU timestamps; --profile's "
+                             "GPU-side figures will be empty, not zero");
+                    gpu_timing_unavailable_warned = true;
+                }
+                for (usize stage = 0; stage < gpu_times.size(); ++stage) {
+                    if (gpu_times[stage].ran) {
+                        gpu_stage_samples[stage].push_back(gpu_times[stage].milliseconds);
+                    }
+                }
             }
-            tilemaps.record_above();
+
+            if (draw_with_software) {
+                // The CPU rasteriser performs this whole three-way composite
+                // itself -- background, below, 3D (or the framebuffer in render
+                // test mode), above -- so the tilemap and 3D passes above are
+                // skipped entirely; its result lands in the same native target
+                // either renderer presents from, which is what lets a screenshot
+                // and the present/letterbox path stay renderer-agnostic.
+                {
+                    auto scope = core::maybe_scope(stage_software, options.profile);
+                    soft_renderer.render(*machine_iface, machine_iface->render_list(),
+                                         soft_frame);
+                }
+                backend->submit_native_frame(soft_frame);
+            } else {
+                // Render test mode cuts the DSP out: the framebuffer bank the host has
+                // been drawing into is shown instead of the 3D pass, and has already
+                // been composed into the layers below.
+                const bool skip_3d = machine_iface && machine_iface->render_test_mode();
+                backend->composite_native_frame(video.background(), skip_3d);
+            }
 
             // Read back the finished native frame, before it is scaled, so a
             // screenshot is the frame the hardware produced at the size it
@@ -1228,10 +1487,7 @@ int main(int argc, char** argv)
                               ? (frames_presented % options.screenshot_interval) == 0
                                     || last_frame
                               : last_frame || options.run_frames == 0);
-            if (capture_this_frame
-                && !capture.record(present.native_image(),
-                                   render::vk::PresentPass::native_extent(),
-                                   render::vk::PresentPass::native_format())) {
+            if (capture_this_frame && !backend->request_capture()) {
                 SM2_ERROR("frame capture failed");
                 exit_code = 1;
                 break;
@@ -1250,51 +1506,32 @@ int main(int argc, char** argv)
             }
 
             // Then the one magnification, into the swapchain.
-            render::vk::record_image_barrier(
-                context.cmd(), context.swapchain_image(), VK_IMAGE_ASPECT_COLOR_BIT,
-                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, 0,
-                VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-                VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
-            present.record();
+            backend->blit_to_swapchain();
+            // Command recording, as this figure means it, ends here: the GUI
+            // overlay below is a separate concern (ImGui's own draw-list build
+            // plus its own submission) and left out on purpose.
+            record_scope.reset();
 
             // Draw the ImGui overlay on top of the presented frame, while the
-            // swapchain image is still in COLOR_ATTACHMENT_OPTIMAL layout.
+            // swapchain image is still in a colour-attachment layout. The FPS
+            // counter is always on now, so this always has something to draw and
+            // gui_active is unconditionally true; the return value stays a bool
+            // for symmetry with draw_overlay()'s inactive path below.
+            backend->begin_overlay_frame();
             gui.new_frame();
-            const bool gui_active = gui.draw(options.config, gpu_names,
-                                             pacer.measured_hz());
+            const bool gui_active =
+                gui.draw(options.config, gpu_names, pacer.measured_hz(),
+                        use_software_renderer ? "Software" : "Vulkan");
             // Always finalise the ImGui frame (Render must follow NewFrame).
-            if (gui_active) {
-                // Open a dynamic rendering scope on the swapchain for ImGui.
-                VkRenderingAttachmentInfo colour_att{};
-                colour_att.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-                colour_att.imageView   = context.swapchain_view();
-                colour_att.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                colour_att.loadOp      = VK_ATTACHMENT_LOAD_OP_LOAD;
-                colour_att.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
+            gui.end_frame();
+            backend->draw_overlay(gui_active);
 
-                VkRenderingInfo rendering{};
-                rendering.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
-                rendering.renderArea.extent    = context.swapchain_extent();
-                rendering.layerCount           = 1;
-                rendering.colorAttachmentCount = 1;
-                rendering.pColorAttachments    = &colour_att;
-
-                vkCmdBeginRendering(context.cmd(), &rendering);
-                gui.render(context.cmd());
-                vkCmdEndRendering(context.cmd());
-            } else {
-                gui.render(VK_NULL_HANDLE);
+            bool end_frame_ok = false;
+            {
+                auto scope = core::maybe_scope(stage_submit, options.profile);
+                end_frame_ok = backend->end_frame();
             }
-
-            render::vk::record_image_barrier(
-                context.cmd(), context.swapchain_image(), VK_IMAGE_ASPECT_COLOR_BIT,
-                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-                VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-                VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, 0);
-
-            if (!context.end_frame()) {
+            if (!end_frame_ok) {
                 SM2_ERROR("frame submission failed");
                 exit_code = 1;
                 break;
@@ -1305,8 +1542,8 @@ int main(int argc, char** argv)
             // the pipeline, which is acceptable in a diagnostic mode and is why
             // this is not the default path.
             if (capture_this_frame && numbered_series) {
-                context.wait_idle();
-                if (!capture.save(numbered_path(options.screenshot, frames_presented))) {
+                backend->wait_idle();
+                if (!backend->save_capture(numbered_path(options.screenshot, frames_presented))) {
                     exit_code = 1;
                     break;
                 }
@@ -1316,6 +1553,28 @@ int main(int argc, char** argv)
 
             if (options.run_frames != 0 && frames_presented >= options.run_frames) {
                 running = false;
+            }
+
+            // Measured from this iteration's own frame_start_ns rather than an
+            // external "last frame's end" mark, so a skipped iteration (the
+            // begin_frame() continue above, on a minimised window or a swapchain
+            // rebuild) cannot fold its idle time into the next sample as a fake
+            // outlier.
+            //
+            // Recorded before pacer.wait(): with throttling on, wait() is where
+            // the pacer deliberately spends idle time to hold the target rate, and
+            // including it would measure the pacer instead of the renderer. With
+            // --no-throttle, which is what a throughput comparison wants, wait()
+            // returns immediately and this is the whole frame cost either way --
+            // see FramePacer::wait()'s own account_for_frame() call for the same
+            // reasoning applied to measured_hz().
+            if (run_deadline_ns != 0) {
+                const u64 now_ns = SDL_GetTicksNS();
+                frame_times_ms.push_back(
+                    static_cast<double>(now_ns - frame_start_ns) / 1'000'000.0);
+                if (now_ns >= run_deadline_ns) {
+                    running = false;
+                }
             }
 
             // Last thing in the loop, so the wait absorbs everything the frame cost
@@ -1329,30 +1588,137 @@ int main(int argc, char** argv)
                           " %u frame(s) written off, %u ms of audio queued,"
                           " %u voice(s)",
                           pacer.measured_hz(), pacer.target_hz(),
-                          polygons.drawn_polygons(), polygons.triangles(),
-                          polygons.blank_polygons(), frames_written_off,
+                          backend->drawn_polygons(), backend->triangles(),
+                          backend->blank_polygons(), frames_written_off,
                           audio.queued_milliseconds(),
                           sound_board != nullptr ? sound_board->active_voices() : 0u);
 
-                std::string title = std::string("sm2-emu — ")
-                                  + (loaded.has_value() ? loaded->game.title : "no game");
-                if (paused) {
-                    title += " — paused";
-                } else {
-                    char rate[32];
-                    std::snprintf(rate, sizeof(rate), " — %.1f Hz", pacer.measured_hz());
-                    title += rate;
-                    if (!pacer.throttled()) {
-                        title += " (unthrottled)";
-                    }
-                }
-                window.set_title(title);
+                window.set_title(build_title());
             }
         }
 
         if (frames_written_off != 0) {
             SM2_INFO("%u frame(s) were written off after falling behind",
                      frames_written_off);
+        }
+
+        if (!frame_times_ms.empty()) {
+            const double total_ms =
+                static_cast<double>(SDL_GetTicksNS() - run_start_ns) / 1'000'000.0;
+            double sum_ms = 0.0;
+            for (const double ms : frame_times_ms) {
+                sum_ms += ms;
+            }
+            const double mean_ms = sum_ms / static_cast<double>(frame_times_ms.size());
+            const double p50 = percentile(frame_times_ms, 0.50);
+            const double p95 = percentile(frame_times_ms, 0.95);
+            const double p99 = percentile(frame_times_ms, 0.99);
+
+            std::printf("\n=== %s renderer, %s, %.1fs ===\n",
+                        use_software_renderer ? "software" : "Vulkan",
+                        loaded.has_value() ? loaded->game.name.c_str() : "no game",
+                        total_ms / 1000.0);
+            std::printf("frames presented  : %u\n", frames_presented);
+            std::printf("average fps        : %.2f (%.3f ms/frame mean)\n",
+                        1000.0 / mean_ms, mean_ms);
+            std::printf("p50 / p95 / p99 ms : %.3f / %.3f / %.3f (%.2f / %.2f / %.2f fps)\n",
+                        p50, p95, p99, 1000.0 / p50, 1000.0 / p95, 1000.0 / p99);
+            std::printf("throttled          : %s\n", options.config.throttle ? "yes" : "no");
+            SM2_INFO("%s: %u frame(s) over %.1fs, average %.2f fps (p50 %.3f / p95 %.3f / "
+                     "p99 %.3f ms), throttle %s",
+                     use_software_renderer ? "software" : "Vulkan", frames_presented,
+                     total_ms / 1000.0, 1000.0 / mean_ms, p50, p95, p99,
+                     options.config.throttle ? "on" : "off");
+
+            if (options.profile) {
+                // Named per design.md requirement 1.5: set, frame range, coin-at
+                // and NVRAM directory, so two reports that used different
+                // conditions cannot be mistaken for a comparable pair.
+                std::printf("\n--- per-stage CPU (ms), %s, --duration %u, --coin-at %u, "
+                            "--nvram %s ---\n",
+                            loaded.has_value() ? loaded->game.name.c_str() : "no game",
+                            options.duration_seconds, options.coin_at,
+                            options.config.nvram_dir.c_str());
+                std::printf("%-24s %8s %10s %10s %10s %10s\n", "stage", "samples", "mean",
+                            "p50", "p95", "p99");
+
+                // Collected alongside the printed table, for --profile-csv below,
+                // rather than reopening the file and re-deriving the same
+                // StageStats/GpuStageTime figures a second time.
+                std::FILE* csv = nullptr;
+                if (!options.profile_csv.empty()) {
+                    csv = std::fopen(options.profile_csv.c_str(), "w");
+                    if (csv == nullptr) {
+                        SM2_ERROR("could not open --profile-csv '%s'",
+                                 options.profile_csv.c_str());
+                    } else {
+                        std::fprintf(csv, "kind,stage,samples,mean_ms,p50_ms,p95_ms,p99_ms\n");
+                    }
+                }
+
+                for (const core::StageTimer* timer :
+                    {&stage_run_frame, &stage_geometry, &stage_compose,
+                     &stage_tilemap_upload, &stage_build, &stage_record, &stage_submit,
+                     &stage_software}) {
+                    const core::StageStats stats = core::summarise(*timer);
+                    if (stats.samples == 0) {
+                        continue;
+                    }
+                    std::printf("%-24s %8zu %10.4f %10.4f %10.4f %10.4f\n",
+                                stats.name.c_str(), stats.samples, stats.mean_ms, stats.p50_ms,
+                                stats.p95_ms, stats.p99_ms);
+                    if (csv != nullptr) {
+                        std::fprintf(csv, "cpu,%s,%zu,%.4f,%.4f,%.4f,%.4f\n",
+                                     stats.name.c_str(), stats.samples, stats.mean_ms,
+                                     stats.p50_ms, stats.p95_ms, stats.p99_ms);
+                    }
+                }
+
+                std::printf("\n--- per-stage GPU (ms) ---\n");
+                if (!backend->supports_gpu_timing()) {
+                    std::printf("(this device does not report GPU timestamps)\n");
+                } else {
+                    std::printf("%-24s %8s %10s %10s %10s %10s\n", "stage", "samples", "mean",
+                                "p50", "p95", "p99");
+                    static constexpr const char* kGpuStageNames[] = {
+                        "gpu_texture_decode", "gpu_poly3d", "gpu_composite", "gpu_present",
+                        "gpu_tilemap_compose"};
+                    for (usize stage = 0; stage < gpu_stage_samples.size(); ++stage) {
+                        const std::vector<double>& samples = gpu_stage_samples[stage];
+                        if (samples.empty()) {
+                            std::printf("%-24s %8s %10s %10s %10s %10s  (never ran)\n",
+                                        kGpuStageNames[stage], "0", "-", "-", "-", "-");
+                            if (csv != nullptr) {
+                                std::fprintf(csv, "gpu,%s,0,,,,\n", kGpuStageNames[stage]);
+                            }
+                            continue;
+                        }
+                        double sum = 0.0;
+                        for (const double ms : samples) {
+                            sum += ms;
+                        }
+                        const double gpu_mean = sum / static_cast<double>(samples.size());
+                        const double gpu_p50  = core::percentile_ms(samples, 0.50);
+                        const double gpu_p95  = core::percentile_ms(samples, 0.95);
+                        const double gpu_p99  = core::percentile_ms(samples, 0.99);
+                        std::printf("%-24s %8zu %10.4f %10.4f %10.4f %10.4f\n",
+                                    kGpuStageNames[stage], samples.size(), gpu_mean, gpu_p50,
+                                    gpu_p95, gpu_p99);
+                        if (csv != nullptr) {
+                            std::fprintf(csv, "gpu,%s,%zu,%.4f,%.4f,%.4f,%.4f\n",
+                                         kGpuStageNames[stage], samples.size(), gpu_mean,
+                                         gpu_p50, gpu_p95, gpu_p99);
+                        }
+                    }
+                }
+
+                if (csv != nullptr) {
+                    std::fclose(csv);
+                    SM2_INFO("wrote --profile-csv to '%s'", options.profile_csv.c_str());
+                }
+
+                std::printf("\ndevice             : %s\n", backend->device_name());
+            }
         }
 
         if (machine_iface) {
@@ -1363,13 +1729,13 @@ int main(int argc, char** argv)
 
         // Nothing may be destroyed while a submitted command buffer still
         // refers to it, and up to kFramesInFlight frames are outstanding here.
-        context.wait_idle();
+        backend->wait_idle();
 
         // After wait_idle, so the readback buffer holds a completed copy. A series
         // has already written each of its frames as it went.
         if (!options.screenshot.empty() && options.screenshot_interval == 0
             && options.screenshot_frames.empty() && exit_code == 0
-            && !capture.save(options.screenshot)) {
+            && !backend->save_capture(options.screenshot)) {
             exit_code = 1;
         }
 
@@ -1381,12 +1747,12 @@ int main(int argc, char** argv)
 
         audio.shutdown();
         input.shutdown();
+        // Before gui.shutdown(): the backend's own ImGui renderer backend
+        // shutdown also reads ImGui's global context, which must not have
+        // been destroyed yet.
+        backend->shutdown_overlay();
         gui.shutdown();
-        capture.shutdown();
-        present.shutdown();
-        polygons.shutdown();
-        tilemaps.shutdown();
-        context.shutdown();
+        backend->shutdown();
     }
 
     SDL_Quit();

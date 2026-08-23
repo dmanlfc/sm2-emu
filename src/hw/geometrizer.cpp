@@ -39,6 +39,7 @@
 #include "core/log.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <limits>
 
@@ -147,9 +148,12 @@ u32 Geometrizer::polygon_count() const
 
 void Geometrizer::run(RenderList* out)
 {
+    const auto start = std::chrono::steady_clock::now();
+
     out->clear();
 
     if (m_bufferram == nullptr) {
+        m_last_run_ns = 0;
         return;
     }
 
@@ -159,6 +163,11 @@ void Geometrizer::run(RenderList* out)
 
     geo_parse();
     build_render_list(out);
+
+    m_last_run_ns = static_cast<u64>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now() - start)
+            .count());
 }
 
 void Geometrizer::screen_scissor(const Polygon* poly, s16* out) const

@@ -119,9 +119,11 @@ public:
     /// of them would mean the path selection is being read wrongly.
     [[nodiscard]] u32 blank_polygons() const { return m_blank_polygons; }
 
+
+
 private:
-    /// Twenty bytes: where the vertex is, what part of the texture it names, how
-    /// far away it is, and which polygon it belongs to.
+    /// Twenty-four bytes: where the vertex is, what part of the texture it
+    /// names, how far away it is, and which polygon it belongs to.
     ///
     /// The depth is here rather than derived because the fragment stage needs it
     /// both for perspective-correct texturing and for the mipmap level, and the

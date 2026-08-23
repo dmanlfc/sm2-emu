@@ -21,6 +21,9 @@
 #include "shaders/fullscreen_quad_vert.h"
 #include "shaders/tilemap_composite_frag.h"
 
+#include <algorithm>
+#include <cstring>
+
 namespace sm2::render::vk {
 namespace {
 
@@ -98,6 +101,12 @@ void PresentPass::shutdown()
             target.image      = VK_NULL_HANDLE;
             target.allocation = nullptr;
         }
+        if (target.host_staging != VK_NULL_HANDLE) {
+            vmaDestroyBuffer(allocator, target.host_staging, target.host_allocation);
+            target.host_staging    = VK_NULL_HANDLE;
+            target.host_allocation = nullptr;
+            target.host_mapped     = nullptr;
+        }
         target.set = VK_NULL_HANDLE;
     }
 
@@ -144,9 +153,11 @@ bool PresentPass::create_targets()
         image.samples     = VK_SAMPLE_COUNT_1_BIT;
         image.tiling      = VK_IMAGE_TILING_OPTIMAL;
         // TRANSFER_SRC so a screenshot can be read straight out of it, which is
-        // the whole reason captures are now at the native size.
+        // the whole reason captures are now at the native size. TRANSFER_DST so
+        // upload_from_host() can put the software renderer's output here by the
+        // same path a screenshot reads it back from.
         image.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
-                    | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+                    | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         image.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
         image.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
@@ -164,6 +175,34 @@ bool PresentPass::create_targets()
         view.subresourceRange.levelCount = 1;
         view.subresourceRange.layerCount = 1;
         SM2_VK_TRY(vkCreateImageView(device, &view, nullptr, &target.view));
+
+        // Staging for upload_from_host(). Host-coherent and persistently mapped
+        // like every other per-frame CPU->GPU path in this renderer (see
+        // Poly3DPass::create_host_buffer / TilemapPass::create_surfaces): the
+        // whole point of this path is the software renderer's frame, written
+        // once by the CPU and read once by the GPU, so there is nothing an
+        // explicit flush or a device-local copy would buy.
+        VkBufferCreateInfo staging{};
+        staging.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        staging.size        = static_cast<VkDeviceSize>(kWidth) * kHeight * sizeof(u32);
+        staging.usage       = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        staging.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        VmaAllocationCreateInfo host_allocation{};
+        host_allocation.usage = VMA_MEMORY_USAGE_AUTO;
+        host_allocation.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+                              | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        host_allocation.requiredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+        VmaAllocationInfo host_info{};
+        SM2_VK_TRY(vmaCreateBuffer(allocator, &staging, &host_allocation,
+                                   &target.host_staging, &target.host_allocation,
+                                   &host_info));
+        target.host_mapped = host_info.pMappedData;
+        if (target.host_mapped == nullptr) {
+            SM2_ERROR("present: host staging buffer was not mapped");
+            return false;
+        }
     }
     return true;
 }
@@ -368,6 +407,45 @@ VkImage PresentPass::native_image() const
     return m_targets[m_current].image;
 }
 
+void PresentPass::upload_from_host(std::span<const u32> pixels)
+{
+    Target&     target = m_targets[m_current];
+    const usize bytes  = static_cast<usize>(kWidth) * kHeight * sizeof(u32);
+
+    std::memcpy(target.host_mapped, pixels.data(),
+               std::min(bytes, pixels.size_bytes()));
+
+    const VkCommandBuffer cmd = m_context->cmd();
+
+    // From COLOR_ATTACHMENT_OPTIMAL: begin_frame() just put it there, and this
+    // replaces the whole image the same way the tilemap and 3D passes would
+    // have, so the barrier shape matches theirs rather than a fresh UNDEFINED
+    // transition.
+    record_image_barrier(cmd, target.image, VK_IMAGE_ASPECT_COLOR_BIT,
+                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, 0,
+                         VK_PIPELINE_STAGE_2_COPY_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT);
+
+    VkBufferImageCopy region{};
+    region.bufferRowLength   = kWidth;
+    region.bufferImageHeight = kHeight;
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.layerCount = 1;
+    region.imageExtent = VkExtent3D{kWidth, kHeight, 1};
+    vkCmdCopyBufferToImage(cmd, target.host_staging, target.image,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+    // Back to COLOR_ATTACHMENT_OPTIMAL: record() reads it as a sampled image via
+    // its own barrier from that layout, and a capture expects it there too.
+    record_image_barrier(cmd, target.image, VK_IMAGE_ASPECT_COLOR_BIT,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                         VK_PIPELINE_STAGE_2_COPY_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
+                         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
+}
+
 VkViewport PresentPass::letterbox() const
 {
     const VkExtent2D extent = m_context->swapchain_extent();
@@ -396,6 +474,8 @@ void PresentPass::record()
     const VkCommandBuffer cmd    = m_context->cmd();
     const VkExtent2D      extent = m_context->swapchain_extent();
     const Target&         target = m_targets[m_current];
+
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Present, false);
 
     record_image_barrier(cmd, target.image, VK_IMAGE_ASPECT_COLOR_BIT,
                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -441,6 +521,8 @@ void PresentPass::record()
     vkCmdDraw(cmd, 3, 1, 0, 0);
 
     vkCmdEndRendering(cmd);
+
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, GpuStage::Present, true);
 }
 
 }  // namespace sm2::render::vk

@@ -18,6 +18,7 @@
 #include "render/vk/vk_common.h"
 
 #include <array>
+#include <span>
 
 // Forward-declared so VMA's header stays out of the public interface.
 using VmaAllocation = struct VmaAllocation_T*;
@@ -64,6 +65,15 @@ public:
     /// passes and record().
     [[nodiscard]] VkImage native_image() const;
 
+    /// Replace the native frame with pixels rendered on the CPU, in place of the
+    /// tilemap and 3D passes.
+    ///
+    /// Same present and capture path either way, so a screenshot or the windowed
+    /// view is directly comparable to the Vulkan path regardless of which one
+    /// produced the pixels. `pixels` must hold kWidth * kHeight RGBA8 texels.
+    /// Call after begin_frame() and before record().
+    void upload_from_host(std::span<const u32> pixels);
+
     static constexpr VkExtent2D native_extent() { return VkExtent2D{kWidth, kHeight}; }
     static constexpr VkFormat   native_format() { return kNativeColourFormat; }
 
@@ -84,6 +94,12 @@ private:
         VmaAllocation   allocation = nullptr;
         VkImageView     view       = VK_NULL_HANDLE;
         VkDescriptorSet set        = VK_NULL_HANDLE;
+
+        /// Staging for upload_from_host(), one per frame in flight like every
+        /// other per-frame resource here.
+        VkBuffer      host_staging    = VK_NULL_HANDLE;
+        VmaAllocation host_allocation = nullptr;
+        void*         host_mapped     = nullptr;
     };
 
     [[nodiscard]] bool create_targets();

@@ -16,14 +16,7 @@
 
 #include "core/types.h"
 
-// The Vulkan handle types are needed by value in this interface. Forward
-// declaring them by hand is tempting but wrong: non-dispatchable handles like
-// VkSurfaceKHR are a pointer on 64-bit and a uint64_t on 32-bit, so a
-// hand-written typedef silently conflicts on some targets.
-#include <vulkan/vulkan_core.h>
-
 #include <string>
-#include <vector>
 
 struct SDL_Window;
 
@@ -42,11 +35,16 @@ struct WindowConfig {
     bool        resizable   = true;
 };
 
-/// SDL3 window owning a Vulkan surface.
+/// SDL3 window. Owns no Vulkan (or other graphics API) handle itself --
+/// surface creation belongs to whichever render::Backend is active (see
+/// render/backend.h), which is the only thing that knows when it is safe to
+/// recreate a swapchain.
 ///
-/// Deliberately thin: it knows about SDL and about the two Vulkan handles it
-/// has to produce, and nothing else. Swapchain management belongs to the
-/// renderer, which is the only thing that knows when it is safe to recreate.
+/// Not yet backend-neutral in one respect: create() still requests
+/// SDL_WINDOW_VULKAN and loads the Vulkan loader library directly, both of
+/// which a GL/GLES backend would need different calls for. That is real
+/// remaining work for whichever phase adds a second backend, not something
+/// the current public interface hides.
 class Window {
 public:
     Window() = default;
@@ -59,11 +57,6 @@ public:
 
     [[nodiscard]] bool create(const WindowConfig& config);
     void destroy();
-
-    /// Instance extensions SDL requires for surface creation on this platform.
-    [[nodiscard]] std::vector<const char*> required_instance_extensions() const;
-
-    [[nodiscard]] bool create_surface(VkInstance instance, VkSurfaceKHR* out_surface);
 
     /// Size of the drawable in pixels, which is not the window size under
     /// HiDPI. This is the value the swapchain extent must match.

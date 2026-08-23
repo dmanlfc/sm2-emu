@@ -1,0 +1,320 @@
+#version 450
+//  ____  __  __  ____         _____ __  __ _   _
+// / ___||  \/  ||___ \       | ____|  \/  | | | |
+// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
+//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
+// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+//
+// sm2-emu — A Sega Model 2 arcade emulator.
+// Copyright (c) 2025+ Daniel Martin (dmanlfc)
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// This header must not be removed. The source files in this project may not be
+// used to contribute to commercial projects or for monetary gain without the
+// express written permission of the author.
+//
+// GPU tilemap composite: produces the same two 496x384 surfaces
+// hw::Model2Video::compose() does on the CPU, one invocation per output pixel
+// rather than one CPU pass per layer per category over a decoded 512x512 map.
+//
+// This is a gather, not the CPU code's scatter. src/hw/segaic24.cpp's
+// draw_rect() walks a *source* map and writes runs of resolved pixels into the
+// destination, which is the right shape for a cache-coherent CPU loop over a
+// pre-decoded pixmap. A GPU invocation owns exactly one destination pixel, so
+// this shader inverts that: work out, for each of the four tilemap layers in
+// the hardware's own priority order, which source pixel that layer contributes
+// at this destination coordinate, sample tile RAM and character RAM directly,
+// and keep whichever layer wins. There is no decoded 512x512 cache here -- that
+// cache exists on the CPU to amortise character decode across frames of
+// unchanged tiles, which a massively parallel pass has no need of.
+//
+// The rules below (layer priority, window mask sense, split modes, row scroll)
+// are re-derived independently from segaic24.cpp's draw()/draw_split() rather
+// than transliterated line for line, because that function's control flow is
+// shaped for the CPU's rectangle-copy loop and does not translate directly to
+// one-pixel-at-a-time. The derivation, and why it is safe to fold four things
+// segaic24.cpp treats as separate rectangle calls into one per-pixel formula:
+//
+//   Layer priority. compose() calls draw() four times into `below` (layer 3
+//   opaque, layer 2 opaque, layer 1 category 0, layer 0 category 0) and four
+//   times into `above` (layers 3,2,1,0, all category 1). Each call is an
+//   unconditional last-write-wins overwrite wherever it draws at all
+//   (draw_rect never blends). Opaque mode draws literally every pixel of its
+//   region, including the "transparent" pen 0 entry, so layer 2's opaque call
+//   -- drawn after layer 3's -- always fully replaces it unless layer 2 itself
+//   is blanked. Reducing the four calls per surface to "last one that actually
+//   draws wins" gives a fixed priority order: for `below`, layer 0 (if it has
+//   an opaque, category-0 pixel here) beats layer 1 (same test) beats layer 2
+//   (opaque mode: draws unconditionally unless blanked) beats layer 3 (same,
+//   opaque). `above` is layer 0 beats 1 beats 2 beats 3, all under the
+//   category-1, non-opaque test. This is exactly evalLayer()'s call order in
+//   below()/above() at the bottom of this file.
+//
+//   The window mask. Bit clear in the table selects the even ("screen") layer
+//   of a pair; bit set selects the odd ("window") layer -- i.e. the *raw* bit
+//   picks the window layer, and draw()'s `if (win) m = ~m;` is what makes the
+//   screen layer's own visibility test (`m == 0`) come out inverted from the
+//   raw bit for that layer. maskVisible() below applies that sense directly
+//   rather than reproducing the intermediate NOT.
+//
+//   Split modes. draw() reaches draw_split() only for the even layer of a
+//   pair (the odd layer's call returns immediately, contributing nothing) and
+//   passes through the calling context's own opaque/category test unchanged;
+//   splitting only changes *which* of the pair's two layers' tile data is
+//   sampled at a given position, never whether the mask applies (it does not,
+//   in any split mode) or whether the opaque/category test applies (it does,
+//   same as the plain path). Working through draw_split's three sub-cases
+//   (mode 1 horizon, modes 2 and 3 -- identical -- vertical, each with or
+//   without per-line row scroll) shows the *source coordinate* the two
+//   draw_region calls on either side of a boundary end up producing is the
+//   same single formula in every case, `(h + dx) & 0x1ff` / `(v + dy) & 0x1ff`,
+//   because draw_region's own rectangle offsets cancel out modulo 512 exactly
+//   at the boundary. Only *which layer* varies by side. resolveSplit() below
+//   returns that one chosen layer for a mode and lets the caller apply the one
+//   shared coordinate formula, which is also exactly what plain mode uses --
+//   so split and plain differ only in which layer sampleTileAt() reads, never
+//   in how the source coordinate is built.
+//
+//   The scroll sign itself -- horizontal negated, vertical as-is in the plain
+//   path; the reverse in the split paths -- is segaic24.cpp's own derivation
+//   (see that file's draw_split() comment) and is not re-derived here; this
+//   shader reads the sign the same way draw()/draw_split() already do.
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// ---------------------------------------------------------------------------
+// Machine memory, read raw -- no host-side decode.
+// ---------------------------------------------------------------------------
+
+/// Tile RAM, 0x10000 bytes, addressed here as 16-bit words exactly as
+/// Segaic24Tile::tile_word() does: word i is bytes [2i, 2i+1], little-endian.
+/// Packed two words per uint (native std430 layout of the byte region).
+layout(std430, set = 0, binding = 0) readonly buffer TileRam { uint uTileRam[]; };
+
+/// Character RAM, 0x80000 bytes, packed four bytes per uint: character c's row
+/// y occupies bytes [c*32 + y*4, c*32 + y*4 + 3].
+layout(std430, set = 0, binding = 1) readonly buffer CharRam { uint uCharRam[]; };
+
+/// The converted palette, kPenCount (0x1000) premultiplied RGBA8 entries,
+/// exactly Model2Video::m_pens, one entry per uint.
+layout(std430, set = 0, binding = 2) readonly buffer Pens { uint uPens[]; };
+
+/// below and above, one packed RGBA8 pixel per uint, row-major at
+/// kScreenWidth stride. Laid out identically to the host staging buffers
+/// TilemapPass::upload() used to memcpy into, so the existing transfer-to-image
+/// path (copy_to_image et al.) needs no change at all -- only what fills the
+/// buffer moves from the CPU to this shader.
+layout(std430, set = 0, binding = 3) writeonly buffer Below { uint uBelow[]; };
+layout(std430, set = 0, binding = 4) writeonly buffer Above { uint uAbove[]; };
+
+// ---------------------------------------------------------------------------
+// Constants mirrored from segaic24.h / segaic24.cpp
+// ---------------------------------------------------------------------------
+
+const uint kScreenWidth  = 496u;
+const uint kScreenHeight = 384u;
+const uint kCellsWide    = 64u;
+const uint kTileMask     = 0x3fffu;
+
+const uint kNameTableWords   = 0x1000u;  // per layer, in words (4096 cells)
+const uint kRowScrollTable   = 0x4000u;  // +0x200 words per layer
+const uint kHorizontalScroll = 0x5000u;  // +1 word per layer
+const uint kVerticalScroll   = 0x5004u;  // +1 word per layer
+const uint kWindowMaskA      = 0x6000u;  // 4 words/line, 64 flags of 8px
+const uint kWindowMaskB      = 0x6800u;
+
+// ---------------------------------------------------------------------------
+// Raw memory access
+// ---------------------------------------------------------------------------
+
+uint tileWord(uint wordIndex)
+{
+    uint word32 = uTileRam[wordIndex >> 1u];
+    return ((wordIndex & 1u) != 0u) ? (word32 >> 16u) : (word32 & 0xffffu);
+}
+
+/// decode_tile_pixel(): byte index tile*32 + ((y*4 + (x>>1)) ^ 1), high nibble
+/// for even x.
+uint tilePixel(uint tile, uint x, uint y)
+{
+    uint byteIndex   = tile * 32u + ((y * 4u + (x >> 1u)) ^ 1u);
+    uint word32      = uCharRam[byteIndex >> 2u];
+    uint byteInWord  = byteIndex & 3u;
+    uint byteValue   = (word32 >> (byteInWord * 8u)) & 0xffu;
+    return ((x & 1u) == 0u) ? (byteValue >> 4u) : (byteValue & 0xfu);
+}
+
+/// One tile map sample: decode_tile_cell() plus decode_tile_pixel() fused, at
+/// map coordinates (sx, sy) in a given layer's 512x512 space. Always returns a
+/// pen and category -- even for a transparent (nibble zero) texel, since the
+/// opaque composite mode draws that pen anyway; `outOpaque` says whether the
+/// texel itself was non-transparent, which the non-opaque paths need and the
+/// opaque path does not.
+void sampleTileAt(uint layer, uint sx, uint sy, out uint outPen, out uint outCategory,
+                  out bool outOpaque)
+{
+    uint cellX     = (sx >> 3u) & (kCellsWide - 1u);
+    uint cellY     = (sy >> 3u) & (kCellsWide - 1u);
+    uint cellIndex = cellY * kCellsWide + cellX;
+
+    uint value       = tileWord(layer * kNameTableWords + cellIndex);
+    uint tile        = value & kTileMask;
+    uint paletteBase = ((value >> 7u) & 0xffu) * 16u;
+    outCategory      = ((value & 0x8000u) != 0u) ? 1u : 0u;
+
+    uint nibble = tilePixel(tile, sx & 7u, sy & 7u);
+    outPen      = paletteBase + nibble;
+    outOpaque   = nibble != 0u;
+}
+
+/// Window mask visibility at screen coordinate (dx, dy) for `layer`. See the
+/// file header for the raw-bit / screen-vs-window sense.
+bool maskVisible(uint layer, uint dx, uint dy)
+{
+    uint maskBase = ((layer & 2u) != 0u) ? kWindowMaskB : kWindowMaskA;
+    uint wordIdx  = maskBase + dy * 4u + (dx >> 7u);
+    uint bitIdx   = (dx & 127u) >> 3u;
+    bool rawBit   = ((tileWord(wordIdx) >> (15u - bitIdx)) & 1u) != 0u;
+    bool isWindow = (layer & 1u) != 0u;
+    return isWindow ? rawBit : !rawBit;
+}
+
+/// Plain-mode source coordinate for `layer` at screen (dx, dy): horizontal
+/// scroll negated (or per-line from the row-scroll table when bit 15 of the
+/// horizontal register is set), vertical scroll as-is.
+void plainSource(uint layer, uint dx, uint dy, out uint sx, out uint sy)
+{
+    uint hscr = tileWord(kHorizontalScroll + layer);
+    uint vscr = tileWord(kVerticalScroll + layer);
+    uint h;
+    if ((hscr & 0x8000u) != 0u) {
+        h = (0u - tileWord(kRowScrollTable + 0x200u * layer + dy)) & 0x1ffu;
+    } else {
+        h = (0u - hscr) & 0x1ffu;
+    }
+    uint v = vscr & 0x1ffu;
+    sx = (h + dx) & 0x1ffu;
+    sy = (v + dy) & 0x1ffu;
+}
+
+/// Split-mode layer choice and source coordinate for the pair whose even
+/// member is `evenLayer` (0 or 2), at screen (dx, dy). See the file header for
+/// why one coordinate formula serves every sub-case; only `chosen` varies.
+void resolveSplit(uint evenLayer, uint mode, uint dx, uint dy, out uint chosen, out uint sx,
+                  out uint sy)
+{
+    uint hscr = tileWord(kHorizontalScroll + evenLayer);
+    uint vscr = tileWord(kVerticalScroll + evenLayer);
+    uint v    = vscr & 0x1ffu;
+    uint h;
+
+    if (mode == 1u) {
+        // Horizon split: a Y boundary, negated vertical scroll.
+        if ((hscr & 0x8000u) != 0u) {
+            h = (0u - tileWord(kRowScrollTable + 0x200u * evenLayer + dy)) & 0x1ffu;
+        } else {
+            h = (0u - hscr) & 0x1ffu;
+        }
+        // The bit-9 test needs the unmasked subtraction -- masking to 0x1ff
+        // first would always zero the bit being tested.
+        uint negVFull = 0u - vscr;
+        uint boundary = negVFull & 0x1ffu;
+        uint first    = ((negVFull & 0x200u) != 0u) ? evenLayer : (evenLayer ^ 1u);
+        chosen        = (dy >= boundary) ? (first ^ 1u) : first;
+    } else {
+        // Modes 2 and 3, identical: a vertical (X) boundary.
+        uint boundary;
+        uint left;
+        if ((hscr & 0x8000u) != 0u) {
+            uint raw = tileWord(kRowScrollTable + 0x200u * evenLayer + dy);
+            boundary = raw & 0x1ffu;
+            h        = (0u - raw) & 0x1ffu;
+            left     = ((raw & 0x200u) != 0u) ? evenLayer : (evenLayer ^ 1u);
+        } else {
+            boundary = hscr & 0x1ffu;
+            h        = (0u - hscr) & 0x1ffu;
+            left     = ((hscr & 0x200u) != 0u) ? evenLayer : (evenLayer ^ 1u);
+        }
+        chosen = (dx < boundary) ? left : (left ^ 1u);
+    }
+
+    sx = (h + dx) & 0x1ffu;
+    sy = (v + dy) & 0x1ffu;
+}
+
+/// One layer's contribution at screen (dx, dy): true if it draws, with its
+/// pen. `opaqueMode` draws unconditionally (subject to blanking and the
+/// window mask); otherwise a hit additionally needs an opaque texel whose
+/// category matches `requireCategory`.
+bool evalLayer(uint layer, uint requireCategory, bool opaqueMode, uint dx, uint dy,
+              out uint pen)
+{
+    // Blanking is this layer's own vertical-scroll register, bit 15 -- for an
+    // even layer that register is the same one the split-mode bits below come
+    // from; for an odd layer it is a separate register. Checked first, exactly
+    // as draw() orders it, so an odd layer that is both blanked and a
+    // split-mode no-op is rejected for the same reason draw() would return
+    // early either way.
+    uint layerVscr = tileWord(kVerticalScroll + layer);
+    if ((layerVscr & 0x8000u) != 0u) {
+        return false;
+    }
+
+    uint evenLayer = layer & ~1u;
+    uint ctrl      = tileWord(kVerticalScroll + evenLayer);
+    uint mode      = (ctrl >> 13u) & 3u;
+
+    uint sx, sy, category;
+    bool opaqueTexel;
+
+    if (mode != 0u) {
+        if ((layer & 1u) != 0u) {
+            return false;  // odd layer: no-op call in split mode
+        }
+        uint chosen;
+        resolveSplit(evenLayer, mode, dx, dy, chosen, sx, sy);
+        sampleTileAt(chosen, sx, sy, pen, category, opaqueTexel);
+    } else {
+        if (!maskVisible(layer, dx, dy)) {
+            return false;
+        }
+        plainSource(layer, dx, dy, sx, sy);
+        sampleTileAt(layer, sx, sy, pen, category, opaqueTexel);
+    }
+
+    return opaqueMode || (opaqueTexel && category == requireCategory);
+}
+
+// ---------------------------------------------------------------------------
+// Composite
+// ---------------------------------------------------------------------------
+
+/// Priority order derived in the file header: layer 0 beats 1 beats 2 beats 3.
+/// compose() only draws pair B (layers 2/3) opaque for `below` (category 0);
+/// for `above` (category 1) every layer uses the non-opaque, category-matched
+/// test. Returns premultiplied RGBA8 with alpha 0 where nothing drew, which is
+/// exactly what TilemapPass's fragment shader already expects (a pixel nothing
+/// wrote is all zeroes).
+uint composite(uint category, uint dx, uint dy)
+{
+    bool pairBOpaque = category == 0u;
+    uint pen;
+    if (evalLayer(0u, category, false, dx, dy, pen)) return uPens[pen];
+    if (evalLayer(1u, category, false, dx, dy, pen)) return uPens[pen];
+    if (evalLayer(2u, category, pairBOpaque, dx, dy, pen)) return uPens[pen];
+    if (evalLayer(3u, category, pairBOpaque, dx, dy, pen)) return uPens[pen];
+    return 0u;
+}
+
+void main()
+{
+    uint dx = gl_GlobalInvocationID.x;
+    uint dy = gl_GlobalInvocationID.y;
+    if (dx >= kScreenWidth || dy >= kScreenHeight) {
+        return;
+    }
+
+    uint index = dy * kScreenWidth + dx;
+    uBelow[index] = composite(0u, dx, dy);
+    uAbove[index] = composite(1u, dx, dy);
+}

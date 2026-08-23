@@ -232,6 +232,11 @@ public:
 
     [[nodiscard]] const RenderList& render_list() const override { return m_render_list; }
 
+    [[nodiscard]] u64 geometry_stage_nanoseconds() const override
+    {
+        return m_geometry.last_run_nanoseconds();
+    }
+
     [[nodiscard]] u64 cycles() const override { return m_cycles; }
     [[nodiscard]] u64 frames() const override { return m_frames; }
 
@@ -280,8 +285,16 @@ public:
     [[nodiscard]] u64 texture_generation() const override { return m_texture_generation; }
     [[nodiscard]] u64 table_generation() const override { return m_table_generation; }
 
+    [[nodiscard]] u64 tile_generation() const override { return m_tile_generation; }
+    [[nodiscard]] u64 char_generation() const override { return m_char_generation; }
+
     [[nodiscard]] Model2Video& video() override { return m_video; }
     [[nodiscard]] const Model2Video& video() const override { return m_video; }
+
+    [[nodiscard]] u64 tilemap_compose_nanoseconds() const override
+    {
+        return m_video.last_compose_nanoseconds();
+    }
 
     void compose_video() override;
 
@@ -421,6 +434,8 @@ private:
 
     u64 m_texture_generation = 1;
     u64 m_table_generation   = 1;
+    u64 m_tile_generation    = 1;
+    u64 m_char_generation    = 1;
 
     // -- scheduling --------------------------------------------------------
     u64 m_cycles      = 0;

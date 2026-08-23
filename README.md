@@ -174,6 +174,8 @@ without anyone watching.
 | `--coin-at <n>` | insert two coins, press start and confirm a character on a fixed schedule |
 | `--log-unmapped` | every access landing outside a mapped region |
 | `--nvram <dir>` | where `<set>.nv` and `<set>.eeprom` live |
+| `--profile [n]` | run `n` seconds (default 30) and break the frame down per stage: CPU (geometry engine, tilemap composition, triangulation, host uploads, submit-and-present) and GPU (texture decode, 3D pass, composite, present, tilemap compose), each as p50/p95/p99, not a mean |
+| `--profile-csv <f>` | with `--profile`, also write the table to this CSV, one row per stage, for a scriptable before-and-after |
 
 ```sh
 ./build/bin/sm2-emu --boot-test 1700 --coin-at 1200 --dump-tilemap /tmp/wf vf2.zip
@@ -199,6 +201,20 @@ traffic on the link is a different problem from a silent game without it.
 `wireframe.ppm` deliberately shows polygons a shaded renderer would hide, which is
 what makes it useful for judging geometry alone. `tools/ppm_to_png.py` converts any
 of these dumps using only the Python standard library.
+
+`--profile` is what makes a performance claim a measurement rather than an
+impression. It reports percentiles because a mean hides exactly the stalls that
+make an emulator feel bad, and it runs `--software` and Vulkan on the same
+machine state so a GPU figure has something to be faster *than*:
+
+```sh
+./build/bin/sm2-emu --game vf2 --coin-at 150 --profile 5 --profile-csv /tmp/vf2.csv vf2.zip
+./build/bin/sm2-emu --game vf2 --coin-at 150 --profile 5 --software vf2.zip
+```
+
+A GPU stage that never ran (the tilemap compute dispatch under `--software`, or
+any GPU stage on a device that reports no timestamps) prints as empty, not zero —
+zero would read as a free stage rather than as no measurement having been taken.
 
 Two sweeps run a whole fleet and say which sets are worth a closer look:
 
@@ -274,7 +290,7 @@ as the machine manages.
 | 5 | Gamepad input, configuration, frame pacing, 68000 + SCSP sound **(done)** |
 | 6 | Presentation **(done)**, tilemap edge cases, accuracy, more games |
 | 7 | Expand compatibility to load and run more games; Model 1 audio board **(done)** |
-| 8 | Accelerate performance with Vulkan first to offload to GPU as much as possible |
+| 8 | Accelerate performance with Vulkan first to offload to GPU as much as possible **(done)** |
 | 9 | Add OpenGL Desktop for MacOS & x86_64 Linux & OpenGL ES support for Arm on Linux |
 | 10 | Tidy everything up for a release with associated GUI with options |
 
@@ -357,35 +373,76 @@ Neither set draws any geometry yet, so there is nothing to listen to either.
 
 ### Rendering backends
 
-- **OpenGL 3.3+ desktop backend.** An alternative to Vulkan for systems where
+The floor is **OpenGL 4.3 core / OpenGL ES 3.1**, not 3.3/ES 3.0: the texture
+decode and tilemap compute passes and their storage-buffer reads already commit
+the renderer to compute shaders and SSBOs, neither of which exists below that
+line. The Raspberry Pi 5's VideoCore VII is conformant GLES 3.1 and Vulkan 1.3,
+so this floor is not a hardware compromise on the device this project cares
+about.
+
+- **OpenGL 4.3 desktop backend.** An alternative to Vulkan for systems where
   Vulkan support is absent or immature.
-- **OpenGL ES 3.x backend.** For ARM devices (Raspberry Pi, embedded boards,
+- **OpenGL ES 3.1 backend.** For ARM devices (Raspberry Pi, embedded boards,
   phones) that lack Vulkan drivers entirely.
+
+Both build against `sm2::render::Backend` (`src/render/backend.h`), the seam
+phase 8 extracted so that `main.cpp`, `osd::Window` and `osd::Gui` need no
+further change to gain a second backend — they already name only `Backend` and
+`render::create_vulkan_backend()`, never a Vulkan type directly.
 
 ### GPU acceleration and Pi 5 performance
 
-The geometry engine and the tilemap chip still run on the CPU, and the GPU receives
-pre-projected screen-space triangles at native 496×384. Texture decode has already
-moved to a compute pass (`shaders/texel_decode.comp`), which unpacks each sheet's
-4-bit texels once per upload instead of the fragment shader shifting out a nibble on
-every one of up to sixteen taps; verified bit-exact against the previous renderer.
-Everything below is still to do:
+The geometry engine still runs on the CPU — both renderers consume its
+`RenderList` output, so moving it would remove the software renderer's ability
+to serve as a correctness oracle, and it stays a deliberate CPU-side design for
+that reason. Texture decode is a compute pass (`shaders/texel_decode.comp`),
+which unpacks each sheet's 4-bit texels once per upload instead of the fragment
+shader shifting out a nibble on every one of up to sixteen taps, and the tilemap
+is now rasterised on the GPU too (`shaders/tilemap_compose.comp`), which removed
+the unconditional 1,523,712 bytes/frame of CPU→GPU surface upload and the CPU
+compositing that produced it. Both are verified bit-exact against the CPU
+renderer across every set with a local ROM archive, not just assumed correct
+from the shader compiling.
 
-- **Split textured and untextured pipelines.** Untextured polygons never `discard`,
-  so a separate pipeline can use early stencil rejection.
-- **Stencil pre-pass.** Claim fill-mask bits in a stencil-only pass, then draw
-  textured with stencil EQUAL so the expensive shader runs only on visible pixels.
-  Stipple-transparent polygons conditionally leave stencil unclaimed and still need
-  the current path.
-- **GPU tilemap rasterisation.** Decode tiles from tile and character RAM on the
-  GPU, eliminating 1.5 MB/frame of upload.
-- **Profile per-frame buffer traffic.** The vertex and parameter buffers are
-  host-coherent, which is already efficient on unified-memory ARM SoCs, but stray
-  flushes and barriers are worth checking for.
+Two further optimisations were investigated and deferred, on measurement rather
+than on the original plan's assumptions:
 
-None of this has been measured on Pi 5 hardware — there is no device here to test
-on. Frame-time numbers from anyone with a Pi 5 or similar tile-based ARM GPU would
-make this section a great deal more useful.
+- **Splitting textured/untextured pipelines with a stencil pre-pass** turned out
+  to rest on two premises that do not hold on this hardware. Untextured
+  polygons are not discard-free — MAME's own `draw_scanline_solid` stipples
+  untextured polygons exactly like textured ones, confirmed in this renderer by
+  a direct counter (thousands of solid-and-checkered polygon-frames per run on
+  several sets). And a stencil-`EQUAL` early-rejection pass needs depth-based
+  pixel ownership to know *which* earlier polygon claimed a pixel, which this
+  hardware's fill mask deliberately does not carry (it is order-based, with
+  per-polygon sort overrides that ignore depth). Measured cost also does not
+  justify the risk: the 3D pass itself runs at 0.01-0.06 ms of a present-bound
+  frame whose GPU present blit alone costs 6.7-8.1 ms.
+- **Collapsing the triple-buffered texture/luma/tone staging** rested on
+  "these change almost never," which held for texture sheets (10-350 changes
+  per 1700 frames) but not for the tone curve and luminance table, which
+  change on 93-99% of frames on every set checked — collapsing those buffers
+  would force synchronization onto what is currently free, near-every-frame
+  work. The vertex and parameter buffers were also checked directly for stray
+  flushes or barriers and have none; Vulkan's host-write-ordering guarantee
+  already covers a `memcpy` followed by a read in the same, not-yet-submitted
+  command buffer, so there is nothing to add there.
+
+Full reasoning, the exact figures and what would need to be true for either to
+be worth revisiting live in `.kiro/specs/model2-gpu-acceleration/design.md`.
+
+All of the above was measured on **Apple M5** via MoltenVK — a desktop-class
+unified-memory GPU, not the tile-based ARM GPU this section is actually about.
+**None of it has been measured on Pi 5 hardware.** There is no device here to
+test on, and the figures above should not be read as a Pi 5 result by
+extension — a present-bound bottleneck on Apple silicon's driver stack is not
+evidence about VideoCore VII's. Frame-time numbers from anyone with a Pi 5 or
+similar tile-based ARM GPU would make this section a great deal more useful.
+
+The render backend is behind an abstraction now (`sm2::render::Backend`, see
+`src/render/backend.h`) specifically so the OpenGL ES 3.1 backend a Pi 5 needs
+(next section) can be built without main.cpp, `osd::Window` or `osd::Gui`
+changing a second time.
 
 ### Internal resolution upscaling
 

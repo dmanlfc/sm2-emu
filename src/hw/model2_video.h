@@ -90,6 +90,13 @@ public:
     /// is drawn.
     [[nodiscard]] u32 background() const { return m_pens.empty() ? 0xff000000u : m_pens[0]; }
 
+    /// Wall-clock time the last compose() call took, in nanoseconds. For the
+    /// phase 8 benchmark's per-stage CPU report (design.md requirement 1): this
+    /// is the "tilemap composition" stage, which the design's suspicion table
+    /// names as the largest CPU-to-GPU upload candidate but which was never
+    /// actually measured before that suspicion was written down.
+    [[nodiscard]] u64 last_compose_nanoseconds() const { return m_last_compose_ns; }
+
     /// The converted palette, for diagnostics and for the 3D pass later.
     [[nodiscard]] std::span<const u32> pens() const { return m_pens; }
 
@@ -160,6 +167,8 @@ private:
     /// MAME's defaults, which correspond to no sync register having been written.
     s16 m_crtc_x_offset = 84;
     s16 m_crtc_y_offset = 130;
+
+    u64 m_last_compose_ns = 0;
 };
 
 }  // namespace sm2::hw

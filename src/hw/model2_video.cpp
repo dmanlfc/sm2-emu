@@ -9,6 +9,7 @@
 #include "core/log.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 
 namespace sm2::hw {
@@ -142,6 +143,8 @@ void Model2Video::build_tone_curve(std::span<u32> out) const
 
 void Model2Video::compose()
 {
+    const auto start = std::chrono::steady_clock::now();
+
     m_tiles.update();
 
     std::fill(m_below.begin(), m_below.end(), 0u);
@@ -167,6 +170,11 @@ void Model2Video::compose()
     for (u32 layer = kTileLayers; layer-- > 0;) {
         m_tiles.draw((layer << 1) | 1, /*opaque=*/false, m_pens, m_above.data(), kWidth);
     }
+
+    m_last_compose_ns = static_cast<u64>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now() - start)
+            .count());
 }
 
 void Model2Video::draw_framebuffer(std::span<const u16> pixels)

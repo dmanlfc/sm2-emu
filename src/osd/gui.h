@@ -19,7 +19,6 @@
 
 #include <string>
 #include <vector>
-#include <vulkan/vulkan.h>
 
 struct SDL_Window;
 
@@ -30,6 +29,12 @@ namespace sm2::osd {
 /// The GUI is an overlay that appears when the user presses F1 (or launches
 /// without a ROM). It provides access to settings that persist to sm2-emu.ini
 /// and a game browser for selecting ROMs.
+///
+/// This class owns ImGui's context and its SDL3 platform backend only. Which
+/// GPU API draws the widgets it builds is a render backend's concern, not
+/// this one's -- see render::Backend::draw_overlay(), which calls new_frame()
+/// and draw() here, then renders ImGui's resulting draw data through whatever
+/// renderer backend (Vulkan today) it owns.
 class Gui {
 public:
     Gui() = default;
@@ -38,28 +43,30 @@ public:
     Gui(const Gui&) = delete;
     Gui& operator=(const Gui&) = delete;
 
-    /// Initialise ImGui with the SDL3 + Vulkan backends.
+    /// Initialise ImGui and its SDL3 platform backend.
     ///
-    /// Call once after the Vulkan device and swapchain are created. The render
-    /// pass format must match the swapchain's colour attachment.
-    [[nodiscard]] bool init(SDL_Window* window, VkInstance instance,
-                            VkPhysicalDevice physical_device, VkDevice device,
-                            u32 graphics_family, VkQueue graphics_queue,
-                            VkFormat swapchain_format, u32 image_count);
+    /// Call once the window exists. The render backend initialises its own
+    /// ImGui renderer backend separately, after this.
+    [[nodiscard]] bool init(SDL_Window* window);
 
     void shutdown();
 
-    /// Begin a new ImGui frame. Call once per frame before draw().
+    /// Begin a new ImGui frame. Call once per frame before draw(), after the
+    /// render backend's own new-frame call for its ImGui renderer backend.
     void new_frame();
 
-    /// Draw the GUI windows. Returns true if the overlay is visible.
+    /// Draw the GUI windows: the always-on FPS counter, plus the F1 settings
+    /// overlay when visible. Always returns true, since the FPS counter draws
+    /// every frame regardless of `visible()` — the caller should always open a
+    /// rendering scope for the backend's draw_overlay().
     [[nodiscard]] bool draw(Config& config,
                             const std::vector<std::string>& gpu_names,
-                            float measured_hz);
+                            float measured_hz,
+                            const char* renderer_label);
 
-    /// Record ImGui's draw commands into the given command buffer.
-    /// The command buffer must be inside a render pass / dynamic rendering scope.
-    void render(VkCommandBuffer cmd);
+    /// Finish this frame's ImGui build. Call once, after draw(), before the
+    /// render backend submits ImGui's draw data.
+    void end_frame();
 
     /// Toggle the overlay on/off.
     void toggle() { m_visible = !m_visible; }
@@ -75,14 +82,10 @@ private:
     void draw_menu_bar(Config& config);
     void draw_settings(Config& config, const std::vector<std::string>& gpu_names);
     void draw_status_bar(float measured_hz);
+    void draw_fps_overlay(float measured_hz, const char* renderer_label);
 
-    bool m_visible    = false;
+    bool m_visible     = false;
     bool m_initialised = false;
-
-    // ImGui's Vulkan backend needs its own descriptor pool.
-    VkDescriptorPool m_descriptor_pool = VK_NULL_HANDLE;
-    VkDevice         m_device          = VK_NULL_HANDLE;
-    VkFormat         m_swapchain_format = VK_FORMAT_UNDEFINED;
 };
 
 }  // namespace sm2::osd

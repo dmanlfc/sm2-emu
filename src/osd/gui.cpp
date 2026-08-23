@@ -17,7 +17,6 @@
 
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
-#include <imgui_impl_vulkan.h>
 
 #include <SDL3/SDL.h>
 
@@ -37,30 +36,8 @@ Gui::~Gui()
     }
 }
 
-bool Gui::init(SDL_Window* window, VkInstance instance,
-               VkPhysicalDevice physical_device, VkDevice device,
-               u32 graphics_family, VkQueue graphics_queue,
-               VkFormat swapchain_format, u32 image_count)
+bool Gui::init(SDL_Window* window)
 {
-    // ImGui's Vulkan backend needs a descriptor pool for its font texture.
-    VkDescriptorPoolSize pool_sizes[] = {
-        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 16 },
-    };
-    VkDescriptorPoolCreateInfo pool_info{};
-    pool_info.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pool_info.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-    pool_info.maxSets       = 16;
-    pool_info.poolSizeCount = 1;
-    pool_info.pPoolSizes    = pool_sizes;
-
-    if (vkCreateDescriptorPool(device, &pool_info, nullptr, &m_descriptor_pool) != VK_SUCCESS) {
-        SM2_ERROR("gui: failed to create descriptor pool");
-        return false;
-    }
-    m_device = device;
-    m_swapchain_format = swapchain_format;
-
-    // ImGui context.
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -76,40 +53,12 @@ bool Gui::init(SDL_Window* window, VkInstance instance,
     style.GrabRounding     = 2.0f;
     style.WindowBorderSize = 0.0f;
 
-    // SDL3 platform backend.
-    ImGui_ImplSDL3_InitForVulkan(window);
-
-    // Vulkan renderer backend — using dynamic rendering (no VkRenderPass).
-    ImGui_ImplVulkan_InitInfo init_info{};
-    init_info.ApiVersion      = VK_API_VERSION_1_3;
-    init_info.Instance        = instance;
-    init_info.PhysicalDevice  = physical_device;
-    init_info.Device          = device;
-    init_info.QueueFamily     = graphics_family;
-    init_info.Queue           = graphics_queue;
-    init_info.DescriptorPool  = m_descriptor_pool;
-    init_info.MinImageCount   = image_count;
-    init_info.ImageCount      = image_count;
-    init_info.MSAASamples     = VK_SAMPLE_COUNT_1_BIT;
-    init_info.UseDynamicRendering = true;
-    init_info.CheckVkResultFn = [](VkResult result) {
-        if (result != VK_SUCCESS) {
-            SM2_ERROR("gui: Vulkan error %d", static_cast<int>(result));
-        }
-    };
-
-    // Dynamic rendering format info — must point to stable storage.
-    init_info.PipelineRenderingCreateInfo.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
-    init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
-    init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &m_swapchain_format;
-
-    if (!ImGui_ImplVulkan_Init(&init_info)) {
-        SM2_ERROR("gui: ImGui_ImplVulkan_Init failed");
-        ImGui_ImplSDL3_Shutdown();
+    // The platform backend only, chosen for input/clipboard/cursor handling.
+    // Which GPU API actually draws the result is a render backend's own
+    // ImGui renderer backend, initialised separately.
+    if (!ImGui_ImplSDL3_InitForOther(window)) {
+        SM2_ERROR("gui: ImGui_ImplSDL3_InitForOther failed");
         ImGui::DestroyContext();
-        vkDestroyDescriptorPool(device, m_descriptor_pool, nullptr);
-        m_descriptor_pool = VK_NULL_HANDLE;
         return false;
     }
 
@@ -122,14 +71,8 @@ void Gui::shutdown()
 {
     if (!m_initialised) return;
 
-    ImGui_ImplVulkan_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
-
-    if (m_descriptor_pool != VK_NULL_HANDLE) {
-        vkDestroyDescriptorPool(m_device, m_descriptor_pool, nullptr);
-        m_descriptor_pool = VK_NULL_HANDLE;
-    }
 
     m_initialised = false;
 }
@@ -141,31 +84,33 @@ void Gui::shutdown()
 void Gui::new_frame()
 {
     if (!m_initialised) return;
-    ImGui_ImplVulkan_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 }
 
 bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
-               float measured_hz)
+               float measured_hz, const char* renderer_label)
 {
-    if (!m_visible) return false;
+    // Always on, regardless of F1: this is the counter the owner wants visible
+    // whether or not the settings overlay is open.
+    draw_fps_overlay(measured_hz, renderer_label);
 
-    draw_menu_bar(config);
-    draw_settings(config, gpu_names);
-    draw_status_bar(measured_hz);
+    if (m_visible) {
+        draw_menu_bar(config);
+        draw_settings(config, gpu_names);
+        draw_status_bar(measured_hz);
+    }
 
     return true;
 }
 
-void Gui::render(VkCommandBuffer cmd)
+void Gui::end_frame()
 {
     if (!m_initialised) return;
-    // ImGui::Render() must be called every frame after NewFrame(), regardless
-    // of whether we intend to draw anything.
+    // Must be called every frame after new_frame(), regardless of whether
+    // anything was drawn -- a render backend reads ImGui::GetDrawData() after
+    // this to submit it through whatever GPU API it owns.
     ImGui::Render();
-    if (!m_visible || cmd == VK_NULL_HANDLE) return;
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
 }
 
 // ---------------------------------------------------------------------------
@@ -335,6 +280,42 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
     ImGui::TextDisabled("Saved to sm2-emu.ini");
 
     ImGui::End();
+}
+
+// ---------------------------------------------------------------------------
+// FPS overlay (top right, always on)
+// ---------------------------------------------------------------------------
+
+void Gui::draw_fps_overlay(float measured_hz, const char* renderer_label)
+{
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    const ImVec2         margin{10.0F, 10.0F};
+
+    // Sized to fit rather than fixed, so a longer renderer label never clips.
+    char text[64];
+    std::snprintf(text, sizeof(text), "%.1f FPS  [%s]", static_cast<double>(measured_hz),
+                 renderer_label);
+    const ImVec2 text_size = ImGui::CalcTextSize(text);
+    const ImVec2 padding{8.0F, 4.0F};
+    const ImVec2 window_size{text_size.x + padding.x * 2.0F, text_size.y + padding.y * 2.0F};
+
+    ImGui::SetNextWindowPos(
+        ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - window_size.x - margin.x,
+               viewport->WorkPos.y + margin.y));
+    ImGui::SetNextWindowSize(window_size);
+    ImGui::SetNextWindowBgAlpha(0.55F);
+
+    constexpr ImGuiWindowFlags kFlags =
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove
+        | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
+        | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoInputs;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
+    if (ImGui::Begin("##FpsOverlay", nullptr, kFlags)) {
+        ImGui::TextUnformatted(text);
+    }
+    ImGui::End();
+    ImGui::PopStyleVar();
 }
 
 // ---------------------------------------------------------------------------

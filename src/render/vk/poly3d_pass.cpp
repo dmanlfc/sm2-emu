@@ -968,6 +968,13 @@ void Poly3DPass::decode_textures()
     Frame& target = frame();
     const VkCommandBuffer cmd = m_context->cmd();
 
+    // Brackets only the dispatch this call always makes when it runs at all --
+    // refresh_machine_data() calls this conditionally, so a frame that skips it
+    // (texture_generation unchanged, the common case after the first frame)
+    // leaves both queries unwritten rather than reporting a free stage.
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::TextureDecode,
+                               false);
+
     // From UNDEFINED because the decode pass overwrites every element it can
     // reach; nothing depends on the image's previous contents. The wait is on
     // the previous frame's own fragment reads of this same per-frame image,
@@ -988,6 +995,9 @@ void Poly3DPass::decode_textures()
     const u32 groups_x = (kDecodedWidth + 15) / 16;
     const u32 groups_y = (kDecodedHeight + 15) / 16;
     vkCmdDispatch(cmd, groups_x, groups_y, 2);
+
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, GpuStage::TextureDecode,
+                               true);
 
     // The polygon pass samples this image next, in the fragment shader.
     record_image_barrier(cmd, target.decoded, VK_IMAGE_ASPECT_COLOR_BIT,
@@ -1155,6 +1165,8 @@ void Poly3DPass::render()
     const VkCommandBuffer cmd    = m_context->cmd();
     Frame&                target = frame();
 
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Poly3D, false);
+
     // From UNDEFINED because the whole image is about to be cleared. The wait is
     // on the fragment shader of the frame that last sampled it, which this frame's
     // fence has already retired.
@@ -1246,11 +1258,19 @@ void Poly3DPass::render()
                          VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
                          VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
                          VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
+
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, GpuStage::Poly3D, true);
 }
 
 void Poly3DPass::composite()
 {
     const VkCommandBuffer cmd = m_context->cmd();
+
+    // Both queries land inside TilemapPass's open rendering scope (this runs
+    // between record_below() and record_above()), which vkCmdWriteTimestamp2
+    // permits -- only vkCmdResetQueryPool needs to be outside one, and that
+    // already happened once at the top of the frame in Context::begin_frame().
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Composite, false);
 
     CompositePush push{};
     push.background[3] = 1.0F;
@@ -1266,6 +1286,8 @@ void Poly3DPass::composite()
     vkCmdPushConstants(cmd, m_composite_layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                        sizeof(push), &push);
     vkCmdDraw(cmd, 3, 1, 0, 0);
+
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, GpuStage::Composite, true);
 }
 
 }  // namespace sm2::render::vk

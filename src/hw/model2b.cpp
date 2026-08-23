@@ -1333,9 +1333,11 @@ void Model2B::note_video_write(const Window& w, u32 width)
             return;
         case Notify::TileRam:
             m_video.tiles().note_tile_write(w.offset, width);
+            ++m_tile_generation;
             return;
         case Notify::CharRam:
             m_video.tiles().note_char_write(w.offset, width);
+            ++m_char_generation;
             return;
         case Notify::TextureRam:
             ++m_texture_generation;

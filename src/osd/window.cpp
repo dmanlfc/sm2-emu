@@ -89,26 +89,6 @@ void Window::destroy()
     }
 }
 
-std::vector<const char*> Window::required_instance_extensions() const
-{
-    Uint32 count = 0;
-    const char* const* names = SDL_Vulkan_GetInstanceExtensions(&count);
-    if (names == nullptr) {
-        SM2_ERROR("SDL_Vulkan_GetInstanceExtensions failed: %s", SDL_GetError());
-        return {};
-    }
-    return std::vector<const char*>(names, names + count);
-}
-
-bool Window::create_surface(VkInstance instance, VkSurfaceKHR* out_surface)
-{
-    if (!SDL_Vulkan_CreateSurface(m_window, instance, nullptr, out_surface)) {
-        SM2_ERROR("SDL_Vulkan_CreateSurface failed: %s", SDL_GetError());
-        return false;
-    }
-    return true;
-}
-
 void Window::drawable_size(u32* out_width, u32* out_height) const
 {
     int width = 0;

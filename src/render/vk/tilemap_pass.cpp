@@ -15,10 +15,13 @@
 #include "render/vk/tilemap_pass.h"
 
 #include "core/log.h"
+#include "hw/model2_machine_base.h"
+#include "hw/model2_video.h"
 
 #include <vk_mem_alloc.h>
 
 #include "shaders/fullscreen_quad_vert.h"
+#include "shaders/tilemap_compose_comp.h"
 #include "shaders/tilemap_composite_frag.h"
 
 #include <algorithm>
@@ -62,6 +65,35 @@ constexpr VkRect2D kNativeScissor{{0, 0},
     return true;
 }
 
+/// As record_image_barrier (vk_common.h), for a buffer. Only this file needs
+/// one so far; promote it if a second caller appears.
+void record_buffer_barrier(VkCommandBuffer      cmd,
+                          VkBuffer              buffer,
+                          VkDeviceSize          size,
+                          VkPipelineStageFlags2 src_stage,
+                          VkAccessFlags2        src_access,
+                          VkPipelineStageFlags2 dst_stage,
+                          VkAccessFlags2        dst_access)
+{
+    VkBufferMemoryBarrier2 barrier{};
+    barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+    barrier.srcStageMask        = src_stage;
+    barrier.srcAccessMask       = src_access;
+    barrier.dstStageMask        = dst_stage;
+    barrier.dstAccessMask       = dst_access;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.buffer              = buffer;
+    barrier.offset              = 0;
+    barrier.size                = size;
+
+    VkDependencyInfo dependency{};
+    dependency.sType                    = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    dependency.bufferMemoryBarrierCount = 1;
+    dependency.pBufferMemoryBarriers    = &barrier;
+    vkCmdPipelineBarrier2(cmd, &dependency);
+}
+
 }  // namespace
 
 TilemapPass::~TilemapPass()
@@ -89,7 +121,8 @@ bool TilemapPass::init(Context& context)
     sampler.borderColor  = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
     SM2_VK_TRY(vkCreateSampler(context.device(), &sampler, nullptr, &m_sampler));
 
-    return create_surfaces() && create_descriptors() && create_pipelines();
+    return create_surfaces() && create_descriptors() && create_pipelines()
+        && create_compute_resources();
 }
 
 void TilemapPass::shutdown()
@@ -117,6 +150,30 @@ void TilemapPass::shutdown()
             surface.mapped     = nullptr;
         }
         surface.set = VK_NULL_HANDLE;
+    }
+
+    for (ComputeFrame& target : m_compute_frames) {
+        destroy_host_buffer(&target.tile_ram);
+        destroy_host_buffer(&target.char_ram);
+        destroy_host_buffer(&target.pens);
+        target.set = VK_NULL_HANDLE;
+    }
+
+    if (m_compute_pipeline != VK_NULL_HANDLE) {
+        vkDestroyPipeline(device, m_compute_pipeline, nullptr);
+        m_compute_pipeline = VK_NULL_HANDLE;
+    }
+    if (m_compute_layout != VK_NULL_HANDLE) {
+        vkDestroyPipelineLayout(device, m_compute_layout, nullptr);
+        m_compute_layout = VK_NULL_HANDLE;
+    }
+    if (m_compute_pool != VK_NULL_HANDLE) {
+        vkDestroyDescriptorPool(device, m_compute_pool, nullptr);
+        m_compute_pool = VK_NULL_HANDLE;
+    }
+    if (m_compute_set_layout != VK_NULL_HANDLE) {
+        vkDestroyDescriptorSetLayout(device, m_compute_set_layout, nullptr);
+        m_compute_set_layout = VK_NULL_HANDLE;
     }
 
     if (m_pipeline_blend != VK_NULL_HANDLE) {
@@ -157,9 +214,12 @@ bool TilemapPass::create_surfaces()
 
     for (Surface& surface : m_surfaces) {
         VkBufferCreateInfo buffer{};
-        buffer.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        buffer.size        = kSurfaceBytes;
-        buffer.usage       = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        buffer.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        buffer.size  = kSurfaceBytes;
+        // STORAGE_BUFFER so the compose shader can write into this buffer
+        // directly; TRANSFER_SRC is unchanged, for the copy into the sampled
+        // image right after.
+        buffer.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
         buffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         // Persistently mapped and host-coherent: the CPU writes a whole surface
@@ -400,6 +460,166 @@ bool TilemapPass::create_pipeline(bool blend, VkPipeline* out_pipeline)
     return true;
 }
 
+bool TilemapPass::create_host_buffer(VkDeviceSize       size,
+                                    VkBufferUsageFlags usage,
+                                    HostBuffer*        out)
+{
+    VkBufferCreateInfo buffer{};
+    buffer.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buffer.size        = size;
+    buffer.usage       = usage;
+    buffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    // Persistently mapped and host-coherent, as Poly3DPass::create_host_buffer:
+    // these are written whole by the CPU and read once by the GPU per refresh,
+    // which is rare after the first frame.
+    VmaAllocationCreateInfo allocation{};
+    allocation.usage = VMA_MEMORY_USAGE_AUTO;
+    allocation.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+                     | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    allocation.requiredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    VmaAllocationInfo info{};
+    SM2_VK_TRY(vmaCreateBuffer(m_context->allocator(), &buffer, &allocation, &out->handle,
+                               &out->allocation, &info));
+    out->mapped = info.pMappedData;
+    out->size   = size;
+    if (out->mapped == nullptr) {
+        SM2_ERROR("tilemap: a host buffer was not mapped");
+        return false;
+    }
+    return true;
+}
+
+void TilemapPass::destroy_host_buffer(HostBuffer* buffer)
+{
+    if (buffer->handle != VK_NULL_HANDLE) {
+        vmaDestroyBuffer(m_context->allocator(), buffer->handle, buffer->allocation);
+        buffer->handle     = VK_NULL_HANDLE;
+        buffer->allocation = nullptr;
+        buffer->mapped     = nullptr;
+        buffer->size       = 0;
+    }
+}
+
+bool TilemapPass::create_compute_resources()
+{
+    const VkDevice device = m_context->device();
+    const u32      frames = static_cast<u32>(m_compute_frames.size());
+
+    for (ComputeFrame& target : m_compute_frames) {
+        if (!create_host_buffer(kTileRamBytes, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                                &target.tile_ram)
+            || !create_host_buffer(kCharRamBytes, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                                   &target.char_ram)
+            || !create_host_buffer(static_cast<VkDeviceSize>(kPenCount) * sizeof(u32),
+                                   VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &target.pens)) {
+            return false;
+        }
+    }
+
+    // Five storage buffers: tile RAM, character RAM and pens (read), below and
+    // above (written -- the same staging buffers create_surfaces() made, now
+    // also bound here as this frame's compose target).
+    VkDescriptorSetLayoutBinding bindings[5]{};
+    for (u32 index = 0; index < 5; ++index) {
+        bindings[index].binding         = index;
+        bindings[index].descriptorCount = 1;
+        bindings[index].stageFlags      = VK_SHADER_STAGE_COMPUTE_BIT;
+        bindings[index].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    }
+
+    VkDescriptorSetLayoutCreateInfo layout{};
+    layout.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layout.bindingCount = 5;
+    layout.pBindings    = bindings;
+    SM2_VK_TRY(
+        vkCreateDescriptorSetLayout(device, &layout, nullptr, &m_compute_set_layout));
+
+    VkDescriptorPoolSize size{};
+    size.type            = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    size.descriptorCount = frames * 5;
+
+    VkDescriptorPoolCreateInfo pool{};
+    pool.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool.maxSets       = frames;
+    pool.poolSizeCount = 1;
+    pool.pPoolSizes    = &size;
+    SM2_VK_TRY(vkCreateDescriptorPool(device, &pool, nullptr, &m_compute_pool));
+
+    for (u32 index = 0; index < frames; ++index) {
+        ComputeFrame& target = m_compute_frames[index];
+
+        VkDescriptorSetAllocateInfo allocate{};
+        allocate.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocate.descriptorPool     = m_compute_pool;
+        allocate.descriptorSetCount = 1;
+        allocate.pSetLayouts        = &m_compute_set_layout;
+        SM2_VK_TRY(vkAllocateDescriptorSets(device, &allocate, &target.set));
+
+        // Below/above bindings 3/4 name the same surfaces upload() used to
+        // memcpy into: surface 0 of this frame index is below, surface 1 is
+        // above (see kSurfacesPerFrame's layout in surface()/upload()).
+        const u32 below_index = index * kSurfacesPerFrame + 0;
+        const u32 above_index = index * kSurfacesPerFrame + 1;
+
+        const VkDescriptorBufferInfo buffers[5] = {
+            {target.tile_ram.handle, 0, target.tile_ram.size},
+            {target.char_ram.handle, 0, target.char_ram.size},
+            {target.pens.handle, 0, target.pens.size},
+            {m_surfaces[below_index].staging, 0, kSurfaceBytes},
+            {m_surfaces[above_index].staging, 0, kSurfaceBytes},
+        };
+
+        VkWriteDescriptorSet writes[5]{};
+        for (u32 binding = 0; binding < 5; ++binding) {
+            writes[binding].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writes[binding].dstSet          = target.set;
+            writes[binding].dstBinding      = binding;
+            writes[binding].descriptorCount = 1;
+            writes[binding].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            writes[binding].pBufferInfo     = &buffers[binding];
+        }
+        vkUpdateDescriptorSets(device, 5, writes, 0, nullptr);
+    }
+
+    VkPipelineLayoutCreateInfo pipeline_layout{};
+    pipeline_layout.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipeline_layout.setLayoutCount = 1;
+    pipeline_layout.pSetLayouts    = &m_compute_set_layout;
+    SM2_VK_TRY(
+        vkCreatePipelineLayout(device, &pipeline_layout, nullptr, &m_compute_layout));
+
+    VkShaderModuleCreateInfo module_info{};
+    module_info.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    module_info.codeSize = static_cast<usize>(shaders::kTilemapComposeCompWordCount)
+                         * sizeof(u32);
+    module_info.pCode    = shaders::kTilemapComposeComp;
+    VkShaderModule module = VK_NULL_HANDLE;
+    SM2_VK_TRY(vkCreateShaderModule(device, &module_info, nullptr, &module));
+
+    VkPipelineShaderStageCreateInfo stage{};
+    stage.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stage.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
+    stage.module = module;
+    stage.pName  = "main";
+
+    VkComputePipelineCreateInfo compute_info{};
+    compute_info.sType  = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    compute_info.stage  = stage;
+    compute_info.layout = m_compute_layout;
+
+    const VkResult result = vkCreateComputePipelines(device, VK_NULL_HANDLE, 1,
+                                                      &compute_info, nullptr,
+                                                      &m_compute_pipeline);
+    vkDestroyShaderModule(device, module, nullptr);
+    if (result != VK_SUCCESS) {
+        SM2_ERROR("tilemap: vkCreateComputePipelines failed: %s", result_string(result));
+        return false;
+    }
+    return true;
+}
+
 // ---------------------------------------------------------------------------
 // Per-frame recording
 // ---------------------------------------------------------------------------
@@ -407,6 +627,11 @@ bool TilemapPass::create_pipeline(bool blend, VkPipeline* out_pipeline)
 TilemapPass::Surface& TilemapPass::surface(u32 index)
 {
     return m_surfaces[m_frame_surface_base + index];
+}
+
+TilemapPass::ComputeFrame& TilemapPass::compute_frame()
+{
+    return m_compute_frames[m_context->frame_index()];
 }
 
 void TilemapPass::upload(std::span<const u32> below, std::span<const u32> above)
@@ -432,6 +657,90 @@ void TilemapPass::upload(std::span<const u32> below, std::span<const u32> above)
     }
     for (u32 index = 0; index < kSurfacesPerFrame; ++index) {
         transition_for_sampling(surface(index));
+    }
+
+    // This slot's staging buffers now hold a CPU-composited frame, not
+    // whatever compute() last wrote -- force its next call to redo the
+    // dispatch regardless of whether the generation counters moved. Only the
+    // counters reset, not the whole struct: the buffers and descriptor set are
+    // live GPU resources that must survive to be reused, not recreated.
+    ComputeFrame& stale     = compute_frame();
+    stale.tile_generation   = 0;
+    stale.char_generation   = 0;
+    stale.table_generation  = 0;
+}
+
+void TilemapPass::compute(const hw::Model2MachineBase& machine, const hw::Model2Video& video)
+{
+    m_frame_surface_base = m_context->frame_index() * kSurfacesPerFrame;
+    ComputeFrame& target = compute_frame();
+
+    const bool tile_changed  = target.tile_generation != machine.tile_generation();
+    const bool char_changed  = target.char_generation != machine.char_generation();
+    const bool table_changed = target.table_generation != machine.table_generation();
+    if (!tile_changed && !char_changed && !table_changed) {
+        return;
+    }
+
+    if (tile_changed) {
+        const std::span<const u8> tile_ram = machine.tile_ram();
+        std::memcpy(target.tile_ram.mapped, tile_ram.data(),
+                   std::min<usize>(kTileRamBytes, tile_ram.size()));
+        target.tile_generation = machine.tile_generation();
+    }
+    if (char_changed) {
+        const std::span<const u8> char_ram = machine.char_ram();
+        std::memcpy(target.char_ram.mapped, char_ram.data(),
+                   std::min<usize>(kCharRamBytes, char_ram.size()));
+        target.char_generation = machine.char_generation();
+    }
+    if (table_changed) {
+        const std::span<const u32> pens = video.pens();
+        std::memcpy(target.pens.mapped, pens.data(),
+                   std::min<usize>(kPenCount, pens.size()) * sizeof(u32));
+        target.table_generation = machine.table_generation();
+    }
+
+    dispatch_compose();
+
+    for (u32 index = 0; index < kSurfacesPerFrame; ++index) {
+        transition_for_transfer(surface(index));
+    }
+    for (u32 index = 0; index < kSurfacesPerFrame; ++index) {
+        copy_to_image(surface(index));
+    }
+    for (u32 index = 0; index < kSurfacesPerFrame; ++index) {
+        transition_for_sampling(surface(index));
+    }
+}
+
+void TilemapPass::dispatch_compose()
+{
+    const VkCommandBuffer cmd    = m_context->cmd();
+    const ComputeFrame&   target = compute_frame();
+
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT,
+                               GpuStage::TilemapCompose, false);
+
+    // The shader's writes to below/above are plain host-coherent buffers, not
+    // images, so there is no layout to transition -- only a barrier making
+    // sure the compute write finishes before the copy that follows reads it.
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, m_compute_pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, m_compute_layout, 0, 1,
+                            &target.set, 0, nullptr);
+
+    const u32 groups_x = (kSourceWidth + 15) / 16;
+    const u32 groups_y = (kSourceHeight + 15) / 16;
+    vkCmdDispatch(cmd, groups_x, groups_y, 1);
+
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT,
+                               GpuStage::TilemapCompose, true);
+
+    for (u32 index = 0; index < kSurfacesPerFrame; ++index) {
+        record_buffer_barrier(cmd, surface(index).staging, kSurfaceBytes,
+                              VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+                              VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT,
+                              VK_PIPELINE_STAGE_2_COPY_BIT, VK_ACCESS_2_TRANSFER_READ_BIT);
     }
 }
 

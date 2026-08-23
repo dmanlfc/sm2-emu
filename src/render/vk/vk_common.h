@@ -16,8 +16,11 @@
 
 #include "core/log.h"
 #include "core/types.h"
+#include "render/backend.h"
 
 #include <vulkan/vulkan.h>
+
+#include <array>
 
 namespace sm2::render::vk {
 
@@ -74,6 +77,17 @@ constexpr VkFormat kNativeColourFormat = VK_FORMAT_R8G8B8A8_UNORM;
 /// The raster is 496x384, which is 1.29:1, but an arcade monitor stretched it to
 /// the usual 4:3, so a square-pixel presentation would be noticeably narrow.
 constexpr float kDisplayAspect = 4.0F / 3.0F;
+
+// ---------------------------------------------------------------------------
+// GPU stage timing (phase 8 benchmark, design.md requirement 1.2)
+// ---------------------------------------------------------------------------
+//
+// Aliased from render::, not redeclared: neither type names a Vulkan type, so
+// they live in the backend-neutral header (render/backend.h) and this is the
+// name every existing render/vk/ call site already used.
+using GpuStage      = sm2::render::GpuStage;
+using GpuStageTime  = sm2::render::GpuStageTime;
+using GpuStageTimes = sm2::render::GpuStageTimes;
 
 // ---------------------------------------------------------------------------
 // Small helpers

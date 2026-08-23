@@ -83,6 +83,30 @@ public:
     /// context, so they cannot rely on the context's own shutdown wait.
     void wait_idle();
 
+    // -- GPU stage timing (phase 8 benchmark) -------------------------------
+
+    /// Whether this device can report GPU timestamps at all. False makes
+    /// write_timestamp() and stage_times() both no-ops rather than crash, so a
+    /// benchmark run says "not supported" instead of reporting zeros as if they
+    /// were measured -- see design.md requirement 1 and the BRIEF's warning
+    /// against exactly that failure mode.
+    [[nodiscard]] bool supports_gpu_timing() const { return m_timestamp_period > 0.0F; }
+
+    /// Record a timestamp for `stage`'s start or end into the current frame's
+    /// query slot. No-op if supports_gpu_timing() is false. `is_end` selects
+    /// which of the stage's two queries this writes; the caller is responsible
+    /// for calling both once per frame for a stage it wants timed, in program
+    /// order, since a stage that is skipped some frames (the decode dispatch)
+    /// must still write both or leave both unwritten, never one.
+    void write_timestamp(VkPipelineStageFlags2 stage_mask, GpuStage stage, bool is_end);
+
+    /// GPU times from the oldest still-in-flight slot, which by construction
+    /// finished at least kFramesInFlight-1 frames ago and so is always safe to
+    /// read without a wait. Call once per frame, after begin_frame(); the result
+    /// lags real time by a couple of frames, which is fine for a benchmark
+    /// averaged over thousands of them.
+    [[nodiscard]] GpuStageTimes read_stage_times();
+
     // -- accessors ---------------------------------------------------------
 
     [[nodiscard]] VkDevice         device()          const { return m_device; }
@@ -122,7 +146,7 @@ public:
     [[nodiscard]] static std::vector<std::string> enumerate_device_names();
 
 private:
-    [[nodiscard]] bool create_instance(osd::Window& window, const ContextConfig& config);
+    [[nodiscard]] bool create_instance(const ContextConfig& config);
     [[nodiscard]] bool create_debug_messenger();
     [[nodiscard]] bool select_physical_device(const ContextConfig& config);
     [[nodiscard]] bool create_device();
@@ -131,8 +155,10 @@ private:
     [[nodiscard]] bool create_sync_resources();
     [[nodiscard]] bool create_swapchain(VkSwapchainKHR old_swapchain);
     [[nodiscard]] bool create_present_semaphores();
+    [[nodiscard]] bool create_query_pool();
     void destroy_swapchain_views();
     void pick_stencil_format();
+    void read_back_stage_times(u32 frame_index);
 
     osd::Window* m_window = nullptr;
 
@@ -181,6 +207,29 @@ private:
     bool m_vsync            = true;
     bool m_needs_recreation = false;
     bool m_portability       = false;
+
+    // -- GPU stage timing ----------------------------------------------------
+    // Two queries per stage (begin, end), one set per frame in flight so that
+    // recording frame N+1 never overwrites a query frame N's readback has not
+    // happened yet. Nanoseconds per tick; zero from vkGetPhysicalDeviceProperties
+    // means the device did not report a period, which read_stage_times() treats
+    // the same as no support at all rather than dividing by zero.
+    static constexpr u32 kQueriesPerStage = 2;
+    static constexpr u32 kStageCount      = static_cast<u32>(GpuStage::kCount);
+    static constexpr u32 kQueriesPerFrame = kStageCount * kQueriesPerStage;
+
+    VkQueryPool m_query_pool       = VK_NULL_HANDLE;
+    float       m_timestamp_period = 0.0F;
+
+    /// Populated by read_back_stage_times() at the start of begin_frame(), the
+    /// one point every frame where a slot's queries are both retired and about
+    /// to be reset; read_stage_times() hands this back to the caller unchanged.
+    /// "Did a stage run" comes from vkGetQueryPoolResults' own availability bit
+    /// on each of that stage's begin/end queries -- a stage skipped this frame
+    /// (the decode dispatch, when texture_generation did not change) simply
+    /// never had its pair written, so both come back unavailable rather than
+    /// needing a separate written-flag to track the same fact twice.
+    GpuStageTimes m_last_stage_times{};
 };
 
 }  // namespace sm2::render::vk

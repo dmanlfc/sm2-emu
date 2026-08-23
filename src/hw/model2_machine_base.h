@@ -183,6 +183,12 @@ public:
     /// This frame's screen-space polygons, in drawing order.
     [[nodiscard]] virtual const RenderList& render_list() const = 0;
 
+    /// Wall-clock time the geometry engine took producing render_list(), for the
+    /// phase 8 benchmark's per-stage CPU report. See Geometrizer's own
+    /// documentation of this figure for why it is measured separately from the
+    /// main CPU's instruction time.
+    [[nodiscard]] virtual u64 geometry_stage_nanoseconds() const = 0;
+
     // -- persistence -----------------------------------------------------------
 
     /// Directory for the NVRAM and EEPROM images. Loaded now, saved on request.
@@ -236,8 +242,24 @@ public:
     [[nodiscard]] virtual u64 texture_generation() const = 0;
     [[nodiscard]] virtual u64 table_generation() const   = 0;
 
+    /// Counters that advance on any write to tile RAM or character RAM
+    /// respectively, for a GPU tilemap pass deciding whether its own copies need
+    /// refreshing. Coarser than Segaic24Tile's internal per-cell/per-character
+    /// dirty bitmaps -- those exist to skip re-decoding unchanged cells on the
+    /// CPU path and stay exactly as they are; these two exist only so a consumer
+    /// outside Segaic24Tile can ask "did anything change" as cheaply as
+    /// texture_generation()/table_generation() already let it ask that of
+    /// texture and palette memory.
+    [[nodiscard]] virtual u64 tile_generation() const = 0;
+    [[nodiscard]] virtual u64 char_generation() const = 0;
+
     [[nodiscard]] virtual Model2Video&       video()       = 0;
     [[nodiscard]] virtual const Model2Video& video() const = 0;
+
+    /// Wall-clock time compose_video()'s call into Model2Video::compose() took,
+    /// in nanoseconds. Named separately from video() itself so a caller wanting
+    /// only the benchmark figure need not also declare Model2Video complete.
+    [[nodiscard]] virtual u64 tilemap_compose_nanoseconds() const = 0;
 
     /// Produce this frame's 2D output, refreshing the palette first if the
     /// program changed it.

@@ -36,6 +36,7 @@ add_library(sm2_render STATIC
     render/vk/tilemap_pass.cpp
     render/vk/vk_common.cpp
     render/vk/vma_impl.cpp
+    render/vk/vulkan_backend.cpp
 )
 # sm2_hw is a dependency of the 3D pass alone, which reads the geometry engine's
 # output and asks the video stage to resolve each polygon's colour. It is private
@@ -49,6 +50,7 @@ target_link_libraries(sm2_render
     PRIVATE
         sm2_warnings
         sm2_hw
+        sm2_imgui
         SDL3::SDL3
 )
 
@@ -195,7 +197,6 @@ target_link_libraries(sm2_osd
         sm2_hw
         sm2_imgui
         SDL3::SDL3
-        Vulkan::Vulkan
     PRIVATE
         sm2_warnings
 )

@@ -19,6 +19,9 @@
 
 #include <vk_mem_alloc.h>
 
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
+
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -153,13 +156,16 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
     m_window = &window;
     m_vsync  = config.vsync;
 
-    if (!create_instance(window, config)) {
+    if (!create_instance(config)) {
         return false;
     }
     if (config.enable_validation && !create_debug_messenger()) {
         SM2_WARN("continuing without the debug messenger");
     }
-    if (!window.create_surface(m_instance, &m_surface)) {
+    // Not on osd::Window: a surface is a Vulkan resource, not a window
+    // property, so creating it belongs with everything else this class owns.
+    if (!SDL_Vulkan_CreateSurface(window.handle(), m_instance, nullptr, &m_surface)) {
+        SM2_ERROR("SDL_Vulkan_CreateSurface failed: %s", SDL_GetError());
         return false;
     }
     if (!select_physical_device(config)) {
@@ -175,6 +181,9 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
         return false;
     }
     if (!create_sync_resources()) {
+        return false;
+    }
+    if (!create_query_pool()) {
         return false;
     }
     if (!create_swapchain(VK_NULL_HANDLE)) {
@@ -221,6 +230,11 @@ void Context::shutdown()
         m_command_buffers.fill(VK_NULL_HANDLE);
     }
 
+    if (m_query_pool != VK_NULL_HANDLE) {
+        vkDestroyQueryPool(m_device, m_query_pool, nullptr);
+        m_query_pool = VK_NULL_HANDLE;
+    }
+
     if (m_allocator != nullptr) {
         vmaDestroyAllocator(m_allocator);
         m_allocator = nullptr;
@@ -254,7 +268,7 @@ void Context::shutdown()
 // Instance
 // ---------------------------------------------------------------------------
 
-bool Context::create_instance(osd::Window& window, const ContextConfig& config)
+bool Context::create_instance(const ContextConfig& config)
 {
     u32 loader_version = VK_API_VERSION_1_0;
     if (vkEnumerateInstanceVersion(&loader_version) != VK_SUCCESS) {
@@ -267,7 +281,15 @@ bool Context::create_instance(osd::Window& window, const ContextConfig& config)
         return false;
     }
 
-    std::vector<const char*> extensions = window.required_instance_extensions();
+    // As with the surface above, this is a Vulkan-side question SDL happens to
+    // answer, not a property of the window itself.
+    Uint32              extension_count = 0;
+    const char* const*  extension_names = SDL_Vulkan_GetInstanceExtensions(&extension_count);
+    if (extension_names == nullptr) {
+        SM2_ERROR("SDL_Vulkan_GetInstanceExtensions failed: %s", SDL_GetError());
+        return false;
+    }
+    std::vector<const char*> extensions(extension_names, extension_names + extension_count);
     if (extensions.empty()) {
         SM2_ERROR("SDL reported no required Vulkan instance extensions");
         return false;
@@ -503,6 +525,29 @@ bool Context::select_physical_device(const ContextConfig& config)
              m_graphics_family,
              m_present_family);
 
+    // Gated on the graphics queue family's own timestampValidBits rather than
+    // just VkPhysicalDeviceLimits::timestampPeriod > 0: the period can be
+    // nonzero while the specific queue family reports zero valid bits, meaning
+    // that family cannot report timestamps even though some other queue on the
+    // device could. The design doc's benchmark deliberately checks this rather
+    // than assuming support -- a device that cannot time itself must say so, not
+    // report zeros that look measured.
+    {
+        u32 family_count = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &family_count, nullptr);
+        std::vector<VkQueueFamilyProperties> families(family_count);
+        vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &family_count,
+                                                 families.data());
+        const bool valid = m_graphics_family < family_count
+                        && families[m_graphics_family].timestampValidBits > 0
+                        && m_device_properties.limits.timestampPeriod > 0.0F;
+        m_timestamp_period = valid ? m_device_properties.limits.timestampPeriod : 0.0F;
+        if (!valid) {
+            SM2_WARN("device does not report GPU timestamps on the graphics queue; "
+                     "the benchmark's GPU-side figures will be unavailable");
+        }
+    }
+
     pick_stencil_format();
     return m_stencil_format != VK_FORMAT_UNDEFINED;
 }
@@ -655,6 +700,49 @@ bool Context::create_sync_resources()
                                      &m_image_available[frame]));
         SM2_VK_TRY(vkCreateFence(m_device, &fence_info, nullptr, &m_in_flight[frame]));
     }
+    return true;
+}
+
+bool Context::create_query_pool()
+{
+    if (!supports_gpu_timing()) {
+        // Not an error: benchmark reporting degrades to "unavailable" rather
+        // than failing the whole context, since the emulator must still run on
+        // a device that lacks timestamp support.
+        return true;
+    }
+
+    VkQueryPoolCreateInfo info{};
+    info.sType      = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+    info.queryType  = VK_QUERY_TYPE_TIMESTAMP;
+    info.queryCount = kQueriesPerFrame * kFramesInFlight;
+    SM2_VK_TRY(vkCreateQueryPool(m_device, &info, nullptr, &m_query_pool));
+
+    // Every query must be reset once before its first use, including before the
+    // first read of its availability bit -- vkCmdResetQueryPool is the only way
+    // to do that without VK_EXT_host_query_reset, which this renderer does not
+    // otherwise need. begin_frame() resets each slot's own range on every frame,
+    // but not before its *first* use: for the first kFramesInFlight frames,
+    // read_back_stage_times() would run against a range no reset had touched
+    // yet. Confirmed by Vulkan validation (VUID-vkGetQueryPoolResults-None-09401,
+    // "query not reset") before this fix. So the whole pool is reset once here,
+    // borrowing the first command buffer for a throwaway submission before any
+    // frame recording begins.
+    const VkCommandBuffer cmd = m_command_buffers[0];
+    VkCommandBufferBeginInfo begin_info{};
+    begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    SM2_VK_TRY(vkBeginCommandBuffer(cmd, &begin_info));
+    vkCmdResetQueryPool(cmd, m_query_pool, 0, info.queryCount);
+    SM2_VK_TRY(vkEndCommandBuffer(cmd));
+
+    VkSubmitInfo submit{};
+    submit.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit.commandBufferCount = 1;
+    submit.pCommandBuffers    = &cmd;
+    SM2_VK_TRY(vkQueueSubmit(m_graphics_queue, 1, &submit, VK_NULL_HANDLE));
+    SM2_VK_TRY(vkQueueWaitIdle(m_graphics_queue));
+
     return true;
 }
 
@@ -945,10 +1033,24 @@ bool Context::begin_frame()
     const VkCommandBuffer command_buffer = m_command_buffers[m_frame_index];
     SM2_VK_TRY(vkResetCommandBuffer(command_buffer, 0));
 
+    // The fence wait above guarantees this slot's GPU work from kFramesInFlight
+    // frames ago has retired, so its query results (if any stage ran) are ready
+    // to read now -- the last point before vkCmdResetQueryPool below discards
+    // them.
+    read_back_stage_times(m_frame_index);
+
     VkCommandBufferBeginInfo begin_info{};
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     SM2_VK_TRY(vkBeginCommandBuffer(command_buffer, &begin_info));
+
+    if (m_query_pool != VK_NULL_HANDLE) {
+        // Queries must be reset before first use and before every reuse, and
+        // only outside a render pass -- both satisfied here, right after the
+        // command buffer opens.
+        vkCmdResetQueryPool(command_buffer, m_query_pool,
+                            m_frame_index * kQueriesPerFrame, kQueriesPerFrame);
+    }
 
     m_frame_active = true;
     return true;
@@ -1013,6 +1115,70 @@ bool Context::end_frame()
         return false;
     }
     return true;
+}
+
+// ---------------------------------------------------------------------------
+// GPU stage timing
+// ---------------------------------------------------------------------------
+
+void Context::write_timestamp(VkPipelineStageFlags2 stage_mask, GpuStage stage, bool is_end)
+{
+    if (m_query_pool == VK_NULL_HANDLE) {
+        return;
+    }
+    const u32 stage_index = static_cast<u32>(stage);
+    const u32 query =
+        m_frame_index * kQueriesPerFrame + stage_index * kQueriesPerStage + (is_end ? 1u : 0u);
+    vkCmdWriteTimestamp2(m_command_buffers[m_frame_index], stage_mask, m_query_pool, query);
+}
+
+void Context::read_back_stage_times(u32 frame_index)
+{
+    if (m_query_pool == VK_NULL_HANDLE) {
+        return;
+    }
+
+    // WITH_AVAILABILITY rather than WAIT: this slot's fence has already been
+    // waited on by the caller (begin_frame, just above), so the results are
+    // known ready, but a stage that never wrote its pair this frame (the decode
+    // dispatch, skipped when texture_generation did not change) leaves its two
+    // queries unwritten, and WAIT would hang forever on those rather than
+    // reporting "not available".
+    struct Pair {
+        u64 value;
+        u64 available;
+    };
+    std::array<Pair, kQueriesPerFrame> raw{};
+    const VkResult result = vkGetQueryPoolResults(
+        m_device, m_query_pool, frame_index * kQueriesPerFrame, kQueriesPerFrame,
+        sizeof(raw), raw.data(), sizeof(Pair),
+        VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT);
+    if (result != VK_SUCCESS && result != VK_NOT_READY) {
+        SM2_VK_WARN_ON_FAIL(result);
+        return;
+    }
+
+    for (u32 stage_index = 0; stage_index < kStageCount; ++stage_index) {
+        GpuStageTime& out = m_last_stage_times[stage_index];
+        const Pair&   begin = raw[stage_index * kQueriesPerStage + 0];
+        const Pair&   end   = raw[stage_index * kQueriesPerStage + 1];
+        if (begin.available == 0 || end.available == 0) {
+            // Either truly never written (a skipped stage this frame) or the
+            // driver has not finished writing it back yet; both cases mean
+            // "nothing to report" rather than "measured zero".
+            out = GpuStageTime{};
+            continue;
+        }
+        const u64 ticks  = end.value - begin.value;
+        out.milliseconds = static_cast<double>(ticks) * static_cast<double>(m_timestamp_period)
+                          / 1'000'000.0;
+        out.ran = true;
+    }
+}
+
+GpuStageTimes Context::read_stage_times()
+{
+    return m_last_stage_times;
 }
 
 // ---------------------------------------------------------------------------

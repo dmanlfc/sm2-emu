@@ -23,3 +23,4 @@ sm2_add_shader(sm2_shaders SOURCE tilemap_composite.frag SYMBOL kTilemapComposit
 sm2_add_shader(sm2_shaders SOURCE polygon.vert           SYMBOL kPolygonVert)
 sm2_add_shader(sm2_shaders SOURCE polygon.frag           SYMBOL kPolygonFrag)
 sm2_add_shader(sm2_shaders SOURCE texel_decode.comp      SYMBOL kTexelDecodeComp)
+sm2_add_shader(sm2_shaders SOURCE tilemap_compose.comp   SYMBOL kTilemapComposeComp)
