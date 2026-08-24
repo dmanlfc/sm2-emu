@@ -52,7 +52,10 @@ constexpr u32 kScspAddressMask = 0x000fffff;
 /// 68000 clock over host clock, exactly. 45.1584 MHz / 4 over 25 MHz reduces to
 /// 7056/15625, and 5^6 shares no factor with 2^4 * 3^2 * 7^2, so this is lowest
 /// terms and the remainder has to be carried rather than rounded away.
-constexpr u64 kCpuClockNumerator   = 7056;
+/// Note: MAME applies a 1-cycle wait state to every RAM and SCSP register
+/// access, effectively halving the 68000's throughput. The numerator here
+/// accounts for that.
+constexpr u64 kCpuClockNumerator   = 3528;  // 7056 / 2
 constexpr u64 kCpuClockDenominator = 15625;
 
 /// Sample rate over host clock, exactly: 44100/25000000 reduces to 441/250000,
@@ -86,10 +89,6 @@ Model2Sound::Model2Sound() : m_cpu(*this), m_scsp(*this, kScspClock)
     // as MAME leaves it. The host's sound interrupt comes from the UART instead.
     m_scsp.set_irq_handler([this](int level, bool assert) {
         if (level <= 0) {
-            // MAME's irq_cb(0, CLEAR_LINE), meaning nothing is pending. The SCSP
-            // stops driving the level lines rather than clearing one of them, and
-            // CheckPendingIRQ re-asserts whatever is still outstanding straight
-            // after, so dropping them all is safe.
             m_cpu.clear_irq_lines();
             return;
         }

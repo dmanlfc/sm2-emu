@@ -79,6 +79,11 @@ public:
     /// asserted would only ever be taken once.
     void set_irq_line(int level, bool asserted);
 
+    /// Set the IPL (interrupt priority level) pins directly. Level 0 means
+    /// "no interrupt pending". Unlike set_irq_line, this does not maintain a
+    /// mask of asserted levels — it just sets the raw IPL value Musashi sees.
+    void set_irq_level(int level);
+
     /// Release every interrupt level at once.
     ///
     /// The SCSP asks for this when nothing is pending: it stops driving the three
@@ -101,6 +106,9 @@ public:
 
     /// Total cycles consumed since construction.
     [[nodiscard]] u64 cycles() const { return m_total_cycles; }
+
+    /// Begin tracing the next `count` instructions to `path`.
+    void start_trace(int count, const char* path);
 
     /// One-line register dump.
     [[nodiscard]] std::string state_string() const;

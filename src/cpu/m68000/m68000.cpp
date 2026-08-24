@@ -110,6 +110,11 @@ void M68000::clear_irq_lines()
     apply_irq();
 }
 
+void M68000::set_irq_level(int level)
+{
+    m68k_set_irq(static_cast<unsigned int>(level));
+}
+
 void M68000::apply_irq() const
 {
     // The 68000's three IPL pins encode the highest pending level, so a lower
@@ -213,3 +218,38 @@ void m68k_write_memory_32(unsigned int address, unsigned int value)
 }
 
 }  // extern "C"
+
+// ---------------------------------------------------------------------------
+// Instruction trace for debugging
+// ---------------------------------------------------------------------------
+
+namespace {
+int g_trace_remaining = 0;
+FILE* g_trace_file = nullptr;
+
+void trace_hook(unsigned int pc)
+{
+    if (g_trace_remaining > 0) {
+        if (g_trace_file) {
+            fprintf(g_trace_file, "%06X\n", pc);
+        }
+        --g_trace_remaining;
+        if (g_trace_remaining == 0 && g_trace_file) {
+            fclose(g_trace_file);
+            g_trace_file = nullptr;
+            fprintf(stderr, "sm2-emu: trace complete\n");
+        }
+    }
+}
+}  // namespace
+
+namespace sm2::cpu::m68000 {
+
+void M68000::start_trace(int count, const char* path)
+{
+    g_trace_file = fopen(path, "w");
+    g_trace_remaining = count;
+    m68k_set_instr_hook_callback(trace_hook);
+}
+
+}  // namespace sm2::cpu::m68000
