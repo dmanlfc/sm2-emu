@@ -14,6 +14,7 @@
 //
 #pragma once
 
+#include "render/geometry.h"
 #include "render/vk/context.h"
 #include "render/vk/vk_common.h"
 

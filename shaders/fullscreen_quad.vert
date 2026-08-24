@@ -23,6 +23,18 @@
 
 layout(location = 0) out vec2 vTexCoord;
 
+// gl_VertexIndex (Vulkan GLSL) and gl_VertexID (GL/GLES core) name the same
+// vertex counter but are not interchangeable identifiers -- neither compiles
+// under the other dialect. SM2_TARGET_GL is defined only for the GL/GLES
+// compile of this shared source (see cmake/EmbedShaders.cmake's lint/embed
+// steps), so this is the one line in this shader set that genuinely needs a
+// dialect branch.
+#ifdef SM2_TARGET_GL
+#define SM2_VERTEX_INDEX gl_VertexID
+#else
+#define SM2_VERTEX_INDEX gl_VertexIndex
+#endif
+
 void main()
 {
     // index 0 -> (-1,-1)  uv (0,0)
@@ -31,6 +43,6 @@ void main()
     //
     // The oversized triangle is clipped to the viewport by fixed function,
     // which is cheaper than the four vertices and two triangles of a quad.
-    vTexCoord = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+    vTexCoord = vec2((SM2_VERTEX_INDEX << 1) & 2, SM2_VERTEX_INDEX & 2);
     gl_Position = vec4(vTexCoord * 2.0 - 1.0, 0.0, 1.0);
 }

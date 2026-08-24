@@ -242,6 +242,47 @@ if(NOT MSVC)
     target_compile_options(sm2_imgui PRIVATE -w)
 endif()
 
+# sm2_imgui_gl -- imgui's OpenGL3 renderer backend, for the phase 9 GL
+# backend. A separate target from sm2_imgui rather than adding this source to
+# it: sm2_imgui already exists and works for Vulkan, and imgui_impl_opengl3.cpp
+# is a different renderer backend translation unit entirely (no shared state
+# between the two backend files, per imgui's own design -- each is a self-
+# contained implementation of the same abstract "render this draw data"
+# contract). imgui_impl_opengl3.cpp/.h already exist on disk from the same
+# FetchContent_MakeAvailable(imgui) call above (that clones the whole imgui
+# repository, backends included), so no second fetch is needed.
+if(SM2_BUILD_OPENGL_DESKTOP)
+    add_library(sm2_imgui_gl STATIC
+        "${imgui_SOURCE_DIR}/imgui.cpp"
+        "${imgui_SOURCE_DIR}/imgui_demo.cpp"
+        "${imgui_SOURCE_DIR}/imgui_draw.cpp"
+        "${imgui_SOURCE_DIR}/imgui_tables.cpp"
+        "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
+        "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
+        "${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp"
+    )
+    target_include_directories(sm2_imgui_gl SYSTEM PUBLIC
+        "${imgui_SOURCE_DIR}"
+        "${imgui_SOURCE_DIR}/backends"
+    )
+    target_link_libraries(sm2_imgui_gl PUBLIC SDL3::SDL3)
+    # No IMGUI_IMPL_OPENGL_LOADER_CUSTOM here, deliberately: imgui_impl_opengl3.cpp
+    # is compiled as its own translation unit, so its bundled gl3w-derived
+    # loader (imgui_impl_opengl3_loader.h) cannot collide with this
+    # project's own sm2::render::gl loader (gl_common.h) regardless of what
+    # either names -- imgui's own header comment on that loader says exactly
+    # this ("cannot happen unless you build both in the same compilation
+    # unit"), which was checked directly against the actual file rather than
+    # assumed. An earlier version of this target defined
+    # IMGUI_IMPL_OPENGL_LOADER_CUSTOM on the premise that two loaders would
+    # conflict; that premise was wrong, and the fix was simpler than the
+    # problem it was solving -- let imgui use its own loader, which is
+    # exactly what it recommends for this situation.
+    if(NOT MSVC)
+        target_compile_options(sm2_imgui_gl PRIVATE -w)
+    endif()
+endif()
+
 # ---------------------------------------------------------------------------
 # Musashi — the 68000 in the sound board
 # ---------------------------------------------------------------------------

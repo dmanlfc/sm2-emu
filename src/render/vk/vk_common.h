@@ -55,28 +55,19 @@ namespace sm2::render::vk {
 // ---------------------------------------------------------------------------
 // The native frame
 // ---------------------------------------------------------------------------
+//
+// kNativeWidth/kNativeHeight/kDisplayAspect live in render/backend.h now (none
+// names a Vulkan type), aliased here as GpuStage already was, so existing
+// render/vk/ call sites need no change.
+using sm2::render::kDisplayAspect;
+using sm2::render::kNativeHeight;
+using sm2::render::kNativeWidth;
 
-/// The Model 2 raster. Every emulated pass draws at exactly this size.
-///
-/// Nothing is rendered at the window's resolution. The hardware's translucency is
-/// a checkerboard stipple locked to the raster grid and its texture level of
-/// detail comes from raster-pixel derivatives, so both would come out at the wrong
-/// scale; and the three-way composite between the tilemap layers and the 3D has to
-/// happen before any magnification or its blends are performed on interpolated
-/// colours. The finished frame is scaled to the window once, at the end.
-constexpr u32 kNativeWidth  = 496;
-constexpr u32 kNativeHeight = 384;
-
-/// Format of that frame. UNORM rather than SRGB because the hardware's own gamma
-/// ramp has already been applied by the colour chain; an sRGB encode on top would
-/// wash it out.
+/// Format of the native frame. UNORM rather than SRGB because the hardware's own
+/// gamma ramp has already been applied by the colour chain; an sRGB encode on top
+/// would wash it out. Genuinely Vulkan-typed, unlike the three constants above, so
+/// it stays here rather than moving to backend.h.
 constexpr VkFormat kNativeColourFormat = VK_FORMAT_R8G8B8A8_UNORM;
-
-/// Aspect ratio the frame is presented at.
-///
-/// The raster is 496x384, which is 1.29:1, but an arcade monitor stretched it to
-/// the usual 4:3, so a square-pixel presentation would be noticeably narrow.
-constexpr float kDisplayAspect = 4.0F / 3.0F;
 
 // ---------------------------------------------------------------------------
 // GPU stage timing (phase 8 benchmark, design.md requirement 1.2)

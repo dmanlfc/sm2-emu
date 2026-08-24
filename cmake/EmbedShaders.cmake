@@ -29,6 +29,20 @@
 
 set(SM2_EMBED_SPIRV_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/EmbedSpirv.cmake"
     CACHE INTERNAL "Path to the SPIR-V embedding script")
+set(SM2_EMBED_GLSL_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/EmbedGlsl.cmake"
+    CACHE INTERNAL "Path to the GLSL source embedding script")
+
+# Whether any OpenGL-family backend is being built, decided once by the two
+# options render/gl's CMakeLists.txt declares (phase 9). A plain configure-time
+# boolean, not a generator expression: both options are ordinary ON/OFF cache
+# variables known before this file runs (set in the root CMakeLists.txt ahead
+# of add_subdirectory(shaders)), so there is no per-build-config value to defer
+# a decision on.
+if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
+    set(SM2_NEEDS_GL_SHADERS TRUE)
+else()
+    set(SM2_NEEDS_GL_SHADERS FALSE)
+endif()
 
 function(sm2_declare_shader_library target)
     set(gen_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
@@ -130,9 +144,56 @@ function(sm2_add_shader target)
         VERBATIM
     )
 
+    set(gl_outputs "${header_path}")
+
+    if(SM2_NEEDS_GL_SHADERS)
+        # A syntax-only lint against the GL-compatible dialect: the .spv this
+        # produces is discarded, but a shader that fails here would also fail
+        # a GL backend's own glCompileShader at runtime, so catching it at
+        # build time is worth one extra glslc invocation. SM2_TARGET_GL must
+        # be defined here exactly as it will be when the GL backend prepends
+        # it to the embedded source before compiling at runtime (see
+        # gl_glsl_symbol below) -- linting without it would check the Vulkan
+        # branch of any #ifdef SM2_TARGET_GL twice and the GL branch never.
+        set(gl_lint_path "${gen_dir}/${stem}.gl.spv")
+        add_custom_command(
+            OUTPUT  "${gl_lint_path}"
+            COMMAND "${SM2_GLSLC}"
+                    --target-env=opengl4.5
+                    -DSM2_TARGET_GL=1
+                    ${werror_flag}
+                    ${define_flags}
+                    -I "${CMAKE_CURRENT_SOURCE_DIR}"
+                    -o "${gl_lint_path}"
+                    "${source_path}"
+            DEPENDS "${source_path}" ${shader_includes}
+            COMMENT "glslc ${ARG_SOURCE} [opengl lint]"
+            VERBATIM
+        )
+
+        set(gl_symbol "${symbol}Glsl")
+        set(gl_header_path "${gen_dir}/shaders/${stem}_glsl.h")
+        add_custom_command(
+            OUTPUT  "${gl_header_path}"
+            COMMAND "${CMAKE_COMMAND}"
+                    -DSM2_IN=${source_path}
+                    -DSM2_OUT=${gl_header_path}
+                    -DSM2_SYMBOL=${gl_symbol}
+                    -DSM2_SOURCE_NAME=${ARG_SOURCE}
+                    -P "${SM2_EMBED_GLSL_SCRIPT}"
+            # Depends on the lint succeeding, not just the source existing:
+            # this is what makes a GL-dialect syntax error fail the build
+            # rather than embed source a GL backend cannot compile.
+            DEPENDS "${source_path}" "${gl_lint_path}" "${SM2_EMBED_GLSL_SCRIPT}"
+            COMMENT "Embedding ${stem} as GLSL source"
+            VERBATIM
+        )
+        list(APPEND gl_outputs "${gl_header_path}")
+    endif()
+
     # A per-shader target rather than appending to the driver's SOURCES: sources
     # on a custom target are advisory (they show up in IDEs) and do not create
     # a build dependency, whereas add_dependencies does.
-    add_custom_target(${target}_${stem} DEPENDS "${header_path}")
+    add_custom_target(${target}_${stem} DEPENDS ${gl_outputs})
     add_dependencies(${driver} ${target}_${stem})
 endfunction()

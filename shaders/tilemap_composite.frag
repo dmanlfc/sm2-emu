@@ -31,7 +31,15 @@ layout(location = 0) out vec4 fragColour;
 
 layout(set = 0, binding = 0) uniform sampler2D uLayer;
 
+// See polygon.vert's SM2_TARGET_GL comment: GL/GLES have no push-constant
+// concept, so the GL compile takes a small uniform block instead, at a
+// binding this shader has room for (0 is uLayer); the Vulkan compile keeps
+// the push constant it already had, unchanged.
+#ifdef SM2_TARGET_GL
+layout(binding = 1) uniform Push {
+#else
 layout(push_constant) uniform Push {
+#endif
     // Palette entry zero. The hardware shows this wherever nothing is drawn.
     vec4 background;
     // 0: resolve against the background, replacing the target.

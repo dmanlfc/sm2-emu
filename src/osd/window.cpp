@@ -34,20 +34,37 @@ bool Window::create(const WindowConfig& config)
         SM2_ERROR("SDL_InitSubSystem(VIDEO) failed: %s", SDL_GetError());
         return false;
     }
-    m_owns_sdl = true;
+    m_owns_sdl     = true;
+    m_graphics_api = config.graphics_api;
 
-    // Loading the Vulkan library up front means a missing or broken loader is
-    // reported here, with SDL's diagnostics, rather than as a confusing
-    // instance-creation failure later.
-    if (!SDL_Vulkan_LoadLibrary(nullptr)) {
-        SM2_ERROR("SDL_Vulkan_LoadLibrary failed: %s", SDL_GetError());
-        SM2_ERROR("A Vulkan loader is required. On Linux install "
-                  "libvulkan1/vulkan-loader; on macOS install the Vulkan SDK "
-                  "and source its setup-env.sh so MoltenVK is discoverable.");
-        return false;
+    SDL_WindowFlags flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
+    if (m_graphics_api == GraphicsApi::Vulkan) {
+        // Loading the Vulkan library up front means a missing or broken loader
+        // is reported here, with SDL's diagnostics, rather than as a confusing
+        // instance-creation failure later.
+        if (!SDL_Vulkan_LoadLibrary(nullptr)) {
+            SM2_ERROR("SDL_Vulkan_LoadLibrary failed: %s", SDL_GetError());
+            SM2_ERROR("A Vulkan loader is required. On Linux install "
+                      "libvulkan1/vulkan-loader; on macOS install the Vulkan SDK "
+                      "and source its setup-env.sh so MoltenVK is discoverable.");
+            return false;
+        }
+        flags |= SDL_WINDOW_VULKAN;
+    } else {
+        // Same reasoning as the Vulkan branch, for the same failure mode: a
+        // missing GL library is reported here rather than as an opaque
+        // SDL_CreateWindow failure.
+        if (!SDL_GL_LoadLibrary(nullptr)) {
+            SM2_ERROR("SDL_GL_LoadLibrary failed: %s", SDL_GetError());
+            SM2_ERROR("An OpenGL loader is required. On Linux this is normally "
+                      "provided by the GPU driver package (mesa or the vendor's "
+                      "own driver).");
+            return false;
+        }
+        flags |= SDL_WINDOW_OPENGL;
     }
 
-    SDL_WindowFlags flags = SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     if (config.resizable) {
         flags |= SDL_WINDOW_RESIZABLE;
     }
@@ -83,7 +100,11 @@ void Window::destroy()
         m_window = nullptr;
     }
     if (m_owns_sdl) {
-        SDL_Vulkan_UnloadLibrary();
+        if (m_graphics_api == GraphicsApi::Vulkan) {
+            SDL_Vulkan_UnloadLibrary();
+        } else {
+            SDL_GL_UnloadLibrary();
+        }
         SDL_QuitSubSystem(SDL_INIT_VIDEO);
         m_owns_sdl = false;
     }

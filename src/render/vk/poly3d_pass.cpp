@@ -52,13 +52,6 @@ struct CompositePush {
 /// The composite shader's "blend over the target" mode.
 constexpr u32 kModeBlendOver = 1;
 
-/// Texture header bits that select the pixel path. MAME reads bits 14 and 13
-/// together as a renderer index: bit 14 chooses textured over solid and bit 13
-/// chooses translucent over opaque.
-constexpr u32 kHeaderTextured    = 1u << 14;
-constexpr u32 kHeaderTranslucent = 1u << 13;
-constexpr u32 kHeaderChecker     = 1u << 15;
-
 /// Bytes of luminance RAM, which is one tone curve per 128 entries.
 constexpr usize kLumaBytes = 0x8000;
 
@@ -100,19 +93,6 @@ struct ModuleGuard {
     }
 };
 
-/// Deepest mipmap level for a texture of these dimensions. MAME derives it from
-/// the smaller side and stops at two by two.
-[[nodiscard]] u32 deepest_level(u32 width, u32 height)
-{
-    u32 smaller = std::min(width, height);
-    u32 level   = 0;
-    while (smaller > 2 && level < 15) {
-        smaller >>= 1;
-        ++level;
-    }
-    return level;
-}
-
 }  // namespace
 
 Poly3DPass::~Poly3DPass()
@@ -149,8 +129,8 @@ bool Poly3DPass::init(Context& context)
     // mixed.
     SM2_VK_TRY(vkCreateSampler(context.device(), &sampler, nullptr, &m_decoded_sampler));
 
-    m_vertices.reserve(1 << 14);
-    m_polygons.reserve(1 << 12);
+    m_frame_geometry.vertices.reserve(1 << 14);
+    m_frame_geometry.polygons.reserve(1 << 12);
     m_tone_curve.assign(static_cast<usize>(hw::Model2Video::kToneShades)
                             * hw::Model2Video::kToneComponents,
                         0);
@@ -1009,154 +989,25 @@ void Poly3DPass::decode_textures()
                          VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
 }
 
-Poly3DPass::PolyParams Poly3DPass::describe(const hw::RenderPolygon& poly,
-                                            const hw::Model2Video&   video) const
-{
-    PolyParams params{};
-
-    // Ten bits of colour base against the 3D half of palette RAM. The components
-    // rather than a resolved colour, because the shade is a per-pixel matter.
-    params.colour     = video.polygon_colour_components((poly.texheader[3] >> 6) & 0x3ff);
-    params.luma_base  = static_cast<u32>(poly.texheader[1] & 0xff) << 7;
-    params.luma_scale = poly.luma;
-    params.tex_lod    = poly.texlod;
-
-    if ((poly.texheader[0] & kHeaderChecker) != 0) {
-        params.flags |= kFlagChecker;
-    }
-    if ((poly.texheader[0] & kHeaderTranslucent) != 0) {
-        params.flags |= kFlagTranslucent;
-    }
-    if ((poly.texheader[0] & kHeaderTextured) == 0) {
-        return params;
-    }
-    params.flags |= kFlagTextured;
-
-    // Dimensions are powers of two from 32 up, three bits each.
-    params.tex_width  = 32u << (poly.texheader[0] & 0x7);
-    params.tex_height = 32u << ((poly.texheader[0] >> 3) & 0x7);
-    params.tex_x      = 32u * (poly.texheader[2] & 0x3f);
-    params.tex_y      = 32u * ((poly.texheader[2] >> 6) & 0x1f);
-
-    const bool mirror_x = ((poly.texheader[0] >> 8) & 1) != 0;
-    const bool mirror_y = ((poly.texheader[0] >> 9) & 1) != 0;
-    if (mirror_x) {
-        params.flags |= kFlagMirrorX;
-    }
-    if (mirror_y) {
-        params.flags |= kFlagMirrorY;
-    }
-    // Smooth wrapping and mirroring are mutually exclusive; MAME masks the one out
-    // when the other is set rather than letting both apply.
-    if (((poly.texheader[0] >> 6) & 1) != 0 && !mirror_x) {
-        params.flags |= kFlagWrapX;
-    }
-    if (((poly.texheader[0] >> 7) & 1) != 0 && !mirror_y) {
-        params.flags |= kFlagWrapY;
-    }
-    if ((poly.texheader[2] & 0x1000) != 0) {
-        params.flags |= kFlagSheet;
-    }
-    if (((poly.texheader[0] >> 12) & 1) != 0) {
-        params.flags |= kFlagMicro;
-    }
-
-    params.micro_min_lod = (poly.texheader[0] >> 10) & 3;
-    params.micro_x       = ((poly.texheader[2] >> 13) & 1) * 128;
-    params.micro_y       = ((poly.texheader[2] >> 14) & 3) * 128;
-
-    params.flags |= deepest_level(params.tex_width, params.tex_height) << kMaxLevelShift;
-    return params;
-}
-
 void Poly3DPass::build(const hw::Model2MachineBase* machine, const hw::Model2Video& video)
 {
-    m_vertices.clear();
-    m_polygons.clear();
-    m_batches.clear();
-    m_vertex_count   = 0;
-    m_drawn_polygons = 0;
-    m_blank_polygons = 0;
-
-    if (machine == nullptr) {
-        return;
-    }
-    refresh_machine_data(*machine, video);
-
-    for (const hw::RenderPolygon& poly : machine->render_list().polygons) {
-        // Untextured and translucent is the one combination the hardware draws
-        // nothing for: `draw_scanline_solid` in model2rd.ipp begins with
-        // `if (Translucent) return;` because with no texel there is nothing to
-        // alpha-test. The *textured* translucent path does draw -- it alpha-tests
-        // each filtered texel and skips the ones below half -- so it must not be
-        // culled here. Virtua Fighter 2 draws its sky with 181 textured
-        // translucent polygons, and culling them leaves a flat band where the sky
-        // should be.
-        if ((poly.texheader[0] & kHeaderTranslucent) != 0
-            && (poly.texheader[0] & kHeaderTextured) == 0) {
-            ++m_blank_polygons;
-            continue;
-        }
-        if (poly.num_vertices < 3) {
-            continue;
-        }
-
-        const VkRect2D scissor{
-            {poly.scissor[0], poly.scissor[1]},
-            {static_cast<u32>(poly.scissor[2] - poly.scissor[0]),
-             static_cast<u32>(poly.scissor[3] - poly.scissor[1])}};
-        if (scissor.extent.width == 0 || scissor.extent.height == 0) {
-            continue;
-        }
-
-        const u32 triangles = poly.num_vertices - 2u;
-        if (m_vertices.size() + triangles * 3u > kMaxVertices
-            || m_polygons.size() >= kMaxPolygons) {
-            if (!m_capacity_warned) {
-                m_capacity_warned = true;
-                SM2_WARN("3d: more geometry than the buffers hold (%u vertices, %u "
-                         "polygons); the rest of this frame is dropped",
-                         kMaxVertices, kMaxPolygons);
-            }
-            break;
-        }
-
-        const u32 index = static_cast<u32>(m_polygons.size());
-        m_polygons.push_back(describe(poly, video));
-
-        // Polygons come grouped by priority window and the window is what sets the
-        // viewport, so a run of them almost always shares a scissor.
-        if (m_batches.empty() || m_batches.back().scissor.offset.x != scissor.offset.x
-            || m_batches.back().scissor.offset.y != scissor.offset.y
-            || m_batches.back().scissor.extent.width != scissor.extent.width
-            || m_batches.back().scissor.extent.height != scissor.extent.height) {
-            m_batches.push_back(Batch{scissor, static_cast<u32>(m_vertices.size()), 0});
-        }
-
-        // A fan. The clipper produces convex polygons, so fanning from the first
-        // vertex cannot fold over itself.
-        const auto emit = [&](u32 corner) {
-            const hw::PolyVertex& v = poly.v[corner];
-            m_vertices.push_back(Vertex{v.x, v.y, v.p[1], v.p[2], v.p[0], index});
-        };
-        for (u32 corner = 1; corner + 1 < poly.num_vertices; ++corner) {
-            emit(0);
-            emit(corner);
-            emit(corner + 1);
-        }
-
-        m_batches.back().vertex_count =
-            static_cast<u32>(m_vertices.size()) - m_batches.back().first_vertex;
-        ++m_drawn_polygons;
+    if (machine != nullptr) {
+        refresh_machine_data(*machine, video);
     }
 
-    m_vertex_count = static_cast<u32>(m_vertices.size());
+    // Triangulation, texture-header unpacking and scissor batching are
+    // backend-neutral (render::triangulate()); see render/geometry.h's own
+    // doc comment for why this moved out of Poly3DPass rather than staying
+    // duplicated per backend.
+    m_frame_geometry = render::triangulate(machine, video, &m_capacity_warned);
+
+    m_vertex_count = static_cast<u32>(m_frame_geometry.vertices.size());
     if (m_vertex_count != 0) {
         Frame& target = frame();
-        std::memcpy(target.vertices.mapped, m_vertices.data(),
+        std::memcpy(target.vertices.mapped, m_frame_geometry.vertices.data(),
                     static_cast<usize>(m_vertex_count) * sizeof(Vertex));
-        std::memcpy(target.polygons.mapped, m_polygons.data(),
-                    m_polygons.size() * sizeof(PolyParams));
+        std::memcpy(target.polygons.mapped, m_frame_geometry.polygons.data(),
+                    m_frame_geometry.polygons.size() * sizeof(PolyParams));
     }
 }
 
@@ -1240,11 +1091,12 @@ void Poly3DPass::render()
         vkCmdPushConstants(cmd, m_polygon_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                            sizeof(push), &push);
 
-        for (const Batch& batch : m_batches) {
+        for (const render::Batch& batch : m_frame_geometry.batches) {
             if (batch.vertex_count == 0) {
                 continue;
             }
-            vkCmdSetScissor(cmd, 0, 1, &batch.scissor);
+            const VkRect2D vk_scissor = scissor_to_vk(batch.scissor);
+            vkCmdSetScissor(cmd, 0, 1, &vk_scissor);
             vkCmdDraw(cmd, batch.vertex_count, 1, batch.first_vertex, 0);
         }
     }

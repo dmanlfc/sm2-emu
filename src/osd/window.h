@@ -27,24 +27,37 @@ namespace sm2::osd {
 inline constexpr u32 kModel2Width  = 496;
 inline constexpr u32 kModel2Height = 384;
 
+/// Which graphics API the window is being created for, so create() knows
+/// which SDL window flag and loader-library call it needs. Not a handle to
+/// anything -- see the class comment below for why this is a plain selector
+/// rather than a step towards naming a graphics-API type here.
+enum class GraphicsApi {
+    Vulkan,
+    OpenGl,
+};
+
 struct WindowConfig {
     std::string title       = "sm2-emu";
     u32         width       = kModel2Width * 2;
     u32         height      = kModel2Height * 2;
     bool        fullscreen  = false;
     bool        resizable   = true;
+    GraphicsApi graphics_api = GraphicsApi::Vulkan;
 };
 
 /// SDL3 window. Owns no Vulkan (or other graphics API) handle itself --
-/// surface creation belongs to whichever render::Backend is active (see
-/// render/backend.h), which is the only thing that knows when it is safe to
-/// recreate a swapchain.
+/// surface/context creation belongs to whichever render::Backend is active
+/// (see render/backend.h), which is the only thing that knows when it is
+/// safe to recreate a swapchain or GL context.
 ///
-/// Not yet backend-neutral in one respect: create() still requests
-/// SDL_WINDOW_VULKAN and loads the Vulkan loader library directly, both of
-/// which a GL/GLES backend would need different calls for. That is real
-/// remaining work for whichever phase adds a second backend, not something
-/// the current public interface hides.
+/// Backend-neutral in the sense that matters: create()/destroy() branch once
+/// each on WindowConfig::graphics_api to pick the right SDL window flag
+/// (SDL_WINDOW_VULKAN vs SDL_WINDOW_OPENGL) and the matching loader-library
+/// call (SDL_Vulkan_Load/UnloadLibrary vs SDL_GL_Load/UnloadLibrary), the
+/// same one-branch-at-the-one-call-site shape Supermodel's own
+/// CreateVideoScreen uses for the equivalent decision. GraphicsApi is a
+/// two-value enum, not a graphics-API handle, so this stays a selector this
+/// class reads, not a type it exposes anything through.
 class Window {
 public:
     Window() = default;
@@ -78,9 +91,10 @@ public:
     [[nodiscard]] SDL_Window* handle() const { return m_window; }
 
 private:
-    SDL_Window* m_window     = nullptr;
-    bool        m_fullscreen = false;
-    bool        m_owns_sdl   = false;
+    SDL_Window* m_window      = nullptr;
+    bool        m_fullscreen  = false;
+    bool        m_owns_sdl    = false;
+    GraphicsApi m_graphics_api = GraphicsApi::Vulkan;
 };
 
 }  // namespace sm2::osd

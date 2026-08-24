@@ -25,10 +25,14 @@ target_include_directories(sm2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(sm2_core PRIVATE sm2_warnings)
 
 # ---------------------------------------------------------------------------
-# sm2_render — Vulkan backend
+# sm2_render_vk — Vulkan backend
 # ---------------------------------------------------------------------------
+# Renamed from sm2_render (phase 8) now that a second render library exists
+# (sm2_render_gl, below): every file this target lists is exactly where it
+# was before, this is a rename for symmetry, not a reorganisation.
 
-add_library(sm2_render STATIC
+add_library(sm2_render_vk STATIC
+    render/geometry.cpp
     render/vk/context.cpp
     render/vk/frame_capture.cpp
     render/vk/poly3d_pass.cpp
@@ -41,7 +45,7 @@ add_library(sm2_render STATIC
 # sm2_hw is a dependency of the 3D pass alone, which reads the geometry engine's
 # output and asks the video stage to resolve each polygon's colour. It is private
 # because nothing in this library's headers exposes those types by value.
-target_link_libraries(sm2_render
+target_link_libraries(sm2_render_vk
     PUBLIC
         sm2_core
         sm2_shaders
@@ -53,6 +57,60 @@ target_link_libraries(sm2_render
         sm2_imgui
         SDL3::SDL3
 )
+
+# ---------------------------------------------------------------------------
+# sm2_render_gl — OpenGL 4.3 core desktop backend (phase 9)
+# ---------------------------------------------------------------------------
+# render/geometry.cpp is not listed here: it is sm2_render_vk's, and this
+# target links that library to reach it rather than compiling a second copy
+# -- see render/geometry.h's own doc comment for why that logic must not be
+# duplicated per backend.
+
+if(SM2_BUILD_OPENGL_DESKTOP)
+    add_library(sm2_render_gl STATIC
+        render/gl/gl_backend.cpp
+        render/gl/gl_common.cpp
+        render/gl/gl_context.cpp
+        render/gl/gl_frame_capture.cpp
+        render/gl/gl_poly3d_pass.cpp
+        render/gl/gl_present_pass.cpp
+        render/gl/gl_tilemap_pass.cpp
+    )
+    # sm2_hw is not linked here even though several files above name
+    # hw::Model2MachineBase/Model2Video (headers only -- nothing here links
+    # against sm2_hw's compiled symbols directly, the same way
+    # render/vk/context.h forward-declares osd::Window without
+    # sm2_render_vk linking sm2_osd). sm2-emu's own link line already
+    # supplies sm2_hw; adding it again here surfaces libsm2_hw.a twice on
+    # that link line (confirmed directly: this produced a real "ignoring
+    # duplicate libraries" warning once, fixed by removing the redundant
+    # link rather than by accepting the warning as unavoidable).
+    #
+    # sm2_render_vk *is* linked, PRIVATE: gl_poly3d_pass.cpp calls
+    # render::triangulate(), which lives there rather than being duplicated
+    # per backend (render/geometry.h's own doc comment explains why). This
+    # does reintroduce the benign "ignoring duplicate libraries" linker
+    # warning the note above describes fixing once already -- checked
+    # directly rather than assumed fixed: for a *static* library, CMake must
+    # still place a PRIVATE dependency's own link libraries onto the final
+    # executable's link line (a static archive cannot resolve its own
+    # undefined symbols, so every archive in the chain has to reach the
+    # final linker regardless of PRIVATE/PUBLIC), so libsm2_hw.a legitimately
+    # appears via both sm2_render_vk and sm2-emu's own direct link now that
+    # sm2_render_gl also depends on sm2_render_vk. The warning is cosmetic
+    # (confirmed: ctest and a live run both succeed with it present) and not
+    # worth restructuring the link graph further to silence.
+    target_link_libraries(sm2_render_gl
+        PUBLIC
+            sm2_core
+            sm2_shaders
+        PRIVATE
+            sm2_warnings
+            sm2_render_vk
+            sm2_imgui_gl
+            SDL3::SDL3
+    )
+endif()
 
 # ---------------------------------------------------------------------------
 # sm2_cpu — CPU cores ported from MAME
@@ -208,15 +266,23 @@ target_link_libraries(sm2_osd
 add_executable(sm2-emu
     main.cpp
 )
-# sm2_core is not listed: sm2_osd, sm2_render and sm2_hw all expose it PUBLIC,
-# and naming it again makes the linker warn about a duplicate archive. sm2_hw
-# brings in sm2_cpu and sm2_rom the same way.
+# sm2_core is not listed: sm2_osd, sm2_render_vk and sm2_hw all expose it
+# PUBLIC, and naming it again makes the linker warn about a duplicate
+# archive. sm2_hw brings in sm2_cpu and sm2_rom the same way.
 target_link_libraries(sm2-emu
     PRIVATE
         sm2_osd
-        sm2_render
+        sm2_render_vk
         sm2_hw
         sm2_warnings
+)
+if(SM2_BUILD_OPENGL_DESKTOP)
+    target_link_libraries(sm2-emu PRIVATE sm2_render_gl)
+endif()
+
+target_compile_definitions(sm2-emu PRIVATE
+    $<$<BOOL:${SM2_BUILD_OPENGL_DESKTOP}>:SM2_HAVE_OPENGL_DESKTOP=1>
+    $<$<BOOL:${SM2_BUILD_OPENGL_ES}>:SM2_HAVE_OPENGL_ES=1>
 )
 
 # Keep games.xml beside the binary so a freshly built tree runs without any

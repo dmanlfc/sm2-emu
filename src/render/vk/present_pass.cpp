@@ -448,22 +448,14 @@ void PresentPass::upload_from_host(std::span<const u32> pixels)
 
 VkViewport PresentPass::letterbox() const
 {
-    const VkExtent2D extent = m_context->swapchain_extent();
-    const float      width  = static_cast<float>(extent.width);
-    const float      height = static_cast<float>(extent.height);
-
-    float target_width  = width;
-    float target_height = width / kDisplayAspect;
-    if (target_height > height) {
-        target_height = height;
-        target_width  = height * kDisplayAspect;
-    }
+    const VkExtent2D          extent = m_context->swapchain_extent();
+    const render::Letterbox   box    = render::compute_letterbox(extent.width, extent.height);
 
     VkViewport viewport{};
-    viewport.x        = (width - target_width) * 0.5F;
-    viewport.y        = (height - target_height) * 0.5F;
-    viewport.width    = target_width;
-    viewport.height   = target_height;
+    viewport.x        = box.x;
+    viewport.y        = box.y;
+    viewport.width    = box.width;
+    viewport.height   = box.height;
     viewport.minDepth = 0.0F;
     viewport.maxDepth = 1.0F;
     return viewport;

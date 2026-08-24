@@ -76,6 +76,35 @@ enum class NativeFormat : u32 {
 };
 
 // ---------------------------------------------------------------------------
+// The native frame
+// ---------------------------------------------------------------------------
+//
+// Declared here, not in render/vk/vk_common.h, for the same reason GpuStage
+// is: none of the three constants below names a Vulkan type, so every backend
+// -- Vulkan, OpenGL, OpenGL ES -- reads the same definition instead of each
+// carrying its own copy. vk_common.h aliases them, as it already aliases
+// GpuStage.
+
+/// The Model 2 raster. Every emulated pass draws at exactly this size.
+///
+/// Nothing is rendered at the window's resolution. The hardware's
+/// translucency is a checkerboard stipple locked to the raster grid and its
+/// texture level of detail comes from raster-pixel derivatives, so both would
+/// come out at the wrong scale; and the three-way composite between the
+/// tilemap layers and the 3D has to happen before any magnification or its
+/// blends are performed on interpolated colours. The finished frame is scaled
+/// to the window once, at the end.
+constexpr u32 kNativeWidth  = 496;
+constexpr u32 kNativeHeight = 384;
+
+/// Aspect ratio the frame is presented at.
+///
+/// The raster is 496x384, which is 1.29:1, but an arcade monitor stretched it
+/// to the usual 4:3, so a square-pixel presentation would be noticeably
+/// narrow.
+constexpr float kDisplayAspect = 4.0F / 3.0F;
+
+// ---------------------------------------------------------------------------
 // GPU stage timing (phase 8 benchmark, design.md requirement 1.2)
 // ---------------------------------------------------------------------------
 //
@@ -282,10 +311,20 @@ public:
 
 /// Construct the Vulkan backend, uninitialised (call init() before use).
 ///
-/// The only factory today, matching hw::create_machine()'s shape: a caller
-/// (main.cpp) names this function and Backend, never render::vk::VulkanBackend
-/// itself, so a second backend added in a later phase needs no change here
-/// beyond this function choosing between them.
+/// The only factory in phase 8, matching hw::create_machine()'s shape: a
+/// caller (main.cpp) names this function and Backend, never
+/// render::vk::VulkanBackend itself.
 [[nodiscard]] std::unique_ptr<Backend> create_vulkan_backend();
+
+/// Construct the OpenGL 4.3 core desktop backend, uninitialised.
+///
+/// Declared unconditionally so main.cpp can name it without an #ifdef; only
+/// defined (in sm2_render_gl) when SM2_BUILD_OPENGL_DESKTOP was on at
+/// configure time. main.cpp guards the *call* behind
+/// `#if defined(SM2_HAVE_OPENGL_DESKTOP)` (set from that same CMake option),
+/// so a build without this backend fails at --graphics-backend parsing with
+/// a named error rather than failing to link over an undefined symbol it
+/// was never going to call.
+[[nodiscard]] std::unique_ptr<Backend> create_opengl_backend();
 
 }  // namespace sm2::render

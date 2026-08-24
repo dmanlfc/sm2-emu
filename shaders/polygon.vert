@@ -40,7 +40,17 @@ layout(location = 3) in uint  inPolygon;   // index into the parameter buffer
 layout(location = 0) out vec2      vTexel;
 layout(location = 1) out flat uint vPolygon;
 
+// Push constants need no backing buffer or descriptor under Vulkan, but GL/GLES
+// have no push-constant concept at all -- their nearest equivalent is a small
+// uniform block, which does need one. Branching here rather than adding a real
+// GL-only descriptor binding to the Vulkan pipeline keeps the working Vulkan
+// path untouched; see fullscreen_quad.vert's SM2_TARGET_GL define, set the same
+// way for the same reason.
+#ifdef SM2_TARGET_GL
+layout(binding = 4) uniform Push {
+#else
 layout(push_constant) uniform Push {
+#endif
     // Reciprocal of the raster size, so the divide happens once per frame on the
     // host rather than twice per vertex here.
     vec2 invRaster;

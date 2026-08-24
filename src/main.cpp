@@ -58,6 +58,37 @@
 
 namespace {
 
+/// --graphics-backend's three values. Which of the two GL flavours `Opengl`
+/// resolves to is a build-time fact (SM2_BUILD_OPENGL_DESKTOP vs
+/// SM2_BUILD_OPENGL_ES), not a fourth value here -- design.md §2.
+enum class GraphicsBackendChoice {
+    Software,
+    Vulkan,
+    Opengl,
+};
+
+/// Parses --graphics-backend's argument. Returns false, naming the valid
+/// choices, on anything else -- design.md §2's "reject rather than silently
+/// default".
+[[nodiscard]] bool parse_graphics_backend(const char* value, GraphicsBackendChoice* out)
+{
+    if (std::strcmp(value, "software") == 0) {
+        *out = GraphicsBackendChoice::Software;
+        return true;
+    }
+    if (std::strcmp(value, "vulkan") == 0) {
+        *out = GraphicsBackendChoice::Vulkan;
+        return true;
+    }
+    if (std::strcmp(value, "opengl") == 0) {
+        *out = GraphicsBackendChoice::Opengl;
+        return true;
+    }
+    SM2_ERROR("--graphics-backend does not accept '%s' (valid: software, vulkan, opengl)",
+              value);
+    return false;
+}
+
 struct Options {
     /// Settings that persist. Loaded from the file, then overridden by flags.
     sm2::Config config;
@@ -120,6 +151,15 @@ struct Options {
     /// drawn here instead of alongside). F2 toggles this live so the two can be
     /// compared without restarting.
     bool start_in_software_renderer = false;
+
+    /// Which GPU backend is constructed underneath that toggle --
+    /// independent of start_in_software_renderer, which only decides whether
+    /// the CPU rasteriser is drawing *this frame*
+    /// (.kiro/specs/model2-gl-backends/design.md §2). `software` is a pure
+    /// alias for --software: it does not change which GPU backend is built
+    /// (Vulkan still presents underneath), it only also sets
+    /// start_in_software_renderer.
+    GraphicsBackendChoice graphics_backend = GraphicsBackendChoice::Vulkan;
 
     /// Run this many frames headless, report, and exit. Zero means run normally.
     sm2::u32 boot_test    = 0;
@@ -188,6 +228,11 @@ void print_usage()
         "                      so the renderer can be compared against it\n"
         "      --software      Start with the CPU rasteriser driving the window,\n"
         "                      instead of Vulkan. F2 switches at runtime either way\n"
+        "      --graphics-backend <software|vulkan|opengl>\n"
+        "                      Which GPU backend to build the window/present path\n"
+        "                      on. 'opengl' means whichever GL flavour this binary\n"
+        "                      was built with. 'software' is an alias for\n"
+        "                      --software; --software still wins if both are given\n"
         "      --screenshot-interval <n>  Capture every n frames instead, numbering\n"
         "                      each file after the frame it came from\n"
         "      --screenshot-frames <list>  Capture exactly these frames, comma\n"
@@ -253,6 +298,17 @@ void print_usage()
             out->soft_render = true;
         } else if (std::strcmp(arg, "--software") == 0) {
             out->start_in_software_renderer = true;
+        } else if (std::strcmp(arg, "--graphics-backend") == 0) {
+            if (index + 1 >= argc) {
+                SM2_ERROR("--graphics-backend requires a value (software, vulkan, opengl)");
+                return false;
+            }
+            if (!parse_graphics_backend(argv[++index], &out->graphics_backend)) {
+                return false;
+            }
+            if (out->graphics_backend == GraphicsBackendChoice::Software) {
+                out->start_in_software_renderer = true;
+            }
         } else if (std::strcmp(arg, "--no-vsync") == 0) {
             out->config.vsync = false;
             out->given.vsync  = true;
@@ -451,6 +507,24 @@ int main(int argc, char** argv)
         print_usage();
         return 0;
     }
+
+    // --graphics-backend opengl needs the desktop GL backend compiled in.
+    // Checked immediately, before any other startup work, so an unavailable
+    // choice fails with a named reason rather than at backend construction
+    // deep in the windowed path (.kiro/specs/model2-gl-backends/design.md
+    // §2's "reject rather than silently fall back"). Only the desktop
+    // flavour is named here: SM2_BUILD_OPENGL_ES is a real CMake option, but
+    // the GLES backend itself and this flag's routing to it are task 7 of
+    // that spec and have not landed, so naming it as a remedy would not yet
+    // do anything.
+#if !defined(SM2_HAVE_OPENGL_DESKTOP)
+    if (options.graphics_backend == GraphicsBackendChoice::Opengl) {
+        SM2_ERROR("--graphics-backend opengl was requested, but this binary was "
+                  "built without an OpenGL backend. Rebuild with "
+                  "-DSM2_BUILD_OPENGL_DESKTOP=ON.");
+        return 1;
+    }
+#endif
 
     // Command line first, then the file for everything the command line did not
     // mention. Doing it this way round rather than loading first and overwriting
@@ -1051,11 +1125,18 @@ int main(int argc, char** argv)
 
     int exit_code = 0;
     {
+        // --graphics-backend software and vulkan both mean GraphicsApi::Vulkan
+        // for the window's purposes: the software renderer only replaces the
+        // *drawing*, not the presentation path underneath it, exactly as F2
+        // already assumes today (design.md §4 of the GL backends spec).
         osd::WindowConfig window_config;
         window_config.title      = std::string("sm2-emu ") + SM2_VERSION;
         window_config.width      = options.config.window_width;
         window_config.height     = options.config.window_height;
         window_config.fullscreen = options.config.fullscreen;
+        window_config.graphics_api = options.graphics_backend == GraphicsBackendChoice::Opengl
+                                        ? osd::GraphicsApi::OpenGl
+                                        : osd::GraphicsApi::Vulkan;
 
         osd::Window window;
         if (!window.create(window_config)) {
@@ -1068,17 +1149,38 @@ int main(int argc, char** argv)
         backend_config.vsync             = options.config.vsync;
         backend_config.preferred_device  = options.config.gpu;
 
-        // Only one backend exists today (Vulkan); create_vulkan_backend() is
-        // the one place that names it, matching hw::create_machine()'s own
-        // factory shape for the same reason -- everything else below is
-        // written against render::Backend so a later backend needs no change
-        // here.
-        const std::unique_ptr<render::Backend> backend = render::create_vulkan_backend();
+        // create_vulkan_backend() is the default and the only choice for
+        // --graphics-backend software|vulkan (design.md §2: --software
+        // replaces the drawing, not which GPU backend exists underneath it).
+        // create_opengl_backend() is declared unconditionally in backend.h
+        // but only *defined* when SM2_BUILD_OPENGL_DESKTOP was on at
+        // configure time; the #if guards the call itself so a binary
+        // without that backend never has an undefined symbol to link,
+        // matching backend.h's own doc comment on this function. The
+        // options.graphics_backend == Opengl-without-SM2_HAVE_OPENGL_DESKTOP
+        // case has already returned above, before any of this ran.
+        std::unique_ptr<render::Backend> backend;
+#if defined(SM2_HAVE_OPENGL_DESKTOP)
+        if (options.graphics_backend == GraphicsBackendChoice::Opengl) {
+            backend = render::create_opengl_backend();
+        } else {
+            backend = render::create_vulkan_backend();
+        }
+#else
+        backend = render::create_vulkan_backend();
+#endif
         if (!backend->init(window, backend_config)) {
             SM2_ERROR("render backend initialisation failed");
             SDL_Quit();
             return 1;
         }
+
+        // Name of the constructed GPU backend, for every place that used to
+        // hardcode "Vulkan" as "whichever GPU backend isn't the software
+        // one" -- true while Vulkan was the only choice, not once
+        // --graphics-backend opengl can select a real second one.
+        const char* gpu_backend_name =
+            options.graphics_backend == GraphicsBackendChoice::Opengl ? "OpenGL" : "Vulkan";
 
         // The settings overlay, drawn on top of the emulator's output. Owns
         // only ImGui's context and its SDL3 platform backend; the backend
@@ -1214,14 +1316,17 @@ int main(int argc, char** argv)
             frame_times_ms.reserve(static_cast<usize>(options.duration_seconds) * 2000);
         }
 
-        // "sm2-emu — <game or 'no game'> [Vulkan|Software]", plus the rate and
-        // pause state once the loop is running. Shared by the initial title, the
-        // once-a-second refresh and the immediate refresh F2 does, so the three
-        // can never drift into different formats.
+        // "sm2-emu — <game or 'no game'> [Vulkan|OpenGL|Software]", plus the
+        // rate and pause state once the loop is running. Shared by the
+        // initial title, the once-a-second refresh and the immediate
+        // refresh F2 does, so the three can never drift into different
+        // formats.
         const auto build_title = [&]() {
             std::string title = std::string("sm2-emu — ")
                               + (loaded.has_value() ? loaded->game.title : "no game")
-                              + (use_software_renderer ? " [Software]" : " [Vulkan]");
+                              + (use_software_renderer
+                                    ? " [Software]"
+                                    : (std::string(" [") + gpu_backend_name + "]"));
             if (paused) {
                 title += " — paused";
             } else if (frames_presented != 0) {
@@ -1260,7 +1365,7 @@ int main(int argc, char** argv)
                         } else if (event.key.key == SDLK_F2 && !event.key.repeat) {
                             use_software_renderer = !use_software_renderer;
                             SM2_INFO("switched to the %s renderer",
-                                     use_software_renderer ? "software" : "Vulkan");
+                                     use_software_renderer ? "software" : gpu_backend_name);
                             window.set_title(build_title());
                         } else if (!gui.visible()) {
                             // Only process game keys when the overlay is hidden.
@@ -1521,7 +1626,7 @@ int main(int argc, char** argv)
             gui.new_frame();
             const bool gui_active =
                 gui.draw(options.config, gpu_names, pacer.measured_hz(),
-                        use_software_renderer ? "Software" : "Vulkan");
+                        use_software_renderer ? "Software" : gpu_backend_name);
             // Always finalise the ImGui frame (Render must follow NewFrame).
             gui.end_frame();
             backend->draw_overlay(gui_active);
@@ -1615,7 +1720,7 @@ int main(int argc, char** argv)
             const double p99 = percentile(frame_times_ms, 0.99);
 
             std::printf("\n=== %s renderer, %s, %.1fs ===\n",
-                        use_software_renderer ? "software" : "Vulkan",
+                        use_software_renderer ? "software" : gpu_backend_name,
                         loaded.has_value() ? loaded->game.name.c_str() : "no game",
                         total_ms / 1000.0);
             std::printf("frames presented  : %u\n", frames_presented);
@@ -1626,7 +1731,7 @@ int main(int argc, char** argv)
             std::printf("throttled          : %s\n", options.config.throttle ? "yes" : "no");
             SM2_INFO("%s: %u frame(s) over %.1fs, average %.2f fps (p50 %.3f / p95 %.3f / "
                      "p99 %.3f ms), throttle %s",
-                     use_software_renderer ? "software" : "Vulkan", frames_presented,
+                     use_software_renderer ? "software" : gpu_backend_name, frames_presented,
                      total_ms / 1000.0, 1000.0 / mean_ms, p50, p95, p99,
                      options.config.throttle ? "on" : "off");
 

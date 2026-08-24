@@ -65,6 +65,14 @@ option(SM2_WERROR       "Treat compiler warnings as errors"        OFF)
 option(SM2_SHADER_WERROR "Treat shader compiler warnings as errors" ON)
 option(SM2_BUILD_TESTS  "Build unit tests"                          ON)
 
+# Phase 9: OpenGL-family render backends, alongside the always-built Vulkan
+# one. Desktop defaults on -- it costs nothing to compile in and gives Linux
+# and macOS a fallback where Vulkan is absent or immature. GLES defaults off:
+# it is meaningless on a desktop GPU, so building it needs an explicit opt-in
+# on the ARM targets it is actually for.
+option(SM2_BUILD_OPENGL_DESKTOP "Build the OpenGL 4.3 core desktop backend" ON)
+option(SM2_BUILD_OPENGL_ES      "Build the OpenGL ES 3.1 backend (ARM)"    OFF)
+
 # ---------------------------------------------------------------------------
 # Platform identification
 # ---------------------------------------------------------------------------
