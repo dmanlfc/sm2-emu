@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iterator>
 
 /// MAME's emucore.h BIT(). Local to this file so it cannot leak.
 #define BIT(value, n) (((value) >> (n)) & 1)

@@ -144,6 +144,47 @@ std::string prepare_gl_source(const char* embedded_source, const char* version_d
                      line_end == std::string::npos ? std::string::npos
                                                     : line_end - version_pos + 1);
     }
+
+    // Strip Vulkan-only "set = N, " from layout qualifiers. OpenGL has no
+    // descriptor sets -- it uses a flat binding-point namespace -- so the
+    // set qualifier is illegal in desktop GLSL and must be removed. The
+    // shaders are authored for Vulkan (where set is required) and shared
+    // with the GL backend via this mechanical rewrite.
+    //
+    // The match requires that "set" is not preceded by an alphanumeric or
+    // underscore character, to avoid false positives like "offset = ...".
+    {
+        const std::string pattern = "set = ";
+        usize pos = 0;
+        while ((pos = source.find(pattern, pos)) != std::string::npos) {
+            // Only match if "set" is at the start or preceded by a non-identifier
+            // character (comma, open-paren, space, etc.).
+            if (pos > 0) {
+                const char prev = source[pos - 1];
+                if ((prev >= 'a' && prev <= 'z') || (prev >= 'A' && prev <= 'Z')
+                    || (prev >= '0' && prev <= '9') || prev == '_') {
+                    pos += pattern.size();
+                    continue;
+                }
+            }
+
+            // Find the end of "set = N, " -- skip digits after "set = ", then
+            // consume the trailing ", " (comma + optional space).
+            usize end = pos + pattern.size();
+            while (end < source.size() && source[end] >= '0' && source[end] <= '9') {
+                ++end;
+            }
+            // Consume ", " that follows the digit(s).
+            if (end < source.size() && source[end] == ',') {
+                ++end;
+                if (end < source.size() && source[end] == ' ') {
+                    ++end;
+                }
+            }
+            source.erase(pos, end - pos);
+        }
+    }
+
     std::string header = std::string(version_directive) + "\n#define SM2_TARGET_GL 1\n";
     return header + source;
 }

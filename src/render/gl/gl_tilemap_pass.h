@@ -67,6 +67,7 @@ private:
     [[nodiscard]] bool create_programs();
     [[nodiscard]] bool create_compute_resources();
     void               upload_surface_to_texture(u32 texture, std::span<const u32> pixels);
+    void               upload_surface_from_buffer(u32 texture, u32 buffer_handle);
     void               dispatch_compose(const hw::Model2MachineBase& machine,
                                        const hw::Model2Video&       video);
     void               draw_fullscreen(u32 texture, u32 mode, bool blend, u32 background_rgba);

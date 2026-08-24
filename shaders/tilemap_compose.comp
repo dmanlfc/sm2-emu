@@ -314,7 +314,16 @@ void main()
         return;
     }
 
+    // Under OpenGL the buffer will be uploaded to a texture via PBO, and GL
+    // places buffer row 0 at the bottom of the texture (V=0). The pixel
+    // pipeline expects the top of the game image at high V. Flipping the
+    // write index here avoids a CPU-side copy and keeps the PBO upload a
+    // pure GPU-side transfer.
+#ifdef SM2_TARGET_GL
+    uint index = (kScreenHeight - 1u - dy) * kScreenWidth + dx;
+#else
     uint index = dy * kScreenWidth + dx;
+#endif
     uBelow[index] = composite(0u, dx, dy);
     uAbove[index] = composite(1u, dx, dy);
 }

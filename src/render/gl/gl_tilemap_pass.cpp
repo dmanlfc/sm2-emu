@@ -23,6 +23,7 @@
 #include "shaders/tilemap_composite_frag_glsl.h"
 
 #include <cstring>
+#include <vector>
 
 namespace sm2::render::gl {
 namespace {
@@ -144,9 +145,34 @@ bool TilemapPass::create_compute_resources()
 void TilemapPass::upload_surface_to_texture(u32 texture, std::span<const u32> pixels)
 {
     BindTexture(GL_TEXTURE_2D, texture);
+    // The CPU's row 0 is the top of the image, but GL's TexSubImage2D places
+    // row 0 at the bottom of the texture (V=0). Flip the image vertically so
+    // the top of the image ends up at high V values, which is where the
+    // fullscreen quad's UV mapping expects it for a right-side-up result.
+    // A per-frame copy of ~760 KB is trivial compared to the draw calls.
+    std::vector<u32> flipped(static_cast<usize>(kSourceWidth) * kSourceHeight);
+    for (u32 y = 0; y < kSourceHeight; ++y) {
+        const u32 src_row = kSourceHeight - 1 - y;
+        std::memcpy(flipped.data() + static_cast<usize>(y) * kSourceWidth,
+                    pixels.data() + static_cast<usize>(src_row) * kSourceWidth,
+                    static_cast<usize>(kSourceWidth) * sizeof(u32));
+    }
     TexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(kSourceWidth),
                  static_cast<GLsizei>(kSourceHeight), GL_RGBA, GL_UNSIGNED_BYTE,
-                 pixels.data());
+                 flipped.data());
+}
+
+void TilemapPass::upload_surface_from_buffer(u32 texture, u32 buffer_handle)
+{
+    // Bind the SSBO as a pixel-unpack source so TexSubImage2D reads from it
+    // directly on the GPU rather than from system memory. This is the GL
+    // equivalent of Vulkan's vkCmdCopyBufferToImage.
+    BindBuffer(GL_PIXEL_UNPACK_BUFFER, buffer_handle);
+    BindTexture(GL_TEXTURE_2D, texture);
+    TexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(kSourceWidth),
+                 static_cast<GLsizei>(kSourceHeight), GL_RGBA, GL_UNSIGNED_BYTE,
+                 nullptr);  // null = read from bound PBO at offset 0
+    BindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
 void TilemapPass::upload(std::span<const u32> below, std::span<const u32> above)
@@ -208,14 +234,15 @@ void TilemapPass::dispatch_compose(const hw::Model2MachineBase& machine,
     // reason.
     MemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-    upload_surface_to_texture(m_below_texture,
-                              std::span<const u32>(
-                                  static_cast<const u32*>(m_below_staging.mapped),
-                                  kSourceWidth * kSourceHeight));
-    upload_surface_to_texture(m_above_texture,
-                              std::span<const u32>(
-                                  static_cast<const u32*>(m_above_staging.mapped),
-                                  kSourceWidth * kSourceHeight));
+    // Upload compute results to textures via PBO bind rather than CPU
+    // readback: binding the staging SSBO as GL_PIXEL_UNPACK_BUFFER and
+    // calling TexSubImage2D with a null data pointer tells the driver to
+    // source the pixel data from the bound buffer object -- a pure GPU-side
+    // copy, matching the Vulkan path's vkCmdCopyBufferToImage. Reading from
+    // the persistently mapped pointer would be undefined (the mapping is
+    // write-only) and forces an implicit pipeline stall in practice.
+    upload_surface_from_buffer(m_below_texture, m_below_staging.handle);
+    upload_surface_from_buffer(m_above_texture, m_above_staging.handle);
 }
 
 void TilemapPass::compute(const hw::Model2MachineBase& machine, const hw::Model2Video& video)
