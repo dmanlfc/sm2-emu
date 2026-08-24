@@ -32,7 +32,8 @@ class Window;
 namespace sm2::render::gl {
 
 struct ContextConfig {
-    bool vsync = true;
+    bool vsync   = true;
+    bool es_mode = false;  ///< Request a GLES 3.1 context instead of GL 4.3 core.
 };
 
 /// Owns the GL context and the small amount of state that has nowhere else
@@ -68,6 +69,10 @@ public:
     /// string list.
     [[nodiscard]] bool has_buffer_storage() const { return m_has_buffer_storage; }
 
+    /// True when the context was created in GLES 3.1 mode rather than
+    /// desktop GL 4.3 core.
+    [[nodiscard]] bool is_es() const { return m_is_es; }
+
     [[nodiscard]] const std::string& device_name() const { return m_device_name; }
 
     /// Present the frame drawn since the last call, honouring the vsync
@@ -78,6 +83,7 @@ private:
     SDL_Window*    m_window  = nullptr;
     SDL_GLContext  m_context = nullptr;
     bool           m_has_buffer_storage = false;
+    bool           m_is_es             = false;
     std::string    m_device_name;
 };
 

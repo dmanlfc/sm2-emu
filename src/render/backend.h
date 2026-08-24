@@ -318,10 +318,15 @@ public:
 
 /// Construct the OpenGL 4.3 core desktop backend, uninitialised.
 ///
+/// Construct the OpenGL backend, uninitialised. Whether this creates a
+/// desktop GL 4.3 core or a GLES 3.1 context depends on which CMake option
+/// was active at build time (SM2_BUILD_OPENGL_DESKTOP vs SM2_BUILD_OPENGL_ES;
+/// they are mutually exclusive).
+///
 /// Declared unconditionally so main.cpp can name it without an #ifdef; only
-/// defined (in sm2_render_gl) when SM2_BUILD_OPENGL_DESKTOP was on at
-/// configure time. main.cpp guards the *call* behind
-/// `#if defined(SM2_HAVE_OPENGL_DESKTOP)` (set from that same CMake option),
+/// defined (in sm2_render_gl) when either GL option was on at configure time.
+/// main.cpp guards the *call* behind
+/// `#if defined(SM2_HAVE_OPENGL_DESKTOP) || defined(SM2_HAVE_OPENGL_ES)`,
 /// so a build without this backend fails at --graphics-backend parsing with
 /// a named error rather than failing to link over an undefined symbol it
 /// was never going to call.

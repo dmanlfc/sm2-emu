@@ -283,6 +283,30 @@ if(SM2_BUILD_OPENGL_DESKTOP)
     endif()
 endif()
 
+# sm2_imgui_gles -- same as sm2_imgui_gl but for the GLES 3.1 backend.
+# imgui_impl_opengl3.cpp supports ES out of the box (it detects the ES
+# context at runtime via GL_VERSION string parsing and uses its own bundled
+# loader regardless of platform).
+if(SM2_BUILD_OPENGL_ES)
+    add_library(sm2_imgui_gles STATIC
+        "${imgui_SOURCE_DIR}/imgui.cpp"
+        "${imgui_SOURCE_DIR}/imgui_demo.cpp"
+        "${imgui_SOURCE_DIR}/imgui_draw.cpp"
+        "${imgui_SOURCE_DIR}/imgui_tables.cpp"
+        "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
+        "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
+        "${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp"
+    )
+    target_include_directories(sm2_imgui_gles SYSTEM PUBLIC
+        "${imgui_SOURCE_DIR}"
+        "${imgui_SOURCE_DIR}/backends"
+    )
+    target_link_libraries(sm2_imgui_gles PUBLIC SDL3::SDL3)
+    if(NOT MSVC)
+        target_compile_options(sm2_imgui_gles PRIVATE -w)
+    endif()
+endif()
+
 # ---------------------------------------------------------------------------
 # Musashi — the 68000 in the sound board
 # ---------------------------------------------------------------------------

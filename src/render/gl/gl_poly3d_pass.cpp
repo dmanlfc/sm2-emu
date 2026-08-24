@@ -145,9 +145,9 @@ bool Poly3DPass::create_programs()
     GenVertexArrays(1, &m_vao);
 
     const std::string vertex_source =
-        prepare_gl_source(shaders::kPolygonVertGlsl, kDesktopVersionDirective);
+        prepare_gl_source(shaders::kPolygonVertGlsl, active_version_directive());
     const std::string fragment_source =
-        prepare_gl_source(shaders::kPolygonFragGlsl, kDesktopVersionDirective);
+        prepare_gl_source(shaders::kPolygonFragGlsl, active_version_directive());
     m_polygon_program = compile_program(vertex_source.c_str(), fragment_source.c_str());
     if (m_polygon_program == 0) {
         return false;
@@ -162,7 +162,7 @@ bool Poly3DPass::create_programs()
               GL_DYNAMIC_DRAW);
 
     const std::string decode_source =
-        prepare_gl_source(shaders::kTexelDecodeCompGlsl, kDesktopVersionDirective);
+        prepare_gl_source(shaders::kTexelDecodeCompGlsl, active_version_directive());
     m_decode_program = compile_compute_program(decode_source.c_str());
     if (m_decode_program == 0) {
         return false;
@@ -170,9 +170,9 @@ bool Poly3DPass::create_programs()
 
     GenVertexArrays(1, &m_composite_vao);
     const std::string composite_vertex_source =
-        prepare_gl_source(shaders::kFullscreenQuadVertGlsl, kDesktopVersionDirective);
+        prepare_gl_source(shaders::kFullscreenQuadVertGlsl, active_version_directive());
     const std::string composite_fragment_source =
-        prepare_gl_source(shaders::kTilemapCompositeFragGlsl, kDesktopVersionDirective);
+        prepare_gl_source(shaders::kTilemapCompositeFragGlsl, active_version_directive());
     m_composite_program =
         compile_program(composite_vertex_source.c_str(), composite_fragment_source.c_str());
     if (m_composite_program == 0) {

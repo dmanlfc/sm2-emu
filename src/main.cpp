@@ -508,20 +508,14 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    // --graphics-backend opengl needs the desktop GL backend compiled in.
-    // Checked immediately, before any other startup work, so an unavailable
-    // choice fails with a named reason rather than at backend construction
-    // deep in the windowed path (.kiro/specs/model2-gl-backends/design.md
-    // §2's "reject rather than silently fall back"). Only the desktop
-    // flavour is named here: SM2_BUILD_OPENGL_ES is a real CMake option, but
-    // the GLES backend itself and this flag's routing to it are task 7 of
-    // that spec and have not landed, so naming it as a remedy would not yet
-    // do anything.
-#if !defined(SM2_HAVE_OPENGL_DESKTOP)
+    // --graphics-backend opengl needs a GL backend compiled in (either
+    // desktop GL 4.3 core or GLES 3.1 -- they are mutually exclusive build
+    // options that both produce the same "opengl" runtime name).
+#if !defined(SM2_HAVE_OPENGL_DESKTOP) && !defined(SM2_HAVE_OPENGL_ES)
     if (options.graphics_backend == GraphicsBackendChoice::Opengl) {
         SM2_ERROR("--graphics-backend opengl was requested, but this binary was "
                   "built without an OpenGL backend. Rebuild with "
-                  "-DSM2_BUILD_OPENGL_DESKTOP=ON.");
+                  "-DSM2_BUILD_OPENGL_DESKTOP=ON or -DSM2_BUILD_OPENGL_ES=ON.");
         return 1;
     }
 #endif
@@ -1160,7 +1154,7 @@ int main(int argc, char** argv)
         // options.graphics_backend == Opengl-without-SM2_HAVE_OPENGL_DESKTOP
         // case has already returned above, before any of this ran.
         std::unique_ptr<render::Backend> backend;
-#if defined(SM2_HAVE_OPENGL_DESKTOP)
+#if defined(SM2_HAVE_OPENGL_DESKTOP) || defined(SM2_HAVE_OPENGL_ES)
         if (options.graphics_backend == GraphicsBackendChoice::Opengl) {
             backend = render::create_opengl_backend();
         } else {

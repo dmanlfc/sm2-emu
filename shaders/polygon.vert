@@ -72,7 +72,7 @@ void main()
 
     // Clipping already discarded everything behind the eye, so the depth is
     // positive; the floor only guards against a denormal reaching the divide.
-    const float w = max(inDepth, 1.0e-6);
+    float w = max(inDepth, 1.0e-6);
 
     gl_Position = vec4(ndc * w, 0.0, w);
     vTexel      = inTexel;

@@ -32,12 +32,19 @@ Context::~Context()
 bool Context::init(osd::Window& window, const ContextConfig& config)
 {
     m_window = window.handle();
+    m_is_es  = config.es_mode;
 
     // Attributes must be set before context creation; SDL applies them to
     // the context SDL_GL_CreateContext produces next, not retroactively.
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    if (config.es_mode) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    } else {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    }
     // No depth buffer: this renderer's fill mask is stencil-only, matching
     // the Vulkan path's own choice (Poly3DPass's stencil attachment). Model
     // 2's hardware itself has no depth buffer either -- see backend.h's own
@@ -71,33 +78,50 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
 
     // The version actually granted, not the version requested: a driver can
     // silently hand back a higher (never lower) context than asked for, and
-    // this is what this backend's declared floor (design.md sec 1) actually
-    // depends on having, not the request.
+    // this is what this backend's declared floor actually depends on having.
     s32 major = 0;
     s32 minor = 0;
-    s32 profile_mask = 0;
     GetIntegerv(GL_MAJOR_VERSION, &major);
     GetIntegerv(GL_MINOR_VERSION, &minor);
-    GetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile_mask);
 
-    const bool is_core = (profile_mask & GL_CONTEXT_CORE_PROFILE_BIT) != 0;
-    const bool meets_floor = (major > 4) || (major == 4 && minor >= 3);
-    if (!meets_floor || !is_core) {
-        SM2_ERROR("gl: context is %d.%d %s, but this backend requires 4.3 core "
-                  "or newer (compute shaders and storage buffers are not "
-                  "available below that line)",
-                  major, minor, is_core ? "core" : "not core");
-        SDL_GL_DestroyContext(m_context);
-        m_context = nullptr;
-        return false;
+    if (config.es_mode) {
+        const bool meets_floor = (major > 3) || (major == 3 && minor >= 1);
+        if (!meets_floor) {
+            SM2_ERROR("gles: context is ES %d.%d, but this backend requires "
+                      "ES 3.1 or newer (compute shaders and storage buffers "
+                      "are not available below that line)",
+                      major, minor);
+            SDL_GL_DestroyContext(m_context);
+            m_context = nullptr;
+            return false;
+        }
+        m_has_buffer_storage = has_gl_extension("GL_EXT_buffer_storage");
+        m_device_name = "OpenGL ES " + std::to_string(major) + "." + std::to_string(minor);
+
+        SM2_INFO("gles: context ES %d.%d, GL_EXT_buffer_storage %s", major, minor,
+                 m_has_buffer_storage ? "present" : "absent (falling back to BufferSubData)");
+    } else {
+        s32 profile_mask = 0;
+        GetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile_mask);
+
+        const bool is_core = (profile_mask & GL_CONTEXT_CORE_PROFILE_BIT) != 0;
+        const bool meets_floor = (major > 4) || (major == 4 && minor >= 3);
+        if (!meets_floor || !is_core) {
+            SM2_ERROR("gl: context is %d.%d %s, but this backend requires 4.3 core "
+                      "or newer (compute shaders and storage buffers are not "
+                      "available below that line)",
+                      major, minor, is_core ? "core" : "not core");
+            SDL_GL_DestroyContext(m_context);
+            m_context = nullptr;
+            return false;
+        }
+        m_has_buffer_storage = has_gl_extension("GL_ARB_buffer_storage");
+        m_device_name = "OpenGL " + std::to_string(major) + "." + std::to_string(minor)
+                      + " core";
+
+        SM2_INFO("gl: context %d.%d core, GL_ARB_buffer_storage %s", major, minor,
+                 m_has_buffer_storage ? "present" : "absent (falling back to BufferSubData)");
     }
-
-    m_has_buffer_storage = has_gl_extension("GL_ARB_buffer_storage");
-    m_device_name = "OpenGL " + std::to_string(major) + "." + std::to_string(minor)
-                  + " core";
-
-    SM2_INFO("gl: context %d.%d core, GL_ARB_buffer_storage %s", major, minor,
-             m_has_buffer_storage ? "present" : "absent (falling back to BufferSubData)");
 
     SDL_GL_SetSwapInterval(config.vsync ? 1 : 0);
     return true;

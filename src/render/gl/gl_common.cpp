@@ -110,6 +110,7 @@ SM2_GL_FUNCTION_LIST(SM2_GL_DEFINE)
 
 namespace {
 bool g_loaded = false;
+const char* g_version_directive = sm2::render::gl::kDesktopVersionDirective;
 }  // namespace
 
 bool load_gl_functions(SDL_FunctionPointer (*get_proc)(const char*), std::string* out_error)
@@ -132,6 +133,16 @@ bool load_gl_functions(SDL_FunctionPointer (*get_proc)(const char*), std::string
 bool gl_functions_loaded()
 {
     return g_loaded;
+}
+
+const char* active_version_directive()
+{
+    return g_version_directive;
+}
+
+void set_version_directive(const char* directive)
+{
+    g_version_directive = directive;
 }
 
 std::string prepare_gl_source(const char* embedded_source, const char* version_directive)
@@ -186,6 +197,53 @@ std::string prepare_gl_source(const char* embedded_source, const char* version_d
     }
 
     std::string header = std::string(version_directive) + "\n#define SM2_TARGET_GL 1\n";
+    // GLES requires explicit precision qualifiers. Inject default precision
+    // declarations immediately after the version/define lines so every shader
+    // compiles without adding per-variable qualifiers throughout. highp float
+    // matches desktop GL's implicit precision and avoids visible artefacts in
+    // the tone-curve and filtering arithmetic.
+    if (std::string(version_directive).find(" es") != std::string::npos) {
+        header += "precision highp float;\n"
+                  "precision highp int;\n"
+                  "precision highp sampler2D;\n"
+                  "precision highp sampler2DArray;\n"
+                  "precision highp usampler2DArray;\n"
+                  "precision highp image2DArray;\n"
+                  "precision highp uimage2DArray;\n";
+
+        // ESSL treats `const` on a local variable as "compile-time constant
+        // expression required" rather than the desktop-GL meaning of "immutable
+        // after initialisation". Strip `const ` from lines inside function
+        // bodies (identified by leading whitespace) so runtime-initialised
+        // locals compile. Global-scope const (no leading whitespace) is left
+        // alone -- those are literal constants the ESSL compiler accepts.
+        {
+            const std::string pat = "const ";
+            usize pos = 0;
+            while ((pos = source.find(pat, pos)) != std::string::npos) {
+                // Check if this is inside a function body: preceded by a
+                // newline then at least one space/tab (indented line).
+                bool indented = false;
+                if (pos > 0) {
+                    usize line_start = source.rfind('\n', pos - 1);
+                    if (line_start == std::string::npos) {
+                        line_start = 0;
+                    } else {
+                        ++line_start;
+                    }
+                    if (line_start < pos
+                        && (source[line_start] == ' ' || source[line_start] == '\t')) {
+                        indented = true;
+                    }
+                }
+                if (indented) {
+                    source.erase(pos, pat.size());
+                } else {
+                    pos += pat.size();
+                }
+            }
+        }
+    }
     return header + source;
 }
 

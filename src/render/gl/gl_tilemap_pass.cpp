@@ -107,9 +107,9 @@ bool TilemapPass::create_programs()
               nullptr, GL_DYNAMIC_DRAW);
 
     const std::string vertex_source =
-        prepare_gl_source(shaders::kFullscreenQuadVertGlsl, kDesktopVersionDirective);
+        prepare_gl_source(shaders::kFullscreenQuadVertGlsl, active_version_directive());
     const std::string fragment_source =
-        prepare_gl_source(shaders::kTilemapCompositeFragGlsl, kDesktopVersionDirective);
+        prepare_gl_source(shaders::kTilemapCompositeFragGlsl, active_version_directive());
 
     m_program = compile_program(vertex_source.c_str(), fragment_source.c_str());
     if (m_program == 0) {
@@ -126,7 +126,7 @@ bool TilemapPass::create_programs()
 bool TilemapPass::create_compute_resources()
 {
     const std::string compute_source =
-        prepare_gl_source(shaders::kTilemapComposeCompGlsl, kDesktopVersionDirective);
+        prepare_gl_source(shaders::kTilemapComposeCompGlsl, active_version_directive());
     m_compute_program = compile_compute_program(compute_source.c_str());
     if (m_compute_program == 0) {
         return false;

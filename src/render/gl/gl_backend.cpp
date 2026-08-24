@@ -33,10 +33,18 @@ bool GlBackend::init(osd::Window& window, const BackendConfig& config)
 
     ContextConfig context_config;
     context_config.vsync = config.vsync;
+#if defined(SM2_FORCE_GLES)
+    context_config.es_mode = true;
+#endif
 
     if (!m_context.init(window, context_config)) {
         return false;
     }
+
+    // Set the version directive for all subsequent shader compilations.
+    set_version_directive(m_context.is_es() ? kEsVersionDirective
+                                            : kDesktopVersionDirective);
+
     if (!m_tilemaps.init()) {
         SM2_ERROR("gl: could not create the 2D pipeline");
         return false;
@@ -181,7 +189,8 @@ void GlBackend::wait_idle()
 
 bool GlBackend::init_overlay(osd::Gui& /*gui*/)
 {
-    if (!ImGui_ImplOpenGL3_Init("#version 430 core")) {
+    const char* imgui_version = m_context.is_es() ? "#version 300 es" : "#version 430 core";
+    if (!ImGui_ImplOpenGL3_Init(imgui_version)) {
         SM2_ERROR("gl: ImGui_ImplOpenGL3_Init failed");
         return false;
     }

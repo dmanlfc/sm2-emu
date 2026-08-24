@@ -66,7 +66,13 @@ target_link_libraries(sm2_render_vk
 # -- see render/geometry.h's own doc comment for why that logic must not be
 # duplicated per backend.
 
-if(SM2_BUILD_OPENGL_DESKTOP)
+if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
+    if(SM2_BUILD_OPENGL_DESKTOP AND SM2_BUILD_OPENGL_ES)
+        message(FATAL_ERROR
+            "SM2_BUILD_OPENGL_DESKTOP and SM2_BUILD_OPENGL_ES are mutually "
+            "exclusive. Enable one or the other, not both.")
+    endif()
+
     add_library(sm2_render_gl STATIC
         render/gl/gl_backend.cpp
         render/gl/gl_common.cpp
@@ -107,9 +113,13 @@ if(SM2_BUILD_OPENGL_DESKTOP)
         PRIVATE
             sm2_warnings
             sm2_render_vk
-            sm2_imgui_gl
+            $<$<BOOL:${SM2_BUILD_OPENGL_ES}>:sm2_imgui_gles>
+            $<$<BOOL:${SM2_BUILD_OPENGL_DESKTOP}>:sm2_imgui_gl>
             SDL3::SDL3
     )
+    if(SM2_BUILD_OPENGL_ES)
+        target_compile_definitions(sm2_render_gl PRIVATE SM2_FORCE_GLES=1)
+    endif()
 endif()
 
 # ---------------------------------------------------------------------------
@@ -276,7 +286,7 @@ target_link_libraries(sm2-emu
         sm2_hw
         sm2_warnings
 )
-if(SM2_BUILD_OPENGL_DESKTOP)
+if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
     target_link_libraries(sm2-emu PRIVATE sm2_render_gl)
 endif()
 

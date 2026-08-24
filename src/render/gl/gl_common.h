@@ -209,6 +209,20 @@ extern SM2_PFNGLFINISHPROC              Finish;
 /// prepare_gl_source(), named so no call site repeats the literal.
 inline constexpr const char* kDesktopVersionDirective = "#version 430 core";
 
+/// "#version 310 es" -- GLES 3.1's own version_directive for
+/// prepare_gl_source(). ES requires explicit precision qualifiers which are
+/// injected by prepare_gl_source() alongside the SM2_TARGET_GL define when
+/// this directive is used.
+inline constexpr const char* kEsVersionDirective = "#version 310 es";
+
+/// Returns the version directive matching the currently active context.
+/// Set by GlBackend::init() once the context is created.
+[[nodiscard]] const char* active_version_directive();
+
+/// Set the version directive for subsequent shader compilation. Called once
+/// during backend init after the context type (desktop/ES) is known.
+void set_version_directive(const char* directive);
+
 /// Compile a vertex+fragment program from GLSL source already run through
 /// prepare_gl_source(), logging the shader and link error text through
 /// SM2_ERROR on failure rather than aborting -- the same "report and
