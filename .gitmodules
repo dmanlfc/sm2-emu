@@ -1,0 +1,21 @@
+[submodule "3rdparty/musashi"]
+	path = 3rdparty/musashi
+	url = https://github.com/kstenerud/Musashi.git
+[submodule "3rdparty/ymfm"]
+	path = 3rdparty/ymfm
+	url = https://github.com/aaronsgiles/ymfm.git
+[submodule "3rdparty/VulkanMemoryAllocator"]
+	path = 3rdparty/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "3rdparty/imgui"]
+	path = 3rdparty/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "3rdparty/miniz"]
+	path = 3rdparty/miniz
+	url = https://github.com/richgel999/miniz.git
+[submodule "3rdparty/pugixml"]
+	path = 3rdparty/pugixml
+	url = https://github.com/zeux/pugixml.git
+[submodule "3rdparty/SDL"]
+	path = 3rdparty/SDL
+	url = https://github.com/libsdl-org/SDL.git
