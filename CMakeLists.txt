@@ -65,11 +65,10 @@ option(SM2_WERROR       "Treat compiler warnings as errors"        OFF)
 option(SM2_SHADER_WERROR "Treat shader compiler warnings as errors" ON)
 option(SM2_BUILD_TESTS  "Build unit tests"                          ON)
 
-# Packaged deps (SDL3, pugixml, VMA) come from the system by default; a missing
-# one is a hard error naming the package. ON fetches them instead. The
-# unpackaged sources (Musashi, ymfm, miniz, LZMA SDK, Dear ImGui) are always
-# vendored regardless.
-option(SM2_ALLOW_FETCH  "Fetch packaged deps when not found on the system" OFF)
+# Dependencies come from the system where available (find_package). Anything
+# not found falls back to the copy under 3rdparty/ (git submodules, plus the
+# vendored LZMA SDK), so a recursive checkout builds unattended with no network
+# access at configure time. See cmake/Dependencies.cmake.
 
 # Render backends. Software is always built; the GPU backends are opt-in.
 # Vulkan defaults off so a bare build needs no Vulkan driver (for ARM boards

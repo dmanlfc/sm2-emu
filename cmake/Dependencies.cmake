@@ -16,14 +16,21 @@
 # External dependency resolution.
 #
 # Policy: prefer whatever the system provides (which is what distro packaging
-# wants on Linux, the primary target), and fall back to fetching a pinned
-# revision so a clean checkout builds unattended on a machine with nothing
-# installed but a compiler.
+# wants on Linux, the primary target). When a dependency is absent, fall back
+# to the copy vendored under 3rdparty/ (git submodules, plus the LZMA SDK whose
+# C sources are committed since it has no git repository). Nothing is fetched
+# from the network at configure time, so a recursive checkout builds unattended
+# and a cross build needs only its sysroot.
 
-include(FetchContent)
+set(SM2_3RDPARTY "${CMAKE_SOURCE_DIR}/3rdparty")
 
-# ---------------------------------------------------------------------------
-# Vulkan
+# Guard against a non-recursive clone: the vendored fallbacks are submodules.
+if(NOT EXISTS "${SM2_3RDPARTY}/musashi/m68kmake.c")
+    message(FATAL_ERROR
+        "3rdparty submodules are missing. Clone with --recurse-submodules, or run:\n"
+        "  git submodule update --init --recursive")
+endif()
+
 # ---------------------------------------------------------------------------
 # Vulkan — headers + loader library
 # ---------------------------------------------------------------------------
@@ -34,10 +41,6 @@ include(FetchContent)
 # is one device and one thread issuing commands, so the indirection volk saves
 # is not worth the extra moving part.
 #
-# At runtime the loader finds an ICD (installable client driver) — on Linux
-# that is the GPU vendor's driver, on macOS it is MoltenVK. The ICD is not a
-# build-time dependency.
-
 # The Vulkan headers and loader are only required when the Vulkan backend is
 # actually being built (SM2_BUILD_VULKAN). A software / OpenGL-only build --
 # the default, and what a lower-end ARM board with no Vulkan driver wants --
@@ -97,19 +100,8 @@ find_package(SDL3 3.2 CONFIG QUIET)
 
 if(SDL3_FOUND)
     set(SM2_SDL3_ORIGIN "system (${SDL3_VERSION})")
-elseif(NOT SM2_ALLOW_FETCH)
-    message(FATAL_ERROR
-        "SDL3 (>= 3.2) was not found on the system.\n"
-        "\n"
-        "Install the SDL3 development package:\n"
-        "  Debian/Ubuntu : sudo apt install libsdl3-dev\n"
-        "  Fedora        : sudo dnf install SDL3-devel\n"
-        "  Arch/Manjaro  : sudo pacman -S sdl3\n"
-        "  macOS         : brew install sdl3\n"
-        "\n"
-        "Or pass -DSM2_ALLOW_FETCH=ON to fetch and build it instead.")
 else()
-    set(SM2_SDL3_ORIGIN "fetched (release-3.4.14)")
+    set(SM2_SDL3_ORIGIN "vendored (3rdparty/SDL)")
 
     # Trim the build to what the emulator actually uses. SDL's own tests and
     # the shared library are pure overhead here.
@@ -122,14 +114,7 @@ else()
     set(SDL_RENDER        OFF CACHE BOOL "" FORCE)
     set(SDL_CAMERA        OFF CACHE BOOL "" FORCE)
 
-    FetchContent_Declare(SDL3
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-        GIT_TAG        release-3.4.14
-        GIT_SHALLOW    TRUE
-        GIT_PROGRESS   TRUE
-        SYSTEM
-    )
-    FetchContent_MakeAvailable(SDL3)
+    add_subdirectory("${SM2_3RDPARTY}/SDL" EXCLUDE_FROM_ALL SYSTEM)
 endif()
 
 # ---------------------------------------------------------------------------
@@ -137,33 +122,16 @@ endif()
 # ---------------------------------------------------------------------------
 # Hand-rolled one-allocation-per-resource works for a fixed resource set, but
 # the texture sheets and per-frame rings want suballocation, and VMA is the
-# boring correct answer. Only needed when the Vulkan backend is built.
+# boring correct answer. Only needed when the Vulkan backend is built. VMA is
+# header-only, so the fallback is just an include directory exposing the
+# GPUOpen::VulkanMemoryAllocator target the source expects.
 
 if(SM2_BUILD_VULKAN)
     find_package(VulkanMemoryAllocator CONFIG QUIET)
-    if(VulkanMemoryAllocator_FOUND)
-        # nothing to do -- the config package provides GPUOpen::VulkanMemoryAllocator
-    elseif(NOT SM2_ALLOW_FETCH)
-        message(FATAL_ERROR
-            "VulkanMemoryAllocator was not found on the system (needed for the "
-            "Vulkan backend).\n"
-            "\n"
-            "Install it:\n"
-            "  Debian/Ubuntu : sudo apt install libvulkan-memory-allocator-dev\n"
-            "  Fedora        : sudo dnf install VulkanMemoryAllocator-devel\n"
-            "  Arch/Manjaro  : sudo pacman -S vulkan-memory-allocator\n"
-            "\n"
-            "Or pass -DSM2_ALLOW_FETCH=ON to fetch and build it, or build without "
-            "Vulkan (-DSM2_BUILD_VULKAN=OFF).")
-    else()
-        FetchContent_Declare(VulkanMemoryAllocator
-            GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-            GIT_TAG        v3.3.0
-            GIT_SHALLOW    TRUE
-            GIT_PROGRESS   TRUE
-            SYSTEM
-        )
-        FetchContent_MakeAvailable(VulkanMemoryAllocator)
+    if(NOT VulkanMemoryAllocator_FOUND)
+        add_library(GPUOpen::VulkanMemoryAllocator INTERFACE IMPORTED)
+        set_target_properties(GPUOpen::VulkanMemoryAllocator PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${SM2_3RDPARTY}/VulkanMemoryAllocator/include")
     endif()
 endif()
 
@@ -171,9 +139,7 @@ endif()
 # miniz — zip reading and CRC32 for the ROM loader
 # ---------------------------------------------------------------------------
 # Prefer a system miniz (find_package(miniz) exports miniz::miniz); otherwise
-# fetch the amalgamated release archive, which is two files with no usable
-# CMakeLists (its own build declares CMake < 3.5, which CMake 4 refuses), and
-# compile it directly. Either way the rest of the tree links sm2_miniz and
+# build it from the submodule. The rest of the tree links sm2_miniz and
 # includes <miniz.h>.
 
 find_package(miniz CONFIG QUIET)
@@ -190,25 +156,29 @@ if(miniz_FOUND)
             endif()
         endforeach()
     endif()
-elseif(NOT SM2_ALLOW_FETCH)
-    message(FATAL_ERROR
-        "miniz was not found on the system.\n"
-        "\n"
-        "Install the miniz development package:\n"
-        "  Debian/Ubuntu : sudo apt install libminiz-dev\n"
-        "  Fedora        : sudo dnf install miniz-devel\n"
-        "  Arch/Manjaro  : sudo pacman -S miniz\n"
-        "\n"
-        "Or pass -DSM2_ALLOW_FETCH=ON to fetch and build it instead.")
 else()
-    FetchContent_Declare(miniz
-        URL      https://github.com/richgel999/miniz/releases/download/3.0.2/miniz-3.0.2.zip
-        URL_HASH SHA256=ada38db0b703a56d3dd6d57bf84a9c5d664921d870d8fea4db153979fb5332c5
-    )
-    FetchContent_MakeAvailable(miniz)
+    # The git repository ships miniz split across four translation units, unlike
+    # the amalgamated release archive. All four are compiled; miniz's own
+    # CMakeLists is bypassed (it declares CMake < 3.5, which CMake 4 refuses).
+    #
+    # miniz.h includes "miniz_export.h", a visibility header miniz's CMake would
+    # normally generate. For a static build the macros are empty, so write that
+    # header ourselves rather than pulling in miniz's build.
+    set(SM2_MINIZ_GEN "${CMAKE_BINARY_DIR}/miniz-gen")
+    file(WRITE "${SM2_MINIZ_GEN}/miniz_export.h"
+        "#ifndef MINIZ_EXPORT_H\n#define MINIZ_EXPORT_H\n"
+        "#define MINIZ_EXPORT\n#define MINIZ_NO_EXPORT\n#endif\n")
 
-    add_library(sm2_miniz STATIC "${miniz_SOURCE_DIR}/miniz.c")
-    target_include_directories(sm2_miniz SYSTEM PUBLIC "${miniz_SOURCE_DIR}")
+    add_library(sm2_miniz STATIC
+        "${SM2_3RDPARTY}/miniz/miniz.c"
+        "${SM2_3RDPARTY}/miniz/miniz_tdef.c"
+        "${SM2_3RDPARTY}/miniz/miniz_tinfl.c"
+        "${SM2_3RDPARTY}/miniz/miniz_zip.c"
+    )
+    target_include_directories(sm2_miniz SYSTEM PUBLIC
+        "${SM2_3RDPARTY}/miniz"
+        "${SM2_MINIZ_GEN}"
+    )
     set_target_properties(sm2_miniz PROPERTIES C_STANDARD 11)
 
     # We only read archives already in memory or on disk, and the ROM loader
@@ -222,43 +192,31 @@ endif()
 # ---------------------------------------------------------------------------
 # LZMA SDK — 7z reading for the ROM loader
 # ---------------------------------------------------------------------------
-
 # Prefer a system LZMA SDK (find_package(lzmasdk) exports lzmasdk::lzmasdk);
-# otherwise fetch the SDK archive and compile the subset the 7z reader needs.
-# The SDK ships as raw C with no build system, so distros rarely package it;
-# the system path exists for environments (e.g. Buildroot) that stage it.
+# otherwise compile the subset the 7z reader needs from the vendored copy.
+# The SDK ships as raw C with no git repository, so those sources are committed
+# under 3rdparty/lzma-sdk rather than tracked as a submodule.
+
 find_package(lzmasdk CONFIG QUIET)
 if(lzmasdk_FOUND)
     add_library(sm2_7z INTERFACE)
     target_link_libraries(sm2_7z INTERFACE lzmasdk::lzmasdk)
-elseif(NOT SM2_ALLOW_FETCH)
-    message(FATAL_ERROR
-        "The LZMA SDK was not found on the system (needed to read .7z ROM sets).\n"
-        "\n"
-        "It ships as raw C sources with no build system, so it is rarely a\n"
-        "distro package. Pass -DSM2_ALLOW_FETCH=ON to fetch and build it.")
 else()
-    FetchContent_Declare(lzmasdk
-        URL      https://www.7-zip.org/a/lzma2301.7z
-        URL_HASH SHA256=317dd834d6bbfd95433488b832e823cd3d4d420101436422c03af88507dd1370
-    )
-    FetchContent_MakeAvailable(lzmasdk)
-
     add_library(sm2_7z STATIC
-        "${lzmasdk_SOURCE_DIR}/C/7zAlloc.c"
-        "${lzmasdk_SOURCE_DIR}/C/7zArcIn.c"
-        "${lzmasdk_SOURCE_DIR}/C/7zBuf.c"
-        "${lzmasdk_SOURCE_DIR}/C/7zCrc.c"
-        "${lzmasdk_SOURCE_DIR}/C/7zCrcOpt.c"
-        "${lzmasdk_SOURCE_DIR}/C/7zDec.c"
-        "${lzmasdk_SOURCE_DIR}/C/7zFile.c"
-        "${lzmasdk_SOURCE_DIR}/C/7zStream.c"
-        "${lzmasdk_SOURCE_DIR}/C/Bcj2.c"
-        "${lzmasdk_SOURCE_DIR}/C/CpuArch.c"
-        "${lzmasdk_SOURCE_DIR}/C/Lzma2Dec.c"
-        "${lzmasdk_SOURCE_DIR}/C/LzmaDec.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/7zAlloc.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/7zArcIn.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/7zBuf.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/7zCrc.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/7zCrcOpt.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/7zDec.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/7zFile.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/7zStream.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/Bcj2.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/CpuArch.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/Lzma2Dec.c"
+        "${SM2_3RDPARTY}/lzma-sdk/C/LzmaDec.c"
     )
-    target_include_directories(sm2_7z SYSTEM PUBLIC "${lzmasdk_SOURCE_DIR}/C")
+    target_include_directories(sm2_7z SYSTEM PUBLIC "${SM2_3RDPARTY}/lzma-sdk/C")
     set_target_properties(sm2_7z PROPERTIES C_STANDARD 11)
     target_compile_definitions(sm2_7z PUBLIC
         Z7_NO_METHODS_FILTERS  # no Delta/BCJ/branch-conversion filters
@@ -277,40 +235,28 @@ if(pugixml_FOUND)
     if(NOT TARGET pugixml::static AND TARGET pugixml::pugixml)
         add_library(pugixml::static ALIAS pugixml::pugixml)
     endif()
-elseif(NOT SM2_ALLOW_FETCH)
-    message(FATAL_ERROR
-        "pugixml was not found on the system.\n"
-        "\n"
-        "Install the pugixml development package:\n"
-        "  Debian/Ubuntu : sudo apt install libpugixml-dev\n"
-        "  Fedora        : sudo dnf install pugixml-devel\n"
-        "  Arch/Manjaro  : sudo pacman -S pugixml\n"
-        "  macOS         : brew install pugixml\n"
-        "\n"
-        "Or pass -DSM2_ALLOW_FETCH=ON to fetch and build it instead.")
 else()
-    FetchContent_Declare(pugixml
-        GIT_REPOSITORY https://github.com/zeux/pugixml.git
-        GIT_TAG        v1.15
-        GIT_SHALLOW    TRUE
-        SYSTEM
-    )
-    FetchContent_MakeAvailable(pugixml)
+    add_subdirectory("${SM2_3RDPARTY}/pugixml" EXCLUDE_FROM_ALL SYSTEM)
+    if(NOT TARGET pugixml::static AND TARGET pugixml::pugixml)
+        add_library(pugixml::static ALIAS pugixml::pugixml)
+    elseif(NOT TARGET pugixml::static AND TARGET pugixml)
+        add_library(pugixml::static ALIAS pugixml)
+    endif()
 endif()
 
 # ---------------------------------------------------------------------------
 # Dear ImGui — immediate-mode GUI for the settings overlay
 # ---------------------------------------------------------------------------
 # Prefer a system ImGui (find_package(imgui) exports imgui::imgui with the
-# SDL3, OpenGL3 and Vulkan backends compiled in). Otherwise fetch the source
-# and build it here. Either way the rest of the tree links the sm2_imgui*
-# targets and includes <imgui.h> / <imgui_impl_*.h>.
+# SDL3, OpenGL3 and Vulkan backends compiled in). Otherwise build it from the
+# submodule. Either way the rest of the tree links the sm2_imgui* targets and
+# includes <imgui.h> / <imgui_impl_*.h>.
 #
 # ImGui's renderer backends are not a normal installed library -- each is a
 # self-contained translation unit a consumer usually compiles itself. When a
 # system package has already compiled them into imgui::imgui, the four
 # sm2_imgui* targets collapse to interface wrappers over it. The per-backend
-# split still matters on the fetched path, so an SM2_BUILD_VULKAN=OFF build
+# split still matters on the vendored path, so an SM2_BUILD_VULKAN=OFF build
 # links no Vulkan.
 
 find_package(imgui CONFIG QUIET)
@@ -332,227 +278,166 @@ if(imgui_FOUND)
         add_library(sm2_imgui_gles INTERFACE)
         target_link_libraries(sm2_imgui_gles INTERFACE imgui::imgui SDL3::SDL3)
     endif()
-elseif(NOT SM2_ALLOW_FETCH)
-    message(FATAL_ERROR
-        "Dear ImGui was not found on the system.\n"
-        "\n"
-        "Install an ImGui package that provides the SDL3 + OpenGL3"
-        "(+ Vulkan) backends, or pass -DSM2_ALLOW_FETCH=ON to fetch and "
-        "build it instead.")
 else()
+    set(SM2_IMGUI_DIR "${SM2_3RDPARTY}/imgui")
 
-# ImGui has no CMakeLists.txt; we fetch the source and build it ourselves with
-# the SDL3 + Vulkan backends, which is all the emulator needs.
-
-FetchContent_Declare(imgui
-    GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        v1.92.0
-    GIT_SHALLOW    TRUE
-    GIT_PROGRESS   TRUE
-    SYSTEM
-)
-FetchContent_MakeAvailable(imgui)
-
-# sm2_imgui -- core ImGui plus the SDL3 platform backend only. No renderer
-# backend and no Vulkan link: osd/gui.cpp uses only ImGui_ImplSDL3_* (the
-# platform half), and each GPU backend brings its own ImGui renderer backend
-# (sm2_imgui_vk / sm2_imgui_gl / sm2_imgui_gles). This is what lets a build
-# with SM2_BUILD_VULKAN=OFF carry no Vulkan dependency at all.
-add_library(sm2_imgui STATIC
-    "${imgui_SOURCE_DIR}/imgui.cpp"
-    "${imgui_SOURCE_DIR}/imgui_demo.cpp"
-    "${imgui_SOURCE_DIR}/imgui_draw.cpp"
-    "${imgui_SOURCE_DIR}/imgui_tables.cpp"
-    "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
-    "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
-)
-target_include_directories(sm2_imgui SYSTEM PUBLIC
-    "${imgui_SOURCE_DIR}"
-    "${imgui_SOURCE_DIR}/backends"
-)
-target_link_libraries(sm2_imgui PUBLIC SDL3::SDL3)
-if(NOT MSVC)
-    target_compile_options(sm2_imgui PRIVATE -w)
-endif()
-
-# sm2_imgui_vk -- ImGui's Vulkan renderer backend, for the Vulkan render
-# backend. Separate target (mirroring sm2_imgui_gl below) so the Vulkan link
-# and the dynamic-rendering define stay out of the base sm2_imgui. Only built
-# when the Vulkan backend is.
-if(SM2_BUILD_VULKAN)
-    add_library(sm2_imgui_vk STATIC
-        "${imgui_SOURCE_DIR}/imgui.cpp"
-        "${imgui_SOURCE_DIR}/imgui_demo.cpp"
-        "${imgui_SOURCE_DIR}/imgui_draw.cpp"
-        "${imgui_SOURCE_DIR}/imgui_tables.cpp"
-        "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
-        "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
-        "${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp"
+    # sm2_imgui -- core ImGui plus the SDL3 platform backend only. No renderer
+    # backend and no Vulkan link: osd/gui.cpp uses only ImGui_ImplSDL3_* (the
+    # platform half), and each GPU backend brings its own ImGui renderer backend
+    # (sm2_imgui_vk / sm2_imgui_gl / sm2_imgui_gles). This is what lets a build
+    # with SM2_BUILD_VULKAN=OFF carry no Vulkan dependency at all.
+    add_library(sm2_imgui STATIC
+        "${SM2_IMGUI_DIR}/imgui.cpp"
+        "${SM2_IMGUI_DIR}/imgui_demo.cpp"
+        "${SM2_IMGUI_DIR}/imgui_draw.cpp"
+        "${SM2_IMGUI_DIR}/imgui_tables.cpp"
+        "${SM2_IMGUI_DIR}/imgui_widgets.cpp"
+        "${SM2_IMGUI_DIR}/backends/imgui_impl_sdl3.cpp"
     )
-    target_include_directories(sm2_imgui_vk SYSTEM PUBLIC
-        "${imgui_SOURCE_DIR}"
-        "${imgui_SOURCE_DIR}/backends"
+    target_include_directories(sm2_imgui SYSTEM PUBLIC
+        "${SM2_IMGUI_DIR}"
+        "${SM2_IMGUI_DIR}/backends"
     )
-    target_link_libraries(sm2_imgui_vk PUBLIC
-        Vulkan::Vulkan
-        SDL3::SDL3
-    )
-    # ImGui uses VK_NO_PROTOTYPES when loading functions itself, but we link
-    # the loader directly and want the prototypes available. Ensure the
-    # no-prototypes flag is NOT defined.
-    target_compile_definitions(sm2_imgui_vk PRIVATE
-        IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
-    )
+    target_link_libraries(sm2_imgui PUBLIC SDL3::SDL3)
     if(NOT MSVC)
-        target_compile_options(sm2_imgui_vk PRIVATE -w)
+        target_compile_options(sm2_imgui PRIVATE -w)
+    endif()
+
+    # sm2_imgui_vk -- ImGui's Vulkan renderer backend. Separate target so the
+    # Vulkan link and the dynamic-rendering define stay out of the base
+    # sm2_imgui. Only built when the Vulkan backend is.
+    if(SM2_BUILD_VULKAN)
+        add_library(sm2_imgui_vk STATIC
+            "${SM2_IMGUI_DIR}/imgui.cpp"
+            "${SM2_IMGUI_DIR}/imgui_demo.cpp"
+            "${SM2_IMGUI_DIR}/imgui_draw.cpp"
+            "${SM2_IMGUI_DIR}/imgui_tables.cpp"
+            "${SM2_IMGUI_DIR}/imgui_widgets.cpp"
+            "${SM2_IMGUI_DIR}/backends/imgui_impl_sdl3.cpp"
+            "${SM2_IMGUI_DIR}/backends/imgui_impl_vulkan.cpp"
+        )
+        target_include_directories(sm2_imgui_vk SYSTEM PUBLIC
+            "${SM2_IMGUI_DIR}"
+            "${SM2_IMGUI_DIR}/backends"
+        )
+        target_link_libraries(sm2_imgui_vk PUBLIC
+            Vulkan::Vulkan
+            SDL3::SDL3
+        )
+        # We link the loader directly and want the prototypes available, so the
+        # dynamic-rendering path is enabled and VK_NO_PROTOTYPES is not set.
+        target_compile_definitions(sm2_imgui_vk PRIVATE
+            IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
+        )
+        if(NOT MSVC)
+            target_compile_options(sm2_imgui_vk PRIVATE -w)
+        endif()
+    endif()
+
+    # sm2_imgui_gl -- imgui's OpenGL3 renderer backend. imgui_impl_opengl3.cpp
+    # is its own translation unit, so its bundled gl3w-derived loader cannot
+    # collide with this project's own sm2::render::gl loader; imgui's own header
+    # comment on that loader says exactly this. So no IMGUI_IMPL_OPENGL_LOADER_CUSTOM.
+    if(SM2_BUILD_OPENGL_DESKTOP)
+        add_library(sm2_imgui_gl STATIC
+            "${SM2_IMGUI_DIR}/imgui.cpp"
+            "${SM2_IMGUI_DIR}/imgui_demo.cpp"
+            "${SM2_IMGUI_DIR}/imgui_draw.cpp"
+            "${SM2_IMGUI_DIR}/imgui_tables.cpp"
+            "${SM2_IMGUI_DIR}/imgui_widgets.cpp"
+            "${SM2_IMGUI_DIR}/backends/imgui_impl_sdl3.cpp"
+            "${SM2_IMGUI_DIR}/backends/imgui_impl_opengl3.cpp"
+        )
+        target_include_directories(sm2_imgui_gl SYSTEM PUBLIC
+            "${SM2_IMGUI_DIR}"
+            "${SM2_IMGUI_DIR}/backends"
+        )
+        target_link_libraries(sm2_imgui_gl PUBLIC SDL3::SDL3)
+        if(NOT MSVC)
+            target_compile_options(sm2_imgui_gl PRIVATE -w)
+        endif()
+    endif()
+
+    # sm2_imgui_gles -- same as sm2_imgui_gl but for the GLES 3.1 backend.
+    # imgui_impl_opengl3.cpp supports ES out of the box (it detects the ES
+    # context at runtime and uses its own bundled loader regardless of platform).
+    if(SM2_BUILD_OPENGL_ES)
+        add_library(sm2_imgui_gles STATIC
+            "${SM2_IMGUI_DIR}/imgui.cpp"
+            "${SM2_IMGUI_DIR}/imgui_demo.cpp"
+            "${SM2_IMGUI_DIR}/imgui_draw.cpp"
+            "${SM2_IMGUI_DIR}/imgui_tables.cpp"
+            "${SM2_IMGUI_DIR}/imgui_widgets.cpp"
+            "${SM2_IMGUI_DIR}/backends/imgui_impl_sdl3.cpp"
+            "${SM2_IMGUI_DIR}/backends/imgui_impl_opengl3.cpp"
+        )
+        target_include_directories(sm2_imgui_gles SYSTEM PUBLIC
+            "${SM2_IMGUI_DIR}"
+            "${SM2_IMGUI_DIR}/backends"
+        )
+        target_link_libraries(sm2_imgui_gles PUBLIC SDL3::SDL3)
+        if(NOT MSVC)
+            target_compile_options(sm2_imgui_gles PRIVATE -w)
+        endif()
     endif()
 endif()
-
-# sm2_imgui_gl -- imgui's OpenGL3 renderer backend, for the phase 9 GL
-# backend. A separate target from sm2_imgui rather than adding this source to
-# it: sm2_imgui already exists and works for Vulkan, and imgui_impl_opengl3.cpp
-# is a different renderer backend translation unit entirely (no shared state
-# between the two backend files, per imgui's own design -- each is a self-
-# contained implementation of the same abstract "render this draw data"
-# contract). imgui_impl_opengl3.cpp/.h already exist on disk from the same
-# FetchContent_MakeAvailable(imgui) call above (that clones the whole imgui
-# repository, backends included), so no second fetch is needed.
-if(SM2_BUILD_OPENGL_DESKTOP)
-    add_library(sm2_imgui_gl STATIC
-        "${imgui_SOURCE_DIR}/imgui.cpp"
-        "${imgui_SOURCE_DIR}/imgui_demo.cpp"
-        "${imgui_SOURCE_DIR}/imgui_draw.cpp"
-        "${imgui_SOURCE_DIR}/imgui_tables.cpp"
-        "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
-        "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
-        "${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp"
-    )
-    target_include_directories(sm2_imgui_gl SYSTEM PUBLIC
-        "${imgui_SOURCE_DIR}"
-        "${imgui_SOURCE_DIR}/backends"
-    )
-    target_link_libraries(sm2_imgui_gl PUBLIC SDL3::SDL3)
-    # No IMGUI_IMPL_OPENGL_LOADER_CUSTOM here, deliberately: imgui_impl_opengl3.cpp
-    # is compiled as its own translation unit, so its bundled gl3w-derived
-    # loader (imgui_impl_opengl3_loader.h) cannot collide with this
-    # project's own sm2::render::gl loader (gl_common.h) regardless of what
-    # either names -- imgui's own header comment on that loader says exactly
-    # this ("cannot happen unless you build both in the same compilation
-    # unit"), which was checked directly against the actual file rather than
-    # assumed. An earlier version of this target defined
-    # IMGUI_IMPL_OPENGL_LOADER_CUSTOM on the premise that two loaders would
-    # conflict; that premise was wrong, and the fix was simpler than the
-    # problem it was solving -- let imgui use its own loader, which is
-    # exactly what it recommends for this situation.
-    if(NOT MSVC)
-        target_compile_options(sm2_imgui_gl PRIVATE -w)
-    endif()
-endif()
-
-# sm2_imgui_gles -- same as sm2_imgui_gl but for the GLES 3.1 backend.
-# imgui_impl_opengl3.cpp supports ES out of the box (it detects the ES
-# context at runtime via GL_VERSION string parsing and uses its own bundled
-# loader regardless of platform).
-if(SM2_BUILD_OPENGL_ES)
-    add_library(sm2_imgui_gles STATIC
-        "${imgui_SOURCE_DIR}/imgui.cpp"
-        "${imgui_SOURCE_DIR}/imgui_demo.cpp"
-        "${imgui_SOURCE_DIR}/imgui_draw.cpp"
-        "${imgui_SOURCE_DIR}/imgui_tables.cpp"
-        "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
-        "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
-        "${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp"
-    )
-    target_include_directories(sm2_imgui_gles SYSTEM PUBLIC
-        "${imgui_SOURCE_DIR}"
-        "${imgui_SOURCE_DIR}/backends"
-    )
-    target_link_libraries(sm2_imgui_gles PUBLIC SDL3::SDL3)
-    if(NOT MSVC)
-        target_compile_options(sm2_imgui_gles PRIVATE -w)
-    endif()
-endif()
-
-endif()  # imgui: system (find_package) vs fetched
 
 # ---------------------------------------------------------------------------
 # Musashi — the 68000 in the sound board
 # ---------------------------------------------------------------------------
 # The one piece of hardware emulation not taken from MAME, and deliberately so.
+# Musashi is a self-contained C library designed to be embedded behind memory
+# callbacks, is MIT licensed, and is a fully documented commodity part, so
+# unlike the geometry engine or the SCSP there is no reverse-engineering insight
+# in one implementation over another. Vendored as a submodule; it has no system
+# package form.
 #
-# MAME's 68000 is excellent but it is either generated from a table by a Python
-# script into two hundred thousand lines per variant, or a fork of Musashi; both
-# are woven into MAME's device and address-space framework. Musashi upstream is
-# the same lineage, is a self-contained C library designed to be embedded behind
-# memory callbacks, and is MIT licensed. It is also a fully documented commodity
-# part, so unlike the geometry engine or the SCSP there is no reverse-engineering
-# insight in one implementation over another and nothing is lost by not tracking
-# MAME's.
-#
-# Pinned by commit because Musashi has no releases.
-
-FetchContent_Declare(musashi
-    GIT_REPOSITORY https://github.com/kstenerud/Musashi.git
-    GIT_TAG        313ebf1bd9f4d0d93341eb5ce21fd8a119e9dbdd
-    GIT_PROGRESS   TRUE
-    SYSTEM
-)
-# Musashi has no CMakeLists.txt, so this populates the tree and stops there.
-FetchContent_MakeAvailable(musashi)
-
 # The sources are copied into the build tree rather than compiled where they
-# were fetched, because m68kmake writes its generated output next to its input
-# and we do not want to dirty the fetch cache.
+# live, because m68kmake writes its generated output next to its input and we do
+# not want to dirty the submodule.
 #
 # The directory layout has to be preserved: m68kcpu.c #includes m68kfpu.c and
 # m68kmmu.h textually, m68kcpu.h #includes softfloat/softfloat.h, and
 # softfloat.c #includes ../m68kcpu.h. Hence m68kfpu.c and m68kmmu.h are copied
 # but are NOT library sources.
+set(SM2_MUSASHI_SRC "${SM2_3RDPARTY}/musashi")
 set(SM2_MUSASHI_DIR "${CMAKE_BINARY_DIR}/musashi")
 file(MAKE_DIRECTORY "${SM2_MUSASHI_DIR}")
 file(COPY
-        "${musashi_SOURCE_DIR}/m68k.h"
-        "${musashi_SOURCE_DIR}/m68kconf.h"
-        "${musashi_SOURCE_DIR}/m68kcpu.h"
-        "${musashi_SOURCE_DIR}/m68kcpu.c"
-        "${musashi_SOURCE_DIR}/m68kmmu.h"
-        "${musashi_SOURCE_DIR}/m68kfpu.c"
-        "${musashi_SOURCE_DIR}/m68k_in.c"
-        "${musashi_SOURCE_DIR}/m68kmake.c"
-        "${musashi_SOURCE_DIR}/softfloat"
+        "${SM2_MUSASHI_SRC}/m68k.h"
+        "${SM2_MUSASHI_SRC}/m68kconf.h"
+        "${SM2_MUSASHI_SRC}/m68kcpu.h"
+        "${SM2_MUSASHI_SRC}/m68kcpu.c"
+        "${SM2_MUSASHI_SRC}/m68kmmu.h"
+        "${SM2_MUSASHI_SRC}/m68kfpu.c"
+        "${SM2_MUSASHI_SRC}/m68k_in.c"
+        "${SM2_MUSASHI_SRC}/m68kmake.c"
+        "${SM2_MUSASHI_SRC}/softfloat"
     DESTINATION "${SM2_MUSASHI_DIR}")
 
-# m68kmake reads m68k_in.c and writes the opcode jump table and handlers.
-#
-# When cross-compiling (e.g. buildroot for riscv64/aarch64), m68kmake must run
-# on the host, not the target. The caller can supply a pre-built host binary
-# via -DSM2_M68KMAKE=/path/to/m68kmake. When native-compiling, it is built here.
-if(CMAKE_CROSSCOMPILING)
-    if(NOT SM2_M68KMAKE)
-        message(FATAL_ERROR
-            "Cross-compiling requires a host-built m68kmake.\n"
-            "Build m68kmake for the host first (a simple: cc -o m68kmake m68kmake.c),\n"
-            "then pass -DSM2_M68KMAKE=/path/to/m68kmake to this cmake invocation.")
-    endif()
-    if(NOT EXISTS "${SM2_M68KMAKE}")
-        message(FATAL_ERROR "SM2_M68KMAKE points to '${SM2_M68KMAKE}' which does not exist.")
-    endif()
-    set(SM2_M68KMAKE_CMD "${SM2_M68KMAKE}")
-else()
-    add_executable(m68kmake "${SM2_MUSASHI_DIR}/m68kmake.c")
-    set_target_properties(m68kmake PROPERTIES C_STANDARD 99)
-    if(MSVC)
-        target_compile_definitions(m68kmake PRIVATE _CRT_SECURE_NO_WARNINGS)
-    else()
-        target_compile_options(m68kmake PRIVATE -w)
-    endif()
-    set(SM2_M68KMAKE_CMD "$<TARGET_FILE:m68kmake>")
-endif()
+# m68kmake reads m68k_in.c and writes the opcode jump table and handlers. It has
+# to run on the build host, which for a cross build is a different architecture
+# from the target. Rather than ask the caller to pre-build it, configure and
+# build it here as a separate host-toolchain project: ExternalProject runs at
+# build time with its own (default, host) compiler, ignoring this build's
+# CMAKE_TOOLCHAIN_FILE. Native and cross builds are then identical and need no
+# manual step.
+include(ExternalProject)
+ExternalProject_Add(m68kmake_host
+    SOURCE_DIR   "${CMAKE_SOURCE_DIR}/cmake/m68kmake-host"
+    CMAKE_ARGS
+        "-DCMAKE_BUILD_TYPE=Release"
+        "-DSM2_M68KMAKE_SRC=${SM2_MUSASHI_DIR}/m68kmake.c"
+        "-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>"
+    BUILD_ALWAYS OFF
+    INSTALL_DIR  "${CMAKE_BINARY_DIR}/m68kmake-host-install"
+)
+set(SM2_M68KMAKE_CMD "${CMAKE_BINARY_DIR}/m68kmake-host-install/bin/m68kmake${CMAKE_HOST_EXECUTABLE_SUFFIX}")
 
 add_custom_command(
     OUTPUT  "${SM2_MUSASHI_DIR}/m68kops.h" "${SM2_MUSASHI_DIR}/m68kops.c"
-    COMMAND ${SM2_M68KMAKE_CMD} "${SM2_MUSASHI_DIR}" "${SM2_MUSASHI_DIR}/m68k_in.c"
-    DEPENDS $<$<NOT:$<BOOL:${CMAKE_CROSSCOMPILING}>>:m68kmake> "${SM2_MUSASHI_DIR}/m68k_in.c"
+    COMMAND "${SM2_M68KMAKE_CMD}" "${SM2_MUSASHI_DIR}" "${SM2_MUSASHI_DIR}/m68k_in.c"
+    DEPENDS m68kmake_host "${SM2_MUSASHI_DIR}/m68k_in.c"
     WORKING_DIRECTORY "${SM2_MUSASHI_DIR}"
     COMMENT "Generating Musashi opcode handlers"
     VERBATIM
@@ -568,12 +453,9 @@ set_target_properties(sm2_musashi PROPERTIES C_STANDARD 99)
 
 # Musashi is configured through m68kconf.h, but every switch in it is
 # #ifndef-guarded, so upstream's copy is used unmodified and the handful we
-# disagree with are overridden here. That keeps the delta from upstream visible
-# in one place instead of buried in a forked header.
-#
-# Only the plain 68000 is wanted, and turning the later variants off drops their
-# addressing modes, the FPU and the PMMU test from every memory access.
-# M68K_OPT_OFF is 0.
+# disagree with are overridden here. Only the plain 68000 is wanted, and turning
+# the later variants off drops their addressing modes, the FPU and the PMMU test
+# from every memory access. M68K_OPT_OFF is 0.
 target_compile_definitions(sm2_musashi PUBLIC
     M68K_EMULATE_010=0
     M68K_EMULATE_EC020=0
@@ -583,7 +465,6 @@ target_compile_definitions(sm2_musashi PUBLIC
     M68K_EMULATE_PMMU=0
 )
 
-# Third-party C we do not intend to modify, so its warnings are not ours to fix.
 if(MSVC)
     target_compile_options(sm2_musashi PRIVATE /w)
 else()
@@ -595,46 +476,26 @@ else()
     target_compile_options(sm2_musashi PRIVATE -w -fno-common)
 endif()
 
-
-
 # ---------------------------------------------------------------------------
 # ymfm — the YM3438 on the Model 1 audio board
 # ---------------------------------------------------------------------------
-# Aaron Giles' Yamaha FM library, which is what MAME itself uses: MAME carries it
-# in 3rdparty/ymfm and its ym3438_device is a thin wrapper around ymfm::ym3438.
-# Taking the same library rather than porting it keeps the FM behaviour identical
-# to the reference by construction, and unlike the rest of MAME's sound devices
-# ymfm is deliberately standalone -- no emu.h, no device_t, no address spaces --
-# so it drops in behind a small interface object.
-#
-# MAME's vendored copy is not byte-identical to upstream. The differences are in
-# ADPCM-B and in ymfm.h's WAV writer, and ymfm_fm.h, ymfm_fm.ipp, ymfm_opn.h and
-# ymfm_ssg.* -- everything a YM3438 executes -- are identical, so this and MAME
-# run the same FM code. ADPCM-B belongs to the YM2608/YM2610 and is never reached
-# from ym2612's register map.
-#
-# Pinned by commit; ymfm has no releases.
-FetchContent_Declare(ymfm
-    GIT_REPOSITORY https://github.com/aaronsgiles/ymfm.git
-    GIT_TAG        81aec25ccbb98f4873a255f7551ac4dadac59b4a
-    GIT_PROGRESS   TRUE
-    SYSTEM
-)
-# ymfm has no CMakeLists.txt, so as with Musashi this populates the tree and
-# stops there, and the translation units a YM3438 needs are compiled below.
-FetchContent_MakeAvailable(ymfm)
+# Aaron Giles' Yamaha FM library, which is what MAME itself uses. Taking the
+# same library rather than porting it keeps the FM behaviour identical to the
+# reference by construction. ymfm is deliberately standalone -- no emu.h, no
+# device_t, no address spaces -- so it drops in behind a small interface object.
+# Vendored as a submodule; it has no system package form.
+set(SM2_YMFM_DIR "${SM2_3RDPARTY}/ymfm")
 
 # ymfm_opn.h includes ymfm_adpcm.h and ymfm_ssg.h unconditionally, so both are
 # compiled even though a YM3438 has neither an ADPCM engine nor an SSG.
 add_library(sm2_ymfm STATIC
-    "${ymfm_SOURCE_DIR}/src/ymfm_opn.cpp"
-    "${ymfm_SOURCE_DIR}/src/ymfm_adpcm.cpp"
-    "${ymfm_SOURCE_DIR}/src/ymfm_ssg.cpp"
+    "${SM2_YMFM_DIR}/src/ymfm_opn.cpp"
+    "${SM2_YMFM_DIR}/src/ymfm_adpcm.cpp"
+    "${SM2_YMFM_DIR}/src/ymfm_ssg.cpp"
 )
-target_include_directories(sm2_ymfm SYSTEM PUBLIC "${ymfm_SOURCE_DIR}/src")
+target_include_directories(sm2_ymfm SYSTEM PUBLIC "${SM2_YMFM_DIR}/src")
 target_compile_features(sm2_ymfm PRIVATE cxx_std_20)
 
-# Third-party C++ we do not intend to modify, so its warnings are not ours to fix.
 if(MSVC)
     target_compile_options(sm2_ymfm PRIVATE /w)
 else()

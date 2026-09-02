@@ -81,25 +81,28 @@ Requirements:
 - A C++20 compiler
 - `glslc` (from shaderc or the Vulkan SDK) — used at build time to compile and
   lint the shaders
-- SDL3 (window, input, audio)
-- pugixml (the games.xml parser)
-- miniz (zip reading), and — where packaged — the LZMA SDK (7z reading) and
-  Dear ImGui with its SDL3 backend (the settings overlay). The latter two are
-  rarely available as suitable distro packages, so on most systems they are
-  fetched (see below) rather than taken from the system.
+- SDL3, pugixml, miniz, the LZMA SDK, Dear ImGui (with its SDL3 backend) and —
+  for the Vulkan backend — VulkanMemoryAllocator
 - For the OpenGL / OpenGL ES backends (built by default): the system GL/GLES
   and EGL libraries (Mesa on Linux). No extra headers are needed — SDL3
   provides GL loading.
-- For the Vulkan backend (off by default): Vulkan 1.3 headers and loader, plus
-  VulkanMemoryAllocator.
+- For the Vulkan backend (off by default): Vulkan 1.3 headers and loader.
 
-Dependencies are taken from the system. If a required one is missing the build
-stops with a message naming the package to install — it does not silently
-download anything. Pass `-DSM2_ALLOW_FETCH=ON` to let the build fetch and build
-the packaged libraries (SDL3, pugixml, miniz, the LZMA SDK, Dear ImGui and
-VulkanMemoryAllocator) itself, which is convenient on a dev box or on macOS.
-The Musashi 68000 core and the ymfm FM library have no packaged form and are
-always vendored from pinned sources regardless.
+Each dependency is taken from the system when `find_package` locates it, and
+otherwise built from the copy bundled under `3rdparty/`. Those are git
+submodules (plus the LZMA SDK, whose sources are committed since it has no git
+repository), so a recursive checkout builds with no network access at configure
+time — nothing is downloaded on the fly. Clone accordingly:
+
+```sh
+git clone --recurse-submodules https://github.com/dmanlfc/sm2-emu.git
+# or, in an existing checkout:
+git submodule update --init --recursive
+```
+
+The Musashi 68000 core and the ymfm FM library have no system-package form, so
+they always come from `3rdparty/`. `glslc` is the one build-time tool that must
+be on `PATH` (it runs on the build host, not the target).
 
 ```sh
 . tools/env.sh          # optional: adds ~/.local/bin and the Vulkan SDK to PATH
@@ -174,8 +177,8 @@ sudo apt install libvulkan-dev vulkan-validationlayers \
 ```
 
 Debian/Ubuntu has no packages for miniz, the LZMA SDK or a Dear ImGui with the
-SDL3 backend, so build with `-DSM2_ALLOW_FETCH=ON` to have those three fetched
-and built automatically.
+SDL3 backend; those come from `3rdparty/` automatically, so nothing extra is
+needed as long as the submodules are checked out.
 
 ```sh
 # Arch / Manjaro — default build (software + OpenGL)
@@ -187,8 +190,8 @@ sudo pacman -S --needed vulkan-headers vulkan-icd-loader \
 ```
 
 `mesa` provides the GL, GLES and EGL libraries and `shaderc` provides `glslc`.
-Arch has no package for the LZMA SDK or a Dear ImGui with the SDL3 backend, so
-build with `-DSM2_ALLOW_FETCH=ON` to have those fetched and built.
+Arch has no package for the LZMA SDK or a Dear ImGui with the SDL3 backend;
+those come from `3rdparty/` automatically.
 
 ### macOS
 
@@ -207,24 +210,23 @@ does this for you.
 
 ### Cross-compilation (Buildroot, Yocto, Batocera, embedded)
 
-sm2-emu builds for `x86_64`, `aarch64` and `riscv64`. The only host tool that
-runs during the build is `m68kmake` (a small C program that generates the 68000
-opcode table). When cross-compiling, build it for the host first and pass its
-path:
+sm2-emu builds for `x86_64`, `aarch64` and `riscv64`. Cross-compiling needs no
+special dependency handling: pass a toolchain file and build.
 
 ```sh
-# On the host, once:
-cc -o m68kmake /path/to/Musashi/m68kmake.c
-
-# Cross-compile (GLES backend shown, typical for an ARM target):
+# GLES backend shown, typical for an ARM target:
 cmake -S . -B build \
     -DCMAKE_TOOLCHAIN_FILE=/path/to/toolchain.cmake \
     -DCMAKE_BUILD_TYPE=Release \
-    -DSM2_M68KMAKE=/path/to/host-m68kmake \
     -DSM2_BUILD_OPENGL_DESKTOP=OFF -DSM2_BUILD_OPENGL_ES=ON \
     -DSM2_BUILD_TESTS=OFF
 cmake --build build
 ```
+
+`m68kmake` (a small C program that generates the 68000 opcode table) has to run
+on the build host, not the target. CMake handles this automatically: it is
+configured and built as a separate host-toolchain sub-project during the build,
+so there is no manual pre-build step and no flag to pass, native or cross.
 
 `CMAKE_BUILD_TYPE` and its optimisation flags (`-O3` for `Release`) are a
 CMake-level setting, so they apply to the target compiler the toolchain file
@@ -232,27 +234,18 @@ selects — a cross build gets the same optimisation as a native one, for its
 own architecture. There is no `-march=native` anywhere, so a build stays
 portable across the boards it targets.
 
-The target sysroot must provide (same system libraries as a native build, for
-the target architecture):
+The target sysroot may provide any of the dependencies below; each one CMake
+does not find there is built from the copy under `3rdparty/` instead, so a
+recursive checkout cross-compiles with no network access:
 
-- SDL3 and pugixml
-- miniz, and — where the sysroot stages them — the LZMA SDK and a Dear ImGui
-  built with the SDL3 backend. Where they are not staged, supply them as
-  fetched sources instead (see below).
+- SDL3, pugixml, miniz, the LZMA SDK and Dear ImGui
 - the GL/GLES and EGL libraries, if a GL backend is built (the usual case)
 - Vulkan 1.3 headers (`vulkan/vulkan.h`), loader (`libvulkan.so`) and
   VulkanMemoryAllocator, only if `-DSM2_BUILD_VULKAN=ON`
 - `glslc` on the host PATH (it runs at build time, not on the target)
 
-The Musashi 68000 core and the ymfm FM library have no packaged form, so their
-sources are built into the target objects. For a network-free cross build
-(e.g. Buildroot), download them ahead of time and point CMake at the unpacked
-trees with `-DFETCHCONTENT_SOURCE_DIR_MUSASHI=`, `-DFETCHCONTENT_SOURCE_DIR_YMFM=`
-and `-DFETCHCONTENT_FULLY_DISCONNECTED=ON`. Musashi generates its opcode tables
-with a helper, `m68kmake`, that must run on the build host: compile it there
-(`cc -std=c99 -o m68kmake m68kmake.c`) and pass `-DSM2_M68KMAKE=/path/to/m68kmake`.
-Do the same for VulkanMemoryAllocator (`-DFETCHCONTENT_SOURCE_DIR_VULKANMEMORYALLOCATOR=`)
-when building the Vulkan backend and the sysroot does not provide it.
+The Musashi 68000 core and the ymfm FM library always come from `3rdparty/`,
+having no system-package form.
 
 ## Running
 
