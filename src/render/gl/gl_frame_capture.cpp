@@ -53,13 +53,8 @@ bool FrameCapture::save(const std::string& path) const
     }
     std::fprintf(handle, "P6\n%u %u\n255\n", m_width, m_height);
 
-    // No row flip: confirmed empirically (not assumed from general
-    // Vulkan/GL Y-convention folklore, which is a genuine trap -- see
-    // design.md's own account of checking this directly before writing
-    // this code) that with this project's exact fullscreen_quad.vert
-    // sampling logic, a buffer's row 0 lands at output row 0 through the
-    // whole TexSubImage2D-upload -> sample -> ReadPixels-readback chain, no
-    // different from render::vk::FrameCapture's own unflipped row order.
+    // No row flip here: fullscreen_quad.vert's SM2_TARGET_GL clip-Y flip makes
+    // the FBO's row 0 the top of the image, matching render::vk::FrameCapture.
     std::vector<u8> row(static_cast<usize>(m_width) * 3);
     bool ok = true;
     for (u32 y = 0; y < m_height && ok; ++y) {

@@ -56,6 +56,14 @@
 #include <string>
 #include <vector>
 
+#if !defined(SM2_HAVE_VULKAN)
+// enumerate_render_devices() is Vulkan-only (it lists VkPhysicalDevices);
+// a Vulkan-less build has no device list, so provide an empty fallback.
+namespace sm2::render {
+std::vector<std::string> enumerate_render_devices() { return {}; }
+}  // namespace sm2::render
+#endif
+
 namespace {
 
 /// --graphics-backend's three values. Which of the two GL flavours `Opengl`
@@ -88,6 +96,17 @@ enum class GraphicsBackendChoice {
               value);
     return false;
 }
+
+/// Default when --graphics-backend is not given: whichever GPU backend was
+/// compiled in (Vulkan preferred, then OpenGL), else software.
+constexpr GraphicsBackendChoice kDefaultGraphicsBackend =
+#if defined(SM2_HAVE_VULKAN)
+    GraphicsBackendChoice::Vulkan;
+#elif defined(SM2_HAVE_OPENGL_DESKTOP) || defined(SM2_HAVE_OPENGL_ES)
+    GraphicsBackendChoice::Opengl;
+#else
+    GraphicsBackendChoice::Software;
+#endif
 
 struct Options {
     /// Settings that persist. Loaded from the file, then overridden by flags.
@@ -159,7 +178,7 @@ struct Options {
     /// alias for --software: it does not change which GPU backend is built
     /// (Vulkan still presents underneath), it only also sets
     /// start_in_software_renderer.
-    GraphicsBackendChoice graphics_backend = GraphicsBackendChoice::Vulkan;
+    GraphicsBackendChoice graphics_backend = kDefaultGraphicsBackend;
 
     /// Run this many frames headless, report, and exit. Zero means run normally.
     sm2::u32 boot_test    = 0;
@@ -520,6 +539,16 @@ int main(int argc, char** argv)
     }
 #endif
 
+    // Likewise the Vulkan backend is opt-in at build time (SM2_BUILD_VULKAN).
+#if !defined(SM2_HAVE_VULKAN)
+    if (options.graphics_backend == GraphicsBackendChoice::Vulkan) {
+        SM2_ERROR("--graphics-backend vulkan was requested, but this binary was "
+                  "built without the Vulkan backend. Rebuild with "
+                  "-DSM2_BUILD_VULKAN=ON.");
+        return 1;
+    }
+#endif
+
     // Command line first, then the file for everything the command line did not
     // mention. Doing it this way round rather than loading first and overwriting
     // means a flag is always the last word, whatever the file says.
@@ -591,6 +620,11 @@ int main(int argc, char** argv)
     }
 
     if (options.list_gpus) {
+#if !defined(SM2_HAVE_VULKAN)
+        std::printf("Device enumeration is a Vulkan feature; this binary was "
+                    "built without the Vulkan backend (-DSM2_BUILD_VULKAN=ON).\n");
+        return 1;
+#else
         const std::vector<std::string> names = render::enumerate_render_devices();
         if (names.empty()) {
             std::printf("No Vulkan devices were found.\n\n"
@@ -610,6 +644,7 @@ int main(int argc, char** argv)
             std::printf("  %s\n", name.c_str());
         }
         return 0;
+#endif
     }
 
     if (options.list_gamepads) {
@@ -1119,18 +1154,28 @@ int main(int argc, char** argv)
 
     int exit_code = 0;
     {
-        // --graphics-backend software and vulkan both mean GraphicsApi::Vulkan
-        // for the window's purposes: the software renderer only replaces the
-        // *drawing*, not the presentation path underneath it, exactly as F2
-        // already assumes today (design.md §4 of the GL backends spec).
         osd::WindowConfig window_config;
         window_config.title      = std::string("sm2-emu ") + SM2_VERSION;
         window_config.width      = options.config.window_width;
         window_config.height     = options.config.window_height;
         window_config.fullscreen = options.config.fullscreen;
-        window_config.graphics_api = options.graphics_backend == GraphicsBackendChoice::Opengl
-                                        ? osd::GraphicsApi::OpenGl
-                                        : osd::GraphicsApi::Vulkan;
+
+        // Which GPU backend presents. `opengl` names it; `vulkan` and
+        // `software` present through Vulkan, or OpenGL if Vulkan is not built
+        // (`software` only replaces the drawing, not the presentation path).
+        bool present_with_opengl = options.graphics_backend == GraphicsBackendChoice::Opengl;
+#if !defined(SM2_HAVE_VULKAN)
+        present_with_opengl = true;
+#endif
+        window_config.graphics_api = present_with_opengl ? osd::GraphicsApi::OpenGl
+                                                          : osd::GraphicsApi::Vulkan;
+
+#if defined(SM2_HAVE_OPENGL_ES)
+        // GLES on X11 needs EGL, not GLX; force it before the GL library loads.
+        if (window_config.graphics_api == osd::GraphicsApi::OpenGl) {
+            SDL_SetHint(SDL_HINT_VIDEO_FORCE_EGL, "1");
+        }
+#endif
 
         osd::Window window;
         if (!window.create(window_config)) {
@@ -1143,26 +1188,26 @@ int main(int argc, char** argv)
         backend_config.vsync             = options.config.vsync;
         backend_config.preferred_device  = options.config.gpu;
 
-        // create_vulkan_backend() is the default and the only choice for
-        // --graphics-backend software|vulkan (design.md §2: --software
-        // replaces the drawing, not which GPU backend exists underneath it).
-        // create_opengl_backend() is declared unconditionally in backend.h
-        // but only *defined* when SM2_BUILD_OPENGL_DESKTOP was on at
-        // configure time; the #if guards the call itself so a binary
-        // without that backend never has an undefined symbol to link,
-        // matching backend.h's own doc comment on this function. The
-        // options.graphics_backend == Opengl-without-SM2_HAVE_OPENGL_DESKTOP
-        // case has already returned above, before any of this ran.
+        // Each factory is only defined when its SM2_BUILD_* option was on, so
+        // the #if guards keep an absent backend from being an undefined symbol.
+        // The mismatched --graphics-backend cases already errored out above.
         std::unique_ptr<render::Backend> backend;
+        if (present_with_opengl) {
 #if defined(SM2_HAVE_OPENGL_DESKTOP) || defined(SM2_HAVE_OPENGL_ES)
-        if (options.graphics_backend == GraphicsBackendChoice::Opengl) {
             backend = render::create_opengl_backend();
-        } else {
-            backend = render::create_vulkan_backend();
-        }
-#else
-        backend = render::create_vulkan_backend();
 #endif
+        } else {
+#if defined(SM2_HAVE_VULKAN)
+            backend = render::create_vulkan_backend();
+#endif
+        }
+        if (!backend) {
+            SM2_ERROR("no GPU backend is available to present with. Build with "
+                      "-DSM2_BUILD_VULKAN=ON and/or -DSM2_BUILD_OPENGL_DESKTOP=ON "
+                      "(or run headless with --boot-test).");
+            SDL_Quit();
+            return 1;
+        }
         if (!backend->init(window, backend_config)) {
             SM2_ERROR("render backend initialisation failed");
             SDL_Quit();
@@ -1173,8 +1218,7 @@ int main(int argc, char** argv)
         // hardcode "Vulkan" as "whichever GPU backend isn't the software
         // one" -- true while Vulkan was the only choice, not once
         // --graphics-backend opengl can select a real second one.
-        const char* gpu_backend_name =
-            options.graphics_backend == GraphicsBackendChoice::Opengl ? "OpenGL" : "Vulkan";
+        const char* gpu_backend_name = present_with_opengl ? "OpenGL" : "Vulkan";
 
         // The settings overlay, drawn on top of the emulator's output. Owns
         // only ImGui's context and its SDL3 platform backend; the backend

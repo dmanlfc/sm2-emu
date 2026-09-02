@@ -145,11 +145,12 @@ bool TilemapPass::create_compute_resources()
 void TilemapPass::upload_surface_to_texture(u32 texture, std::span<const u32> pixels)
 {
     BindTexture(GL_TEXTURE_2D, texture);
-    // The CPU's row 0 is the top of the image, but GL's TexSubImage2D places
-    // row 0 at the bottom of the texture (V=0). Flip the image vertically so
-    // the top of the image ends up at high V values, which is where the
-    // fullscreen quad's UV mapping expects it for a right-side-up result.
-    // A per-frame copy of ~760 KB is trivial compared to the draw calls.
+    // The CPU composes this surface top-origin (row 0 = top), but the GL path
+    // stores tilemap textures bottom-origin so fullscreen_quad.vert's clip-Y
+    // flip lands them right-side-up -- the same convention tilemap_compose.comp
+    // writes under SM2_TARGET_GL. This is the only tilemap upload that isn't
+    // already GPU-side, so it flips here. Reached by render test mode (Last
+    // Bronx's framebuffer title) and the CPU tilemap fallback.
     std::vector<u32> flipped(static_cast<usize>(kSourceWidth) * kSourceHeight);
     for (u32 y = 0; y < kSourceHeight; ++y) {
         const u32 src_row = kSourceHeight - 1 - y;

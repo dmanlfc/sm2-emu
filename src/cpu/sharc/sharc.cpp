@@ -222,9 +222,10 @@ void SHARC::reset()
     std::memset(m_lcstack, 0, sizeof(m_lcstack));
     std::memset(m_lastack, 0, sizeof(m_lastack));
     std::memset(m_flag, 0, sizeof(m_flag));
-    std::memset(m_dma, 0, sizeof(m_dma));
-    std::memset(m_dma_op, 0, sizeof(m_dma_op));
-    std::memset(m_status_stack, 0, sizeof(m_status_stack));
+    // Value-initialise: these are non-trivial (default member initialisers).
+    for (auto& dma : m_dma) dma = DMA_REGS{};
+    for (auto& op : m_dma_op) op = DMA_OP{};
+    for (auto& entry : m_status_stack) entry = StatusEntry{};
 
     m_dag1 = DAG{};
     m_dag2 = DAG{};

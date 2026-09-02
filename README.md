@@ -8,41 +8,49 @@
  A   S E G A   M O D E L   2   E M U L A T O R
 ```
 
-Background: I started this emulation journey back in February 2025 to look to improve upon Model 2 emulations for Linux since my favourite OS lacked a native emulator and at the time MAME had incompatibility issues and was just slow for small Arm based SBC's. The mission therefore was to look into what MAME did well, understand more from reseach and analysis of Supermodel also (a Model 3 emulator) as inspiration. Supermodel actually led me to wire up OpenGL ES and Vulkan for that particular emulator as I could get quicker results as to the possibility of running Model 2 emulation on a Raspberry Pi 5 and bringing it to the emulation community.
+Background: I started this emulation journey back in February 2025 to look to
+improve upon Model 2 emulation for Linux, since my favourite OS lacked a native
+emulator and at the time MAME had incompatibility issues and was just slow for
+small ARM-based SBCs. The mission was to look into what MAME did well and learn
+more from research and analysis of Supermodel (a Model 3 emulator) as
+inspiration. Supermodel actually led me to wire up OpenGL ES and Vulkan for
+that emulator, as I could get quicker results on the possibility of running
+Model 2 emulation on a Raspberry Pi 5 and bringing it to the emulation
+community.
 
-Linux is the primary target. macOS is supported just because that's partly what I used for development and runs Vulkan through MoltenVK. I don't care for Windows... there I said it.
+Linux is the primary target. macOS is supported just because that's partly what
+I used for development and runs Vulkan through MoltenVK. I don't care for
+Windows... there, I said it.
 
-The journey included a lot of discussions with GenAI, I'm not going to lie but the capabilities for GenAI to really lean in and help tackle were somewhat limited. Providing it bite sized tasks sped up my part-time development from November 2025 until now, especially around how all the components hang together. 
+The journey included a lot of discussions with GenAI. I'm not going to lie, but
+its ability to really lean in and help tackle the hard parts was somewhat
+limited early on. Providing it bite-sized tasks sped up my part-time
+development from November 2025 onwards, especially around how all the
+components hang together, and later on it was genuinely helpful with the
+graphical quirks.
 
-Here I am in August 2026 and can actually release something which works (currently only Vulkan) and I'm confident I will finish in the next few months since I can take some of my previous learnings and port it to SM2-Emu.
-Further along into 2026 GenAI has been very helpful with all the graphical quirks and elements and sped up development for Phase 7 considerably.
+**Status: playable.** All four boards run — original Model 2, 2A, 2B and 2C —
+with picture and sound. Of the 83 sets in the database, the majority draw full
+3D scenes and produce audio, across three renderers: Vulkan, OpenGL and OpenGL
+ES.
 
-**Status: playable.** All four boards run — original Model 2, 2A, 2B and 2C — with
-picture and sound. Of the 83 sets in the database, 40 draw a full 3D scene and 75
-produce audio.
-
-All three geometry coprocessors are there — the MB86234 TGP, the ADSP-21062 SHARC
-and the MB86235 TGPx4 — along with the System 24 tilemap hardware, a textured
-Vulkan renderer with the hardware's own colour chain evaluated per texel, and both
-sound boards: the 68000/SCSP the CRX family uses, and the Model 1 audio board (a
-68000 with a YM3438 and two MultiPCMs) that Daytona USA, Desert Tank and Virtua Cop
-carry instead. Drive boards, lightguns, the link board and the protection devices
-are wired.
+All three geometry coprocessors are there — the MB86234 TGP, the ADSP-21062
+SHARC and the MB86235 TGPx4 — along with the System 24 tilemap hardware, a
+textured renderer with the hardware's own colour chain evaluated per texel, and
+both sound boards: the 68000/SCSP the CRX family uses, and the Model 1 audio
+board (a 68000 with a YM3438 and two MultiPCMs) that Daytona USA, Desert Tank
+and Virtua Cop carry instead. Drive boards, lightguns, the link board and the
+protection devices are wired.
 
 Input comes from SDL gamepads with the keyboard live alongside them, and the
 machine is paced to its own 57.5245 Hz rather than to the display. The frame is
-composited at the hardware's 496x384 and magnified once at the end, so the
-three-way composite runs on the hardware's pixels rather than on colours a filter
-has already blurred.
-
-A number of Model 2A sets are pixel-identical to MAME through the software
-renderer. What is left is listed under [Known gaps](#known-gaps) and
-[Future work](#future-work), and it is per-title now rather than per board.
+composited at the hardware's 496x384 and magnified once at the end, so it runs
+on the hardware's pixels rather than on colours a filter has already blurred.
 
 ## What Model 2 is, and why the renderer looks unusual
 
-Model 2 is an i960KB paired with a geometry coprocessor (a Fujitsu MB86234 "TGP"
-on Model 2 and 2A, an ADSP-21062 SHARC on 2B, an MB86235 on 2C), a custom
+Model 2 is an i960KB paired with a geometry coprocessor (a Fujitsu MB86234
+"TGP" on Model 2 and 2A, an ADSP-21062 SHARC on 2B, an MB86235 on 2C), a custom
 Sega/Lockheed-Martin rasterizer, and Sega System 24 tilemap hardware for the 2D
 layers. Output is 496x384 at roughly 57.5 Hz.
 
@@ -50,20 +58,20 @@ Four properties of that rasterizer shape the whole design, because none has a
 direct modern equivalent:
 
 - **No depth buffer.** Polygons are bucket-sorted by depth on the CPU and drawn
-  front to back against a one-bit fill mask: first writer wins. Reproduced with a
-  stencil attachment rather than a depth test.
+  front to back against a one-bit fill mask: first writer wins. Reproduced with
+  a stencil attachment rather than a depth test.
 - **No RGB textures.** A texel is a 4-bit *intensity*; colour arrives through a
   tone curve, a base colour, a translation table and a gamma ramp. The curve is
-  applied *after* filtering, so it cannot be baked in — the whole chain runs per
-  texel in the fragment shader.
+  applied *after* filtering, so it cannot be baked in — the whole chain runs
+  per texel in the fragment shader.
 - **No alpha blending.** Translucency is an alpha test on one texel value, or a
   screen-locked stipple. Both discard fragments, which leaves the fill mask
   unclaimed so what is behind still gets the pixel.
 - **No per-vertex shading.** One 8-bit luminance scalar per polygon.
 
-So the geometry pipeline runs on the CPU as the hardware's did, and Vulkan is handed
-pre-projected screen-space triangles. No vertex transformation on the GPU, no
-geometry shaders.
+So the geometry pipeline runs on the CPU as the hardware's did, and the GPU
+backend is handed pre-projected screen-space triangles. No vertex
+transformation on the GPU, no geometry shaders.
 
 ## Building
 
@@ -71,43 +79,123 @@ Requirements:
 
 - CMake 3.24 or newer, and Ninja
 - A C++20 compiler
-- Vulkan 1.3 headers, loader and `glslc`
-- SDL3 (fetched automatically if not installed)
+- `glslc` (from shaderc or the Vulkan SDK) — used at build time to compile and
+  lint the shaders
+- SDL3 (window, input, audio)
+- pugixml (the games.xml parser)
+- For the OpenGL / OpenGL ES backends (built by default): the system GL/GLES
+  and EGL libraries (Mesa on Linux). No extra headers are needed — SDL3
+  provides GL loading.
+- For the Vulkan backend (off by default): Vulkan 1.3 headers and loader, plus
+  VulkanMemoryAllocator.
+
+Dependencies are taken from the system. If a required one is missing the build
+stops with a message naming the package to install — it does not silently
+download anything. Pass `-DSM2_ALLOW_FETCH=ON` to let the build fetch and build
+the packaged libraries (SDL3, pugixml, VulkanMemoryAllocator) itself, which is
+convenient on a dev box or on macOS. A few dependencies with no packaged form
+(the Musashi 68000 core, the ymfm FM library, miniz, the LZMA SDK and Dear
+ImGui) are always vendored and built from pinned sources regardless.
 
 ```sh
 . tools/env.sh          # optional: adds ~/.local/bin and the Vulkan SDK to PATH
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ctest --test-dir build
 ```
 
+The default build produces a binary with the software renderer and the OpenGL
+4.3 core desktop backend — no Vulkan driver or SDK required, which is what
+lower-end ARM boards want. Add Vulkan with `-DSM2_BUILD_VULKAN=ON`.
+
+`Release` (`-O3`) is the default and what you want for running games. For
+debugging, use `-DCMAKE_BUILD_TYPE=Debug` (unoptimised, with symbols; also
+turns Vulkan validation on by default when the Vulkan backend is built).
+
 Useful options: `-DSM2_ENABLE_VALIDATION=ON` (default in Debug),
 `-DSM2_WERROR=ON`, `-DSM2_BUILD_TESTS=OFF`.
+
+### Graphics backends
+
+Up to three renderers are available, chosen at runtime with
+`--graphics-backend software|vulkan|opengl`:
+
+- **software** — the CPU rasteriser (also the correctness oracle). Always
+  built. It presents through whichever GPU backend was compiled in.
+- **vulkan** — the Vulkan backend. Opt-in at build time.
+- **opengl** — whichever OpenGL flavour the binary was built with.
+
+Every GPU backend is a build-time choice. Software is always built; the rest
+are gated by CMake options so a build only carries what its target needs:
+
+| Option | Default | Backend |
+|--------|:-------:|---------|
+| `SM2_BUILD_VULKAN`         | OFF | Vulkan 1.3 (needs the Vulkan headers + loader) |
+| `SM2_BUILD_OPENGL_DESKTOP` | ON  | OpenGL 4.3 core (desktop x86_64, macOS) |
+| `SM2_BUILD_OPENGL_ES`      | OFF | OpenGL ES 3.1 (ARM devices, e.g. Raspberry Pi 5) |
+
+`SM2_BUILD_OPENGL_DESKTOP` and `SM2_BUILD_OPENGL_ES` are mutually exclusive — a
+binary carries one GL flavour. Vulkan can be combined with either.
+
+```sh
+# Default: software + OpenGL 4.3 core, no Vulkan required
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+# Desktop with Vulkan as well
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+    -DSM2_BUILD_VULKAN=ON
+
+# ARM / GLES (e.g. Raspberry Pi 5): software + OpenGL ES 3.1
+cmake -S . -B build-gles -G Ninja -DCMAKE_BUILD_TYPE=Release \
+    -DSM2_BUILD_OPENGL_DESKTOP=OFF -DSM2_BUILD_OPENGL_ES=ON
+```
+
+The floor is OpenGL 4.3 core / OpenGL ES 3.1 — the renderer uses compute
+shaders and storage buffers, which do not exist below that line. On X11 the
+GLES backend forces the EGL path automatically (GLX cannot provide a GLES
+context); it also works under Wayland.
 
 ### Linux dependencies
 
 ```sh
-# Debian / Ubuntu
+# Debian / Ubuntu — default build (software + OpenGL)
 sudo apt install cmake ninja-build build-essential \
-                 libvulkan-dev glslc vulkan-validationlayers \
-                 libsdl3-dev            # optional; otherwise fetched
+                 glslc \
+                 libgl-dev libgles-dev libegl-dev \
+                 libsdl3-dev libpugixml-dev
+
+# Add these only if building the Vulkan backend (-DSM2_BUILD_VULKAN=ON)
+sudo apt install libvulkan-dev vulkan-validationlayers \
+                 libvulkan-memory-allocator-dev
 ```
+
+```sh
+# Arch / Manjaro — default build (software + OpenGL)
+sudo pacman -S --needed base-devel cmake ninja shaderc mesa sdl3 pugixml
+
+# Add these only if building the Vulkan backend (-DSM2_BUILD_VULKAN=ON)
+sudo pacman -S --needed vulkan-headers vulkan-icd-loader \
+                        vulkan-validation-layers vulkan-memory-allocator
+```
+
+`mesa` provides the GL, GLES and EGL libraries and `shaderc` provides `glslc`.
 
 ### macOS
 
-There is no Homebrew requirement, but the [LunarG Vulkan
-SDK](https://vulkan.lunarg.com/sdk/home) must be installed, and its
-`setup-env.sh` sourced, so that the loader can find MoltenVK:
+macOS uses the desktop OpenGL backend by default and needs nothing special. To
+build the Vulkan backend as well (`-DSM2_BUILD_VULKAN=ON`), install the [LunarG
+Vulkan SDK](https://vulkan.lunarg.com/sdk/home) and source its `setup-env.sh`
+so the loader can find MoltenVK:
 
 ```sh
 . ~/VulkanSDK/setup-env.sh    # or wherever the SDK lives
 ```
 
-Without this the loader starts but registers no driver, and sm2-emu reports that
-no Vulkan devices were found. `tools/env.sh` looks in the usual places and does
-this for you.
+Without this the loader starts but registers no driver, and sm2-emu reports
+that no Vulkan devices were found. `tools/env.sh` looks in the usual places and
+does this for you.
 
-### Cross-compilation (buildroot, Yocto, embedded)
+### Cross-compilation (Buildroot, Yocto, Batocera, embedded)
 
 sm2-emu builds for `x86_64`, `aarch64` and `riscv64`. The only host tool that
 runs during the build is `m68kmake` (a small C program that generates the 68000
@@ -118,33 +206,51 @@ path:
 # On the host, once:
 cc -o m68kmake /path/to/Musashi/m68kmake.c
 
-# Cross-compile:
+# Cross-compile (GLES backend shown, typical for an ARM target):
 cmake -S . -B build \
     -DCMAKE_TOOLCHAIN_FILE=/path/to/toolchain.cmake \
+    -DCMAKE_BUILD_TYPE=Release \
     -DSM2_M68KMAKE=/path/to/host-m68kmake \
+    -DSM2_BUILD_OPENGL_DESKTOP=OFF -DSM2_BUILD_OPENGL_ES=ON \
     -DSM2_BUILD_TESTS=OFF
 cmake --build build
 ```
 
-The sysroot must provide:
-- Vulkan 1.3 headers (`vulkan/vulkan.h`)
-- Vulkan loader library (`libvulkan.so`)
+`CMAKE_BUILD_TYPE` and its optimisation flags (`-O3` for `Release`) are a
+CMake-level setting, so they apply to the target compiler the toolchain file
+selects — a cross build gets the same optimisation as a native one, for its
+own architecture. There is no `-march=native` anywhere, so a build stays
+portable across the boards it targets.
+
+The target sysroot must provide (same system libraries as a native build, for
+the target architecture):
+
+- SDL3 and pugixml
+- the GL/GLES and EGL libraries, if a GL backend is built (the usual case)
+- Vulkan 1.3 headers (`vulkan/vulkan.h`), loader (`libvulkan.so`) and
+  VulkanMemoryAllocator, only if `-DSM2_BUILD_VULKAN=ON`
 - `glslc` on the host PATH (it runs at build time, not on the target)
+
+The Musashi, ymfm, miniz, LZMA-SDK and Dear ImGui sources are fetched at
+configure time and built into the target objects, so those need host network
+access at configure time but nothing in the sysroot.
 
 ## Running
 
 ```sh
 ./build/bin/sm2-emu --list-games
 ./build/bin/sm2-emu --list-gpus
-./build/bin/sm2-emu [--validation] [--no-vsync] [--gpu <name>] [--game <set>] vf2.zip
+./build/bin/sm2-emu [--graphics-backend <software|vulkan|opengl>] \
+                    [--fullscreen] [--no-vsync] [--game <set>] vf2.zip
 ```
 
-No ROM data is distributed with this software. Games are identified by the CRC32 of
-their contents rather than by filename, so a merged archive holding several
-revisions resolves correctly and `--game <set>` picks one out of it — the four
-Virtua Fighter 2 revisions share a single file, as do the Virtua Cop and Sega Rally
-families. A clone declares only the chips it respins and inherits the rest from its
-parent, including out of the parent's archive if it has none of its own.
+No ROM data is distributed with this software. Games are identified by the
+CRC32 of their contents rather than by filename, so a merged archive holding
+several revisions resolves correctly and `--game <set>` picks one out of it —
+the four Virtua Fighter 2 revisions share a single file, as do the Virtua Cop
+and Sega Rally families. A clone declares only the chips it respins and
+inherits the rest from its parent, including out of the parent's archive if it
+has none of its own.
 
 ```sh
 ./build/bin/sm2-emu --game vf2o vf2.zip
@@ -153,83 +259,16 @@ parent, including out of the parent's archive if it has none of its own.
 ROM layouts live in `data/games.xml`, so adding a game is a data edit. A region
 is a flat byte array and each chip contributes `chunk` bytes every `stride`
 bytes, which expresses every interleaving the hardware uses. The schema is
-documented at the top of that file. `--dump-roms <dir>` writes the assembled
-regions out, and `tools/verify_rom_layout.py` checks them against an independent
-transcription of MAME's load macros — worth doing, because an interleaving mistake
-produces data of exactly the right size and only a byte comparison catches it.
-
-## Diagnostics
-
-Everything below works headless, so a change can be checked without a window and
-without anyone watching.
-
-| Flag | What it gives you |
-|------|-------------------|
-| `--boot-test <n>` | run `n` frames with no window, then report where the program reached |
-| `--dump-tilemap <dir>` | the four decoded layers, the character set, the composed frame, each priority category on its own, and `wireframe.ppm` |
-| `--screenshot <f>` | the finished frame as a PPM, at the native 496x384 before magnification |
-| `--screenshot-frames <list>` | capture exactly these frame numbers |
-| `--dump-audio <f>` | everything the sound board produced, as a WAV |
-| `--run-frames <n>` | quit after `n` frames |
-| `--coin-at <n>` | insert two coins, press start and confirm a character on a fixed schedule |
-| `--log-unmapped` | every access landing outside a mapped region |
-| `--nvram <dir>` | where `<set>.nv` and `<set>.eeprom` live |
-| `--profile [n]` | run `n` seconds (default 30) and break the frame down per stage: CPU (geometry engine, tilemap composition, triangulation, host uploads, submit-and-present) and GPU (texture decode, 3D pass, composite, present, tilemap compose), each as p50/p95/p99, not a mean |
-| `--profile-csv <f>` | with `--profile`, also write the table to this CSV, one row per stage, for a scriptable before-and-after |
-
-```sh
-./build/bin/sm2-emu --boot-test 1700 --coin-at 1200 --dump-tilemap /tmp/wf vf2.zip
-tools/ppm_to_png.py /tmp/wf/wireframe.ppm
-```
-
-The boot-test report is the useful part. It covers the coprocessor (instructions
-retired, commands taken, results returned) and checks its mathematical lookup
-units against the standard library using the real table ROMs, which is the only
-check that can call those answers correct rather than merely self-consistent — a
-boot test fails if any unit drifts out of tolerance. It summarises the frame the
-geometry engine produced: polygons kept against culled and clipped away, and the
-screen and depth extents. **The extents are what to read first**, because geometry
-that clips correctly lands exactly on the raster's bounds, so a subtly wrong
-projection shows as an extent that overshoots or falls short rather than as a
-picture that merely looks odd.
-
-It also reports the sound board in its own right — where the 68000 is, how many
-bytes crossed the serial link each way, which chip registers were touched, how many
-voices are sounding — and says which of the two boards it found. A silent game with
-traffic on the link is a different problem from a silent game without it.
-
-`wireframe.ppm` deliberately shows polygons a shaded renderer would hide, which is
-what makes it useful for judging geometry alone. `tools/ppm_to_png.py` converts any
-of these dumps using only the Python standard library.
-
-`--profile` is what makes a performance claim a measurement rather than an
-impression. It reports percentiles because a mean hides exactly the stalls that
-make an emulator feel bad, and it runs `--software` and Vulkan on the same
-machine state so a GPU figure has something to be faster *than*:
-
-```sh
-./build/bin/sm2-emu --game vf2 --coin-at 150 --profile 5 --profile-csv /tmp/vf2.csv vf2.zip
-./build/bin/sm2-emu --game vf2 --coin-at 150 --profile 5 --software vf2.zip
-```
-
-A GPU stage that never ran (the tilemap compute dispatch under `--software`, or
-any GPU stage on a device that reports no timestamps) prints as empty, not zero —
-zero would read as a free stage rather than as no measurement having been taken.
-
-Two sweeps run a whole fleet and say which sets are worth a closer look:
-
-```sh
-python3 tools/graphics_sweep.py          # flags geometry faults, no MAME needed
-python3 tools/audio_sweep.py --board ""  # which sets make a noise, and from when
-```
+documented at the top of that file.
 
 ## Controls
 
 Gamepads are read through SDL's gamepad layer, so anything with a mapping works
-without configuration. The first pad to connect is player 1, pads can come and go
-while the game runs, and `--list-gamepads` shows what was recognised. Face buttons
-are read by position rather than by label. Driving games take a wheel and pedals
-from the pad's stick and triggers; the gun games take aim from the mouse.
+without configuration. The first pad to connect is player 1, pads can come and
+go while the game runs, and `--list-gamepads` shows what was recognised. Face
+buttons are read by position rather than by label. Driving games take a wheel
+and pedals from the pad's stick and triggers; the gun games take aim from the
+mouse.
 
 | Gamepad | Function |
 |---------|----------|
@@ -239,8 +278,8 @@ from the pad's stick and triggers; the gun games take aim from the mouse.
 | Start | Start |
 | Back | Insert a coin |
 
-The keyboard is live at the same time, so a second player can join on it and the
-operator controls stay reachable without a pad:
+The keyboard is live at the same time, so a second player can join on it and
+the operator controls stay reachable without a pad:
 
 | Keys | Function |
 |------|----------|
@@ -251,32 +290,34 @@ operator controls stay reachable without a pad:
 | `W` `A` `S` `D`, `G` `H` `J` `K` | Player 2 stick and buttons |
 | `Escape` | Quit |
 | `P` | Pause |
+| `F2` | Switch between the GPU renderer and the software renderer |
 | `Tab` (held) | Fast-forward |
 
 ## Settings
 
-`--write-config` creates a `sm2-emu.ini` with every setting at its default and a
-comment explaining each, which is the quickest way to see what can be set. It is
-looked for in the working directory first and otherwise in the platform's config
-directory (`$XDG_CONFIG_HOME/sm2-emu` on Linux, `~/Library/Application
-Support/sm2-emu` on macOS); `--config <path>` overrides both, and whichever file
-was used is named in the log. A command-line flag always beats the file, and an
-unparseable line is reported and skipped rather than refused, so a file from a
-later version cannot stop an earlier binary from starting.
+`--write-config` creates a `sm2-emu.ini` with every setting at its default and
+a comment explaining each, which is the quickest way to see what can be set. It
+is looked for in the working directory first and otherwise in the platform's
+config directory (`$XDG_CONFIG_HOME/sm2-emu` on Linux, `~/Library/Application
+Support/sm2-emu` on macOS); `--config <path>` overrides both, and whichever
+file was used is named in the log. A command-line flag always beats the file,
+and an unparseable line is reported and skipped rather than refused, so a file
+from a later version cannot stop an earlier binary from starting.
 
 ## Frame pacing
 
-The machine runs at 57.5245 Hz — 434600 cycles of a 25 MHz clock — which divides
-into no monitor's refresh rate. Presenting one emulated frame per display refresh
-would run the game four percent fast at 60 Hz, so it is paced against real time
-instead and every emulated frame is presented exactly once: nothing duplicated,
-nothing dropped, no input lost. On a 60 Hz display a frame is occasionally held for
-two refreshes, which is unavoidable at this rate without inventing frames.
+The machine runs at 57.5245 Hz — 434600 cycles of a 25 MHz clock — which
+divides into no monitor's refresh rate. Presenting one emulated frame per
+display refresh would run the game four percent fast at 60 Hz, so it is paced
+against real time instead and every emulated frame is presented exactly once:
+nothing duplicated, nothing dropped, no input lost. On a 60 Hz display a frame
+is occasionally held for two refreshes, which is unavoidable at this rate
+without inventing frames.
 
-Vsync and pacing compose rather than conflict — whichever wants the longer frame
-wins. On a display slower than 57.5 Hz vsync would win and the game would run slow,
-which is what `--no-vsync` is for. `--no-throttle`, or holding `Tab`, runs as fast
-as the machine manages.
+Vsync and pacing compose rather than conflict — whichever wants the longer
+frame wins. On a display slower than 57.5 Hz vsync would win and the game would
+run slow, which is what `--no-vsync` is for. `--no-throttle`, or holding `Tab`,
+runs as fast as the machine manages.
 
 ## Roadmap
 
@@ -290,180 +331,61 @@ as the machine manages.
 | 5 | Gamepad input, configuration, frame pacing, 68000 + SCSP sound **(done)** |
 | 6 | Presentation **(done)**, tilemap edge cases, accuracy, more games |
 | 7 | Expand compatibility to load and run more games; Model 1 audio board **(done)** |
-| 8 | Accelerate performance with Vulkan first to offload to GPU as much as possible **(done)** |
-| 9 | OpenGL 4.3 desktop and OpenGL ES 3.1 backends **(testing))** |
-| 10 | Tidy everything up for a release with associated GUI with options |
-
+| 8 | Accelerate performance with Vulkan, offloading to the GPU **(done)** |
+| 9 | OpenGL 4.3 desktop and OpenGL ES 3.1 backends **(done)** |
+| 10 | Tidy everything up for a release with an associated GUI and options |
 
 ## Known gaps
 
-- **Pixel comparison against MAME works, but not on every set.** The two emulators
-  drift apart within seconds — the geometry engine here is a model of a DSP rather
-  than an emulation of one, the coprocessor is interleaved eagerly, the sound boards
-  run on a scanline granularity — so a frame-N-against-frame-N diff is meaningless.
-  `tools/framecmp.py` locks the offset on whichever sample has the sharpest
-  correlation peak and reports MAME↔software, MAME↔Vulkan and software↔Vulkan side
-  by side; where the first two agree, a fault is in emulated hardware, where only
-  the Vulkan column differs it is the renderer. A good number of Model 2A sets reach
-  1.0000 that way.
-
-  Two caveats that have each produced a wrong conclusion here. The lock fails when
-  the sampled frames are all static or all animated — Virtua Cop scores every
-  candidate within 0.002 of every other — and an unlocked figure means nothing. And
-  a 2D splash screen reads 1.0000 while saying nothing about the 3D pipeline, so
-  read any score with the polygon count beside it.
-- **The geometry engine is a high-level model, not an emulation.** Its microcode has
-  never been dumped; what is emulated, following MAME, is what that microcode does,
-  reconstructed from the equivalent program later boards upload. Results should
-  match, timing does not.
-- **The tilemap sky repeats visibly.** The name table really does repeat characters
-  where the scenery is distant and the tile chip's registers agree with MAME's on
-  every value used, so this is either a perspective stretch working as intended or
-  something upstream of the tile chip. Unresolved.
-- **Tilemap split modes 2 and 3 are untested by a real program.** All three modes
-  are implemented and unit-tested, and the tests were checked by mutation, but no
-  set exercised so far uses anything but mode 1.
-- **The SCSP's DMA and host-facing interrupt are untested.** Ported but unexercised;
-  MAME flags parts of them as wanting checking too. Anything reaching them logs it.
-- **The audio clock does not lead the frame clock.** Each board produces its own
-  rate's worth of samples per frame, so the queue stays inside a 40 ms band, but it
-  is not *derived* from the device's real consumption — a device whose true rate
-  differs from its nominal one would drift.
+- **The geometry engine is a high-level model, not an emulation.** Its
+  microcode has never been dumped; what is emulated, following MAME, is what
+  that microcode does, reconstructed from the equivalent program later boards
+  upload. Results should match, timing does not.
+- **The tilemap sky repeats visibly** on some sets. The name table really does
+  repeat characters where the scenery is distant, so this is either a
+  perspective stretch working as intended or something upstream of the tile
+  chip. Unresolved.
 - **Neither sound board has been diffed sample for sample.** The Model 1 board
-  agrees with MAME's `-wavwrite` output on onset second and within ~10% on
-  per-second RMS, but that is an envelope, not a waveform. Nothing has been done for
-  the SCSP, which MAME marks imperfect anyway.
-- **The YM3438's FM has only ever been observed silent** — zero through boot and
-  attract on all three original Model 2 sets, and so is MAME's, confirmed by probing
-  its stream. What *is* verified is that its Timer B clocks the sound driver's
-  sequencer, and that without it no PCM voice is keyed on at all.
-- **The serial link is modelled per byte, not per bit.** Both ends are fixed at
-  8-N-1, 31250 baud and nothing observes an individual bit. A program that
-  reprogrammed the framing, or watched the line idle, would not see hardware.
+  agrees with MAME's reference output on onset and roughly on level, but that
+  is an envelope, not a waveform. The SCSP, which MAME itself marks imperfect,
+  has not been checked to that depth.
 
 ## Future work
 
 Roughly in order of increasing difficulty.
 
-### Games that still do not run
+### Games with known issues
 
-All four boards work, so what is left is per-title. **Dynamite Baseball**,
-**Dynamite Baseball 97** and **Sonic Championship** are the three worth chasing:
-each produces little or no geometry where MAME produces a full scene.
+Everything with a local ROM archive runs. The exceptions:
 
-Manx TT (both DX sets), Motor Raid DX, Virtual-On Relay, Sega Ski Super G and Royal
-Ascot II produce nothing here *and nothing in MAME* — all are
-`MACHINE_NOT_WORKING` upstream, Sega Ski Super G additionally
-`MACHINE_UNEMULATED_PROTECTION` — so there is no reference to work against. Top
-Skater draws about as much here as in MAME and MAME aborts partway through a
-headless run of it, so there is no stable reference either way.
+- **Top Skater — shattered 3D geometry (post-1.0.0 fix).** Its 3D screens draw
+  badly broken polygons. The fault is in the geometry engine, not the
+  renderers — the software, Vulkan and OpenGL backends all draw the same
+  corruption from the same geometry output — and MAME's own driver crashes
+  before reaching those screens, so there is no reference to fix against yet.
+- A handful of sets produce nothing here *and nothing in MAME*, because they
+  are marked not-working upstream: Manx TT (both DX sets), Motor Raid DX,
+  Virtual-On Relay, Royal Ascot II, and Sega Ski Super G (also unemulated
+  protection). There is no reference to work against for these.
 
-Separately, the Manx TT Deluxe cabinet carries a Model 1 audio board *on top of*
-the 68000/SCSP board every Model 2A has, forked off the same host UART. `hw::M1Audio`
-works but `hw::Model2` has no slot for a second board, so those ROMs load unread.
-Neither set draws any geometry yet, so there is nothing to listen to either.
-
-### Accuracy and tooling
-
-- **Audio clock pull**, so the device's real rate governs the frame clock.
-- **Sample-for-sample waveform comparison** against MAME on both sound boards; only
-  a per-second RMS envelope has been checked so far.
-- **A static anchor frame for Virtua Cop**, without which `framecmp.py` cannot lock
-  an offset for it and no pixel figure can be trusted.
-
-### Rendering backends
-
-A second and third implementation of `sm2::render::Backend`
-(`src/render/backend.h`) alongside Vulkan — an OpenGL 4.3 core desktop backend
-and an OpenGL ES 3.1 backend for ARM devices (Raspberry Pi 5 and similar),
-selected at runtime with `--graphics-backend software|vulkan|opengl`. The
-floor is **OpenGL 4.3 core / OpenGL ES 3.1**, not 3.3/ES 3.0: the texture
-decode and tilemap compute passes and their storage-buffer reads already
-commit the renderer to compute shaders and SSBOs, neither of which exists
-below that line. The Raspberry Pi 5's VideoCore VII is conformant GLES 3.1
-and Vulkan 1.3. The six shaders are shared source, not a duplicated tree:
-two small `#ifdef SM2_TARGET_GL` branches cover what differs between the
-Vulkan SPIR-V compile and the GL/GLES runtime-compiled one.
-
-Both backends compile and link clean, and every shader passes a
-`glslc --target-env=opengl4.5` syntax lint as part of the build, but neither
-has been run on real GL/GLES hardware yet — this was developed on a Mac
-whose native GL caps out at 4.1 core with no GLES support at all. Pending
-verification on Linux before this counts as done.
-
-### GPU acceleration and Pi 5 performance
-
-The geometry engine still runs on the CPU — both renderers consume its
-`RenderList` output, so moving it would remove the software renderer's ability
-to serve as a correctness oracle, and it stays a deliberate CPU-side design for
-that reason. Texture decode is a compute pass (`shaders/texel_decode.comp`),
-which unpacks each sheet's 4-bit texels once per upload instead of the fragment
-shader shifting out a nibble on every one of up to sixteen taps, and the tilemap
-is now rasterised on the GPU too (`shaders/tilemap_compose.comp`), which removed
-the unconditional 1,523,712 bytes/frame of CPU→GPU surface upload and the CPU
-compositing that produced it. Both are verified bit-exact against the CPU
-renderer across every set with a local ROM archive, not just assumed correct
-from the shader compiling.
-
-Two further optimisations were investigated and deferred, on measurement rather
-than on the original plan's assumptions:
-
-- **Splitting textured/untextured pipelines with a stencil pre-pass** turned out
-  to rest on two premises that do not hold on this hardware. Untextured
-  polygons are not discard-free — MAME's own `draw_scanline_solid` stipples
-  untextured polygons exactly like textured ones, confirmed in this renderer by
-  a direct counter (thousands of solid-and-checkered polygon-frames per run on
-  several sets). And a stencil-`EQUAL` early-rejection pass needs depth-based
-  pixel ownership to know *which* earlier polygon claimed a pixel, which this
-  hardware's fill mask deliberately does not carry (it is order-based, with
-  per-polygon sort overrides that ignore depth). Measured cost also does not
-  justify the risk: the 3D pass itself runs at 0.01-0.06 ms of a present-bound
-  frame whose GPU present blit alone costs 6.7-8.1 ms.
-- **Collapsing the triple-buffered texture/luma/tone staging** rested on
-  "these change almost never," which held for texture sheets (10-350 changes
-  per 1700 frames) but not for the tone curve and luminance table, which
-  change on 93-99% of frames on every set checked — collapsing those buffers
-  would force synchronization onto what is currently free, near-every-frame
-  work. The vertex and parameter buffers were also checked directly for stray
-  flushes or barriers and have none; Vulkan's host-write-ordering guarantee
-  already covers a `memcpy` followed by a read in the same, not-yet-submitted
-  command buffer, so there is nothing to add there.
-
-Full reasoning, the exact figures and what would need to be true for either to
-be worth revisiting live in `.kiro/specs/model2-gpu-acceleration/design.md`.
-
-All of the above was measured on **Apple M5** via MoltenVK — a desktop-class
-unified-memory GPU, not the tile-based ARM GPU this section is actually about.
-**None of it has been measured on Pi 5 hardware.** There is no device here to
-test on, and the figures above should not be read as a Pi 5 result by
-extension — a present-bound bottleneck on Apple silicon's driver stack is not
-evidence about VideoCore VII's. Frame-time numbers from anyone with a Pi 5 or
-similar tile-based ARM GPU would make this section a great deal more useful.
-
-The render backend is behind an abstraction now (`sm2::render::Backend`, see
-`src/render/backend.h`) specifically so the OpenGL ES 3.1 backend a Pi 5 needs
-(next section) can be built without main.cpp, `osd::Window` or `osd::Gui`
-changing a second time.
+Separately, the Manx TT Deluxe cabinet carries a Model 1 audio board *on top
+of* the 68000/SCSP board every Model 2A has. The audio board itself works, but
+the machine has no slot for a second board yet, so those ROMs load unread.
 
 ### Internal resolution upscaling
 
 Feasible for the 3D, because the geometry engine outputs floating-point
 screen-space vertices that can be scaled before rasterisation. Polygons scale
-cleanly and texture coordinates are unaffected, so filter quality improves without
-touching the colour chain. Three things complicate it: the source textures are 4-bit
-at up to 1024×1024 so the detail ceiling is low; the tilemap would need to move to
-the GPU or be post-filtered; and **stipple transparency is raster-locked** to
-`(x ^ y) & 1` in screen pixels, so it must be evaluated on the upscaled grid or
-replaced with real alpha blending.
-
-An `--internal-resolution <n>` multiplier would scale the offscreen polygon
-framebuffer and its stencil attachment and adjust the vertex shader's `invRaster`
-uniform, leaving the tilemap and present passes alone.
+cleanly and texture coordinates are unaffected, so filter quality improves
+without touching the colour chain. Complications: the source textures are 4-bit
+at up to 1024×1024 so the detail ceiling is low; the tilemap would need scaling
+too; and stipple transparency is raster-locked to screen pixels, so it must be
+evaluated on the upscaled grid or replaced with real alpha blending.
 
 ### Input and peripherals
 
-Gamepad axes already drive the analog channels the driving games read, and the mouse
-already drives the lightgun channels. What is missing:
+Gamepad axes already drive the analog channels the driving games read, and the
+mouse already drives the lightgun channels. What is missing:
 
 - **Dedicated wheel and pedal devices**, with their own axis layout rather than
   being mapped from a pad's stick and triggers.
@@ -473,23 +395,25 @@ already drives the lightgun channels. What is missing:
 
 ### GUI and usability
 
-- **Expand the settings GUI** with input binding, per-game overrides, a ROM path
-  browser and volume control.
+- **Expand the settings GUI** with input binding, per-game overrides, a ROM
+  path browser and volume control.
 - **Game launcher.** A ROM directory scanner, so the command line is optional.
 - **Save states**, with multiple slots. Arcade games have no native save.
 
 ### Additional features
 
-- **Netplay.** The fixed-rate frame clock and deterministic emulation make rollback
-  feasible.
+- **Netplay.** The fixed-rate frame clock and deterministic emulation make
+  rollback feasible.
 - **Shader post-processing.** User-loadable GLSL/SPIR-V for CRT simulation,
   scanlines and colour grading, after the native frame is composed.
-- **Run-ahead**, **rewind** and **input recording** — all natural extensions once
-  save states exist.
+- **Run-ahead**, **rewind** and **input recording** — all natural extensions
+  once save states exist.
 
 ## Licence and credits
 
 BSD 3-Clause. See `LICENSE`.
 
-
-I'm standing on the shoulders of giants and SM2-Emu exists because of the MAME project's reverse engineering of this hardware. The emulation is derived from MAME's Sega Model 2 driver and its device cores, which their authors released under the same licence. See `NOTICE` for per-component attribution.
+I'm standing on the shoulders of giants, and SM2-Emu exists because of the MAME
+project's reverse engineering of this hardware. The emulation is derived from
+MAME's Sega Model 2 driver and its device cores, which their authors released
+under the same licence. See `NOTICE` for per-component attribution.

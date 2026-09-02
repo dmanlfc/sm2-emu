@@ -38,29 +38,34 @@ include(FetchContent)
 # that is the GPU vendor's driver, on macOS it is MoltenVK. The ICD is not a
 # build-time dependency.
 
-find_package(Vulkan QUIET)
-if(NOT Vulkan_FOUND)
-    message(FATAL_ERROR
-        "Vulkan headers and loader were not found.\n"
-        "\n"
-        "sm2-emu requires:\n"
-        "  - Vulkan 1.3 headers  (vulkan/vulkan.h)\n"
-        "  - Vulkan loader       (libvulkan)\n"
-        "  - glslc               (GLSL to SPIR-V compiler, from shaderc)\n"
-        "\n"
-        "Install with:\n"
-        "  Debian/Ubuntu : sudo apt install libvulkan-dev vulkan-validationlayers glslc\n"
-        "  Fedora        : sudo dnf install vulkan-devel vulkan-validation-layers glslc\n"
-        "  Arch          : sudo pacman -S vulkan-devel vulkan-validation-layers shaderc\n"
-        "  macOS         : brew install vulkan-headers vulkan-loader shaderc molten-vk\n"
-        "                  (or install the LunarG Vulkan SDK and source its setup-env.sh)\n"
-        "\n"
-        "For cross-compilation (buildroot, Yocto), ensure the sysroot contains\n"
-        "the Vulkan headers and loader for the target, and set CMAKE_FIND_ROOT_PATH\n"
-        "or Vulkan_INCLUDE_DIR / Vulkan_LIBRARY explicitly.\n"
-        "\n"
-        "If the SDK is installed in a non-standard location, set VULKAN_SDK or\n"
-        "CMAKE_PREFIX_PATH to point at it.")
+# The Vulkan headers and loader are only required when the Vulkan backend is
+# actually being built (SM2_BUILD_VULKAN). A software / OpenGL-only build --
+# the default, and what a lower-end ARM board with no Vulkan driver wants --
+# needs neither. glslc (below) is still required regardless, because it also
+# lints the GL shader dialect.
+if(SM2_BUILD_VULKAN)
+    find_package(Vulkan QUIET)
+    if(NOT Vulkan_FOUND)
+        message(FATAL_ERROR
+            "SM2_BUILD_VULKAN is ON but the Vulkan headers and loader were not found.\n"
+            "\n"
+            "The Vulkan backend requires:\n"
+            "  - Vulkan 1.3 headers  (vulkan/vulkan.h)\n"
+            "  - Vulkan loader       (libvulkan)\n"
+            "\n"
+            "Install with:\n"
+            "  Debian/Ubuntu : sudo apt install libvulkan-dev vulkan-validationlayers\n"
+            "  Fedora        : sudo dnf install vulkan-devel vulkan-validation-layers\n"
+            "  Arch          : sudo pacman -S vulkan-devel vulkan-validation-layers\n"
+            "  macOS         : brew install vulkan-headers vulkan-loader molten-vk\n"
+            "                  (or install the LunarG Vulkan SDK and source its setup-env.sh)\n"
+            "\n"
+            "For cross-compilation (buildroot, Yocto), ensure the sysroot contains\n"
+            "the Vulkan headers and loader for the target, and set CMAKE_FIND_ROOT_PATH\n"
+            "or Vulkan_INCLUDE_DIR / Vulkan_LIBRARY explicitly.\n"
+            "\n"
+            "Or build without it: -DSM2_BUILD_VULKAN=OFF (software + OpenGL only).")
+    endif()
 endif()
 
 # glslc compiles GLSL to SPIR-V at build time. Prefer the one shipped beside
@@ -92,6 +97,17 @@ find_package(SDL3 3.2 CONFIG QUIET)
 
 if(SDL3_FOUND)
     set(SM2_SDL3_ORIGIN "system (${SDL3_VERSION})")
+elseif(NOT SM2_ALLOW_FETCH)
+    message(FATAL_ERROR
+        "SDL3 (>= 3.2) was not found on the system.\n"
+        "\n"
+        "Install the SDL3 development package:\n"
+        "  Debian/Ubuntu : sudo apt install libsdl3-dev\n"
+        "  Fedora        : sudo dnf install SDL3-devel\n"
+        "  Arch/Manjaro  : sudo pacman -S sdl3\n"
+        "  macOS         : brew install sdl3\n"
+        "\n"
+        "Or pass -DSM2_ALLOW_FETCH=ON to fetch and build it instead.")
 else()
     set(SM2_SDL3_ORIGIN "fetched (release-3.4.14)")
 
@@ -117,20 +133,39 @@ else()
 endif()
 
 # ---------------------------------------------------------------------------
-# VulkanMemoryAllocator
+# VulkanMemoryAllocator (Vulkan backend only)
 # ---------------------------------------------------------------------------
 # Hand-rolled one-allocation-per-resource works for a fixed resource set, but
 # the texture sheets and per-frame rings want suballocation, and VMA is the
-# boring correct answer.
+# boring correct answer. Only needed when the Vulkan backend is built.
 
-FetchContent_Declare(VulkanMemoryAllocator
-    GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-    GIT_TAG        v3.3.0
-    GIT_SHALLOW    TRUE
-    GIT_PROGRESS   TRUE
-    SYSTEM
-)
-FetchContent_MakeAvailable(VulkanMemoryAllocator)
+if(SM2_BUILD_VULKAN)
+    find_package(VulkanMemoryAllocator CONFIG QUIET)
+    if(VulkanMemoryAllocator_FOUND)
+        # nothing to do -- the config package provides GPUOpen::VulkanMemoryAllocator
+    elseif(NOT SM2_ALLOW_FETCH)
+        message(FATAL_ERROR
+            "VulkanMemoryAllocator was not found on the system (needed for the "
+            "Vulkan backend).\n"
+            "\n"
+            "Install it:\n"
+            "  Debian/Ubuntu : sudo apt install libvulkan-memory-allocator-dev\n"
+            "  Fedora        : sudo dnf install VulkanMemoryAllocator-devel\n"
+            "  Arch/Manjaro  : sudo pacman -S vulkan-memory-allocator\n"
+            "\n"
+            "Or pass -DSM2_ALLOW_FETCH=ON to fetch and build it, or build without "
+            "Vulkan (-DSM2_BUILD_VULKAN=OFF).")
+    else()
+        FetchContent_Declare(VulkanMemoryAllocator
+            GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+            GIT_TAG        v3.3.0
+            GIT_SHALLOW    TRUE
+            GIT_PROGRESS   TRUE
+            SYSTEM
+        )
+        FetchContent_MakeAvailable(VulkanMemoryAllocator)
+    endif()
+endif()
 
 # ---------------------------------------------------------------------------
 # miniz — zip reading and CRC32 for the ROM loader
@@ -191,14 +226,35 @@ target_compile_definitions(sm2_7z PUBLIC
 # ---------------------------------------------------------------------------
 # pugixml — the games.xml database
 # ---------------------------------------------------------------------------
+# src/ links pugixml::static. A distro package may export only pugixml::pugixml
+# (its shared library), so alias that to pugixml::static when the static target
+# is absent -- the loader is read-only and does not care which it links.
 
-FetchContent_Declare(pugixml
-    GIT_REPOSITORY https://github.com/zeux/pugixml.git
-    GIT_TAG        v1.15
-    GIT_SHALLOW    TRUE
-    SYSTEM
-)
-FetchContent_MakeAvailable(pugixml)
+find_package(pugixml CONFIG QUIET)
+if(pugixml_FOUND)
+    if(NOT TARGET pugixml::static AND TARGET pugixml::pugixml)
+        add_library(pugixml::static ALIAS pugixml::pugixml)
+    endif()
+elseif(NOT SM2_ALLOW_FETCH)
+    message(FATAL_ERROR
+        "pugixml was not found on the system.\n"
+        "\n"
+        "Install the pugixml development package:\n"
+        "  Debian/Ubuntu : sudo apt install libpugixml-dev\n"
+        "  Fedora        : sudo dnf install pugixml-devel\n"
+        "  Arch/Manjaro  : sudo pacman -S pugixml\n"
+        "  macOS         : brew install pugixml\n"
+        "\n"
+        "Or pass -DSM2_ALLOW_FETCH=ON to fetch and build it instead.")
+else()
+    FetchContent_Declare(pugixml
+        GIT_REPOSITORY https://github.com/zeux/pugixml.git
+        GIT_TAG        v1.15
+        GIT_SHALLOW    TRUE
+        SYSTEM
+    )
+    FetchContent_MakeAvailable(pugixml)
+endif()
 
 # ---------------------------------------------------------------------------
 # Dear ImGui — immediate-mode GUI for the settings overlay
@@ -215,6 +271,11 @@ FetchContent_Declare(imgui
 )
 FetchContent_MakeAvailable(imgui)
 
+# sm2_imgui -- core ImGui plus the SDL3 platform backend only. No renderer
+# backend and no Vulkan link: osd/gui.cpp uses only ImGui_ImplSDL3_* (the
+# platform half), and each GPU backend brings its own ImGui renderer backend
+# (sm2_imgui_vk / sm2_imgui_gl / sm2_imgui_gles). This is what lets a build
+# with SM2_BUILD_VULKAN=OFF carry no Vulkan dependency at all.
 add_library(sm2_imgui STATIC
     "${imgui_SOURCE_DIR}/imgui.cpp"
     "${imgui_SOURCE_DIR}/imgui_demo.cpp"
@@ -222,24 +283,47 @@ add_library(sm2_imgui STATIC
     "${imgui_SOURCE_DIR}/imgui_tables.cpp"
     "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
     "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
-    "${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp"
 )
 target_include_directories(sm2_imgui SYSTEM PUBLIC
     "${imgui_SOURCE_DIR}"
     "${imgui_SOURCE_DIR}/backends"
 )
-target_link_libraries(sm2_imgui PUBLIC
-    Vulkan::Vulkan
-    SDL3::SDL3
-)
-# ImGui uses VK_NO_PROTOTYPES when loading functions itself, but we link the
-# loader directly and want the prototypes available. Ensure the no-prototypes
-# flag is NOT defined.
-target_compile_definitions(sm2_imgui PRIVATE
-    IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
-)
+target_link_libraries(sm2_imgui PUBLIC SDL3::SDL3)
 if(NOT MSVC)
     target_compile_options(sm2_imgui PRIVATE -w)
+endif()
+
+# sm2_imgui_vk -- ImGui's Vulkan renderer backend, for the Vulkan render
+# backend. Separate target (mirroring sm2_imgui_gl below) so the Vulkan link
+# and the dynamic-rendering define stay out of the base sm2_imgui. Only built
+# when the Vulkan backend is.
+if(SM2_BUILD_VULKAN)
+    add_library(sm2_imgui_vk STATIC
+        "${imgui_SOURCE_DIR}/imgui.cpp"
+        "${imgui_SOURCE_DIR}/imgui_demo.cpp"
+        "${imgui_SOURCE_DIR}/imgui_draw.cpp"
+        "${imgui_SOURCE_DIR}/imgui_tables.cpp"
+        "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
+        "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
+        "${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp"
+    )
+    target_include_directories(sm2_imgui_vk SYSTEM PUBLIC
+        "${imgui_SOURCE_DIR}"
+        "${imgui_SOURCE_DIR}/backends"
+    )
+    target_link_libraries(sm2_imgui_vk PUBLIC
+        Vulkan::Vulkan
+        SDL3::SDL3
+    )
+    # ImGui uses VK_NO_PROTOTYPES when loading functions itself, but we link
+    # the loader directly and want the prototypes available. Ensure the
+    # no-prototypes flag is NOT defined.
+    target_compile_definitions(sm2_imgui_vk PRIVATE
+        IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
+    )
+    if(NOT MSVC)
+        target_compile_options(sm2_imgui_vk PRIVATE -w)
+    endif()
 endif()
 
 # sm2_imgui_gl -- imgui's OpenGL3 renderer backend, for the phase 9 GL

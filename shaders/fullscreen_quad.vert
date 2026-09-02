@@ -23,6 +23,9 @@
 
 layout(location = 0) out vec2 vTexCoord;
 
+// GL-only: +1 when glClipControl aligned GL's clip space with Vulkan's
+// (no flip needed), -1 otherwise (GLES, or desktop without
+// GL_ARB_clip_control). Vulkan never sees this uniform.
 // gl_VertexIndex (Vulkan GLSL) and gl_VertexID (GL/GLES core) name the same
 // vertex counter but are not interchangeable identifiers -- neither compiles
 // under the other dialect. SM2_TARGET_GL is defined only for the GL/GLES
@@ -44,5 +47,14 @@ void main()
     // The oversized triangle is clipped to the viewport by fixed function,
     // which is cheaper than the four vertices and two triangles of a quad.
     vTexCoord = vec2((SM2_VERTEX_INDEX << 1) & 2, SM2_VERTEX_INDEX & 2);
-    gl_Position = vec4(vTexCoord * 2.0 - 1.0, 0.0, 1.0);
+    vec2 pos = vTexCoord * 2.0 - 1.0;
+    // OpenGL's clip space has +Y up and its framebuffer origin is bottom-left,
+    // the opposite of Vulkan. The sampled textures are top-left origin, so
+    // leaving vTexCoord alone keeps sampling correct while flipping only the
+    // emitted clip-space Y makes a pass write into its target with the same
+    // orientation Vulkan's positive-height viewport produces.
+#ifdef SM2_TARGET_GL
+    pos.y = -pos.y;
+#endif
+    gl_Position = vec4(pos, 0.0, 1.0);
 }

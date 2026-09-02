@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.24)
 #
 
 project(sm2-emu
-    VERSION     0.8.9
+    VERSION     0.9.0
     DESCRIPTION "Sega Model 2 arcade emulator"
     LANGUAGES   C CXX
 )
@@ -39,7 +39,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type" FORCE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
         Debug Release RelWithDebInfo MinSizeRel)
 endif()
@@ -65,11 +65,17 @@ option(SM2_WERROR       "Treat compiler warnings as errors"        OFF)
 option(SM2_SHADER_WERROR "Treat shader compiler warnings as errors" ON)
 option(SM2_BUILD_TESTS  "Build unit tests"                          ON)
 
-# Phase 9: OpenGL-family render backends, alongside the always-built Vulkan
-# one. Desktop defaults on -- it costs nothing to compile in and gives Linux
-# and macOS a fallback where Vulkan is absent or immature. GLES defaults off:
-# it is meaningless on a desktop GPU, so building it needs an explicit opt-in
-# on the ARM targets it is actually for.
+# Packaged deps (SDL3, pugixml, VMA) come from the system by default; a missing
+# one is a hard error naming the package. ON fetches them instead. The
+# unpackaged sources (Musashi, ymfm, miniz, LZMA SDK, Dear ImGui) are always
+# vendored regardless.
+option(SM2_ALLOW_FETCH  "Fetch packaged deps when not found on the system" OFF)
+
+# Render backends. Software is always built; the GPU backends are opt-in.
+# Vulkan defaults off so a bare build needs no Vulkan driver (for ARM boards
+# without one). SM2_BUILD_OPENGL_DESKTOP and SM2_BUILD_OPENGL_ES are mutually
+# exclusive; GLES is for ARM targets.
+option(SM2_BUILD_VULKAN         "Build the Vulkan backend"                 OFF)
 option(SM2_BUILD_OPENGL_DESKTOP "Build the OpenGL 4.3 core desktop backend" ON)
 option(SM2_BUILD_OPENGL_ES      "Build the OpenGL ES 3.1 backend (ARM)"    OFF)
 
@@ -111,9 +117,19 @@ message(STATUS "sm2-emu ${PROJECT_VERSION}")
 message(STATUS "  system          : ${CMAKE_SYSTEM_NAME} / ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "  build type      : ${CMAKE_BUILD_TYPE}")
 message(STATUS "  compiler        : ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
-message(STATUS "  Vulkan target   : 1.3 core (dynamic rendering, synchronization2)")
-message(STATUS "  Vulkan headers  : ${Vulkan_VERSION}")
+if(SM2_BUILD_OPENGL_ES)
+    set(SM2_GL_BACKEND_SUMMARY "OpenGL ES 3.1")
+elseif(SM2_BUILD_OPENGL_DESKTOP)
+    set(SM2_GL_BACKEND_SUMMARY "OpenGL 4.3 core")
+else()
+    set(SM2_GL_BACKEND_SUMMARY "no")
+endif()
+message(STATUS "  backends        : software, ${SM2_GL_BACKEND_SUMMARY} GL, Vulkan=${SM2_BUILD_VULKAN}")
+if(SM2_BUILD_VULKAN)
+    message(STATUS "  Vulkan target   : 1.3 core (dynamic rendering, synchronization2)")
+    message(STATUS "  Vulkan headers  : ${Vulkan_VERSION}")
+    message(STATUS "  validation      : ${SM2_ENABLE_VALIDATION}")
+endif()
 message(STATUS "  glslc           : ${SM2_GLSLC}")
 message(STATUS "  SDL3            : ${SM2_SDL3_ORIGIN}")
-message(STATUS "  validation      : ${SM2_ENABLE_VALIDATION}")
 message(STATUS "")

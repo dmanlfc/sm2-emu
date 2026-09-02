@@ -25,38 +25,56 @@ target_include_directories(sm2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(sm2_core PRIVATE sm2_warnings)
 
 # ---------------------------------------------------------------------------
-# sm2_render_vk — Vulkan backend
+# sm2_render — backend-neutral render support
 # ---------------------------------------------------------------------------
-# Renamed from sm2_render (phase 8) now that a second render library exists
-# (sm2_render_gl, below): every file this target lists is exactly where it
-# was before, this is a rename for symmetry, not a reorganisation.
+# render/geometry.cpp (render::triangulate() etc.) has no Vulkan or GL
+# dependency and every backend needs it, so it is always built here rather than
+# inside the Vulkan target -- otherwise a GL-only or Vulkan-less build loses it.
 
-add_library(sm2_render_vk STATIC
+add_library(sm2_render STATIC
     render/geometry.cpp
-    render/vk/context.cpp
-    render/vk/frame_capture.cpp
-    render/vk/poly3d_pass.cpp
-    render/vk/present_pass.cpp
-    render/vk/tilemap_pass.cpp
-    render/vk/vk_common.cpp
-    render/vk/vma_impl.cpp
-    render/vk/vulkan_backend.cpp
 )
-# sm2_hw is a dependency of the 3D pass alone, which reads the geometry engine's
-# output and asks the video stage to resolve each polygon's colour. It is private
-# because nothing in this library's headers exposes those types by value.
-target_link_libraries(sm2_render_vk
+target_link_libraries(sm2_render
     PUBLIC
         sm2_core
-        sm2_shaders
-        Vulkan::Vulkan
-        GPUOpen::VulkanMemoryAllocator
     PRIVATE
         sm2_warnings
         sm2_hw
-        sm2_imgui
-        SDL3::SDL3
 )
+
+# ---------------------------------------------------------------------------
+# sm2_render_vk — Vulkan backend (opt-in: SM2_BUILD_VULKAN)
+# ---------------------------------------------------------------------------
+
+if(SM2_BUILD_VULKAN)
+    add_library(sm2_render_vk STATIC
+        render/vk/context.cpp
+        render/vk/frame_capture.cpp
+        render/vk/poly3d_pass.cpp
+        render/vk/present_pass.cpp
+        render/vk/tilemap_pass.cpp
+        render/vk/vk_common.cpp
+        render/vk/vma_impl.cpp
+        render/vk/vulkan_backend.cpp
+    )
+    # sm2_hw is a dependency of the 3D pass alone, which reads the geometry
+    # engine's output and asks the video stage to resolve each polygon's colour.
+    # It is private because nothing in this library's headers exposes those
+    # types by value. sm2_render carries render::triangulate().
+    target_link_libraries(sm2_render_vk
+        PUBLIC
+            sm2_core
+            sm2_render
+            sm2_shaders
+            Vulkan::Vulkan
+            GPUOpen::VulkanMemoryAllocator
+        PRIVATE
+            sm2_warnings
+            sm2_hw
+            sm2_imgui_vk
+            SDL3::SDL3
+    )
+endif()
 
 # ---------------------------------------------------------------------------
 # sm2_render_gl — OpenGL 4.3 core desktop backend (phase 9)
@@ -82,37 +100,17 @@ if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
         render/gl/gl_present_pass.cpp
         render/gl/gl_tilemap_pass.cpp
     )
-    # sm2_hw is not linked here even though several files above name
-    # hw::Model2MachineBase/Model2Video (headers only -- nothing here links
-    # against sm2_hw's compiled symbols directly, the same way
-    # render/vk/context.h forward-declares osd::Window without
-    # sm2_render_vk linking sm2_osd). sm2-emu's own link line already
-    # supplies sm2_hw; adding it again here surfaces libsm2_hw.a twice on
-    # that link line (confirmed directly: this produced a real "ignoring
-    # duplicate libraries" warning once, fixed by removing the redundant
-    # link rather than by accepting the warning as unavoidable).
-    #
-    # sm2_render_vk *is* linked, PRIVATE: gl_poly3d_pass.cpp calls
-    # render::triangulate(), which lives there rather than being duplicated
-    # per backend (render/geometry.h's own doc comment explains why). This
-    # does reintroduce the benign "ignoring duplicate libraries" linker
-    # warning the note above describes fixing once already -- checked
-    # directly rather than assumed fixed: for a *static* library, CMake must
-    # still place a PRIVATE dependency's own link libraries onto the final
-    # executable's link line (a static archive cannot resolve its own
-    # undefined symbols, so every archive in the chain has to reach the
-    # final linker regardless of PRIVATE/PUBLIC), so libsm2_hw.a legitimately
-    # appears via both sm2_render_vk and sm2-emu's own direct link now that
-    # sm2_render_gl also depends on sm2_render_vk. The warning is cosmetic
-    # (confirmed: ctest and a live run both succeed with it present) and not
-    # worth restructuring the link graph further to silence.
+    # sm2_hw is used through headers only (types forward-declared), so it is
+    # not linked here -- sm2-emu's own link line supplies it. sm2_render (not
+    # sm2_render_vk) carries render::triangulate(), so the GL backend builds
+    # with Vulkan absent.
     target_link_libraries(sm2_render_gl
         PUBLIC
             sm2_core
             sm2_shaders
         PRIVATE
             sm2_warnings
-            sm2_render_vk
+            sm2_render
             $<$<BOOL:${SM2_BUILD_OPENGL_ES}>:sm2_imgui_gles>
             $<$<BOOL:${SM2_BUILD_OPENGL_DESKTOP}>:sm2_imgui_gl>
             SDL3::SDL3
@@ -276,21 +274,27 @@ target_link_libraries(sm2_osd
 add_executable(sm2-emu
     main.cpp
 )
-# sm2_core is not listed: sm2_osd, sm2_render_vk and sm2_hw all expose it
-# PUBLIC, and naming it again makes the linker warn about a duplicate
-# archive. sm2_hw brings in sm2_cpu and sm2_rom the same way.
+# sm2_core is not listed: sm2_osd and sm2_hw expose it PUBLIC, and naming it
+# again makes the linker warn about a duplicate archive. sm2_hw brings in
+# sm2_cpu and sm2_rom the same way. sm2_render (backend-neutral geometry) is
+# linked directly so it is present whichever GPU backends are, or are not,
+# built.
 target_link_libraries(sm2-emu
     PRIVATE
         sm2_osd
-        sm2_render_vk
+        sm2_render
         sm2_hw
         sm2_warnings
 )
+if(SM2_BUILD_VULKAN)
+    target_link_libraries(sm2-emu PRIVATE sm2_render_vk)
+endif()
 if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
     target_link_libraries(sm2-emu PRIVATE sm2_render_gl)
 endif()
 
 target_compile_definitions(sm2-emu PRIVATE
+    $<$<BOOL:${SM2_BUILD_VULKAN}>:SM2_HAVE_VULKAN=1>
     $<$<BOOL:${SM2_BUILD_OPENGL_DESKTOP}>:SM2_HAVE_OPENGL_DESKTOP=1>
     $<$<BOOL:${SM2_BUILD_OPENGL_ES}>:SM2_HAVE_OPENGL_ES=1>
 )
@@ -314,7 +318,7 @@ target_compile_definitions(sm2-emu PRIVATE
 # On macOS the Vulkan loader is not in a default search path, so record where
 # it was found. Without this the binary only runs from a shell that has sourced
 # the SDK's setup-env.sh.
-if(SM2_PLATFORM_MACOS)
+if(SM2_PLATFORM_MACOS AND SM2_BUILD_VULKAN)
     get_target_property(sm2_vulkan_library Vulkan::Vulkan IMPORTED_LOCATION)
     if(sm2_vulkan_library)
         get_filename_component(sm2_vulkan_dir "${sm2_vulkan_library}" DIRECTORY)
