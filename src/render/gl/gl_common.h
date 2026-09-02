@@ -95,7 +95,6 @@ extern PFNGLBINDBUFFERPROC              BindBuffer;
 extern PFNGLBINDBUFFERBASEPROC          BindBufferBase;
 extern PFNGLBUFFERDATAPROC              BufferData;
 extern PFNGLBUFFERSUBDATAPROC           BufferSubData;
-extern PFNGLBUFFERSTORAGEPROC           BufferStorage;
 extern PFNGLMAPBUFFERRANGEPROC          MapBufferRange;
 extern PFNGLUNMAPBUFFERPROC             UnmapBuffer;
 extern PFNGLGENVERTEXARRAYSPROC         GenVertexArrays;
@@ -164,6 +163,11 @@ extern SM2_PFNGLGETINTEGERVPROC         GetIntegerv;
 extern PFNGLGETSTRINGIPROC              GetStringi;
 extern SM2_PFNGLGETERRORPROC            GetError;
 extern SM2_PFNGLFINISHPROC              Finish;
+
+/// Resolved by resolve_buffer_storage(), not load_gl_functions(). Null when
+/// the extension is absent; create_persistent_buffer() falls back to
+/// BufferSubData.
+extern PFNGLBUFFERSTORAGEPROC           BufferStorage;
 // clang-format on
 
 /// Resolve every GL function pointer this renderer calls, via `get_proc`
@@ -183,6 +187,12 @@ extern SM2_PFNGLFINISHPROC              Finish;
 /// True once load_gl_functions() has succeeded. Guards every other function
 /// in this namespace from being called before the pointers exist.
 [[nodiscard]] bool gl_functions_loaded();
+
+/// Resolves BufferStorage separately from load_gl_functions(): GLES has no
+/// core-promoted equivalent under the desktop name, only glBufferStorageEXT
+/// when GL_EXT_buffer_storage is present. Call once, after
+/// load_gl_functions() succeeds. A null result is not an error.
+void resolve_buffer_storage(SDL_FunctionPointer (*get_proc)(const char*), bool is_es);
 
 /// Extension check that works on a core profile, where glGetString(GL_EXTENSIONS)
 /// was removed: iterates GetStringi(GL_EXTENSIONS, i) for i in

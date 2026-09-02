@@ -291,7 +291,7 @@ as the machine manages.
 | 6 | Presentation **(done)**, tilemap edge cases, accuracy, more games |
 | 7 | Expand compatibility to load and run more games; Model 1 audio board **(done)** |
 | 8 | Accelerate performance with Vulkan first to offload to GPU as much as possible **(done)** |
-| 9 | Add OpenGL Desktop for MacOS & x86_64 Linux & OpenGL ES support for Arm on Linux |
+| 9 | OpenGL 4.3 desktop and OpenGL ES 3.1 backends **(testing))** |
 | 10 | Tidy everything up for a release with associated GUI with options |
 
 
@@ -373,22 +373,23 @@ Neither set draws any geometry yet, so there is nothing to listen to either.
 
 ### Rendering backends
 
-The floor is **OpenGL 4.3 core / OpenGL ES 3.1**, not 3.3/ES 3.0: the texture
-decode and tilemap compute passes and their storage-buffer reads already commit
-the renderer to compute shaders and SSBOs, neither of which exists below that
-line. The Raspberry Pi 5's VideoCore VII is conformant GLES 3.1 and Vulkan 1.3,
-so this floor is not a hardware compromise on the device this project cares
-about.
+A second and third implementation of `sm2::render::Backend`
+(`src/render/backend.h`) alongside Vulkan — an OpenGL 4.3 core desktop backend
+and an OpenGL ES 3.1 backend for ARM devices (Raspberry Pi 5 and similar),
+selected at runtime with `--graphics-backend software|vulkan|opengl`. The
+floor is **OpenGL 4.3 core / OpenGL ES 3.1**, not 3.3/ES 3.0: the texture
+decode and tilemap compute passes and their storage-buffer reads already
+commit the renderer to compute shaders and SSBOs, neither of which exists
+below that line. The Raspberry Pi 5's VideoCore VII is conformant GLES 3.1
+and Vulkan 1.3. The six shaders are shared source, not a duplicated tree:
+two small `#ifdef SM2_TARGET_GL` branches cover what differs between the
+Vulkan SPIR-V compile and the GL/GLES runtime-compiled one.
 
-- **OpenGL 4.3 desktop backend.** An alternative to Vulkan for systems where
-  Vulkan support is absent or immature.
-- **OpenGL ES 3.1 backend.** For ARM devices (Raspberry Pi, embedded boards,
-  phones) that lack Vulkan drivers entirely.
-
-Both build against `sm2::render::Backend` (`src/render/backend.h`), the seam
-phase 8 extracted so that `main.cpp`, `osd::Window` and `osd::Gui` need no
-further change to gain a second backend — they already name only `Backend` and
-`render::create_vulkan_backend()`, never a Vulkan type directly.
+Both backends compile and link clean, and every shader passes a
+`glslc --target-env=opengl4.5` syntax lint as part of the build, but neither
+has been run on real GL/GLES hardware yet — this was developed on a Mac
+whose native GL caps out at 4.1 core with no GLES support at all. Pending
+verification on Linux before this counts as done.
 
 ### GPU acceleration and Pi 5 performance
 

@@ -23,6 +23,43 @@
 #include <string>
 
 namespace sm2::render::gl {
+namespace {
+
+/// GLES's mandatory minimums for these can be lower than the version number
+/// implies, so they are checked explicitly rather than assumed from the 3.1
+/// floor check alone.
+struct GlesLimit {
+    GLenum      query;
+    s32         required;
+    const char* name;
+};
+
+/// This renderer's own requirements, not the spec's bare minimum: one colour
+/// attachment (every FBO here has exactly one), texture size >= 1024
+/// (kDecodedHeight), four vertex attributes (render::Vertex's field count).
+constexpr GlesLimit kGlesLimits[] = {
+    {GL_MAX_TEXTURE_SIZE, 1024, "GL_MAX_TEXTURE_SIZE"},
+    {GL_MAX_VERTEX_ATTRIBS, 4, "GL_MAX_VERTEX_ATTRIBS"},
+    {GL_MAX_COLOR_ATTACHMENTS, 1, "GL_MAX_COLOR_ATTACHMENTS"},
+    {GL_MAX_DRAW_BUFFERS, 1, "GL_MAX_DRAW_BUFFERS"},
+};
+
+[[nodiscard]] bool validate_gles_minimums()
+{
+    bool ok = true;
+    for (const GlesLimit& limit : kGlesLimits) {
+        s32 value = 0;
+        GetIntegerv(limit.query, &value);
+        if (value < limit.required) {
+            SM2_ERROR("gles: %s is %d, below this renderer's required minimum of %d",
+                      limit.name, value, limit.required);
+            ok = false;
+        }
+    }
+    return ok;
+}
+
+}  // namespace
 
 Context::~Context()
 {
@@ -75,6 +112,7 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
         m_context = nullptr;
         return false;
     }
+    resolve_buffer_storage(SDL_GL_GetProcAddress, config.es_mode);
 
     // The version actually granted, not the version requested: a driver can
     // silently hand back a higher (never lower) context than asked for, and
@@ -91,6 +129,11 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
                       "ES 3.1 or newer (compute shaders and storage buffers "
                       "are not available below that line)",
                       major, minor);
+            SDL_GL_DestroyContext(m_context);
+            m_context = nullptr;
+            return false;
+        }
+        if (!validate_gles_minimums()) {
             SDL_GL_DestroyContext(m_context);
             m_context = nullptr;
             return false;

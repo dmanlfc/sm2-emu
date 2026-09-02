@@ -33,7 +33,6 @@ namespace sm2::render::gl {
     F(BindBufferBase, PFNGLBINDBUFFERBASEPROC) \
     F(BufferData, PFNGLBUFFERDATAPROC) \
     F(BufferSubData, PFNGLBUFFERSUBDATAPROC) \
-    F(BufferStorage, PFNGLBUFFERSTORAGEPROC) \
     F(MapBufferRange, PFNGLMAPBUFFERRANGEPROC) \
     F(UnmapBuffer, PFNGLUNMAPBUFFERPROC) \
     F(GenVertexArrays, PFNGLGENVERTEXARRAYSPROC) \
@@ -108,6 +107,8 @@ namespace sm2::render::gl {
 SM2_GL_FUNCTION_LIST(SM2_GL_DEFINE)
 #undef SM2_GL_DEFINE
 
+PFNGLBUFFERSTORAGEPROC BufferStorage = nullptr;
+
 namespace {
 bool g_loaded = false;
 const char* g_version_directive = sm2::render::gl::kDesktopVersionDirective;
@@ -133,6 +134,15 @@ bool load_gl_functions(SDL_FunctionPointer (*get_proc)(const char*), std::string
 bool gl_functions_loaded()
 {
     return g_loaded;
+}
+
+void resolve_buffer_storage(SDL_FunctionPointer (*get_proc)(const char*), bool is_es)
+{
+    // GLES exposes this only as glBufferStorageEXT, never under the
+    // unsuffixed desktop name. A null result is not an error here --
+    // create_persistent_buffer() falls back to BufferSubData.
+    BufferStorage = reinterpret_cast<PFNGLBUFFERSTORAGEPROC>(
+        get_proc(is_es ? "glBufferStorageEXT" : "glBufferStorage"));
 }
 
 const char* active_version_directive()
