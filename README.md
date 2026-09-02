@@ -83,6 +83,10 @@ Requirements:
   lint the shaders
 - SDL3 (window, input, audio)
 - pugixml (the games.xml parser)
+- miniz (zip reading), and — where packaged — the LZMA SDK (7z reading) and
+  Dear ImGui with its SDL3 backend (the settings overlay). The latter two are
+  rarely available as suitable distro packages, so on most systems they are
+  fetched (see below) rather than taken from the system.
 - For the OpenGL / OpenGL ES backends (built by default): the system GL/GLES
   and EGL libraries (Mesa on Linux). No extra headers are needed — SDL3
   provides GL loading.
@@ -92,10 +96,10 @@ Requirements:
 Dependencies are taken from the system. If a required one is missing the build
 stops with a message naming the package to install — it does not silently
 download anything. Pass `-DSM2_ALLOW_FETCH=ON` to let the build fetch and build
-the packaged libraries (SDL3, pugixml, VulkanMemoryAllocator) itself, which is
-convenient on a dev box or on macOS. A few dependencies with no packaged form
-(the Musashi 68000 core, the ymfm FM library, miniz, the LZMA SDK and Dear
-ImGui) are always vendored and built from pinned sources regardless.
+the packaged libraries (SDL3, pugixml, miniz, the LZMA SDK, Dear ImGui and
+VulkanMemoryAllocator) itself, which is convenient on a dev box or on macOS.
+The Musashi 68000 core and the ymfm FM library have no packaged form and are
+always vendored from pinned sources regardless.
 
 ```sh
 . tools/env.sh          # optional: adds ~/.local/bin and the Vulkan SDK to PATH
@@ -169,9 +173,13 @@ sudo apt install libvulkan-dev vulkan-validationlayers \
                  libvulkan-memory-allocator-dev
 ```
 
+Debian/Ubuntu has no packages for miniz, the LZMA SDK or a Dear ImGui with the
+SDL3 backend, so build with `-DSM2_ALLOW_FETCH=ON` to have those three fetched
+and built automatically.
+
 ```sh
 # Arch / Manjaro — default build (software + OpenGL)
-sudo pacman -S --needed base-devel cmake ninja shaderc mesa sdl3 pugixml
+sudo pacman -S --needed base-devel cmake ninja shaderc mesa sdl3 pugixml miniz
 
 # Add these only if building the Vulkan backend (-DSM2_BUILD_VULKAN=ON)
 sudo pacman -S --needed vulkan-headers vulkan-icd-loader \
@@ -179,6 +187,8 @@ sudo pacman -S --needed vulkan-headers vulkan-icd-loader \
 ```
 
 `mesa` provides the GL, GLES and EGL libraries and `shaderc` provides `glslc`.
+Arch has no package for the LZMA SDK or a Dear ImGui with the SDL3 backend, so
+build with `-DSM2_ALLOW_FETCH=ON` to have those fetched and built.
 
 ### macOS
 
@@ -226,14 +236,23 @@ The target sysroot must provide (same system libraries as a native build, for
 the target architecture):
 
 - SDL3 and pugixml
+- miniz, and — where the sysroot stages them — the LZMA SDK and a Dear ImGui
+  built with the SDL3 backend. Where they are not staged, supply them as
+  fetched sources instead (see below).
 - the GL/GLES and EGL libraries, if a GL backend is built (the usual case)
 - Vulkan 1.3 headers (`vulkan/vulkan.h`), loader (`libvulkan.so`) and
   VulkanMemoryAllocator, only if `-DSM2_BUILD_VULKAN=ON`
 - `glslc` on the host PATH (it runs at build time, not on the target)
 
-The Musashi, ymfm, miniz, LZMA-SDK and Dear ImGui sources are fetched at
-configure time and built into the target objects, so those need host network
-access at configure time but nothing in the sysroot.
+The Musashi 68000 core and the ymfm FM library have no packaged form, so their
+sources are built into the target objects. For a network-free cross build
+(e.g. Buildroot), download them ahead of time and point CMake at the unpacked
+trees with `-DFETCHCONTENT_SOURCE_DIR_MUSASHI=`, `-DFETCHCONTENT_SOURCE_DIR_YMFM=`
+and `-DFETCHCONTENT_FULLY_DISCONNECTED=ON`. Musashi generates its opcode tables
+with a helper, `m68kmake`, that must run on the build host: compile it there
+(`cc -std=c99 -o m68kmake m68kmake.c`) and pass `-DSM2_M68KMAKE=/path/to/m68kmake`.
+Do the same for VulkanMemoryAllocator (`-DFETCHCONTENT_SOURCE_DIR_VULKANMEMORYALLOCATOR=`)
+when building the Vulkan backend and the sysroot does not provide it.
 
 ## Running
 

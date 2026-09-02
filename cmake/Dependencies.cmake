@@ -170,58 +170,100 @@ endif()
 # ---------------------------------------------------------------------------
 # miniz — zip reading and CRC32 for the ROM loader
 # ---------------------------------------------------------------------------
-# The amalgamated release archive rather than the git repository: it is two
-# files with no CMakeLists.txt, so FetchContent populates it without trying to
-# configure it. miniz's own build declares compatibility with CMake < 3.5, which
-# CMake 4 refuses, and wrapping two source files ourselves is less trouble than
-# working around that.
+# Prefer a system miniz (find_package(miniz) exports miniz::miniz); otherwise
+# fetch the amalgamated release archive, which is two files with no usable
+# CMakeLists (its own build declares CMake < 3.5, which CMake 4 refuses), and
+# compile it directly. Either way the rest of the tree links sm2_miniz and
+# includes <miniz.h>.
 
-FetchContent_Declare(miniz
-    URL      https://github.com/richgel999/miniz/releases/download/3.0.2/miniz-3.0.2.zip
-    URL_HASH SHA256=ada38db0b703a56d3dd6d57bf84a9c5d664921d870d8fea4db153979fb5332c5
-)
-FetchContent_MakeAvailable(miniz)
+find_package(miniz CONFIG QUIET)
+if(miniz_FOUND)
+    # The upstream install puts the header at include/miniz/miniz.h; expose
+    # that subdirectory so the loader's #include <miniz.h> still resolves.
+    add_library(sm2_miniz INTERFACE)
+    target_link_libraries(sm2_miniz INTERFACE miniz::miniz)
+    get_target_property(sm2_miniz_incs miniz::miniz INTERFACE_INCLUDE_DIRECTORIES)
+    if(sm2_miniz_incs)
+        foreach(dir IN LISTS sm2_miniz_incs)
+            if(EXISTS "${dir}/miniz/miniz.h")
+                target_include_directories(sm2_miniz SYSTEM INTERFACE "${dir}/miniz")
+            endif()
+        endforeach()
+    endif()
+elseif(NOT SM2_ALLOW_FETCH)
+    message(FATAL_ERROR
+        "miniz was not found on the system.\n"
+        "\n"
+        "Install the miniz development package:\n"
+        "  Debian/Ubuntu : sudo apt install libminiz-dev\n"
+        "  Fedora        : sudo dnf install miniz-devel\n"
+        "  Arch/Manjaro  : sudo pacman -S miniz\n"
+        "\n"
+        "Or pass -DSM2_ALLOW_FETCH=ON to fetch and build it instead.")
+else()
+    FetchContent_Declare(miniz
+        URL      https://github.com/richgel999/miniz/releases/download/3.0.2/miniz-3.0.2.zip
+        URL_HASH SHA256=ada38db0b703a56d3dd6d57bf84a9c5d664921d870d8fea4db153979fb5332c5
+    )
+    FetchContent_MakeAvailable(miniz)
 
-add_library(sm2_miniz STATIC "${miniz_SOURCE_DIR}/miniz.c")
-target_include_directories(sm2_miniz SYSTEM PUBLIC "${miniz_SOURCE_DIR}")
-set_target_properties(sm2_miniz PROPERTIES C_STANDARD 11)
+    add_library(sm2_miniz STATIC "${miniz_SOURCE_DIR}/miniz.c")
+    target_include_directories(sm2_miniz SYSTEM PUBLIC "${miniz_SOURCE_DIR}")
+    set_target_properties(sm2_miniz PROPERTIES C_STANDARD 11)
 
-# We only read archives that are already in memory or on disk, and the ROM
-# loader does its own file handling, so the stdio and writing halves are dead
-# weight. Leaving them out also avoids miniz's deprecated large-file paths.
-target_compile_definitions(sm2_miniz PUBLIC
-    MINIZ_NO_ZLIB_COMPATIBLE_NAMES  # do not shadow zlib's symbol names
-)
+    # We only read archives already in memory or on disk, and the ROM loader
+    # does its own file handling, so the stdio and writing halves are dead
+    # weight. This also avoids miniz's deprecated large-file paths.
+    target_compile_definitions(sm2_miniz PUBLIC
+        MINIZ_NO_ZLIB_COMPATIBLE_NAMES  # do not shadow zlib's symbol names
+    )
+endif()
 
 # ---------------------------------------------------------------------------
 # LZMA SDK — 7z reading for the ROM loader
 # ---------------------------------------------------------------------------
 
-FetchContent_Declare(lzmasdk
-    URL      https://www.7-zip.org/a/lzma2301.7z
-    URL_HASH SHA256=317dd834d6bbfd95433488b832e823cd3d4d420101436422c03af88507dd1370
-)
-FetchContent_MakeAvailable(lzmasdk)
+# Prefer a system LZMA SDK (find_package(lzmasdk) exports lzmasdk::lzmasdk);
+# otherwise fetch the SDK archive and compile the subset the 7z reader needs.
+# The SDK ships as raw C with no build system, so distros rarely package it;
+# the system path exists for environments (e.g. Buildroot) that stage it.
+find_package(lzmasdk CONFIG QUIET)
+if(lzmasdk_FOUND)
+    add_library(sm2_7z INTERFACE)
+    target_link_libraries(sm2_7z INTERFACE lzmasdk::lzmasdk)
+elseif(NOT SM2_ALLOW_FETCH)
+    message(FATAL_ERROR
+        "The LZMA SDK was not found on the system (needed to read .7z ROM sets).\n"
+        "\n"
+        "It ships as raw C sources with no build system, so it is rarely a\n"
+        "distro package. Pass -DSM2_ALLOW_FETCH=ON to fetch and build it.")
+else()
+    FetchContent_Declare(lzmasdk
+        URL      https://www.7-zip.org/a/lzma2301.7z
+        URL_HASH SHA256=317dd834d6bbfd95433488b832e823cd3d4d420101436422c03af88507dd1370
+    )
+    FetchContent_MakeAvailable(lzmasdk)
 
-add_library(sm2_7z STATIC
-    "${lzmasdk_SOURCE_DIR}/C/7zAlloc.c"
-    "${lzmasdk_SOURCE_DIR}/C/7zArcIn.c"
-    "${lzmasdk_SOURCE_DIR}/C/7zBuf.c"
-    "${lzmasdk_SOURCE_DIR}/C/7zCrc.c"
-    "${lzmasdk_SOURCE_DIR}/C/7zCrcOpt.c"
-    "${lzmasdk_SOURCE_DIR}/C/7zDec.c"
-    "${lzmasdk_SOURCE_DIR}/C/7zFile.c"
-    "${lzmasdk_SOURCE_DIR}/C/7zStream.c"
-    "${lzmasdk_SOURCE_DIR}/C/Bcj2.c"
-    "${lzmasdk_SOURCE_DIR}/C/CpuArch.c"
-    "${lzmasdk_SOURCE_DIR}/C/Lzma2Dec.c"
-    "${lzmasdk_SOURCE_DIR}/C/LzmaDec.c"
-)
-target_include_directories(sm2_7z SYSTEM PUBLIC "${lzmasdk_SOURCE_DIR}/C")
-set_target_properties(sm2_7z PROPERTIES C_STANDARD 11)
-target_compile_definitions(sm2_7z PUBLIC
-    Z7_NO_METHODS_FILTERS  # no Delta/BCJ/branch-conversion filters
-)
+    add_library(sm2_7z STATIC
+        "${lzmasdk_SOURCE_DIR}/C/7zAlloc.c"
+        "${lzmasdk_SOURCE_DIR}/C/7zArcIn.c"
+        "${lzmasdk_SOURCE_DIR}/C/7zBuf.c"
+        "${lzmasdk_SOURCE_DIR}/C/7zCrc.c"
+        "${lzmasdk_SOURCE_DIR}/C/7zCrcOpt.c"
+        "${lzmasdk_SOURCE_DIR}/C/7zDec.c"
+        "${lzmasdk_SOURCE_DIR}/C/7zFile.c"
+        "${lzmasdk_SOURCE_DIR}/C/7zStream.c"
+        "${lzmasdk_SOURCE_DIR}/C/Bcj2.c"
+        "${lzmasdk_SOURCE_DIR}/C/CpuArch.c"
+        "${lzmasdk_SOURCE_DIR}/C/Lzma2Dec.c"
+        "${lzmasdk_SOURCE_DIR}/C/LzmaDec.c"
+    )
+    target_include_directories(sm2_7z SYSTEM PUBLIC "${lzmasdk_SOURCE_DIR}/C")
+    set_target_properties(sm2_7z PROPERTIES C_STANDARD 11)
+    target_compile_definitions(sm2_7z PUBLIC
+        Z7_NO_METHODS_FILTERS  # no Delta/BCJ/branch-conversion filters
+    )
+endif()
 
 # ---------------------------------------------------------------------------
 # pugixml — the games.xml database
@@ -259,6 +301,46 @@ endif()
 # ---------------------------------------------------------------------------
 # Dear ImGui — immediate-mode GUI for the settings overlay
 # ---------------------------------------------------------------------------
+# Prefer a system ImGui (find_package(imgui) exports imgui::imgui with the
+# SDL3, OpenGL3 and Vulkan backends compiled in). Otherwise fetch the source
+# and build it here. Either way the rest of the tree links the sm2_imgui*
+# targets and includes <imgui.h> / <imgui_impl_*.h>.
+#
+# ImGui's renderer backends are not a normal installed library -- each is a
+# self-contained translation unit a consumer usually compiles itself. When a
+# system package has already compiled them into imgui::imgui, the four
+# sm2_imgui* targets collapse to interface wrappers over it. The per-backend
+# split still matters on the fetched path, so an SM2_BUILD_VULKAN=OFF build
+# links no Vulkan.
+
+find_package(imgui CONFIG QUIET)
+if(imgui_FOUND)
+    add_library(sm2_imgui INTERFACE)
+    target_link_libraries(sm2_imgui INTERFACE imgui::imgui SDL3::SDL3)
+
+    if(SM2_BUILD_VULKAN)
+        add_library(sm2_imgui_vk INTERFACE)
+        target_link_libraries(sm2_imgui_vk INTERFACE imgui::imgui Vulkan::Vulkan SDL3::SDL3)
+        target_compile_definitions(sm2_imgui_vk INTERFACE
+            IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING)
+    endif()
+    if(SM2_BUILD_OPENGL_DESKTOP)
+        add_library(sm2_imgui_gl INTERFACE)
+        target_link_libraries(sm2_imgui_gl INTERFACE imgui::imgui SDL3::SDL3)
+    endif()
+    if(SM2_BUILD_OPENGL_ES)
+        add_library(sm2_imgui_gles INTERFACE)
+        target_link_libraries(sm2_imgui_gles INTERFACE imgui::imgui SDL3::SDL3)
+    endif()
+elseif(NOT SM2_ALLOW_FETCH)
+    message(FATAL_ERROR
+        "Dear ImGui was not found on the system.\n"
+        "\n"
+        "Install an ImGui package that provides the SDL3 + OpenGL3"
+        "(+ Vulkan) backends, or pass -DSM2_ALLOW_FETCH=ON to fetch and "
+        "build it instead.")
+else()
+
 # ImGui has no CMakeLists.txt; we fetch the source and build it ourselves with
 # the SDL3 + Vulkan backends, which is all the emulator needs.
 
@@ -390,6 +472,8 @@ if(SM2_BUILD_OPENGL_ES)
         target_compile_options(sm2_imgui_gles PRIVATE -w)
     endif()
 endif()
+
+endif()  # imgui: system (find_package) vs fetched
 
 # ---------------------------------------------------------------------------
 # Musashi — the 68000 in the sound board
