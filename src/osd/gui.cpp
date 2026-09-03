@@ -63,7 +63,6 @@ bool Gui::init(SDL_Window* window)
         return false;
     }
 
-    m_window      = window;
     m_initialised = true;
     SM2_INFO("gui: initialised (ImGui %s)", IMGUI_VERSION);
     return true;
@@ -87,34 +86,24 @@ void Gui::new_frame()
 {
     if (!m_initialised) return;
     ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+}
 
-    ImGuiIO& io = ImGui::GetIO();
+void Gui::apply_scale()
+{
+    // Scale the whole overlay automatically with the render window. io.DisplaySize
+    // is what ImGui actually draws into and the SDL3 backend tracks it every frame,
+    // so it follows a resize or fullscreen switch even where SDL hides the pixel
+    // size (Wayland). The scale is the window height against the base 768, clamped
+    // so a small window keeps the base size and a huge one does not run away.
+    const ImGuiIO& io    = ImGui::GetIO();
+    float          scale = io.DisplaySize.y > 0.0f ? io.DisplaySize.y / 768.0f : 1.0f;
+    scale                = std::clamp(scale, 1.0f, 4.0f);
 
-    // ImGui_ImplSDL3_NewFrame sizes the UI from SDL's logical window size, which
-    // does not always follow a live fullscreen switch or a HiDPI drawable. Pin
-    // DisplaySize to the actual framebuffer pixels so the overlay fills the
-    // window instead of shrinking to a corner of it.
-    if (m_window != nullptr) {
-        int pixel_w = 0;
-        int pixel_h = 0;
-        SDL_GetWindowSizeInPixels(m_window, &pixel_w, &pixel_h);
-        if (pixel_w > 0 && pixel_h > 0) {
-            io.DisplaySize             = ImVec2(static_cast<float>(pixel_w),
-                                                static_cast<float>(pixel_h));
-            io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
-        }
-    }
-
-    // Scale the whole overlay with the window so it grows when the window is
-    // enlarged, maximised or made fullscreen. The reference is the default
-    // window height (768); scale never drops below 1.0 so small windows keep
-    // the base size. Widget metrics are rescaled from a one-time base-style
-    // snapshot (ScaleAllSizes is cumulative), and FontScaleMain drives ImGui
-    // 1.92's dynamic font sizing so text re-rasterises crisply at the new size.
-    static ImGuiStyle base_style = ImGui::GetStyle();
-    const float       reference  = 768.0f;
-    float             scale      = io.DisplaySize.y > 0.0f ? io.DisplaySize.y / reference : 1.0f;
-    scale                        = std::clamp(scale, 1.0f, 3.0f);
+    // Widget metrics are rescaled from a one-time base-style snapshot
+    // (ScaleAllSizes is cumulative), and FontScaleMain drives ImGui 1.92's
+    // dynamic font sizing so text re-rasterises crisply rather than stretching.
+    static const ImGuiStyle base_style = ImGui::GetStyle();
     if (scale != m_ui_scale) {
         m_ui_scale          = scale;
         ImGuiStyle& style   = ImGui::GetStyle();
@@ -122,13 +111,13 @@ void Gui::new_frame()
         style.ScaleAllSizes(scale);
         style.FontScaleMain = scale;
     }
-
-    ImGui::NewFrame();
 }
 
 bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
                float measured_hz, const char* renderer_label, Input* input)
 {
+    apply_scale();
+
     // Shown regardless of F1 when enabled, so the counter is visible whether or
     // not the settings overlay is open.
     if (config.show_fps) {
@@ -189,21 +178,14 @@ void Gui::draw_menu_bar(Config& config)
 void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_names,
                         Input* input)
 {
-    // Size and place the window relative to the current display, re-snapping it
-    // whenever the overlay scale changes (a resize, maximise or fullscreen
-    // toggle). Between such changes the user can still nudge it, so the forced
-    // condition only applies on the frame the scale actually changed.
+    // Size the window as a fraction of the render window and centre it, tracked
+    // every frame so it always mirrors the window (a little smaller) through any
+    // resize or fullscreen switch. No manual sizing: the layout is automatic.
     const ImVec2 display = ImGui::GetIO().DisplaySize;
-    const float  menu_h  = ImGui::GetFrameHeight();
-    const float  margin  = 20.0f * m_ui_scale;
-    const ImVec2 base_size(420.0f * m_ui_scale, 340.0f * m_ui_scale);
-    const ImVec2 win_size(std::min(base_size.x, display.x - margin * 2.0f),
-                          std::min(base_size.y, display.y - menu_h - margin * 2.0f));
-    const ImGuiCond cond = (m_ui_scale != m_settings_scale) ? ImGuiCond_Always
-                                                            : ImGuiCond_FirstUseEver;
-    m_settings_scale = m_ui_scale;
-    ImGui::SetNextWindowPos(ImVec2(margin, menu_h + margin), cond);
-    ImGui::SetNextWindowSize(win_size, cond);
+    const ImVec2 win_size(display.x * 0.60f, display.y * 0.72f);
+    ImGui::SetNextWindowPos(ImVec2(display.x * 0.5f, display.y * 0.5f), ImGuiCond_Always,
+                            ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(win_size, ImGuiCond_Always);
 
     if (!ImGui::Begin("Settings", &m_visible)) {
         ImGui::End();
@@ -363,17 +345,34 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("A synthesised centring spring on driving games.\n"
-                          "The drive board is not emulated, so this is a feel,\n"
-                          "not the arcade's real motor force.");
+        ImGui::SetTooltip("Wheel force on driving games: centring and cornering\n"
+                          "forces decoded from the game's own drive-board commands,\n"
+                          "plus an impact jolt when you hit something.");
     }
 
-    int strength = static_cast<int>(config.wheel_ffb_strength);
     ImGui::BeginDisabled(!config.wheel_ffb);
-    if (ImGui::SliderInt("Strength", &strength, 0, 100, "%d%%")) {
-        strength = ((strength + 5) / 10) * 10;  // snap to 10 % steps
-        config.wheel_ffb_strength = static_cast<u32>(std::clamp(strength, 0, 100));
+    int resistance = static_cast<int>(config.wheel_ffb_strength);
+    if (ImGui::SliderInt("Resistance", &resistance, 0, 100, "%d%%")) {
+        resistance = ((resistance + 5) / 10) * 10;  // snap to 10 % steps
+        config.wheel_ffb_strength = static_cast<u32>(std::clamp(resistance, 0, 100));
     }
+
+    // Synthetic engine/road rumble, since the game streams no continuous buzz.
+    ImGui::Checkbox("Rumble", &config.wheel_rumble);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("A synthesised engine/road vibration that rises with\n"
+                          "the throttle. Daytona sends no continuous rumble, so\n"
+                          "this is a feel added on top, not game data.");
+    }
+    ImGui::BeginDisabled(!config.wheel_rumble);
+    int rumble = static_cast<int>(config.wheel_rumble_strength);
+    if (ImGui::SliderInt("Rumble strength", &rumble, 0, 100, "%d%%")) {
+        rumble = ((rumble + 5) / 10) * 10;
+        config.wheel_rumble_strength = static_cast<u32>(std::clamp(rumble, 0, 100));
+    }
+    ImGui::EndDisabled();
     ImGui::EndDisabled();
 
     // Common wheel rotation ranges rather than a free slider: a wheel is set to
@@ -398,8 +397,9 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Your wheel's rotation range. Lower is more sensitive;\n"
-                          "the Model 2 cabinet was about 270 degrees.");
+        ImGui::SetTooltip("Set this to your wheel's own rotation range. The\n"
+                          "cabinet's ~240 degrees of lock is mapped onto it, so\n"
+                          "matching your wheel gives arcade-like response.");
     }
 
     // -- axis calibration ---------------------------------------------------
@@ -485,6 +485,9 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
         {"Button 4",   Config::WheelRole::Button4},
         {"Shift up",   Config::WheelRole::GearUp},
         {"Shift down", Config::WheelRole::GearDown},
+        {"Test",       Config::WheelRole::Test},
+        {"Service",    Config::WheelRole::Service},
+        {"Menu (F1)",  Config::WheelRole::Menu},
     };
 
     ImGui::BeginDisabled(!connected);

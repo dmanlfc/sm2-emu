@@ -81,6 +81,7 @@ public:
     void show() { m_visible = true; }
 
 private:
+    void apply_scale();
     void draw_menu_bar(Config& config);
     void draw_settings(Config& config, const std::vector<std::string>& gpu_names,
                        class Input* input);
@@ -88,11 +89,9 @@ private:
     void draw_status_bar(float measured_hz);
     void draw_fps_overlay(float measured_hz, const char* renderer_label);
 
-    SDL_Window* m_window      = nullptr;
     bool        m_visible     = false;
     bool        m_initialised = false;
-    float       m_ui_scale       = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.
-    float       m_settings_scale = -1.0f; ///< scale the Settings window was last snapped to.
+    float       m_ui_scale    = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.
 
     // -- wheel calibration capture state -----------------------------------
     // Which control (if any) is currently waiting for the user to operate it,

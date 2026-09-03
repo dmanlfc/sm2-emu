@@ -101,9 +101,11 @@ enum class GraphicsBackendChoice {
 [[nodiscard]] sm2::osd::Input::WheelSettings wheel_settings_from(const sm2::Config& c)
 {
     sm2::osd::Input::WheelSettings w;
-    w.ffb           = c.wheel_ffb;
-    w.strength      = c.wheel_ffb_strength;
-    w.steer_degrees = c.wheel_steer_degrees;
+    w.ffb             = c.wheel_ffb;
+    w.strength        = c.wheel_ffb_strength;
+    w.steer_degrees   = c.wheel_steer_degrees;
+    w.rumble          = c.wheel_rumble;
+    w.rumble_strength = c.wheel_rumble_strength;
     w.buttons       = c.wheel_buttons;
     w.steer_axis    = c.wheel_steer_axis;
     w.accel_axis    = c.wheel_accel_axis;
@@ -631,6 +633,20 @@ int main(int argc, char** argv)
     }
     options.config.window_width  = from_file.window_width;
     options.config.window_height = from_file.window_height;
+
+    // Settings with no command-line flag come straight from the file, so the
+    // GUI shows and round-trips what was saved. (These were being dropped, which
+    // made the wheel bindings and other GUI-only settings appear as defaults.)
+    options.config.show_fps            = from_file.show_fps;
+    options.config.wheel_ffb           = from_file.wheel_ffb;
+    options.config.wheel_ffb_strength  = from_file.wheel_ffb_strength;
+    options.config.wheel_steer_degrees = from_file.wheel_steer_degrees;
+    options.config.wheel_buttons       = from_file.wheel_buttons;
+    options.config.wheel_steer_axis    = from_file.wheel_steer_axis;
+    options.config.wheel_accel_axis    = from_file.wheel_accel_axis;
+    options.config.wheel_brake_axis    = from_file.wheel_brake_axis;
+    options.config.wheel_accel_invert  = from_file.wheel_accel_invert;
+    options.config.wheel_brake_invert  = from_file.wheel_brake_invert;
 
     // --verbose is shorthand, so an explicit level beats it.
     log::Level level = log::Level::Info;
@@ -1385,6 +1401,7 @@ int main(int argc, char** argv)
         u32  frames_presented = 0;   ///< Since the loop started.
         u32  frames_written_off = 0; ///< Whole frames given up after a stall.
         bool paused             = false;
+        bool audio_paused_state = false; ///< tracks effective pause to drive audio/pacer on change.
         bool fast_forward       = false;
         bool running            = true;
         bool use_software_renderer = options.start_in_software_renderer;
@@ -1464,8 +1481,6 @@ int main(int argc, char** argv)
                             // Only process game keys when the overlay is hidden.
                             if (event.key.key == SDLK_P && !event.key.repeat) {
                                 paused = !paused;
-                                audio.set_paused(paused);
-                                pacer.resync();
                             } else if (event.key.key == SDLK_TAB && !event.key.repeat) {
                                 fast_forward = true;
                             }
@@ -1512,7 +1527,24 @@ int main(int argc, char** argv)
                 options.profile
                 && (options.profile_after == 0 || frames_presented >= options.profile_after);
 
-            if (machine_iface && !paused) {
+            // The wheel's Menu-bound button toggles the overlay, same as F1.
+            // Polled every frame (not only while running) so it can also close
+            // the overlay once it has paused the game.
+            if (input.menu_button_pressed()) {
+                gui.toggle();
+            }
+
+            // Opening the overlay pauses the game, so settings can be changed
+            // without the car driving off. The P key's manual pause still holds
+            // independently. Audio and the pacer follow on each transition.
+            const bool effective_pause = paused || gui.visible();
+            if (effective_pause != audio_paused_state) {
+                audio_paused_state = effective_pause;
+                audio.set_paused(effective_pause);
+                pacer.resync();
+            }
+
+            if (machine_iface && !effective_pause) {
                 // Inputs are levels, sampled whenever the program polls the I/O
                 // controller during the frame, so they have to be set before the
                 // frame runs rather than after.
@@ -1520,7 +1552,7 @@ int main(int argc, char** argv)
                 // Push the live settings (the GUI changes these) before computing
                 // this frame's force, so slider and calibration take effect now.
                 input.set_wheel_settings(wheel_settings_from(options.config));
-                input.update_force_feedback(loaded->game);
+                input.update_force_feedback(loaded->game, machine_iface->drive_board_force());
                 if (options.coin_at != 0) {
                     // Scripted coin, start and character confirmation, so an
                     // unattended capture can reach the game itself rather than

@@ -218,6 +218,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->show_fps)) {
                 bad_value();
             }
+
         } else if (key == "validation") {
             if (!parse_bool(value, &out->validation)) {
                 bad_value();
@@ -238,6 +239,14 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             }
         } else if (key == "wheel_ffb_strength") {
             if (!parse_u32(value, &out->wheel_ffb_strength)) {
+                bad_value();
+            }
+        } else if (key == "wheel_rumble") {
+            if (!parse_bool(value, &out->wheel_rumble)) {
+                bad_value();
+            }
+        } else if (key == "wheel_rumble_strength") {
+            if (!parse_u32(value, &out->wheel_rumble_strength)) {
                 bad_value();
             }
         } else if (key == "wheel_steer_degrees") {
@@ -274,6 +283,18 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             }
         } else if (key == "wheel_button_gear_down") {
             if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::GearDown)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_test") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Test)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_service") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Service)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_menu") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Menu)])) {
                 bad_value();
             }
         } else if (key == "wheel_steer_axis") {
@@ -318,7 +339,8 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     // A window smaller than the raster is not useful and a zero one is not valid.
     out->window_width  = std::max(out->window_width, 256u);
     out->window_height = std::max(out->window_height, 192u);
-    out->wheel_ffb_strength = std::min(out->wheel_ffb_strength, 100u);
+    out->wheel_ffb_strength    = std::min(out->wheel_ffb_strength, 100u);
+    out->wheel_rumble_strength = std::min(out->wheel_rumble_strength, 100u);
     // A sane rotation range: tight enough to be usable, and never zero (which
     // would divide by zero when scaling the steering).
     out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
@@ -365,8 +387,9 @@ bool save_config(const std::string& path, const Config& config)
         << "# force). Strength is 0..100 percent of the wheel's maximum torque.\n"
         << "wheel_ffb = " << bool_text(config.wheel_ffb) << "\n"
         << "wheel_ffb_strength = " << config.wheel_ffb_strength << "\n"
-        << "# Degrees of wheel rotation for full lock (a PC wheel is ~900, the\n"
-        << "# cabinet was ~270). Lower is more sensitive.\n"
+        << "# Your wheel's own physical rotation range (a G-series PC wheel is\n"
+        << "# ~900). The cabinet's ~240 of lock is mapped onto it, so matching\n"
+        << "# your wheel gives arcade-like response.\n"
         << "wheel_steer_degrees = " << config.wheel_steer_degrees << "\n"
         << "# Which wheel button drives each control (numbering varies by wheel;\n"
         << "# -1 unbinds). Set these in the GUI's Wheel tab. Buttons 1..4 are the\n"
@@ -379,6 +402,9 @@ bool save_config(const std::string& path, const Config& config)
         << "wheel_button_4 = " << config.wheel_buttons[cfg_role(Config::WheelRole::Button4)] << "\n"
         << "wheel_button_gear_up = " << config.wheel_buttons[cfg_role(Config::WheelRole::GearUp)] << "\n"
         << "wheel_button_gear_down = " << config.wheel_buttons[cfg_role(Config::WheelRole::GearDown)] << "\n"
+        << "wheel_button_test = " << config.wheel_buttons[cfg_role(Config::WheelRole::Test)] << "\n"
+        << "wheel_button_service = " << config.wheel_buttons[cfg_role(Config::WheelRole::Service)] << "\n"
+        << "wheel_button_menu = " << config.wheel_buttons[cfg_role(Config::WheelRole::Menu)] << "\n"
         << "# Wheel axes, or -1 to auto-detect (steering axis 0; pedals by rest\n"
         << "# position). Set by the GUI calibration when a wheel differs.\n"
         << "wheel_steer_axis = " << config.wheel_steer_axis << "\n"

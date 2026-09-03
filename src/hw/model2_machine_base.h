@@ -292,6 +292,12 @@ public:
     [[nodiscard]] virtual u32 intreq() const = 0;
     [[nodiscard]] virtual u32 intena() const = 0;
 
+    /// The last command byte the game wrote to its force-feedback drive board,
+    /// or 0 for a machine without one. On Daytona this is a live stream during a
+    /// race; the OSD layer decodes it into a wheel force. High nibble is the
+    /// command, low nibble the level.
+    [[nodiscard]] virtual u8 drive_board_force() const { return 0; }
+
     /// Log every access that lands outside a mapped region. Off by default.
     virtual void set_log_unmapped(bool enable) = 0;
 

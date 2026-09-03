@@ -96,6 +96,11 @@ public:
         u32  strength      = 50;
         u32  steer_degrees = 270;
 
+        /// Synthetic engine/road rumble (Daytona streams no continuous buzz, so
+        /// this is derived from the throttle) and its 0..100 strength.
+        bool rumble          = true;
+        u32  rumble_strength = 40;
+
         /// Wheel button index per cabinet role, indexed by Config::WheelRole;
         /// -1 unbinds. Set by the GUI, since numbering differs between wheels.
         std::array<s32, Config::kWheelRoleCount> buttons =
@@ -144,6 +149,11 @@ public:
     /// button-binding UI polls this to capture "press the button for X".
     [[nodiscard]] s32 pressed_wheel_button() const;
 
+    /// True once per press of the wheel button bound to the Menu role, for the
+    /// main loop to toggle the overlay. Edge-triggered, so a held button fires
+    /// once. Returns false when no wheel is connected or Menu is unbound.
+    [[nodiscard]] bool menu_button_pressed();
+
     /// Number of axes on the connected wheel, or 0 if none.
     [[nodiscard]] int wheel_axis_count() const;
 
@@ -160,7 +170,7 @@ public:
     /// Update the wheel's centring force from the current steering position.
     /// Call once per frame after poll(). Does nothing without a wheel, without
     /// force feedback, or for a title that is not a driving game (`drive_board`).
-    void update_force_feedback(const rom::GameSpec& game);
+    void update_force_feedback(const rom::GameSpec& game, u8 drive_force);
 
     /// Names of the gamepads currently open, in player order. An empty string means
     /// that player has no pad.
@@ -203,11 +213,24 @@ private:
         SDL_Joystick*  handle  = nullptr;
         SDL_JoystickID id      = 0;
         SDL_Haptic*    haptic  = nullptr;
-        /// A constant-force effect we steer ourselves each frame: the driver
-        /// honours FF_CONSTANT where it ignores FF_SPRING, so the centring feel
-        /// is computed here from the wheel angle rather than left to the spring.
+        /// A constant-force effect the driver honours (FF_CONSTANT) where it
+        /// ignores FF_SPRING. The level is set each frame from the game's own
+        /// drive-board command byte, decoded in update_force_feedback.
         int            force_effect = -1;  ///< SDL effect id, or -1 if none.
         int            force_level  = 0;   ///< Last level commanded, to skip no-ops.
+
+        /// A periodic (sine) effect run alongside the constant force to produce a
+        /// real vibration the wheel hardware oscillates -- the road/impact rumble,
+        /// which a once-per-frame constant force cannot convey. -1 if unsupported.
+        int            rumble_effect = -1;
+        int            rumble_mag    = -1;  ///< last rumble magnitude, to skip no-ops.
+
+        /// How many consecutive frames a one-directional constant force has been
+        /// held, to decay a sustained crash push so a free-spinning PC wheel does
+        /// not whip to the stop the way the cabinet's heavy wheel never could.
+        int            constant_hold  = 0;
+        int            constant_dir   = 0;  ///< sign of the held constant force.
+
         /// Axis numbers on the device. Steering is the self-centring one;
         /// the pedals rest at one end. -1 means the device lacks it.
         int steer_axis = -1;
@@ -221,6 +244,7 @@ private:
     /// Open `id` as a wheel if it looks like one and no wheel is open yet.
     void add_wheel(SDL_JoystickID id);
     void remove_wheel(SDL_JoystickID id);
+
 
     /// Read one driving control straight off the wheel, or a sentinel byte when
     /// the wheel has no axis for it. Steering is centred, pedals rest low.
@@ -250,6 +274,7 @@ private:
     mutable u32  m_wheel_gear      = 0;      ///< 0..4 = gears 1..4, reverse.
     mutable bool m_gear_up_held    = false;
     mutable bool m_gear_down_held  = false;
+    bool         m_menu_held       = false;  ///< edge state for the Menu-bound wheel button.
 
     bool             m_started = false;
 };
