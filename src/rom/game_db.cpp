@@ -378,6 +378,37 @@ bool GameDatabase::load(const std::string& path)
             return false;
         }
 
+        // Optional per-title placement of the four wheel action buttons, for a
+        // driving cabinet whose view/VR buttons are not player one's IN1 nibble.
+        // Format: four comma-separated "inN:0xMM" entries (port 0..2, bit mask),
+        // e.g. Daytona's "in0:0x20,in0:0x40,in0:0x80,in1:0x01".
+        if (const pugi::xml_attribute vr = game_node.attribute("vr_buttons")) {
+            std::string spec = vr.value();
+            int index = 0;
+            usize pos = 0;
+            while (index < 4 && pos <= spec.size()) {
+                const usize comma = spec.find(',', pos);
+                const std::string tok =
+                    spec.substr(pos, comma == std::string::npos ? std::string::npos : comma - pos);
+                const usize colon = tok.find(':');
+                if (colon == std::string::npos || tok.compare(0, 2, "in") != 0) {
+                    SM2_ERROR("%s: bad vr_buttons entry '%s'", context.c_str(), tok.c_str());
+                    return false;
+                }
+                const int port = tok[2] - '0';
+                const u32 bit   = static_cast<u32>(std::strtoul(tok.c_str() + colon + 1, nullptr, 0));
+                if (port < 0 || port > 2 || bit == 0 || bit > 0xff) {
+                    SM2_ERROR("%s: bad vr_buttons port/bit '%s'", context.c_str(), tok.c_str());
+                    return false;
+                }
+                game.wheel_button_bits[static_cast<usize>(index)] =
+                    {static_cast<u8>(port), static_cast<u8>(bit)};
+                ++index;
+                if (comma == std::string::npos) break;
+                pos = comma + 1;
+            }
+        }
+
         // Device ROM sets: <devices><device name="model1io2"/></devices>. These
         // hold firmware belonging to a board's device rather than to the title,
         // so MAME ships them as their own sets and several titles share one.
@@ -653,6 +684,17 @@ bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
             game.protection_key = parent.protection_key;
         }
         if (game.start1_bit == 0) { game.start1_bit = parent.start1_bit; }
+
+        // Inherit the wheel action-button placement unless the clone gave its
+        // own. The default (player one's IN1 nibble) reads as "not specified".
+        {
+            const std::array<std::pair<u8, u8>, 4> kDefault = {{
+                {1, 0x01}, {1, 0x02}, {1, 0x04}, {1, 0x08},
+            }};
+            if (game.wheel_button_bits == kDefault) {
+                game.wheel_button_bits = parent.wheel_button_bits;
+            }
+        }
 
         // Revisions share a cabinet, so the control wiring is inherited whole
         // rather than per channel: a clone that declares any analogue channel

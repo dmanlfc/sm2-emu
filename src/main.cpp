@@ -104,6 +104,7 @@ enum class GraphicsBackendChoice {
     w.ffb             = c.wheel_ffb;
     w.strength        = c.wheel_ffb_strength;
     w.steer_degrees   = c.wheel_steer_degrees;
+    w.lock_degrees    = c.wheel_lock_degrees;
     w.rumble          = c.wheel_rumble;
     w.rumble_strength = c.wheel_rumble_strength;
     w.buttons       = c.wheel_buttons;
@@ -641,6 +642,9 @@ int main(int argc, char** argv)
     options.config.wheel_ffb           = from_file.wheel_ffb;
     options.config.wheel_ffb_strength  = from_file.wheel_ffb_strength;
     options.config.wheel_steer_degrees = from_file.wheel_steer_degrees;
+    options.config.wheel_lock_degrees  = from_file.wheel_lock_degrees;
+    options.config.wheel_rumble          = from_file.wheel_rumble;
+    options.config.wheel_rumble_strength = from_file.wheel_rumble_strength;
     options.config.wheel_buttons       = from_file.wheel_buttons;
     options.config.wheel_steer_axis    = from_file.wheel_steer_axis;
     options.config.wheel_accel_axis    = from_file.wheel_accel_axis;

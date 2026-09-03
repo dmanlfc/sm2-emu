@@ -95,6 +95,7 @@ public:
         bool ffb           = true;
         u32  strength      = 50;
         u32  steer_degrees = 270;
+        u32  lock_degrees  = 240;  ///< physical rotation for full game lock.
 
         /// Synthetic engine/road rumble (Daytona streams no continuous buzz, so
         /// this is derived from the throttle) and its 0..100 strength.

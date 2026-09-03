@@ -249,6 +249,10 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_u32(value, &out->wheel_rumble_strength)) {
                 bad_value();
             }
+        } else if (key == "wheel_lock_degrees") {
+            if (!parse_u32(value, &out->wheel_lock_degrees)) {
+                bad_value();
+            }
         } else if (key == "wheel_steer_degrees") {
             if (!parse_u32(value, &out->wheel_steer_degrees)) {
                 bad_value();
@@ -344,6 +348,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     // A sane rotation range: tight enough to be usable, and never zero (which
     // would divide by zero when scaling the steering).
     out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
+    out->wheel_lock_degrees  = std::clamp(out->wheel_lock_degrees, 180u, 270u);
     return true;
 }
 
@@ -391,6 +396,9 @@ bool save_config(const std::string& path, const Config& config)
         << "# ~900). The cabinet's ~240 of lock is mapped onto it, so matching\n"
         << "# your wheel gives arcade-like response.\n"
         << "wheel_steer_degrees = " << config.wheel_steer_degrees << "\n"
+        << "# Physical rotation (total) at which the game reaches full lock;\n"
+        << "# lower is more sensitive. 180..270.\n"
+        << "wheel_lock_degrees = " << config.wheel_lock_degrees << "\n"
         << "# Which wheel button drives each control (numbering varies by wheel;\n"
         << "# -1 unbinds). Set these in the GUI's Wheel tab. Buttons 1..4 are the\n"
         << "# arcade buttons, which is where a cabinet's VR/view buttons land too.\n"

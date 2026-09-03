@@ -397,9 +397,20 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Set this to your wheel's own rotation range. The\n"
-                          "cabinet's ~240 degrees of lock is mapped onto it, so\n"
-                          "matching your wheel gives arcade-like response.");
+        ImGui::SetTooltip("Set this to your wheel's own rotation range. The lock\n"
+                          "angle below is mapped onto it, so matching your wheel\n"
+                          "gives arcade-like response.");
+    }
+
+    int lock = static_cast<int>(config.wheel_lock_degrees);
+    if (ImGui::SliderInt("Lock angle", &lock, 180, 270, "%d deg")) {
+        config.wheel_lock_degrees = static_cast<u32>(std::clamp(lock, 180, 270));
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("How far to physically turn for full game lock (total,\n"
+                          "so half each side of centre). Lower is more sensitive.");
     }
 
     // -- axis calibration ---------------------------------------------------

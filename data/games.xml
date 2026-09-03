@@ -801,7 +801,7 @@
   </game>
 
 
-  <game name="daytona" gearbox="true" drive_board="true" board="model2" preliminary="true">
+  <game name="daytona" gearbox="true" drive_board="true" vr_buttons="in0:0x20,in0:0x40,in0:0x80,in1:0x01" board="model2" preliminary="true">
     <title>Daytona USA</title>
     <manufacturer>Sega</manufacturer>
     <year>1994</year>

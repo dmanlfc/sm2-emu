@@ -250,6 +250,16 @@ struct GameSpec {
     /// always 0x01: no title in this database's scope remaps it.
     u8 start1_bit = 0x10;
 
+    /// Where the four generic wheel action buttons (WheelRole::Button1..4, which
+    /// a driving cabinet's view/VR buttons land on) sit in the input ports, as
+    /// {port index 0..2, active-low bit mask}. The default is player one's four
+    /// arcade buttons on IN1 (0x01..0x08); a driving title whose view buttons are
+    /// wired elsewhere overrides it. Daytona, for one, puts VR1..3 on IN0 and VR4
+    /// on IN1.
+    std::array<std::pair<u8, u8>, 4> wheel_button_bits = {{
+        {1, 0x01}, {1, 0x02}, {1, 0x04}, {1, 0x08},
+    }};
+
     /// How this title's machine config wires the analogue mux. Index is the
     /// channel number; an entry with control None is an unconnected channel.
     std::array<AnalogChannel, 8> analog{};

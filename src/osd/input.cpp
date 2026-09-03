@@ -585,15 +585,14 @@ bool Input::sample_wheel_channel(const rom::AnalogChannel& channel, u8* out) con
     float fraction = static_cast<float>(static_cast<int>(raw) + 32768) / 65535.0f;
 
     if (channel.control == rom::AnalogControl::Steer) {
-        // steer_degrees is the wheel's own physical rotation range. Map the
-        // cabinet's ~240 degrees of lock onto it, so full game lock is reached
-        // after turning about that much regardless of how far the wheel can
-        // spin: a 900-degree wheel then feels as responsive as the cabinet did,
-        // not several times slower. Scale the deflection about centre and clamp;
-        // past the mapped angle the game is already at full lock.
-        constexpr float kCabinetDegrees = 240.0f;
+        // steer_degrees is the wheel's own physical rotation range; lock_degrees
+        // is the physical rotation (total) at which the game reaches full lock.
+        // Mapping one onto the other makes full lock arrive after turning about
+        // lock_degrees, regardless of how far the wheel can spin. Scale the
+        // deflection about centre and clamp; past the mapped angle the game is
+        // already at full lock.
         const float scale = static_cast<float>(std::max(1u, m_wheel_settings.steer_degrees))
-                          / kCabinetDegrees;
+                          / static_cast<float>(std::max(1u, m_wheel_settings.lock_degrees));
         fraction = 0.5f + (fraction - 0.5f) * scale;
         fraction = std::clamp(fraction, 0.0f, 1.0f);
     } else {
@@ -1005,10 +1004,21 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                 && SDL_GetJoystickButton(m_wheel.handle, button);
         };
 
-        if (role_pressed(Config::WheelRole::Button1)) ports[1] &= static_cast<u8>(~kButton1);
-        if (role_pressed(Config::WheelRole::Button2)) ports[1] &= static_cast<u8>(~kButton2);
-        if (role_pressed(Config::WheelRole::Button3)) ports[1] &= static_cast<u8>(~kButton3);
-        if (role_pressed(Config::WheelRole::Button4)) ports[1] &= static_cast<u8>(~kButton4);
+        // The four action buttons go to whichever port/bit this title wires its
+        // view/VR buttons to (Daytona spreads them across IN0 and IN1), not a
+        // fixed IN1 nibble.
+        const Config::WheelRole action[] = {
+            Config::WheelRole::Button1, Config::WheelRole::Button2,
+            Config::WheelRole::Button3, Config::WheelRole::Button4,
+        };
+        for (int i = 0; i < 4; ++i) {
+            if (role_pressed(action[i])) {
+                const auto [port, bit] = game.wheel_button_bits[static_cast<usize>(i)];
+                if (port < 3) {
+                    ports[port] &= static_cast<u8>(~bit);
+                }
+            }
+        }
         if (role_pressed(Config::WheelRole::Start))   ports[0] &= static_cast<u8>(~kStart1);
         if (role_pressed(Config::WheelRole::Coin))    ports[0] &= static_cast<u8>(~kCoin1);
         if (role_pressed(Config::WheelRole::Test))    ports[0] &= static_cast<u8>(~kTest);

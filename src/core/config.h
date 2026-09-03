@@ -78,10 +78,13 @@ struct Config {
     /// Rumble strength, 0..100 percent.
     u32 wheel_rumble_strength = 40;
 
-    /// How many degrees of wheel rotation cover the cabinet's full lock. A PC
-    /// wheel turns ~900 degrees where a Model 2 cabinet turned ~270, so without
-    /// scaling the car barely responds. Lower means more sensitive steering.
+    /// The wheel's own physical rotation range (a G-series PC wheel is ~900).
     u32 wheel_steer_degrees = 270;
+
+    /// Physical rotation at which the game reaches full lock: turning this many
+    /// degrees (total, so half each side of centre) drives the steering to its
+    /// stop. Lower is more sensitive. Clamped to 180..270.
+    u32 wheel_lock_degrees = 240;
 
     /// Cabinet controls a wheel button can be bound to. Buttons 1..4 are the
     /// arcade buttons, which is also where a driving cabinet's view-change / VR
