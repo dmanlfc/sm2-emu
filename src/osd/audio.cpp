@@ -22,6 +22,7 @@
 #include <SDL3/SDL.h>
 
 #include <algorithm>
+#include <vector>
 
 namespace sm2::osd {
 namespace {
@@ -68,6 +69,15 @@ bool Audio::init(u32 sample_rate)
 
     m_sample_rate = sample_rate;
     SDL_ResumeAudioStreamDevice(m_stream);
+
+    // Prime the queue with silence so it starts near the target depth instead of
+    // climbing from empty: the first real frames then sit on a cushion and a slow
+    // opening frame cannot underrun the device before the queue has filled.
+    const usize prime_frames =
+        static_cast<usize>(kTargetQueuedMilliseconds) * sample_rate / 1000;
+    const std::vector<s16> silence(prime_frames * kChannels, 0);
+    SDL_PutAudioStreamData(m_stream, silence.data(),
+                           static_cast<int>(silence.size() * sizeof(s16)));
 
     const SDL_AudioDeviceID device = SDL_GetAudioStreamDevice(m_stream);
     SDL_AudioSpec device_spec{};

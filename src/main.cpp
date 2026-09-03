@@ -1475,6 +1475,21 @@ int main(int argc, char** argv)
             // returns to real time.
             pacer.set_throttled(options.config.throttle && !fast_forward);
 
+            // Audio clock pull: nudge the frame rate toward the audio device's
+            // true rate so the queue does not drift. Too full -> slower, too
+            // empty -> faster; deadband stops it fighting the per-frame sawtooth.
+            if (sound_board != nullptr && audio.active()) {
+                const s32 depth = static_cast<s32>(audio.queued_milliseconds());
+                const s32 target = static_cast<s32>(osd::Audio::kTargetQueuedMilliseconds);
+                const s32 error = depth - target;
+                constexpr s32 kDeadbandMs = 15;
+                double adjust = 0.0;
+                if (error > kDeadbandMs || error < -kDeadbandMs) {
+                    adjust = static_cast<double>(error) / 2000.0;
+                }
+                pacer.set_sync_adjust(adjust);
+            }
+
             // Warm-up gate: don't sample until --profile-after's frame (see its
             // declaration). Zero means always true.
             const bool profile_sample =

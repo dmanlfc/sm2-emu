@@ -62,6 +62,11 @@ public:
     void set_throttled(bool throttled);
     [[nodiscard]] bool throttled() const { return m_throttled; }
 
+    /// Stretch the frame period by a small fraction to lock the emulator to the
+    /// audio device's rate (audio clock pull). Clamped here, and a no-op while
+    /// unthrottled.
+    void set_sync_adjust(double fraction);
+
     /// Frames per second actually achieved, averaged over the last second, or zero
     /// before the first full second. Measures the whole loop, so it reports what
     /// the player is seeing rather than what was asked for.
@@ -73,10 +78,14 @@ public:
 private:
     void account_for_frame();
 
-    u64  m_period_ns = 0;
-    u64  m_next_ns   = 0;
-    bool m_throttled = true;
-    bool m_started   = false;
+    /// Sync nudge clamp: 0.5 %, well below an audible pitch shift.
+    static constexpr double kMaxSyncFraction = 0.005;
+
+    u64    m_period_ns    = 0;
+    u64    m_next_ns      = 0;
+    double m_sync_adjust  = 0.0;
+    bool   m_throttled    = true;
+    bool   m_started      = false;
 
     u64    m_window_start_ns = 0;
     u32    m_window_frames   = 0;

@@ -16,6 +16,8 @@
 
 #include <SDL3/SDL.h>
 
+#include <algorithm>
+
 namespace sm2::osd {
 namespace {
 
@@ -52,6 +54,11 @@ void FramePacer::set_throttled(bool throttled)
         resync();
     }
     m_throttled = throttled;
+}
+
+void FramePacer::set_sync_adjust(double fraction)
+{
+    m_sync_adjust = std::clamp(fraction, -kMaxSyncFraction, kMaxSyncFraction);
 }
 
 double FramePacer::target_hz() const
@@ -109,8 +116,10 @@ u32 FramePacer::wait()
 
     // Advanced by exactly one period, not recomputed from the clock, so the
     // fractional millisecond in the period cannot be rounded away frame after
-    // frame.
-    m_next_ns += m_period_ns;
+    // frame. m_sync_adjust is a transient stretch and leaves m_period_ns intact.
+    const u64 effective = m_period_ns
+        + static_cast<s64>(static_cast<double>(m_period_ns) * m_sync_adjust);
+    m_next_ns += effective;
     account_for_frame();
     return 0;
 }
