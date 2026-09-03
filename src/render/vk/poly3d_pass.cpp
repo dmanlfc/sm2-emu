@@ -26,6 +26,7 @@
 #include <vk_mem_alloc.h>
 
 #include "shaders/polygon_frag.h"
+#include "shaders/polygon_frag_early.h"
 #include "shaders/polygon_vert.h"
 #include "shaders/texel_decode_comp.h"
 
@@ -124,7 +125,7 @@ bool Poly3DPass::init(Context& context)
                             * hw::Model2Video::kToneComponents,
                         0);
 
-    return create_frames() && create_descriptors() && create_polygon_pipeline()
+    return create_frames() && create_descriptors() && create_polygon_pipelines()
         && create_decode_pipeline();
 }
 
@@ -194,6 +195,10 @@ void Poly3DPass::shutdown()
     if (m_polygon_pipeline != VK_NULL_HANDLE) {
         vkDestroyPipeline(device, m_polygon_pipeline, nullptr);
         m_polygon_pipeline = VK_NULL_HANDLE;
+    }
+    if (m_polygon_pipeline_early != VK_NULL_HANDLE) {
+        vkDestroyPipeline(device, m_polygon_pipeline_early, nullptr);
+        m_polygon_pipeline_early = VK_NULL_HANDLE;
     }
     if (m_polygon_layout != VK_NULL_HANDLE) {
         vkDestroyPipelineLayout(device, m_polygon_layout, nullptr);
@@ -489,7 +494,7 @@ bool Poly3DPass::create_descriptors()
     return true;
 }
 
-bool Poly3DPass::create_polygon_pipeline()
+bool Poly3DPass::create_polygon_pipelines()
 {
     const VkDevice device = m_context->device();
 
@@ -505,13 +510,26 @@ bool Poly3DPass::create_polygon_pipeline()
     layout.pPushConstantRanges    = &range;
     SM2_VK_TRY(vkCreatePipelineLayout(device, &layout, nullptr, &m_polygon_layout));
 
+    return create_polygon_pipeline(shaders::kPolygonFrag, shaders::kPolygonFragWordCount,
+                                   &m_polygon_pipeline)
+        && create_polygon_pipeline(shaders::kPolygonFragEarly,
+                                   shaders::kPolygonFragEarlyWordCount,
+                                   &m_polygon_pipeline_early);
+}
+
+bool Poly3DPass::create_polygon_pipeline(const u32*  fragment_code,
+                                         u32         fragment_word_count,
+                                         VkPipeline* out_pipeline)
+{
+    const VkDevice device = m_context->device();
+
     ModuleGuard guard{device};
     if (!create_shader_module(device, shaders::kPolygonVert,
                               shaders::kPolygonVertWordCount, &guard.vertex)) {
         return false;
     }
-    if (!create_shader_module(device, shaders::kPolygonFrag,
-                              shaders::kPolygonFragWordCount, &guard.fragment)) {
+    if (!create_shader_module(device, fragment_code, fragment_word_count,
+                              &guard.fragment)) {
         return false;
     }
 
@@ -654,7 +672,7 @@ bool Poly3DPass::create_polygon_pipeline()
     info.renderPass          = VK_NULL_HANDLE;
 
     SM2_VK_TRY(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr,
-                                         &m_polygon_pipeline));
+                                         out_pipeline));
     return true;
 }
 
@@ -889,16 +907,22 @@ void Poly3DPass::draw_polygons()
         push.inv_raster[1] = 1.0F / static_cast<float>(kHeight);
 
         const VkDeviceSize offset = 0;
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_polygon_pipeline);
         vkCmdBindVertexBuffers(cmd, 0, 1, &target.vertices.handle, &offset);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_polygon_layout, 0,
                                 1, &target.polygon_set, 0, nullptr);
         vkCmdPushConstants(cmd, m_polygon_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                            sizeof(push), &push);
 
+        VkPipeline bound = VK_NULL_HANDLE;
         for (const render::Batch& batch : m_frame_geometry.batches) {
             if (batch.vertex_count == 0) {
                 continue;
+            }
+            const VkPipeline wanted =
+                batch.early ? m_polygon_pipeline_early : m_polygon_pipeline;
+            if (wanted != bound) {
+                vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, wanted);
+                bound = wanted;
             }
             const VkRect2D vk_scissor = scissor_to_vk(batch.scissor);
             vkCmdSetScissor(cmd, 0, 1, &vk_scissor);

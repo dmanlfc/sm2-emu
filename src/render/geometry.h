@@ -107,6 +107,9 @@ struct Batch {
     ScissorRect scissor;
     u32         first_vertex  = 0;
     u32         vertex_count  = 0;
+    /// Every polygon in the run is non-discarding, so it can use the
+    /// early-fragment-tests pipeline (see polygon.frag).
+    bool        early         = false;
 };
 
 /// One frame's worth of triangulated geometry, ready for a backend to upload.

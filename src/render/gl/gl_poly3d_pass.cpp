@@ -18,6 +18,7 @@
 #include "hw/model2_machine_base.h"
 #include "hw/model2_video.h"
 
+#include "shaders/polygon_frag_early_glsl.h"
 #include "shaders/polygon_frag_glsl.h"
 #include "shaders/polygon_vert_glsl.h"
 #include "shaders/texel_decode_comp_glsl.h"
@@ -62,6 +63,10 @@ void Poly3DPass::shutdown()
         DeleteProgram(m_polygon_program);
         m_polygon_program = 0;
     }
+    if (m_polygon_program_early != 0) {
+        DeleteProgram(m_polygon_program_early);
+        m_polygon_program_early = 0;
+    }
     if (m_decode_program != 0) {
         DeleteProgram(m_decode_program);
         m_decode_program = 0;
@@ -92,10 +97,22 @@ bool Poly3DPass::create_programs()
     if (m_polygon_program == 0) {
         return false;
     }
+
+    const std::string fragment_source_early = prepare_gl_source(
+        shaders::kPolygonFragEarlyGlsl, active_version_directive(),
+        "SM2_EARLY_FRAGMENT_TESTS");
+    m_polygon_program_early =
+        compile_program(vertex_source.c_str(), fragment_source_early.c_str());
+    if (m_polygon_program_early == 0) {
+        return false;
+    }
+
     // polygon.vert's Push block took binding 4 under SM2_TARGET_GL -- see
     // that shader's own SM2_TARGET_GL comment.
     const u32 polygon_block = GetUniformBlockIndex(m_polygon_program, "Push");
     UniformBlockBinding(m_polygon_program, polygon_block, 4);
+    const u32 polygon_block_early = GetUniformBlockIndex(m_polygon_program_early, "Push");
+    UniformBlockBinding(m_polygon_program_early, polygon_block_early, 4);
     GenBuffers(1, &m_polygon_push_ubo);
     BindBuffer(GL_UNIFORM_BUFFER, m_polygon_push_ubo);
     BufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(sizeof(float) * 2), nullptr,
@@ -222,8 +239,6 @@ void Poly3DPass::draw_polygons()
         return;
     }
 
-    UseProgram(m_polygon_program);
-
     struct PushBlock {
         float inv_raster[2];
     } push{};
@@ -275,9 +290,16 @@ void Poly3DPass::draw_polygons()
     EnableVertexAttribArray(2);
     EnableVertexAttribArray(3);
 
+    // Bindings are global, shared by both programs; only UseProgram switches.
+    u32 bound = 0;
     for (const render::Batch& batch : m_frame_geometry.batches) {
         if (batch.vertex_count == 0) {
             continue;
+        }
+        const u32 wanted = batch.early ? m_polygon_program_early : m_polygon_program;
+        if (wanted != bound) {
+            UseProgram(wanted);
+            bound = wanted;
         }
         Scissor(batch.scissor.x, batch.scissor.y, static_cast<GLsizei>(batch.scissor.width),
                static_cast<GLsizei>(batch.scissor.height));

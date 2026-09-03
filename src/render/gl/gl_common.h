@@ -212,8 +212,12 @@ void resolve_buffer_storage(SDL_FunctionPointer (*get_proc)(const char*), bool i
 /// the define on the line after. Every gl_*_pass call site must run its
 /// embedded source through this before handing it to compile_program()/
 /// compile_compute_program().
+/// `extra_define`, when non-null, is emitted as `#define <name> 1`. The embedded
+/// GL source is the raw file, so glslc's build-time `-D` never reaches it; an
+/// `#ifdef`-gated GL variant is activated only by injecting its define here.
 [[nodiscard]] std::string prepare_gl_source(const char* embedded_source,
-                                            const char* version_directive);
+                                            const char* version_directive,
+                                            const char* extra_define = nullptr);
 
 /// "#version 430 core" -- desktop GL's own version_directive for
 /// prepare_gl_source(), named so no call site repeats the literal.

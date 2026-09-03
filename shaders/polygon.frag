@@ -38,6 +38,13 @@
 // into the texture. Steps 1 to 3 collapse here into three lookups from one image
 // that the host has already flattened.
 
+// Early tests are only safe for runs that never discard: a discarding polygon
+// leaves its stencil unclaimed, which an early test would wrongly hand to a
+// farther polygon.
+#ifdef SM2_EARLY_FRAGMENT_TESTS
+layout(early_fragment_tests) in;
+#endif
+
 layout(location = 0) in vec2      vTexel;
 layout(location = 1) in flat uint vPolygon;
 

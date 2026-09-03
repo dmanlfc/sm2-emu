@@ -155,7 +155,8 @@ void set_version_directive(const char* directive)
     g_version_directive = directive;
 }
 
-std::string prepare_gl_source(const char* embedded_source, const char* version_directive)
+std::string prepare_gl_source(const char* embedded_source, const char* version_directive,
+                              const char* extra_define)
 {
     std::string source(embedded_source);
     const usize version_pos = source.find("#version");
@@ -207,6 +208,9 @@ std::string prepare_gl_source(const char* embedded_source, const char* version_d
     }
 
     std::string header = std::string(version_directive) + "\n#define SM2_TARGET_GL 1\n";
+    if (extra_define != nullptr) {
+        header += "#define " + std::string(extra_define) + " 1\n";
+    }
     // GLES requires explicit precision qualifiers. Inject default precision
     // declarations immediately after the version/define lines so every shader
     // compiles without adding per-variable qualifiers throughout. highp float

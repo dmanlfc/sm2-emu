@@ -333,6 +333,10 @@ private:
 
     OpcodeFunc m_sharc_op[512]{};
 
+    // s_opcode_table row per top-9-bit index (0xff = unimplemented). run()
+    // switches on this rather than a member-fn-ptr call; faster, same mapping.
+    u8 m_op_index[512]{};
+
     // -- Lookup tables (static) ---------------------------------------------
     static const u32 s_recips_mantissa_lookup[128];
     static const u32 s_rsqrts_mantissa_lookup[128];

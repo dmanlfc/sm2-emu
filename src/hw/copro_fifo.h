@@ -3,8 +3,8 @@
 
 #include "core/types.h"
 
+#include <deque>
 #include <functional>
-#include <vector>
 
 namespace sm2::hw {
 
@@ -80,12 +80,13 @@ public:
     void set_on_unfull(std::function<void()> handler) { m_on_unfull = std::move(handler); }
 
 private:
-    /// Values within the configured depth, oldest first.
-    std::vector<u32> m_values;
+    /// Values within the configured depth, oldest first. A deque gives O(1)
+    /// front pop where a vector would pay a linear erase(begin()).
+    std::deque<u32> m_values;
 
     /// Values pushed while full. Kept rather than dropped so no command is lost
     /// when the interleave lets the source get ahead.
-    std::vector<u32> m_overflow;
+    std::deque<u32> m_overflow;
 
     usize m_depth = 0;
 

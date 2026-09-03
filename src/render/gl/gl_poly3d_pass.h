@@ -84,6 +84,7 @@ private:
     // -- the 3D draw ------------------------------------------------------
 
     u32 m_polygon_program = 0;
+    u32 m_polygon_program_early = 0;  ///< early-fragment-tests variant
     u32 m_polygon_push_ubo = 0;  ///< backing buffer for polygon.vert's Push block
     u32 m_vao = 0;
 

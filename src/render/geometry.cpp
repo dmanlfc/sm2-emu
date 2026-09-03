@@ -154,18 +154,22 @@ TriangulatedFrame triangulate(const hw::Model2MachineBase* machine,
             break;
         }
 
-        const u32 index = static_cast<u32>(frame.polygons.size());
-        frame.polygons.push_back(describe_polygon(poly, video));
+        const u32        index  = static_cast<u32>(frame.polygons.size());
+        const PolyParams params = describe_polygon(poly, video);
+        frame.polygons.push_back(params);
 
-        // Polygons come grouped by priority window and the window is what
-        // sets the viewport, so a run of them almost always shares a
-        // scissor.
+        const bool can_early = (params.flags & (kFlagChecker | kFlagTranslucent)) == 0;
+
+        // A new batch starts on a scissor or can_early change, so each batch is
+        // a contiguous same-capability run in list order -- which keeps the
+        // order-based fill mask's global draw order exact.
         if (frame.batches.empty() || frame.batches.back().scissor.x != scissor.x
             || frame.batches.back().scissor.y != scissor.y
             || frame.batches.back().scissor.width != scissor.width
-            || frame.batches.back().scissor.height != scissor.height) {
+            || frame.batches.back().scissor.height != scissor.height
+            || frame.batches.back().early != can_early) {
             frame.batches.push_back(
-                Batch{scissor, static_cast<u32>(frame.vertices.size()), 0});
+                Batch{scissor, static_cast<u32>(frame.vertices.size()), 0, can_early});
         }
 
         // A fan. The clipper produces convex polygons, so fanning from the

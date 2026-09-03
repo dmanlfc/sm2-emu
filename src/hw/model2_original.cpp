@@ -1097,12 +1097,20 @@ std::pair<u8, u16> Model2Original::read8_flags(u32 address)
 
 u16 Model2Original::write8_flags(u32 address, u8 value)
 {
+    // Resolve once, unlike write8()'s two lookups; same branch order.
     const Window w = resolve(address);
     const u16    flags = w.base != nullptr ? w.flags : register_flags(address);
     if ((flags & cpu::kBusFlagBurst) == 0) {
         ++m_no_burst_writes[address >> 20];
     }
-    write8(address, value);
+    if (w.base != nullptr && w.writable) {
+        *w.base = value;
+        note_video_write(w, 1);
+    } else if (w.base != nullptr && w.rom) {
+        // ROM writes are dropped.
+    } else {
+        register_write(address, value, 1);
+    }
     return flags;
 }
 

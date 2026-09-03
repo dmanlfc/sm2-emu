@@ -48,13 +48,13 @@ u32 CoproFifo::pop()
     }
 
     const u32 value = m_values.front();
-    m_values.erase(m_values.begin());
+    m_values.pop_front();
 
     // Take one back from the overflow queue, and release the source once the
     // queue has drained.
     if (!m_overflow.empty()) {
         m_values.push_back(m_overflow.front());
-        m_overflow.erase(m_overflow.begin());
+        m_overflow.pop_front();
 
         if (m_overflow.empty() && m_full_halted) {
             m_full_halted = false;

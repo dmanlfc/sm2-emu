@@ -184,7 +184,12 @@ private:
                                           HostBuffer*        out);
     void destroy_host_buffer(HostBuffer* buffer);
     [[nodiscard]] bool create_descriptors();
-    [[nodiscard]] bool create_polygon_pipeline();
+    [[nodiscard]] bool create_polygon_pipelines();
+    /// Build one polygon pipeline; the two variants differ only by fragment
+    /// module (plain vs early-fragment-tests).
+    [[nodiscard]] bool create_polygon_pipeline(const u32*  fragment_code,
+                                               u32         fragment_word_count,
+                                               VkPipeline* out_pipeline);
     [[nodiscard]] bool create_decode_pipeline();
 
     /// Copy whatever this frame's copies are missing, and record the transfer of
@@ -213,6 +218,7 @@ private:
 
     VkPipelineLayout m_polygon_layout   = VK_NULL_HANDLE;
     VkPipeline       m_polygon_pipeline = VK_NULL_HANDLE;
+    VkPipeline       m_polygon_pipeline_early = VK_NULL_HANDLE;  ///< early-test variant
 
     VkSampler             m_sampler            = VK_NULL_HANDLE;
     /// Nearest-filtering, non-normalized-adjacent sampler for the decoded texture

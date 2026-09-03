@@ -11,6 +11,7 @@
 #include <bit>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <utility>
@@ -196,11 +197,13 @@ SHARC::SHARC(Bus& bus) : m_bus(&bus)
 void SHARC::build_opcode_table()
 {
     for (int i = 0; i < 512; i++) {
-        m_sharc_op[i] = &SHARC::sharcop_unimplemented;
+        m_sharc_op[i]  = &SHARC::sharcop_unimplemented;
+        m_op_index[i]  = 0xff;
         u16 op = u16(i << 7);
         for (int j = 0; j < s_num_ops; j++) {
             if ((s_opcode_table[j].op_mask & op) == s_opcode_table[j].op_bits) {
-                m_sharc_op[i] = s_opcode_table[j].handler;
+                m_sharc_op[i]  = s_opcode_table[j].handler;
+                m_op_index[i]  = u8(j);
                 break;
             }
         }
@@ -374,8 +377,52 @@ s32 SHARC::run(s32 cycles)
             }
         }
 
-        // Dispatch
-        (this->*m_sharc_op[(m_opcode >> 39) & 0x1ff])();
+        switch (m_op_index[(m_opcode >> 39) & 0x1ff]) {
+        case 0:  sharcop_compute_dreg_dm_dreg_pm(); break;
+        case 1:  sharcop_compute(); break;
+        case 2:  sharcop_compute_ureg_dmpm_premod(); break;
+        case 3:  sharcop_compute_ureg_dmpm_postmod(); break;
+        case 4:  sharcop_compute_dm_to_dreg_immmod(); break;
+        case 5:  sharcop_compute_dreg_to_dm_immmod(); break;
+        case 6:  sharcop_compute_pm_to_dreg_immmod(); break;
+        case 7:  sharcop_compute_dreg_to_pm_immmod(); break;
+        case 8:  sharcop_compute_ureg_to_ureg(); break;
+        case 9:  sharcop_imm_shift_dreg_dmpm(); break;
+        case 10: sharcop_imm_shift(); break;
+        case 11: sharcop_compute_modify(); break;
+        case 12: sharcop_direct_jump(); break;
+        case 13: sharcop_direct_call(); break;
+        case 14: sharcop_relative_jump(); break;
+        case 15: sharcop_relative_call(); break;
+        case 16: sharcop_indirect_jump(); break;
+        case 17: sharcop_indirect_call(); break;
+        case 18: sharcop_relative_jump_compute(); break;
+        case 19: sharcop_relative_call_compute(); break;
+        case 20: sharcop_indirect_jump_compute_dreg_dm(); break;
+        case 21: sharcop_relative_jump_compute_dreg_dm(); break;
+        case 22: sharcop_rts(); break;
+        case 23: sharcop_rti(); break;
+        case 24: sharcop_do_until_counter_imm(); break;
+        case 25: sharcop_do_until_counter_ureg(); break;
+        case 26: sharcop_do_until(); break;
+        case 27: sharcop_dm_to_ureg_direct(); break;
+        case 28: sharcop_ureg_to_dm_direct(); break;
+        case 29: sharcop_pm_to_ureg_direct(); break;
+        case 30: sharcop_ureg_to_pm_direct(); break;
+        case 31: sharcop_dm_to_ureg_indirect(); break;
+        case 32: sharcop_ureg_to_dm_indirect(); break;
+        case 33: sharcop_pm_to_ureg_indirect(); break;
+        case 34: sharcop_ureg_to_pm_indirect(); break;
+        case 35: sharcop_imm_to_dmpm(); break;
+        case 36: sharcop_imm_to_ureg(); break;
+        case 37: sharcop_sysreg_bitop(); break;
+        case 38: sharcop_modify(); break;
+        case 39: sharcop_bit_reverse(); break;
+        case 40: sharcop_push_pop_stacks(); break;
+        case 41: sharcop_nop(); break;
+        case 42: sharcop_idle(); break;
+        default: sharcop_unimplemented(); break;
+        }
 
         // System register latency
         if (m_systemreg_latency_cycles > 0) {
@@ -384,8 +431,9 @@ s32 SHARC::run(s32 cycles)
                 systemreg_write_latency_effect();
         }
 
-        // DMA
-        if (!m_write_stalled) {
+        // The m_dma_status gate elides the two calls on the common no-DMA
+        // instruction; dma_run_cycle() checks the same bit itself.
+        if (!m_write_stalled && (m_dma_status & ((1u << 6) | (1u << 7)))) {
             dma_run_cycle(6);
             dma_run_cycle(7);
         }
@@ -527,6 +575,9 @@ void SHARC::update_circular_buffer_dm(int i)
 
 int SHARC::IF_CONDITION_CODE(int cond)
 {
+    // Fast-path the unconditional case: 0x1e and 0x1f both return 1 below.
+    if (cond >= 0x1e) return 1;
+
     auto COND_LT = [&]() -> bool {
         if (m_astat & AF)
             return (m_astat & AN) && !(m_astat & AZ);
