@@ -25,11 +25,9 @@
 
 #include <vk_mem_alloc.h>
 
-#include "shaders/fullscreen_quad_vert.h"
 #include "shaders/polygon_frag.h"
 #include "shaders/polygon_vert.h"
 #include "shaders/texel_decode_comp.h"
-#include "shaders/tilemap_composite_frag.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -42,15 +40,6 @@ namespace {
 struct PolygonPush {
     float inv_raster[2];
 };
-
-/// Push constants of the composite pipeline, matching tilemap_composite.frag.
-struct CompositePush {
-    float background[4];
-    u32   mode;
-};
-
-/// The composite shader's "blend over the target" mode.
-constexpr u32 kModeBlendOver = 1;
 
 /// Bytes of luminance RAM, which is one tone curve per 128 entries.
 constexpr usize kLumaBytes = 0x8000;
@@ -136,7 +125,7 @@ bool Poly3DPass::init(Context& context)
                         0);
 
     return create_frames() && create_descriptors() && create_polygon_pipeline()
-        && create_composite_pipeline() && create_decode_pipeline();
+        && create_decode_pipeline();
 }
 
 void Poly3DPass::shutdown()
@@ -172,15 +161,6 @@ void Poly3DPass::shutdown()
             target.decoded       = VK_NULL_HANDLE;
             target.decoded_alloc = nullptr;
         }
-        if (target.colour_view != VK_NULL_HANDLE) {
-            vkDestroyImageView(device, target.colour_view, nullptr);
-            target.colour_view = VK_NULL_HANDLE;
-        }
-        if (target.colour != VK_NULL_HANDLE) {
-            vmaDestroyImage(allocator, target.colour, target.colour_alloc);
-            target.colour       = VK_NULL_HANDLE;
-            target.colour_alloc = nullptr;
-        }
         if (target.stencil_view != VK_NULL_HANDLE) {
             vkDestroyImageView(device, target.stencil_view, nullptr);
             target.stencil_view = VK_NULL_HANDLE;
@@ -191,7 +171,6 @@ void Poly3DPass::shutdown()
             target.stencil_alloc = nullptr;
         }
         target.polygon_set   = VK_NULL_HANDLE;
-        target.composite_set = VK_NULL_HANDLE;
         target.decode_set    = VK_NULL_HANDLE;
     }
 
@@ -212,14 +191,6 @@ void Poly3DPass::shutdown()
         m_decoded_sampler = VK_NULL_HANDLE;
     }
 
-    if (m_composite_pipeline != VK_NULL_HANDLE) {
-        vkDestroyPipeline(device, m_composite_pipeline, nullptr);
-        m_composite_pipeline = VK_NULL_HANDLE;
-    }
-    if (m_composite_layout != VK_NULL_HANDLE) {
-        vkDestroyPipelineLayout(device, m_composite_layout, nullptr);
-        m_composite_layout = VK_NULL_HANDLE;
-    }
     if (m_polygon_pipeline != VK_NULL_HANDLE) {
         vkDestroyPipeline(device, m_polygon_pipeline, nullptr);
         m_polygon_pipeline = VK_NULL_HANDLE;
@@ -231,10 +202,6 @@ void Poly3DPass::shutdown()
     if (m_pool != VK_NULL_HANDLE) {
         vkDestroyDescriptorPool(device, m_pool, nullptr);
         m_pool = VK_NULL_HANDLE;
-    }
-    if (m_composite_set_layout != VK_NULL_HANDLE) {
-        vkDestroyDescriptorSetLayout(device, m_composite_set_layout, nullptr);
-        m_composite_set_layout = VK_NULL_HANDLE;
     }
     if (m_polygon_set_layout != VK_NULL_HANDLE) {
         vkDestroyDescriptorSetLayout(device, m_polygon_set_layout, nullptr);
@@ -350,19 +317,9 @@ bool Poly3DPass::create_frames()
         view.subresourceRange.layerCount = 1;
         SM2_VK_TRY(vkCreateImageView(device, &view, nullptr, &target.tone_view));
 
-        image.format = m_colour_format;
-        image.extent = VkExtent3D{kWidth, kHeight, 1};
-        image.usage  = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-        SM2_VK_TRY(vmaCreateImage(allocator, &image, &image_allocation, &target.colour,
-                                  &target.colour_alloc, nullptr));
-
-        view.image                       = target.colour;
-        view.format                      = m_colour_format;
-        view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        SM2_VK_TRY(vkCreateImageView(device, &view, nullptr, &target.colour_view));
-
         // The fill mask never leaves the GPU and never survives a frame.
         image.format = m_stencil_format;
+        image.extent = VkExtent3D{kWidth, kHeight, 1};
         image.usage  = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
         SM2_VK_TRY(vmaCreateImage(allocator, &image, &image_allocation, &target.stencil,
                                   &target.stencil_alloc, nullptr));
@@ -418,17 +375,6 @@ bool Poly3DPass::create_descriptors()
     layout.pBindings    = polygon_bindings;
     SM2_VK_TRY(vkCreateDescriptorSetLayout(device, &layout, nullptr, &m_polygon_set_layout));
 
-    VkDescriptorSetLayoutBinding composite_binding{};
-    composite_binding.binding         = 0;
-    composite_binding.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    composite_binding.descriptorCount = 1;
-    composite_binding.stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-    layout.bindingCount = 1;
-    layout.pBindings    = &composite_binding;
-    SM2_VK_TRY(
-        vkCreateDescriptorSetLayout(device, &layout, nullptr, &m_composite_set_layout));
-
     // The decode pass's own set: the packed sheets it reads, and the decoded
     // image it writes.
     VkDescriptorSetLayoutBinding decode_bindings[2]{};
@@ -448,22 +394,24 @@ bool Poly3DPass::create_descriptors()
     // Storage buffers: luma, polygons (per polygon-set) and the sheets, once per
     // frame each for the polygon set's use and once more per frame for the decode
     // set's own read of the same buffer. Combined image samplers: the decoded
-    // sheets and the tone curve per polygon set, plus the composite's colour
-    // image. Storage images: the decoded sheets, once per decode set.
+    // sheets and the tone curve per polygon set. Storage images: the decoded
+    // sheets, once per decode set. The 3D now draws straight into the native
+    // frame, so there is no offscreen colour image to sample and no composite
+    // set for it.
     VkDescriptorPoolSize sizes[3]{};
     sizes[0].type            = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     // Per frame: luma + polygons (polygon set) + sheets (decode set).
     sizes[0].descriptorCount = frames * 3;
     sizes[1].type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    // Per frame: decoded sheets + tone curve (polygon set) + colour (composite).
-    sizes[1].descriptorCount = frames * 3;
+    // Per frame: decoded sheets + tone curve (polygon set).
+    sizes[1].descriptorCount = frames * 2;
     sizes[2].type            = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
     // Per frame: decoded sheets (decode set).
     sizes[2].descriptorCount = frames;
 
     VkDescriptorPoolCreateInfo pool{};
     pool.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pool.maxSets       = frames * 3;  // polygon + composite + decode, per frame
+    pool.maxSets       = frames * 2;  // polygon + decode, per frame
     pool.poolSizeCount = 3;
     pool.pPoolSizes    = sizes;
     SM2_VK_TRY(vkCreateDescriptorPool(device, &pool, nullptr, &m_pool));
@@ -477,9 +425,6 @@ bool Poly3DPass::create_descriptors()
         allocate.descriptorSetCount = 1;
         allocate.pSetLayouts        = &m_polygon_set_layout;
         SM2_VK_TRY(vkAllocateDescriptorSets(device, &allocate, &target.polygon_set));
-
-        allocate.pSetLayouts = &m_composite_set_layout;
-        SM2_VK_TRY(vkAllocateDescriptorSets(device, &allocate, &target.composite_set));
 
         allocate.pSetLayouts = &m_decode_set_layout;
         SM2_VK_TRY(vkAllocateDescriptorSets(device, &allocate, &target.decode_set));
@@ -498,18 +443,13 @@ bool Poly3DPass::create_descriptors()
         tone.imageView   = target.tone_view;
         tone.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-        VkDescriptorImageInfo colour{};
-        colour.sampler     = m_sampler;
-        colour.imageView   = target.colour_view;
-        colour.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
         const VkDescriptorBufferInfo decode_sheets{target.sheets.handle, 0,
                                                     target.sheets.size};
         VkDescriptorImageInfo decode_target{};
         decode_target.imageView   = target.decoded_view;
         decode_target.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 
-        VkWriteDescriptorSet writes[7]{};
+        VkWriteDescriptorSet writes[6]{};
         for (VkWriteDescriptorSet& write : writes) {
             write.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             write.descriptorCount = 1;
@@ -534,22 +474,17 @@ bool Poly3DPass::create_descriptors()
         writes[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         writes[3].pBufferInfo    = &buffers[1];
 
-        writes[4].dstSet         = target.composite_set;
+        writes[4].dstSet         = target.decode_set;
         writes[4].dstBinding     = 0;
-        writes[4].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        writes[4].pImageInfo     = &colour;
+        writes[4].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        writes[4].pBufferInfo    = &decode_sheets;
 
         writes[5].dstSet         = target.decode_set;
-        writes[5].dstBinding     = 0;
-        writes[5].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        writes[5].pBufferInfo    = &decode_sheets;
+        writes[5].dstBinding     = 1;
+        writes[5].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        writes[5].pImageInfo     = &decode_target;
 
-        writes[6].dstSet         = target.decode_set;
-        writes[6].dstBinding     = 1;
-        writes[6].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        writes[6].pImageInfo     = &decode_target;
-
-        vkUpdateDescriptorSets(device, 7, writes, 0, nullptr);
+        vkUpdateDescriptorSets(device, 6, writes, 0, nullptr);
     }
     return true;
 }
@@ -662,10 +597,20 @@ bool Poly3DPass::create_polygon_pipeline()
     depth_stencil.front             = stencil;
     depth_stencil.back              = stencil;
 
-    // No blending anywhere in this pipeline, because the hardware has none: a
-    // polygon either owns a pixel outright or leaves it alone.
+    // Premultiplied over, merging the 3D directly onto the below-tilemap in the
+    // native frame. The shader writes alpha 1 for every non-discarded pixel, so
+    // ONE / ONE_MINUS_SRC_ALPHA overwrites where a polygon draws and leaves the
+    // 2D untouched where it discards -- the same result the deleted
+    // sample-and-composite step produced, without the offscreen round-trip. (The
+    // hardware has no blend of its own; this is only the merge with the 2D.)
     VkPipelineColorBlendAttachmentState attachment{};
-    attachment.blendEnable    = VK_FALSE;
+    attachment.blendEnable         = VK_TRUE;
+    attachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    attachment.colorBlendOp        = VK_BLEND_OP_ADD;
+    attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    attachment.alphaBlendOp        = VK_BLEND_OP_ADD;
     attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
                               | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
@@ -710,126 +655,6 @@ bool Poly3DPass::create_polygon_pipeline()
 
     SM2_VK_TRY(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr,
                                          &m_polygon_pipeline));
-    return true;
-}
-
-bool Poly3DPass::create_composite_pipeline()
-{
-    const VkDevice device = m_context->device();
-    // The composite goes into the native frame, not the swapchain: the three-way
-    // composite happens at the hardware's own resolution and PresentPass magnifies
-    // the result once.
-    const VkFormat target_format = kNativeColourFormat;
-
-    VkPushConstantRange range{};
-    range.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    range.size       = sizeof(CompositePush);
-
-    VkPipelineLayoutCreateInfo layout{};
-    layout.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    layout.setLayoutCount         = 1;
-    layout.pSetLayouts            = &m_composite_set_layout;
-    layout.pushConstantRangeCount = 1;
-    layout.pPushConstantRanges    = &range;
-    SM2_VK_TRY(vkCreatePipelineLayout(device, &layout, nullptr, &m_composite_layout));
-
-    // The same pair of shaders the tilemap pass uses for its overlay: a fullscreen
-    // triangle sampling one premultiplied surface. The pipeline is duplicated
-    // rather than shared because the alternative is for one pass to own state the
-    // other reaches into; folding the two together belongs with the wider
-    // presentation rework.
-    ModuleGuard guard{device};
-    if (!create_shader_module(device, shaders::kFullscreenQuadVert,
-                              shaders::kFullscreenQuadVertWordCount, &guard.vertex)) {
-        return false;
-    }
-    if (!create_shader_module(device, shaders::kTilemapCompositeFrag,
-                              shaders::kTilemapCompositeFragWordCount, &guard.fragment)) {
-        return false;
-    }
-
-    VkPipelineShaderStageCreateInfo stages[2]{};
-    stages[0].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stages[0].stage  = VK_SHADER_STAGE_VERTEX_BIT;
-    stages[0].module = guard.vertex;
-    stages[0].pName  = "main";
-    stages[1].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stages[1].stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
-    stages[1].module = guard.fragment;
-    stages[1].pName  = "main";
-
-    VkPipelineVertexInputStateCreateInfo vertex_input{};
-    vertex_input.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
-    VkPipelineInputAssemblyStateCreateInfo input_assembly{};
-    input_assembly.sType    = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    input_assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-
-    VkPipelineViewportStateCreateInfo viewport_state{};
-    viewport_state.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewport_state.viewportCount = 1;
-    viewport_state.scissorCount  = 1;
-
-    VkPipelineRasterizationStateCreateInfo rasterisation{};
-    rasterisation.sType       = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rasterisation.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterisation.cullMode    = VK_CULL_MODE_NONE;
-    rasterisation.frontFace   = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    rasterisation.lineWidth   = 1.0F;
-
-    VkPipelineMultisampleStateCreateInfo multisample{};
-    multisample.sType                = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-
-    VkPipelineDepthStencilStateCreateInfo depth_stencil{};
-    depth_stencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-
-    VkPipelineColorBlendAttachmentState attachment{};
-    attachment.blendEnable         = VK_TRUE;
-    attachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-    attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    attachment.colorBlendOp        = VK_BLEND_OP_ADD;
-    attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-    attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    attachment.alphaBlendOp        = VK_BLEND_OP_ADD;
-    attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
-                              | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-
-    VkPipelineColorBlendStateCreateInfo blend_state{};
-    blend_state.sType           = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    blend_state.attachmentCount = 1;
-    blend_state.pAttachments    = &attachment;
-
-    const VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT,
-                                             VK_DYNAMIC_STATE_SCISSOR};
-    VkPipelineDynamicStateCreateInfo dynamic_state{};
-    dynamic_state.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    dynamic_state.dynamicStateCount = 2;
-    dynamic_state.pDynamicStates    = dynamic_states;
-
-    VkPipelineRenderingCreateInfo rendering{};
-    rendering.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
-    rendering.colorAttachmentCount    = 1;
-    rendering.pColorAttachmentFormats = &target_format;
-
-    VkGraphicsPipelineCreateInfo info{};
-    info.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    info.pNext               = &rendering;
-    info.stageCount          = 2;
-    info.pStages             = stages;
-    info.pVertexInputState   = &vertex_input;
-    info.pInputAssemblyState = &input_assembly;
-    info.pViewportState      = &viewport_state;
-    info.pRasterizationState = &rasterisation;
-    info.pMultisampleState   = &multisample;
-    info.pDepthStencilState  = &depth_stencil;
-    info.pColorBlendState    = &blend_state;
-    info.pDynamicState       = &dynamic_state;
-    info.layout              = m_composite_layout;
-    info.renderPass          = VK_NULL_HANDLE;
-
-    SM2_VK_TRY(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr,
-                                         &m_composite_pipeline));
     return true;
 }
 
@@ -1011,26 +836,14 @@ void Poly3DPass::build(const hw::Model2MachineBase* machine, const hw::Model2Vid
     }
 }
 
-void Poly3DPass::render()
+void Poly3DPass::prepare_stencil()
 {
     const VkCommandBuffer cmd    = m_context->cmd();
     Frame&                target = frame();
 
-    m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Poly3D, false);
-
-    // From UNDEFINED because the whole image is about to be cleared. The wait is
-    // on the fragment shader of the frame that last sampled it, which this frame's
-    // fence has already retired.
-    record_image_barrier(cmd, target.colour, VK_IMAGE_ASPECT_COLOR_BIT,
-                         VK_IMAGE_LAYOUT_UNDEFINED,
-                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                         VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, 0,
-                         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-                         VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
-
-    // The fill mask is cleared at the start of every pass and never read outside
-    // it, so it comes from UNDEFINED each time. The wait is on the previous frame's
-    // own stencil tests.
+    // From UNDEFINED: the mask is cleared each frame and never read outside the
+    // scope. Recorded here, before the tilemap pass opens that scope, because a
+    // layout transition cannot happen inside a rendering scope.
     const VkImageAspectFlags stencil_aspect =
         m_stencil_has_depth
             ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)
@@ -1040,43 +853,35 @@ void Poly3DPass::render()
                          VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT, 0,
                          VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
                          VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+}
 
-    VkRenderingAttachmentInfo colour{};
-    colour.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    colour.imageView   = target.colour_view;
-    colour.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colour.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colour.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
-    // Transparent, and premultiplied, so a pixel no polygon covers lets the
-    // tilemap behind it through unaltered.
-    colour.clearValue.color = VkClearColorValue{{0.0F, 0.0F, 0.0F, 0.0F}};
+VkRenderingAttachmentInfo Poly3DPass::stencil_attachment() const
+{
+    const Frame& target = m_frames[m_context->frame_index()];
 
     VkRenderingAttachmentInfo stencil{};
     stencil.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     stencil.imageView   = target.stencil_view;
     stencil.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     stencil.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    // Nothing outside this pass reads the fill mask, so it need not be written
-    // back to memory.
+    // Nothing outside the scope reads the fill mask, so it need not be written
+    // back to memory -- on a tiler this keeps it entirely in tile memory.
     stencil.storeOp                         = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     stencil.clearValue.depthStencil.depth   = 1.0F;
     stencil.clearValue.depthStencil.stencil = 0;
+    return stencil;
+}
 
-    VkRenderingInfo rendering{};
-    rendering.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
-    rendering.renderArea           = VkRect2D{{0, 0}, VkExtent2D{kWidth, kHeight}};
-    rendering.layerCount           = 1;
-    rendering.colorAttachmentCount = 1;
-    rendering.pColorAttachments    = &colour;
-    rendering.pStencilAttachment   = &stencil;
-    rendering.pDepthAttachment     = m_stencil_has_depth ? &stencil : nullptr;
-    vkCmdBeginRendering(cmd, &rendering);
+void Poly3DPass::draw_polygons()
+{
+    const VkCommandBuffer cmd    = m_context->cmd();
+    Frame&                target = frame();
 
-    // Native resolution, one to one, with no letterboxing: the scaling to the
-    // window happens later, once, on the finished frame.
-    const VkViewport viewport{0.0F, 0.0F, static_cast<float>(kWidth),
-                              static_cast<float>(kHeight), 0.0F, 1.0F};
-    vkCmdSetViewport(cmd, 0, 1, &viewport);
+    // Runs inside TilemapPass's open native-frame scope, between record_below()
+    // and record_above(): the polygon pipeline's premultiplied-over blend merges
+    // the 3D onto the below-tilemap directly, with no offscreen colour image to
+    // store and re-sample (the tiler flush+reload this change removes).
+    m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Poly3D, false);
 
     if (m_vertex_count != 0) {
         PolygonPush push{};
@@ -1101,45 +906,7 @@ void Poly3DPass::render()
         }
     }
 
-    vkCmdEndRendering(cmd);
-
-    record_image_barrier(cmd, target.colour, VK_IMAGE_ASPECT_COLOR_BIT,
-                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-                         VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-                         VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
-                         VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
-
     m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, GpuStage::Poly3D, true);
-}
-
-void Poly3DPass::composite()
-{
-    const VkCommandBuffer cmd = m_context->cmd();
-
-    // Both queries land inside TilemapPass's open rendering scope (this runs
-    // between record_below() and record_above()), which vkCmdWriteTimestamp2
-    // permits -- only vkCmdResetQueryPool needs to be outside one, and that
-    // already happened once at the top of the frame in Context::begin_frame().
-    m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Composite, false);
-
-    CompositePush push{};
-    push.background[3] = 1.0F;
-    push.mode          = kModeBlendOver;
-
-    // The viewport and scissor are the native-resolution ones the tilemap pass set
-    // for the layers below, which is exactly where this belongs, so they are left
-    // alone. One texel per pixel: this pass rasterised at 496x384 and the frame it
-    // is blending into is the same size.
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_composite_pipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_composite_layout, 0, 1,
-                            &frame().composite_set, 0, nullptr);
-    vkCmdPushConstants(cmd, m_composite_layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
-                       sizeof(push), &push);
-    vkCmdDraw(cmd, 3, 1, 0, 0);
-
-    m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, GpuStage::Composite, true);
 }
 
 }  // namespace sm2::render::vk

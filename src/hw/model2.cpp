@@ -352,6 +352,11 @@ void Model2::reset()
 
 void Model2::run_frame()
 {
+    // Per-core --profile split. The i960 figure absorbs sync_copro()'s time
+    // (it runs inside m_cpu.run() on an empty-FIFO read); the copro figure is
+    // only step_copro()'s scheduled share.
+    reset_core_profile();
+
     for (u32 line = 0; line < kVerticalTotal; ++line) {
         const u64 line_end   = m_frame_start + static_cast<u64>(line + 1) * kCyclesPerLine;
         const u64 line_start = m_cycles;
@@ -372,9 +377,16 @@ void Model2::run_frame()
             target = std::min(target, m_cycles + kCoproInterleave);
 
             const s32 slice = static_cast<s32>(std::min<u64>(target - m_cycles, 1u << 20));
-            const s32 used  = m_cpu.run(slice);
+            s32 used;
+            {
+                CoreScope scope(m_core_profile, m_core_profile.i960_ns);
+                used = m_cpu.run(slice);
+            }
             m_cycles += static_cast<u64>(used);
-            step_copro(static_cast<u32>(used > 0 ? used : 0));
+            {
+                CoreScope scope(m_core_profile, m_core_profile.copro_ns);
+                step_copro(static_cast<u32>(used > 0 ? used : 0));
+            }
 
             // The UART must be ticked alongside the CPU, not just once per
             // scanline, because TxRDY going high triggers the sound interrupt.
@@ -404,7 +416,10 @@ void Model2::run_frame()
         // coarse enough that the per-call cost of entering the 68000 core is
         // negligible.
         const u32 line_cycles = static_cast<u32>(m_cycles - line_start);
-        m_sound.run(line_cycles);
+        {
+            CoreScope scope(m_core_profile, m_core_profile.sound_ns);
+            m_sound.run(line_cycles);
+        }
 
         // TxRDY and RxRDY are levels, and the interrupt latch samples them rather
         // than seeing an edge. MAME gets this from the UART's 500 kHz transmit

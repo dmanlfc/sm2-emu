@@ -488,6 +488,8 @@ void Model2B::reset()
 
 void Model2B::run_frame()
 {
+    reset_core_profile();  // per-core --profile split; see Model2::run_frame
+
     for (u32 line = 0; line < kVerticalTotal; ++line) {
         const u64 line_end   = m_frame_start + static_cast<u64>(line + 1) * kCyclesPerLine;
         const u64 line_start = m_cycles;
@@ -498,9 +500,16 @@ void Model2B::run_frame()
             target = std::min(target, m_cycles + kCoproInterleave);
 
             const s32 slice = static_cast<s32>(std::min<u64>(target - m_cycles, 1u << 20));
-            const s32 used  = m_cpu.run(slice);
+            s32 used;
+            {
+                CoreScope scope(m_core_profile, m_core_profile.i960_ns);
+                used = m_cpu.run(slice);
+            }
             m_cycles += static_cast<u64>(used);
-            step_copro(static_cast<u32>(used > 0 ? used : 0));
+            {
+                CoreScope scope(m_core_profile, m_core_profile.copro_ns);
+                step_copro(static_cast<u32>(used > 0 ? used : 0));
+            }
 
             m_uart.run(static_cast<u32>(used > 0 ? used : 0));
             service_timers();
@@ -514,7 +523,10 @@ void Model2B::run_frame()
         }
 
         const u32 line_cycles = static_cast<u32>(m_cycles - line_start);
-        m_sound.run(line_cycles);
+        {
+            CoreScope scope(m_core_profile, m_core_profile.sound_ns);
+            m_sound.run(line_cycles);
+        }
         sound_ready_w();
 
         if (line == kVisibleHeight) {

@@ -36,7 +36,12 @@ struct Config {
     /// Wait for the display's vertical blank before presenting. Independent of
     /// pacing: this decides whether a frame can tear, not how fast the machine
     /// runs.
-    bool vsync = true;
+    ///
+    /// Off by default: the software pacer is the rate authority, and a blocking
+    /// FIFO present quantises frame times to the display refresh (a frame a hair
+    /// over one vblank waits a whole extra one), which measured ~9% off Daytona
+    /// on a Pi 5 for nothing. Turn back on if a bare/uncomposited display tears.
+    bool vsync = false;
 
     /// Hold the machine to its own 57.5245 Hz. Turning this off runs as fast as the
     /// host manages, which is what a capture wants and nothing else does.

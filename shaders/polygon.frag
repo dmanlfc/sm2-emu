@@ -284,27 +284,30 @@ ivec2 filterLevel(PolyParams p, int level, int u, int v, bool translucent)
 /// mantissa bits. MAME takes it from its 3dfx Voodoo renderer; reproducing the
 /// table rather than calling log2 keeps the mipmap level and the blend between
 /// levels identical at every boundary.
+// Module-scope so the compiler materialises it once, not once per fragment:
+// some GLSL compilers (the V3D tiler among them) rebuild a function-local const
+// array on every invocation. Same table, none of the per-pixel cost.
+const uint kLog2Table[128] = uint[128](
+      0u,   2u,   5u,   8u,  11u,  14u,  16u,  19u,  22u,  25u,  27u,  30u,
+     33u,  35u,  38u,  40u,  43u,  46u,  48u,  51u,  53u,  56u,  58u,  61u,
+     63u,  65u,  68u,  70u,  73u,  75u,  77u,  80u,  82u,  84u,  87u,  89u,
+     91u,  93u,  96u,  98u, 100u, 102u, 104u, 106u, 109u, 111u, 113u, 115u,
+    117u, 119u, 121u, 123u, 125u, 127u, 129u, 132u, 134u, 136u, 138u, 140u,
+    141u, 143u, 145u, 147u, 149u, 151u, 153u, 155u, 157u, 159u, 161u, 162u,
+    164u, 166u, 168u, 170u, 172u, 173u, 175u, 177u, 179u, 181u, 182u, 184u,
+    186u, 188u, 189u, 191u, 193u, 194u, 196u, 198u, 200u, 201u, 203u, 205u,
+    206u, 208u, 209u, 211u, 213u, 214u, 216u, 218u, 219u, 221u, 222u, 224u,
+    225u, 227u, 229u, 230u, 232u, 233u, 235u, 236u, 238u, 239u, 241u, 242u,
+    244u, 245u, 247u, 248u, 250u, 251u, 253u, 254u);
+
 int fastLog2(float value)
 {
-    const uint table[128] = uint[128](
-          0u,   2u,   5u,   8u,  11u,  14u,  16u,  19u,  22u,  25u,  27u,  30u,
-         33u,  35u,  38u,  40u,  43u,  46u,  48u,  51u,  53u,  56u,  58u,  61u,
-         63u,  65u,  68u,  70u,  73u,  75u,  77u,  80u,  82u,  84u,  87u,  89u,
-         91u,  93u,  96u,  98u, 100u, 102u, 104u, 106u, 109u, 111u, 113u, 115u,
-        117u, 119u, 121u, 123u, 125u, 127u, 129u, 132u, 134u, 136u, 138u, 140u,
-        141u, 143u, 145u, 147u, 149u, 151u, 153u, 155u, 157u, 159u, 161u, 162u,
-        164u, 166u, 168u, 170u, 172u, 173u, 175u, 177u, 179u, 181u, 182u, 184u,
-        186u, 188u, 189u, 191u, 193u, 194u, 196u, 198u, 200u, 201u, 203u, 205u,
-        206u, 208u, 209u, 211u, 213u, 214u, 216u, 218u, 219u, 221u, 222u, 224u,
-        225u, 227u, 229u, 230u, 232u, 233u, 235u, 236u, 238u, 239u, 241u, 242u,
-        244u, 245u, 247u, 248u, 250u, 251u, 253u, 254u);
-
     if (value < 0.0) {
         return 0;
     }
     const uint ival = floatBitsToUint(value) >> 16;
     const int  exp  = int(ival >> 7) - 127;
-    return (exp << 8) | int(table[ival & 127u]);
+    return (exp << 8) | int(kLog2Table[ival & 127u]);
 }
 
 /// One byte of luminance RAM.

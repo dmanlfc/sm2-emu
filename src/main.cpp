@@ -98,11 +98,18 @@ enum class GraphicsBackendChoice {
 }
 
 /// Default when --graphics-backend is not given: whichever GPU backend was
-/// compiled in (Vulkan preferred, then OpenGL), else software.
+/// compiled in, else software.
+///
+/// GLES is preferred over Vulkan where built: GLES is the ARM target (the only
+/// config that builds it) and its native driver beat V3DV Vulkan on every set
+/// on a Pi 5. A desktop build never enables GLES, so it keeps Vulkan/desktop-GL.
+/// Only governs a bare invocation; the Batocera frontend passes the flag anyway.
 constexpr GraphicsBackendChoice kDefaultGraphicsBackend =
-#if defined(SM2_HAVE_VULKAN)
+#if defined(SM2_HAVE_OPENGL_ES)
+    GraphicsBackendChoice::Opengl;
+#elif defined(SM2_HAVE_VULKAN)
     GraphicsBackendChoice::Vulkan;
-#elif defined(SM2_HAVE_OPENGL_DESKTOP) || defined(SM2_HAVE_OPENGL_ES)
+#elif defined(SM2_HAVE_OPENGL_DESKTOP)
     GraphicsBackendChoice::Opengl;
 #else
     GraphicsBackendChoice::Software;
@@ -200,6 +207,12 @@ struct Options {
     /// fixed window a throughput figure does.
     bool profile = false;
 
+    /// Discard every profiler and frame-time sample before this presented-frame
+    /// number, so attract/title/select screens (which draw almost nothing) do
+    /// not inflate the average. Set past the coin/start sequence (coin_at +
+    /// ~350). Zero measures from the first frame.
+    sm2::u32 profile_after = 0;
+
     /// Also write --profile's per-stage table to this CSV file, one row per
     /// stage, so a before-and-after comparison is scriptable rather than
     /// needing to parse the stdout table -- design.md requirement 1.4.
@@ -241,6 +254,9 @@ void print_usage()
         "                      queries. n defaults to 30 seconds if omitted\n"
         "      --profile-csv <f>  With --profile, also write the per-stage table\n"
         "                      to this CSV file, one row per stage\n"
+        "      --profile-after <n>  Discard profiler and fps samples before frame\n"
+        "                      n, so attract/title/select screens do not skew the\n"
+        "                      in-game average. Set past coin-at + ~350\n"
         "      --screenshot <f>  Write the last presented frame to this PPM file\n"
         "      --soft-render   Also render each captured frame on the CPU with a\n"
         "                      port of MAME's own rasteriser, beside the screenshot,\n"
@@ -400,6 +416,13 @@ void print_usage()
             }
         } else if (takes_value("--profile-csv", &out->profile_csv)) {
             // handled
+        } else if (std::strcmp(arg, "--profile-after") == 0) {
+            if (index + 1 >= argc) {
+                SM2_ERROR("--profile-after requires a frame number");
+                return false;
+            }
+            out->profile_after =
+                static_cast<sm2::u32>(std::strtoul(argv[++index], nullptr, 10));
         } else if (std::strcmp(arg, "--coin-at") == 0) {
             if (index + 1 >= argc) {
                 SM2_ERROR("--coin-at requires a frame number");
@@ -1313,11 +1336,27 @@ int main(int argc, char** argv)
         core::StageTimer stage_record("command_recording");
         core::StageTimer stage_submit("submit_and_present");
         core::StageTimer stage_software("software_renderer");
+        // The wait the emulation thread spends blocked on the GPU/present,
+        // inside begin_frame() (Vulkan fence+acquire, GL swap back-pressure). It
+        // was outside every stage before, which is why the idle stall was
+        // invisible in earlier profiles. design.md §1.
+        core::StageTimer stage_present_wait("present_wait");
+        // The three cores run_frame() interleaves, split out so a CPU-bound
+        // result can be told from one hot core. Filled inside run_frame() and
+        // read back here the way stage_geometry already is. design.md §1/§4.
+        core::StageTimer stage_cpu_i960("cpu_i960");
+        core::StageTimer stage_cpu_copro("cpu_copro");
+        core::StageTimer stage_cpu_sound("cpu_sound");
+        if (machine_iface) {
+            machine_iface->set_core_profiling(options.profile);
+        }
         if (options.profile) {
             const usize expected = static_cast<usize>(options.duration_seconds) * 120;
             for (core::StageTimer* timer :
                 {&stage_run_frame, &stage_geometry, &stage_compose, &stage_build,
-                 &stage_tilemap_upload, &stage_record, &stage_submit, &stage_software}) {
+                 &stage_tilemap_upload, &stage_record, &stage_submit, &stage_software,
+                 &stage_present_wait, &stage_cpu_i960, &stage_cpu_copro,
+                 &stage_cpu_sound}) {
                 timer->reserve(expected);
             }
         }
@@ -1436,6 +1475,12 @@ int main(int argc, char** argv)
             // returns to real time.
             pacer.set_throttled(options.config.throttle && !fast_forward);
 
+            // Warm-up gate: don't sample until --profile-after's frame (see its
+            // declaration). Zero means always true.
+            const bool profile_sample =
+                options.profile
+                && (options.profile_after == 0 || frames_presented >= options.profile_after);
+
             if (machine_iface && !paused) {
                 // Inputs are levels, sampled whenever the program polls the I/O
                 // controller during the frame, so they have to be set before the
@@ -1452,10 +1497,10 @@ int main(int argc, char** argv)
                 }
 
                 {
-                    auto scope = core::maybe_scope(stage_run_frame, options.profile);
+                    auto scope = core::maybe_scope(stage_run_frame, profile_sample);
                     machine_iface->run_frame();
                 }
-                if (options.profile) {
+                if (profile_sample) {
                     // Read straight back out rather than timed separately: the
                     // geometry engine runs inside run_frame() (at vblank), not as
                     // a call main.cpp makes itself, so there is no separate scope
@@ -1463,6 +1508,17 @@ int main(int argc, char** argv)
                     // documentation of why this figure exists.
                     stage_geometry.record_ms(
                         static_cast<double>(machine_iface->geometry_stage_nanoseconds())
+                        / 1'000'000.0);
+                    // The per-core split, filled inside run_frame() for the same
+                    // reason: main.cpp sees one interleaved call, not three.
+                    stage_cpu_i960.record_ms(
+                        static_cast<double>(machine_iface->i960_stage_nanoseconds())
+                        / 1'000'000.0);
+                    stage_cpu_copro.record_ms(
+                        static_cast<double>(machine_iface->copro_stage_nanoseconds())
+                        / 1'000'000.0);
+                    stage_cpu_sound.record_ms(
+                        static_cast<double>(machine_iface->sound_stage_nanoseconds())
                         / 1'000'000.0);
                 }
 
@@ -1488,12 +1544,27 @@ int main(int argc, char** argv)
                 }
             }
 
-            if (!backend->begin_frame()) {
+            // Timed as present_wait (see its declaration). The scope closes
+            // before the continue below so a skipped frame's SDL_Delay is not
+            // folded into the figure.
+            bool begin_ok;
+            {
+                auto scope = core::maybe_scope(stage_present_wait, profile_sample);
+                begin_ok = backend->begin_frame();
+            }
+            if (!begin_ok) {
                 // Minimised or the swapchain was rebuilt. Yield rather than
                 // spinning on a window we cannot draw into, and abandon the pacing
                 // deadline because an unknown amount of time is about to pass.
                 SDL_Delay(16);
                 pacer.resync();
+                // Still honour a wall-clock run deadline (--duration/--profile):
+                // without this, a window that stays non-drawable spins here
+                // forever and the profile/summary never prints. The frame-time
+                // sample is deliberately NOT recorded for a skipped frame.
+                if (run_deadline_ns != 0 && SDL_GetTicksNS() >= run_deadline_ns) {
+                    running = false;
+                }
                 continue;
             }
 
@@ -1526,7 +1597,7 @@ int main(int argc, char** argv)
 
             if (machine_iface) {
                 if (need_cpu_compose) {
-                    auto scope = core::maybe_scope(stage_compose, options.profile);
+                    auto scope = core::maybe_scope(stage_compose, profile_sample);
                     machine_iface->compose_video();
                 } else if (use_gpu_tilemap) {
                     // compose_video()'s other job, done here directly since its
@@ -1545,7 +1616,7 @@ int main(int argc, char** argv)
                 // one, and the 3D pass opens a scope of its own on its offscreen
                 // target.
                 {
-                    auto scope = core::maybe_scope(stage_tilemap_upload, options.profile);
+                    auto scope = core::maybe_scope(stage_tilemap_upload, profile_sample);
                     if (use_gpu_tilemap) {
                         backend->compute_tilemap(*machine_iface, video);
                     } else {
@@ -1553,7 +1624,7 @@ int main(int argc, char** argv)
                     }
                 }
                 {
-                    auto scope = core::maybe_scope(stage_build, options.profile);
+                    auto scope = core::maybe_scope(stage_build, profile_sample);
                     backend->submit_polygons(machine_iface.get(), video);
                 }
             }
@@ -1567,7 +1638,7 @@ int main(int argc, char** argv)
             // is no Vulkan drawing to time in that path -- present.upload_from_host()
             // is a transfer, not a draw, and stays out of this figure.
             std::optional<core::StageTimer::Scope> record_scope;
-            if (options.profile && !draw_with_software) {
+            if (profile_sample && !draw_with_software) {
                 record_scope.emplace(stage_record);
             }
 
@@ -1580,7 +1651,7 @@ int main(int argc, char** argv)
             // category one. Nothing is magnified until blit_to_swapchain() below,
             // so the two blends run on the hardware's own pixels rather than on
             // colours a magnifying filter has already mixed with their neighbours.
-            if (options.profile) {
+            if (profile_sample) {
                 const render::GpuStageTimes gpu_times = backend->read_stage_times();
                 if (!backend->supports_gpu_timing() && !gpu_timing_unavailable_warned) {
                     SM2_WARN("this device does not report GPU timestamps; --profile's "
@@ -1602,7 +1673,7 @@ int main(int argc, char** argv)
                 // either renderer presents from, which is what lets a screenshot
                 // and the present/letterbox path stay renderer-agnostic.
                 {
-                    auto scope = core::maybe_scope(stage_software, options.profile);
+                    auto scope = core::maybe_scope(stage_software, profile_sample);
                     soft_renderer.render(*machine_iface, machine_iface->render_list(),
                                          soft_frame);
                 }
@@ -1671,7 +1742,7 @@ int main(int argc, char** argv)
 
             bool end_frame_ok = false;
             {
-                auto scope = core::maybe_scope(stage_submit, options.profile);
+                auto scope = core::maybe_scope(stage_submit, profile_sample);
                 end_frame_ok = backend->end_frame();
             }
             if (!end_frame_ok) {
@@ -1713,8 +1784,13 @@ int main(int argc, char** argv)
             // reasoning applied to measured_hz().
             if (run_deadline_ns != 0) {
                 const u64 now_ns = SDL_GetTicksNS();
-                frame_times_ms.push_back(
-                    static_cast<double>(now_ns - frame_start_ns) / 1'000'000.0);
+                // Same --profile-after gate as the per-stage samples, so the fps
+                // average is in-game only. The deadline check below stays
+                // unconditional.
+                if (options.profile_after == 0 || frames_presented > options.profile_after) {
+                    frame_times_ms.push_back(
+                        static_cast<double>(now_ns - frame_start_ns) / 1'000'000.0);
+                }
                 if (now_ns >= run_deadline_ns) {
                     running = false;
                 }
@@ -1800,9 +1876,10 @@ int main(int argc, char** argv)
                 }
 
                 for (const core::StageTimer* timer :
-                    {&stage_run_frame, &stage_geometry, &stage_compose,
+                    {&stage_run_frame, &stage_cpu_i960, &stage_cpu_copro,
+                     &stage_cpu_sound, &stage_geometry, &stage_compose,
                      &stage_tilemap_upload, &stage_build, &stage_record, &stage_submit,
-                     &stage_software}) {
+                     &stage_present_wait, &stage_software}) {
                     const core::StageStats stats = core::summarise(*timer);
                     if (stats.samples == 0) {
                         continue;

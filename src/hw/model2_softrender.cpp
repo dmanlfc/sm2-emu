@@ -18,6 +18,8 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <thread>
+#include <vector>
 
 namespace sm2::hw {
 namespace {
@@ -223,7 +225,8 @@ u32 SoftRenderer::fetch_bilinear_texel(const SoftPolyExtra& object, s32 miplevel
 }
 
 void SoftRenderer::draw_scanline_solid(s32 scanline, const Extent& extent,
-                                       const SoftPolyExtra& object, bool translucent)
+                                       const SoftPolyExtra& object, bool translucent,
+                                       u32& pixels)
 {
     // A translucent untextured polygon has nothing to draw: there is no texel to
     // take an alpha from, so the hardware writes nothing at all.
@@ -262,13 +265,14 @@ void SoftRenderer::draw_scanline_solid(s32 scanline, const Extent& extent,
         if (fill[x] == 0) {
             p[x]    = resolved;
             fill[x] = 0xff;
-            ++m_pixels;
+            ++pixels;
         }
     }
 }
 
 void SoftRenderer::draw_scanline_tex(s32 scanline, const Extent& extent,
-                                     const SoftPolyExtra& object, bool translucent)
+                                     const SoftPolyExtra& object, bool translucent,
+                                     u32& pixels)
 {
     u32* const p    = &m_destmap[static_cast<usize>(scanline) * kTargetWidth];
     u8* const  fill = &m_fillmap[static_cast<usize>(scanline) * kTargetWidth];
@@ -352,13 +356,13 @@ void SoftRenderer::draw_scanline_tex(s32 scanline, const Extent& extent,
         p[x] = pack_rgba(m_gamma[table(red_base, luma)], m_gamma[table(green_base, luma)],
                          m_gamma[table(blue_base, luma)]);
         fill[x] = 0xff;
-        ++m_pixels;
+        ++pixels;
     }
 }
 
 void SoftRenderer::render_triangle(const Rect& cliprect, const PolyVertex& in1,
                                    const PolyVertex& in2, const PolyVertex& in3, u32 renderer,
-                                   const SoftPolyExtra& extra)
+                                   const SoftPolyExtra& extra, u32& pixels)
 {
     const PolyVertex* v1 = &in1;
     const PolyVertex* v2 = &in2;
@@ -441,15 +445,15 @@ void SoftRenderer::render_triangle(const Rect& cliprect, const PolyVertex& in1,
         }
 
         if ((renderer & 2) != 0) {
-            draw_scanline_tex(curscan, extent, extra, (renderer & 1) != 0);
+            draw_scanline_tex(curscan, extent, extra, (renderer & 1) != 0, pixels);
         } else {
-            draw_scanline_solid(curscan, extent, extra, (renderer & 1) != 0);
+            draw_scanline_solid(curscan, extent, extra, (renderer & 1) != 0, pixels);
         }
     }
 }
 
 void SoftRenderer::render_convex(const Rect& cliprect, const PolyVertex* v, u32 count,
-                                 u32 renderer, const SoftPolyExtra& extra)
+                                 u32 renderer, const SoftPolyExtra& extra, u32& pixels)
 {
     // poly.h's render_polygon: two edge walks from the topmost vertex, one each
     // way round, then per-scanline interpolation along whichever pair of edges the
@@ -562,14 +566,14 @@ void SoftRenderer::render_convex(const Rect& cliprect, const PolyVertex* v, u32 
         extent.stopx  = istopx;
 
         if ((renderer & 2) != 0) {
-            draw_scanline_tex(curscan, extent, extra, (renderer & 1) != 0);
+            draw_scanline_tex(curscan, extent, extra, (renderer & 1) != 0, pixels);
         } else {
-            draw_scanline_solid(curscan, extent, extra, (renderer & 1) != 0);
+            draw_scanline_solid(curscan, extent, extra, (renderer & 1) != 0, pixels);
         }
     }
 }
 
-void SoftRenderer::draw_polygon(const RenderPolygon& poly, const Rect& cliprect)
+void SoftRenderer::draw_polygon(const RenderPolygon& poly, const Rect& cliprect, u32& pixels)
 {
     // MAME's model2_3d_render. The renderer index is two bits of the texture
     // header: bit 14 selects textured, bit 13 translucent.
@@ -629,9 +633,37 @@ void SoftRenderer::draw_polygon(const RenderPolygon& poly, const Rect& cliprect)
     }
 
     if (poly.num_vertices == 3) {
-        render_triangle(vp, work[0], work[1], work[2], renderer, extra);
+        render_triangle(vp, work[0], work[1], work[2], renderer, extra, pixels);
     } else if (poly.num_vertices >= 4 && poly.num_vertices <= 8) {
-        render_convex(vp, work, poly.num_vertices, renderer, extra);
+        render_convex(vp, work, poly.num_vertices, renderer, extra, pixels);
+    }
+}
+
+u32 SoftRenderer::worker_count()
+{
+    // Clamped to 4: the raster is only 384 rows, so past a handful of bands the
+    // per-thread launch cost outweighs the split, and the emulation cores still
+    // need the main thread.
+    static const u32 count = [] {
+        const unsigned hw = std::thread::hardware_concurrency();
+        if (hw <= 1) {
+            return 1u;
+        }
+        return std::min<u32>(hw, 4u);
+    }();
+    return count;
+}
+
+void SoftRenderer::render_band(const RenderList& list, s32 row_begin, s32 row_end, u32& pixels)
+{
+    if (row_end <= row_begin) {
+        return;
+    }
+    // Walk the whole list in draw order, clipped to this band's rows; a polygon
+    // that does not reach them is clipped to nothing and skipped.
+    const Rect cliprect{0, row_begin, static_cast<s32>(kWidth) - 1, row_end - 1};
+    for (const RenderPolygon& poly : list.polygons) {
+        draw_polygon(poly, cliprect, pixels);
     }
 }
 
@@ -670,9 +702,33 @@ void SoftRenderer::render(const Model2MachineBase& machine, const RenderList& li
         std::fill(m_destmap.begin(), m_destmap.end(), 0u);
         std::fill(m_fillmap.begin(), m_fillmap.end(), u8{0});
 
-        const Rect cliprect{0, 0, static_cast<s32>(kWidth) - 1, static_cast<s32>(kHeight) - 1};
-        for (const RenderPolygon& poly : list.polygons) {
-            draw_polygon(poly, cliprect);
+        const u32 workers = worker_count();
+        if (workers <= 1) {
+            m_pixels = 0;
+            render_band(list, 0, static_cast<s32>(kHeight), m_pixels);
+        } else {
+            // One band of rows per worker; see render_band and draw_polygon for
+            // why the split is bit-identical to serial.
+            std::vector<std::thread> pool;
+            std::vector<u32>         counts(workers, 0);
+            pool.reserve(workers - 1);
+            const s32 rows = static_cast<s32>(kHeight);
+            const auto band = [&](u32 w) {
+                const s32 begin = static_cast<s32>(static_cast<u64>(w) * rows / workers);
+                const s32 end   = static_cast<s32>(static_cast<u64>(w + 1) * rows / workers);
+                render_band(list, begin, end, counts[w]);
+            };
+            for (u32 w = 1; w < workers; ++w) {
+                pool.emplace_back(band, w);
+            }
+            band(0);  // this thread takes band 0 rather than sitting idle
+            for (std::thread& t : pool) {
+                t.join();
+            }
+            m_pixels = 0;
+            for (const u32 c : counts) {
+                m_pixels += c;
+            }
         }
 
         for (u32 y = 0; y < kHeight; ++y) {

@@ -109,7 +109,9 @@ void GlBackend::submit_polygons(const hw::Model2MachineBase* machine,
 
 void GlBackend::render_polygons()
 {
-    m_polygons.render();
+    // The 3D now draws inside the native framebuffer via composite_native_frame(),
+    // between the tilemap layers. Nothing to do here: GL clears the fill mask
+    // inline in draw_polygons(), with no separate stencil transition to record.
 }
 
 void GlBackend::composite_native_frame(u32 background_rgba, bool skip_3d)
@@ -121,7 +123,7 @@ void GlBackend::composite_native_frame(u32 background_rgba, bool skip_3d)
     // been composed into the layers below by the caller -- matching
     // VulkanBackend::composite_native_frame()'s own skip_3d handling.
     if (!skip_3d) {
-        m_polygons.composite();
+        m_polygons.draw_polygons();
     }
     m_tilemaps.draw_above();
 }

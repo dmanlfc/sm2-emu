@@ -87,20 +87,35 @@ private:
         [[nodiscard]] bool empty() const { return right < left || bottom < top; }
     };
 
-    void draw_polygon(const RenderPolygon& poly, const Rect& cliprect);
+    // Threaded across horizontal scanline bands. Draw order is priority
+    // (first-writer-wins fill mask), so each worker walks the whole list in
+    // order but clips to its own band of rows; bands never share a row, so the
+    // per-row order is preserved and the output is bit-identical to serial. The
+    // `u32& pixels` argument lets each worker count its drawn pixels without a
+    // shared write, summed into m_pixels after the join.
+    void draw_polygon(const RenderPolygon& poly, const Rect& cliprect, u32& pixels);
 
     void render_triangle(const Rect& cliprect, const PolyVertex& v1, const PolyVertex& v2,
-                         const PolyVertex& v3, u32 renderer, const SoftPolyExtra& extra);
+                         const PolyVertex& v3, u32 renderer, const SoftPolyExtra& extra,
+                         u32& pixels);
     void render_convex(const Rect& cliprect, const PolyVertex* v, u32 count, u32 renderer,
-                       const SoftPolyExtra& extra);
+                       const SoftPolyExtra& extra, u32& pixels);
 
     void draw_scanline_solid(s32 scanline, const Extent& extent, const SoftPolyExtra& object,
-                             bool translucent);
+                             bool translucent, u32& pixels);
     void draw_scanline_tex(s32 scanline, const Extent& extent, const SoftPolyExtra& object,
-                           bool translucent);
+                           bool translucent, u32& pixels);
 
     [[nodiscard]] u32 fetch_bilinear_texel(const SoftPolyExtra& object, s32 miplevel, s32 u,
                                            s32 v, bool translucent) const;
+
+    /// Rasterise every polygon into the [row_begin, row_end) band. Runs on a
+    /// worker thread; touches only rows in its band, so no locking is needed.
+    void render_band(const RenderList& list, s32 row_begin, s32 row_end, u32& pixels);
+
+    /// How many worker threads to split the 3D pass and composite across.
+    /// Clamped to hardware_concurrency; 1 means the plain serial path.
+    [[nodiscard]] static u32 worker_count();
 
     // Machine memory for the frame being drawn.
     std::span<const u16> m_palram;

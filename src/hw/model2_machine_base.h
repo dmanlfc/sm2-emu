@@ -62,6 +62,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <span>
 #include <string>
 
@@ -189,6 +190,23 @@ public:
     /// main CPU's instruction time.
     [[nodiscard]] virtual u64 geometry_stage_nanoseconds() const = 0;
 
+    // -- per-core timing, for --profile --------------------------------------
+    //
+    // run_frame() interleaves the i960, coprocessor and sound board, so main.cpp
+    // sees one call and cannot time them apart. Each board accumulates its own
+    // wall-clock nanoseconds below, gated on profiling being armed because these
+    // sites run thousands of times a frame. Design.md §1/§4.
+
+    /// Arm or disarm the per-core accumulators. main.cpp turns it on under
+    /// --profile only.
+    void set_core_profiling(bool enable) { m_core_profile.enabled = enable; }
+
+    /// Nanoseconds the last run_frame() spent in each core. Zero when profiling
+    /// was not armed for that frame.
+    [[nodiscard]] u64 i960_stage_nanoseconds() const { return m_core_profile.i960_ns; }
+    [[nodiscard]] u64 copro_stage_nanoseconds() const { return m_core_profile.copro_ns; }
+    [[nodiscard]] u64 sound_stage_nanoseconds() const { return m_core_profile.sound_ns; }
+
     // -- persistence -----------------------------------------------------------
 
     /// Directory for the NVRAM and EEPROM images. Loaded now, saved on request.
@@ -279,6 +297,54 @@ public:
 
     virtual void log_unmapped_summary() const = 0;
     virtual void log_burst_summary() const    = 0;
+
+protected:
+    /// Per-core wall-clock accumulators, filled by each board's run_frame().
+    /// See set_core_profiling() above for why this is gated rather than always
+    /// measured.
+    struct CoreProfile {
+        bool enabled  = false;
+        u64  i960_ns  = 0;
+        u64  copro_ns = 0;
+        u64  sound_ns = 0;
+    };
+    CoreProfile m_core_profile;
+
+    /// Zero the per-frame accumulators. Called at the top of run_frame().
+    void reset_core_profile()
+    {
+        m_core_profile.i960_ns  = 0;
+        m_core_profile.copro_ns = 0;
+        m_core_profile.sound_ns = 0;
+    }
+
+    /// RAII accumulator: adds its lifetime in nanoseconds to `into` on exit,
+    /// but only when profiling is armed -- otherwise the clock is never read.
+    class CoreScope {
+    public:
+        CoreScope(const CoreProfile& profile, u64& into)
+            : m_into(profile.enabled ? &into : nullptr)
+        {
+            if (m_into != nullptr) {
+                m_start = std::chrono::steady_clock::now();
+            }
+        }
+        ~CoreScope()
+        {
+            if (m_into != nullptr) {
+                *m_into += static_cast<u64>(
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        std::chrono::steady_clock::now() - m_start)
+                        .count());
+            }
+        }
+        CoreScope(const CoreScope&)            = delete;
+        CoreScope& operator=(const CoreScope&) = delete;
+
+    private:
+        u64*                                  m_into = nullptr;
+        std::chrono::steady_clock::time_point m_start{};
+    };
 };
 
 }  // namespace sm2::hw

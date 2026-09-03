@@ -18,11 +18,9 @@
 #include "hw/model2_machine_base.h"
 #include "hw/model2_video.h"
 
-#include "shaders/fullscreen_quad_vert_glsl.h"
 #include "shaders/polygon_frag_glsl.h"
 #include "shaders/polygon_vert_glsl.h"
 #include "shaders/texel_decode_comp_glsl.h"
-#include "shaders/tilemap_composite_frag_glsl.h"
 
 #include <algorithm>
 #include <cstring>
@@ -31,7 +29,6 @@ namespace sm2::render::gl {
 namespace {
 
 constexpr usize kLumaBytes = 0x8000;
-constexpr u32   kModeBlendOver = 1;
 
 }  // namespace
 
@@ -48,23 +45,11 @@ bool Poly3DPass::init()
                             * hw::Model2Video::kToneComponents,
                         0);
 
-    return create_framebuffer() && create_programs() && create_buffers();
+    return create_programs() && create_buffers();
 }
 
 void Poly3DPass::shutdown()
 {
-    if (m_fbo != 0) {
-        DeleteFramebuffers(1, &m_fbo);
-        m_fbo = 0;
-    }
-    if (m_colour_texture != 0) {
-        DeleteTextures(1, &m_colour_texture);
-        m_colour_texture = 0;
-    }
-    if (m_stencil_renderbuffer != 0) {
-        DeleteRenderbuffers(1, &m_stencil_renderbuffer);
-        m_stencil_renderbuffer = 0;
-    }
     if (m_decoded_texture != 0) {
         DeleteTextures(1, &m_decoded_texture);
         m_decoded_texture = 0;
@@ -81,21 +66,9 @@ void Poly3DPass::shutdown()
         DeleteProgram(m_decode_program);
         m_decode_program = 0;
     }
-    if (m_composite_program != 0) {
-        DeleteProgram(m_composite_program);
-        m_composite_program = 0;
-    }
     if (m_vao != 0) {
         DeleteVertexArrays(1, &m_vao);
         m_vao = 0;
-    }
-    if (m_composite_vao != 0) {
-        DeleteVertexArrays(1, &m_composite_vao);
-        m_composite_vao = 0;
-    }
-    if (m_composite_push_ubo != 0) {
-        DeleteBuffers(1, &m_composite_push_ubo);
-        m_composite_push_ubo = 0;
     }
     if (m_polygon_push_ubo != 0) {
         DeleteBuffers(1, &m_polygon_push_ubo);
@@ -105,39 +78,6 @@ void Poly3DPass::shutdown()
     destroy_persistent_buffer(&m_polygon_buffer);
     destroy_persistent_buffer(&m_sheets_buffer);
     destroy_persistent_buffer(&m_luma_buffer);
-}
-
-bool Poly3DPass::create_framebuffer()
-{
-    GenTextures(1, &m_colour_texture);
-    BindTexture(GL_TEXTURE_2D, m_colour_texture);
-    TexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, static_cast<GLsizei>(kWidth),
-                static_cast<GLsizei>(kHeight));
-    TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // GL_STENCIL_INDEX8 is a mandatory renderable format at this floor, so
-    // -- unlike render::vk::Context::pick_stencil_format() -- there is no
-    // combined-depth-stencil fallback to write; see gl_context.h's own note
-    // on why this is one fewer thing to get wrong, not a gap relative to the
-    // Vulkan path.
-    GenRenderbuffers(1, &m_stencil_renderbuffer);
-    BindRenderbuffer(GL_RENDERBUFFER, m_stencil_renderbuffer);
-    RenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, static_cast<GLsizei>(kWidth),
-                       static_cast<GLsizei>(kHeight));
-
-    GenFramebuffers(1, &m_fbo);
-    BindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-    FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colour_texture,
-                        0);
-    FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-                           m_stencil_renderbuffer);
-
-    if (CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        SM2_ERROR("gl: 3d pass framebuffer is incomplete");
-        return false;
-    }
-    return true;
 }
 
 bool Poly3DPass::create_programs()
@@ -167,23 +107,6 @@ bool Poly3DPass::create_programs()
     if (m_decode_program == 0) {
         return false;
     }
-
-    GenVertexArrays(1, &m_composite_vao);
-    const std::string composite_vertex_source =
-        prepare_gl_source(shaders::kFullscreenQuadVertGlsl, active_version_directive());
-    const std::string composite_fragment_source =
-        prepare_gl_source(shaders::kTilemapCompositeFragGlsl, active_version_directive());
-    m_composite_program =
-        compile_program(composite_vertex_source.c_str(), composite_fragment_source.c_str());
-    if (m_composite_program == 0) {
-        return false;
-    }
-    const u32 composite_block = GetUniformBlockIndex(m_composite_program, "Push");
-    UniformBlockBinding(m_composite_program, composite_block, 1);
-    GenBuffers(1, &m_composite_push_ubo);
-    BindBuffer(GL_UNIFORM_BUFFER, m_composite_push_ubo);
-    BufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(sizeof(float) * 4 + sizeof(u32)),
-              nullptr, GL_DYNAMIC_DRAW);
 
     return true;
 }
@@ -285,19 +208,15 @@ void Poly3DPass::build(const hw::Model2MachineBase* machine, const hw::Model2Vid
     }
 }
 
-void Poly3DPass::render()
+void Poly3DPass::draw_polygons()
 {
-    BindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-    Viewport(0, 0, static_cast<GLsizei>(kWidth), static_cast<GLsizei>(kHeight));
-
-    // Transparent, premultiplied clear: a pixel no polygon covers lets the
-    // tilemap behind it through unaltered, matching
-    // render::vk::Poly3DPass::render()'s own clear value.
-    ColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    float clear_colour[4] = {0.0F, 0.0F, 0.0F, 0.0F};
-    ClearColor(clear_colour[0], clear_colour[1], clear_colour[2], clear_colour[3]);
+    // Runs with the native framebuffer bound and the below-tilemap already in
+    // it, between draw_below() and draw_above(); the premultiplied-over blend
+    // merges the 3D onto it directly, with no offscreen colour texture to store
+    // and re-sample. Only the fill-mask stencil is cleared -- clearing colour
+    // would wipe the below-tilemap.
     ClearStencil(0);
-    Clear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    Clear(GL_STENCIL_BUFFER_BIT);
 
     if (m_vertex_count == 0) {
         return;
@@ -316,13 +235,17 @@ void Poly3DPass::render()
 
     // The fill mask: polygons arrive nearest first, and a fragment draws
     // only where nothing has drawn yet, claiming the pixel when it does.
-    // Same rule render::vk::Poly3DPass::render()'s stencil state expresses,
-    // in GL's terms.
+    // Same rule render::vk::Poly3DPass's stencil state expresses, in GL's terms.
     Enable(GL_STENCIL_TEST);
     StencilFunc(GL_EQUAL, 0, 0xff);
     StencilOp(GL_KEEP, GL_KEEP, GL_INCR);
     StencilMask(0xff);
-    Disable(GL_BLEND);
+
+    // Premultiplied over: the shader writes alpha 1 for every non-discarded
+    // pixel, so this overwrites where a polygon draws and leaves the
+    // below-tilemap where it does not. Matches the Vulkan polygon blend state.
+    Enable(GL_BLEND);
+    BlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
     // Texture units and buffer bindings match polygon.frag's own layout(...)
     // qualifiers exactly: uSheets binding 0, Luma binding 1, uTone binding 2,
@@ -363,30 +286,6 @@ void Poly3DPass::render()
     }
 
     Disable(GL_STENCIL_TEST);
-}
-
-void Poly3DPass::composite()
-{
-    struct PushBlock {
-        float background[4];
-        u32   mode;
-    } push{};
-    push.background[3] = 1.0F;
-    push.mode           = kModeBlendOver;
-
-    UseProgram(m_composite_program);
-    BindBuffer(GL_UNIFORM_BUFFER, m_composite_push_ubo);
-    BufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<GLsizeiptr>(sizeof(push)), &push);
-    BindBufferBase(GL_UNIFORM_BUFFER, 1, m_composite_push_ubo);
-
-    Enable(GL_BLEND);
-    BlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-    ActiveTexture(GL_TEXTURE0);
-    BindTexture(GL_TEXTURE_2D, m_colour_texture);
-
-    BindVertexArray(m_composite_vao);
-    DrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 }  // namespace sm2::render::gl

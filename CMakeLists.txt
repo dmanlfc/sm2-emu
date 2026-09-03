@@ -95,6 +95,7 @@ else()
     message(WARNING "sm2-emu has not been tested on ${CMAKE_SYSTEM_NAME}")
 endif()
 
+include(Optimization)
 include(CompilerWarnings)
 include(Dependencies)
 include(EmbedShaders)

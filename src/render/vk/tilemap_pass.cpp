@@ -438,6 +438,14 @@ bool TilemapPass::create_pipeline(bool blend, VkPipeline* out_pipeline)
     rendering.colorAttachmentCount    = 1;
     const VkFormat colour_format      = kNativeColourFormat;
     rendering.pColorAttachmentFormats = &colour_format;
+    // These draws never touch the stencil, but dynamic rendering requires a
+    // pipeline's declared formats to match the scope's exactly (no
+    // VK_EXT_dynamic_rendering_unused_attachments on the tiler targets), and the
+    // scope carries the 3D pass's fill-mask stencil, so declare it here too.
+    const VkFormat stencil_format     = m_context->stencil_format();
+    rendering.stencilAttachmentFormat = stencil_format;
+    rendering.depthAttachmentFormat =
+        m_context->stencil_format_has_depth() ? stencil_format : VK_FORMAT_UNDEFINED;
 
     VkGraphicsPipelineCreateInfo info{};
     info.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -780,7 +788,10 @@ void TilemapPass::transition_for_sampling(const Surface& target)
                          VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
 }
 
-void TilemapPass::record_below(VkImageView target, u32 background_rgba)
+void TilemapPass::record_below(VkImageView                      target,
+                               u32                              background_rgba,
+                               const VkRenderingAttachmentInfo* stencil,
+                               bool                             stencil_depth)
 {
     const VkCommandBuffer cmd = m_context->cmd();
 
@@ -799,6 +810,12 @@ void TilemapPass::record_below(VkImageView target, u32 background_rgba)
     rendering.layerCount           = 1;
     rendering.colorAttachmentCount = 1;
     rendering.pColorAttachments    = &colour;
+    // The 3D pass draws into this scope after the below layers, so its fill mask
+    // rides along as the scope's stencil (and depth, where the format has one).
+    if (stencil != nullptr) {
+        rendering.pStencilAttachment = stencil;
+        rendering.pDepthAttachment   = stencil_depth ? stencil : nullptr;
+    }
     vkCmdBeginRendering(cmd, &rendering);
 
     vkCmdSetViewport(cmd, 0, 1, &kNativeViewport);
@@ -822,6 +839,12 @@ void TilemapPass::record_below(VkImageView target, u32 background_rgba)
 void TilemapPass::record_above()
 {
     const VkCommandBuffer cmd = m_context->cmd();
+
+    // The 3D draw between record_below() and here set per-batch scissors; restore
+    // the full-native viewport and scissor so this fullscreen draw is not clipped
+    // to the last polygon batch's rectangle.
+    vkCmdSetViewport(cmd, 0, 1, &kNativeViewport);
+    vkCmdSetScissor(cmd, 0, 1, &kNativeScissor);
 
     PushConstants push{};
     push.background[3] = 1.0F;

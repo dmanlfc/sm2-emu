@@ -100,8 +100,14 @@ public:
     /// background colour, covering every pixel.
     ///
     /// `target` is the view PresentPass::begin_frame() returned. Opens a rendering
-    /// scope that record_above() closes.
-    void record_below(VkImageView target, u32 background_rgba);
+    /// scope that record_above() closes. A non-null `stencil` is attached as the
+    /// scope's depth/stencil for the 3D pass's fill mask; `stencil_depth` says
+    /// whether that format also carries a depth aspect. Null leaves the scope
+    /// colour-only (render test mode, no 3D).
+    void record_below(VkImageView                      target,
+                      u32                              background_rgba,
+                      const VkRenderingAttachmentInfo* stencil,
+                      bool                             stencil_depth);
 
     /// Draw the above layers over whatever is in the frame, and end rendering.
     void record_above();

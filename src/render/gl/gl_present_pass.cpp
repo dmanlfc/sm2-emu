@@ -50,6 +50,10 @@ void PresentPass::shutdown()
         DeleteTextures(1, &m_native_texture);
         m_native_texture = 0;
     }
+    if (m_stencil_renderbuffer != 0) {
+        DeleteRenderbuffers(1, &m_stencil_renderbuffer);
+        m_stencil_renderbuffer = 0;
+    }
     if (m_program != 0) {
         DeleteProgram(m_program);
         m_program = 0;
@@ -77,10 +81,20 @@ bool PresentPass::create_target()
     TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // The 3D pass draws its fill mask into this framebuffer now, so it carries a
+    // stencil. GL_STENCIL_INDEX8 is a mandatory renderable format at this floor,
+    // matching gl_poly3d_pass's old offscreen stencil renderbuffer exactly.
+    GenRenderbuffers(1, &m_stencil_renderbuffer);
+    BindRenderbuffer(GL_RENDERBUFFER, m_stencil_renderbuffer);
+    RenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, static_cast<GLsizei>(kWidth),
+                       static_cast<GLsizei>(kHeight));
+
     GenFramebuffers(1, &m_fbo);
     BindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_native_texture,
                         0);
+    FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                           m_stencil_renderbuffer);
     if (CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         SM2_ERROR("gl: present pass framebuffer is incomplete");
         return false;
@@ -113,6 +127,9 @@ bool PresentPass::create_program()
 void PresentPass::begin_frame()
 {
     BindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+    // The native draws rasterise at 496x384. Set here (the deleted offscreen 3D
+    // pass used to) so they don't inherit present()'s letterbox viewport.
+    Viewport(0, 0, static_cast<GLsizei>(kWidth), static_cast<GLsizei>(kHeight));
 }
 
 void PresentPass::upload_from_host(std::span<const u32> pixels)

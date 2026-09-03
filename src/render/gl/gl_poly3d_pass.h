@@ -62,16 +62,11 @@ public:
     /// and refresh whatever machine memory changed since it last ran.
     void build(const hw::Model2MachineBase* machine, const hw::Model2Video& video);
 
-    /// Draw what build() prepared into the offscreen colour texture,
-    /// clearing it and the stencil fill mask first.
-    void render();
-
-    /// Blend the offscreen result over the currently bound framebuffer.
-    void composite();
-
-    // -- accessors for gl_present_pass ---------------------------------------
-
-    [[nodiscard]] u32 colour_texture() const { return m_colour_texture; }
+    /// Draw what build() prepared directly into the bound native framebuffer,
+    /// between the below and above tilemap layers. Clears the fill-mask stencil,
+    /// then blends the 3D over the below-tilemap with premultiplied-over -- the
+    /// same result the old draw-to-offscreen then composite produced.
+    void draw_polygons();
 
     // -- diagnostics -------------------------------------------------------
 
@@ -80,7 +75,6 @@ public:
     [[nodiscard]] u32 blank_polygons() const { return m_frame_geometry.blank_polygons; }
 
 private:
-    [[nodiscard]] bool create_framebuffer();
     [[nodiscard]] bool create_programs();
     [[nodiscard]] bool create_buffers();
     void               refresh_machine_data(const hw::Model2MachineBase& machine,
@@ -92,10 +86,6 @@ private:
     u32 m_polygon_program = 0;
     u32 m_polygon_push_ubo = 0;  ///< backing buffer for polygon.vert's Push block
     u32 m_vao = 0;
-
-    u32 m_colour_texture  = 0;
-    u32 m_fbo             = 0;
-    u32 m_stencil_renderbuffer = 0;
 
     PersistentBuffer m_vertex_buffer;
     PersistentBuffer m_polygon_buffer;
@@ -110,14 +100,6 @@ private:
 
     u32 m_tone_texture = 0;
     PersistentBuffer m_luma_buffer;
-
-    // -- the composite draw (shares fullscreen_quad.vert + tilemap_composite.frag
-    //    with gl_tilemap_pass, but this pass owns its own program+UBO so the
-    //    two passes' lifetimes stay independent) ---------------------------
-
-    u32 m_composite_program = 0;
-    u32 m_composite_vao     = 0;
-    u32 m_composite_push_ubo = 0;
 
     /// Change counters of the machine data this pass's copies were made
     /// from. Zero means never copied, matching the Vulkan path's convention.

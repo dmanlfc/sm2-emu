@@ -66,6 +66,10 @@ private:
     u32 m_native_texture = 0;
     u32 m_fbo            = 0;
 
+    /// Fill-mask stencil for the 3D draw, which now happens directly into this
+    /// native framebuffer between the below and above tilemap layers.
+    u32 m_stencil_renderbuffer = 0;
+
     u32 m_program  = 0;
     u32 m_push_ubo = 0;
     u32 m_vao      = 0;

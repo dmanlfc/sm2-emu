@@ -111,17 +111,27 @@ void VulkanBackend::submit_polygons(const hw::Model2MachineBase* machine,
 
 void VulkanBackend::render_polygons()
 {
-    m_polygons.render();
+    // The 3D draws inside the native-frame scope (composite_native_frame); all
+    // that remains here is the fill-mask stencil transition, which cannot be
+    // recorded inside a rendering scope.
+    m_polygons.prepare_stencil();
 }
 
 void VulkanBackend::composite_native_frame(u32 background_rgba, bool skip_3d)
 {
-    m_tilemaps.record_below(m_native_view, background_rgba);
-    // Render test mode cuts the DSP out: the framebuffer bank the host has
-    // been drawing into is shown instead of the 3D pass, and has already been
-    // composed into the layers below by the caller.
+    // One native-frame scope: below layers, the 3D straight onto them, then the
+    // above layers, with no colour image stored and re-sampled between them. The
+    // stencil is attached even when skip_3d draws no 3D, because the tilemap
+    // pipelines declare the scope's stencil format (dynamic rendering's
+    // format-match rule, see TilemapPass::create_pipeline).
+    const VkRenderingAttachmentInfo stencil = m_polygons.stencil_attachment();
+    m_tilemaps.record_below(m_native_view, background_rgba, &stencil,
+                            m_polygons.stencil_has_depth());
+    // Render test mode cuts the DSP out: the framebuffer bank the host has been
+    // drawing into is shown instead of the 3D pass, and has already been composed
+    // into the layers below by the caller.
     if (!skip_3d) {
-        m_polygons.composite();
+        m_polygons.draw_polygons();
     }
     m_tilemaps.record_above();
 }

@@ -330,6 +330,8 @@ void Model2Original::reset()
 
 void Model2Original::run_frame()
 {
+    reset_core_profile();  // per-core --profile split; see Model2::run_frame
+
     for (u32 line = 0; line < kVerticalTotal; ++line) {
         const u64 line_end   = m_frame_start + static_cast<u64>(line + 1) * kCyclesPerLine;
         const u64 line_start = m_cycles;
@@ -342,11 +344,18 @@ void Model2Original::run_frame()
             target = std::min(target, m_cycles + kCoproInterleave);
 
             const s32 slice = static_cast<s32>(std::min<u64>(target - m_cycles, 1u << 20));
-            const s32 used  = m_cpu.run(slice);
+            s32 used;
+            {
+                CoreScope scope(m_core_profile, m_core_profile.i960_ns);
+                used = m_cpu.run(slice);
+            }
             m_cycles += static_cast<u64>(used);
 
             const u32 spent = static_cast<u32>(used > 0 ? used : 0);
-            step_copro(spent);
+            {
+                CoreScope scope(m_core_profile, m_core_profile.copro_ns);
+                step_copro(spent);
+            }
 
             // The I/O board is interleaved at the same granularity as the
             // coprocessor. It has to be fine: the only thing between the two
@@ -377,7 +386,10 @@ void Model2Original::run_frame()
         // The sound board shares nothing with the host but the serial line, so a
         // scanline is fine enough: the only thing on it with a deadline is the
         // output sample clock, and that is counted in host cycles either way.
-        m_m1audio.run(static_cast<u32>(m_cycles - line_start));
+        {
+            CoreScope scope(m_core_profile, m_core_profile.sound_ns);
+            m_m1audio.run(static_cast<u32>(m_cycles - line_start));
+        }
 
         // TxRDY and RxRDY are levels and the interrupt latch samples them. Doing
         // it once a scanline as well as on every UART tick is what lets the link

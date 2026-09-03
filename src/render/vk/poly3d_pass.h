@@ -86,17 +86,22 @@ public:
     /// whether any of that needs copying again.
     void build(const hw::Model2MachineBase* machine, const hw::Model2Video& video);
 
-    /// Draw what build() prepared into the offscreen target.
-    ///
-    /// Must be called with a command buffer open and outside any dynamic
-    /// rendering scope, because it opens one of its own.
-    void render();
+    /// Record the fill-mask stencil's transition into an attachment layout,
+    /// which must happen outside any rendering scope. Call with a command buffer
+    /// open and no rendering scope active; stencil_attachment() then hands the
+    /// attachment to the tilemap pass so the 3D draws into the native frame.
+    void prepare_stencil();
 
-    /// Blend the offscreen result over the swapchain.
-    ///
-    /// Must be called inside the swapchain's rendering scope, between the tilemap
-    /// layers that belong behind the 3D and those that belong in front of it.
-    void composite();
+    /// The fill-mask stencil attachment for the native-frame scope, valid after
+    /// prepare_stencil() and until the scope ends. Cleared to zero on load.
+    [[nodiscard]] VkRenderingAttachmentInfo stencil_attachment() const;
+    [[nodiscard]] bool stencil_has_depth() const { return m_stencil_has_depth; }
+
+    /// Draw what build() prepared directly into the native frame, inside the
+    /// scope the tilemap pass opened (between record_below() and record_above())
+    /// with stencil_attachment() attached. Blends over the below-tilemap with
+    /// premultiplied-over -- the same result the old composite step produced.
+    void draw_polygons();
 
     // -- diagnostics -------------------------------------------------------
 
@@ -161,16 +166,11 @@ private:
         VkImageView     decoded_view  = VK_NULL_HANDLE;
         VkDescriptorSet decode_set    = VK_NULL_HANDLE;
 
-        VkImage       colour        = VK_NULL_HANDLE;
-        VmaAllocation colour_alloc  = nullptr;
-        VkImageView   colour_view   = VK_NULL_HANDLE;
-
         VkImage       stencil       = VK_NULL_HANDLE;
         VmaAllocation stencil_alloc = nullptr;
         VkImageView   stencil_view  = VK_NULL_HANDLE;
 
         VkDescriptorSet polygon_set   = VK_NULL_HANDLE;
-        VkDescriptorSet composite_set = VK_NULL_HANDLE;
 
         /// Change counters of the machine data this frame's copies were made from.
         /// Zero means never copied, and the machine's counters start at one.
@@ -185,7 +185,6 @@ private:
     void destroy_host_buffer(HostBuffer* buffer);
     [[nodiscard]] bool create_descriptors();
     [[nodiscard]] bool create_polygon_pipeline();
-    [[nodiscard]] bool create_composite_pipeline();
     [[nodiscard]] bool create_decode_pipeline();
 
     /// Copy whatever this frame's copies are missing, and record the transfer of
@@ -223,9 +222,6 @@ private:
     VkSampler             m_decoded_sampler    = VK_NULL_HANDLE;
     VkDescriptorPool      m_pool               = VK_NULL_HANDLE;
     VkDescriptorSetLayout m_polygon_set_layout = VK_NULL_HANDLE;
-    VkDescriptorSetLayout m_composite_set_layout = VK_NULL_HANDLE;
-    VkPipelineLayout      m_composite_layout   = VK_NULL_HANDLE;
-    VkPipeline            m_composite_pipeline = VK_NULL_HANDLE;
 
     VkDescriptorSetLayout m_decode_set_layout = VK_NULL_HANDLE;
     VkPipelineLayout      m_decode_layout     = VK_NULL_HANDLE;

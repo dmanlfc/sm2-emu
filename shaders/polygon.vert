@@ -60,15 +60,9 @@ void main()
 {
     vec2 ndc = inPosition * pc.invRaster * 2.0 - 1.0;
 
-    // Vulkan's clip-space Y points downward (Y=-1 is top of framebuffer);
-    // OpenGL's points upward (Y=-1 is bottom). The geometry engine supplies
-    // Y=0 for the top of the raster, which maps to NDC Y=-1 above -- correct
-    // for Vulkan, upside-down for GL. Negating Y here places it correctly in
-    // the GL FBO so the rest of the pipeline (composite, present) reads it
-    // right-side-up without any further flip.
-#ifdef SM2_TARGET_GL
-    ndc.y = -ndc.y;
-#endif
+    // No clip-Y flip on either target: the 3D now draws straight into the native
+    // framebuffer alongside the tilemap layers, agreeing with them. The old GL
+    // flip only cancelled the extra flip of the deleted offscreen-composite chain.
 
     // Clipping already discarded everything behind the eye, so the depth is
     // positive; the floor only guards against a denormal reaching the divide.
