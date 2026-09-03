@@ -21,6 +21,8 @@
 
 #include <SDL3/SDL.h>
 
+#include <algorithm>
+
 namespace sm2::osd {
 namespace {
 
@@ -96,16 +98,27 @@ void Audio::submit(std::span<const s16> samples)
     }
 
     if (queued_milliseconds() > kMaxQueuedMilliseconds) {
-        // Running faster than real time. Throwing the queue away rather than
-        // blocking keeps the emulator's pace independent of the audio device,
-        // which is what --no-throttle is for; the audio is discontinuous, and
-        // there is no sensible alternative when the producer is going five times
-        // too fast.
-        SDL_ClearAudioStream(m_stream);
+        // Producer outrunning the device (--no-throttle / fast-forward). Draining
+        // reads from the front, so this drops the oldest samples down to the
+        // target -- unlike SDL_ClearAudioStream, which would gap the whole buffer.
+        const u64 keep_bytes =
+            static_cast<u64>(kTargetQueuedMilliseconds) * m_sample_rate
+            * sizeof(s16) * kChannels / 1000;
+        int queued = SDL_GetAudioStreamQueued(m_stream);
+        while (queued > 0 && static_cast<u64>(queued) > keep_bytes) {
+            u8  scratch[4096];
+            const int want = static_cast<int>(
+                std::min<u64>(sizeof(scratch), static_cast<u64>(queued) - keep_bytes));
+            const int got = SDL_GetAudioStreamData(m_stream, scratch, want);
+            if (got <= 0) {
+                break;
+            }
+            queued -= got;
+        }
         if (!m_warned_overflow) {
             m_warned_overflow = true;
-            SM2_DEBUG("audio: the queue overflowed, so audio will break up; "
-                      "expected when unthrottled");
+            SM2_DEBUG("audio: the queue overflowed and was trimmed; expected when "
+                      "running faster than real time");
         }
     }
 

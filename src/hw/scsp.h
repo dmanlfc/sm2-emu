@@ -261,12 +261,6 @@ private:
     /// applied where the mixer writes its result.
     float m_master_gain = 1.0f;
 
-    /// Simple peak-tracking compressor that tames the BGM summing and lets
-    /// voices punch through. Tracks the envelope of the signal and reduces
-    /// gain when it exceeds the threshold.
-    float m_compressor_gain    = 1.0f;
-    float m_compressor_envelope = 0.0f;
-
     /// Samples produced since reset. The timers and the MIDI transmitter are
     /// scheduled against this.
     s64 m_sample_count = 0;

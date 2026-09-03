@@ -71,9 +71,11 @@ public:
     /// no device.
     [[nodiscard]] u32 queued_milliseconds() const;
 
-    /// Longest queue tolerated. Two video frames of slack absorbs the jitter of a
-    /// frame that took longer than its share without adding audible delay.
-    static constexpr u32 kMaxQueuedMilliseconds = 40;
+    /// Queue trimmed to the target once it passes the ceiling. The ceiling is
+    /// several frames deep so a heavy graphics frame that briefly starves the
+    /// once-per-frame submit does not underrun the device (an audible pop).
+    static constexpr u32 kTargetQueuedMilliseconds = 80;
+    static constexpr u32 kMaxQueuedMilliseconds    = 200;
 
 private:
     SDL_AudioStream* m_stream = nullptr;

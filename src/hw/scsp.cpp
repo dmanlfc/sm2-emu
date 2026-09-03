@@ -1334,7 +1334,6 @@ void Scsp::DoMasterSamples(s16 *output, u32 frames)
 		++m_stats.samples;
 
 		s32 smpl = 0, smpr = 0;
-		int active_direct_slots = 0;
 
 		for (int sl = 0; sl < 32; ++sl)
 		{
@@ -1369,7 +1368,6 @@ void Scsp::DoMasterSamples(s16 *output, u32 frames)
 				{
 					smpl += (sample * m_LPANTABLE[Enc]) >> SHIFT;
 					smpr += (sample * m_RPANTABLE[Enc]) >> SHIFT;
-					++active_direct_slots;
 				}
 			}
 
@@ -1409,19 +1407,6 @@ void Scsp::DoMasterSamples(s16 *output, u32 frames)
 			}
 		}
 
-		// Normalize the direct output sum by the active channel count.
-		// With 28+ BGM channels summing, the raw sum overwhelms voice channels.
-		// Dividing by sqrt(N) keeps the per-channel loudness consistent
-		// regardless of how many channels are playing.
-		if (active_direct_slots > 4) {
-			// Scale factor: 2 / sqrt(active_direct_slots)
-			// For 28 channels: 2/sqrt(28) ≈ 0.378 (brings it down significantly)
-			// For 4 channels: no reduction
-			float scale = 2.0f / sqrtf(float(active_direct_slots));
-			smpl = s32(float(smpl) * scale);
-			smpr = s32(float(smpr) * scale);
-		}
-
 		if (DAC18B())
 		{
 			output[s * 2 + 0] = put_int_clamp(smpl, 131072);
@@ -1433,40 +1418,9 @@ void Scsp::DoMasterSamples(s16 *output, u32 frames)
 			output[s * 2 + 1] = put_int_clamp(smpr >> 2, 32768);
 		}
 
-		// MVOL gain + dynamic compressor. The compressor tracks the signal
-		// envelope and reduces gain when the mix is hot (many BGM channels
-		// summing), then releases slowly so voices punch through during
-		// quieter moments. This mimics the analog headroom real hardware has.
-		{
-			constexpr float kThreshold = 16000.0f;  // start compressing above this
-			constexpr float kRatio     = 4.0f;      // 4:1 compression above threshold
-			constexpr float kAttack    = 0.002f;    // fast attack (per sample at 44.1kHz)
-			constexpr float kRelease   = 0.00005f;  // slow release
-
-			float l = float(output[s * 2 + 0]);
-			float r = float(output[s * 2 + 1]);
-
-			// Track envelope
-			float peak = std::max(std::abs(l), std::abs(r));
-			if (peak > m_compressor_envelope) {
-				m_compressor_envelope += (peak - m_compressor_envelope) * kAttack;
-			} else {
-				m_compressor_envelope += (peak - m_compressor_envelope) * kRelease;
-			}
-
-			// Compute gain reduction
-			if (m_compressor_envelope > kThreshold) {
-				float over = m_compressor_envelope - kThreshold;
-				float reduced = kThreshold + over / kRatio;
-				m_compressor_gain = reduced / m_compressor_envelope;
-			} else {
-				m_compressor_gain = 1.0f;
-			}
-
-			float gain = m_master_gain * m_compressor_gain;
-			output[s * 2 + 0] = s16(std::clamp(l * gain, -32768.0f, 32767.0f));
-			output[s * 2 + 1] = s16(std::clamp(r * gain, -32768.0f, 32767.0f));
-		}
+		// MAME applies MVOL as a stream output gain, downstream of this function.
+		output[s * 2 + 0] = s16(float(output[s * 2 + 0]) * m_master_gain);
+		output[s * 2 + 1] = s16(float(output[s * 2 + 1]) * m_master_gain);
 
 		const s32 peak = std::max(std::abs(int(output[s * 2 + 0])),
 								  std::abs(int(output[s * 2 + 1])));
