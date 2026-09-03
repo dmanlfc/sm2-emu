@@ -278,6 +278,10 @@ private:
     void lamp_output_w(u8 value);
     void drive_board_write(u8 value);
 
+    /// IN1 with Daytona's gearbox positions folded into bits 0x70, or the raw
+    /// port for a title without a gearbox.
+    [[nodiscard]] u8 gearbox_in1() const;
+
     void note_unmapped_read(u32 address, u32 width);
     void note_unmapped_write(u32 address, u32 value, u32 width);
 
@@ -378,6 +382,11 @@ private:
     /// Last byte the I/O board latched to a force-feedback drive board. Only
     /// Daytona has one; nothing consumes it.
     u8   m_drive_board_latch = 0;
+
+    /// Selected gear position, held between polls so an idle shifter keeps the
+    /// last gear rather than returning an illegal code (MAME's daytona_gearbox_r).
+    /// Mutable because gearbox_in1() is a read that must remember the last gear.
+    mutable u8 m_gear_selected = 0;
     bool m_palette_dirty     = true;
 
     u64 m_texture_generation = 1;

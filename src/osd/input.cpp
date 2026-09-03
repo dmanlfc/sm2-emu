@@ -252,16 +252,25 @@ Input::~Input()
     shutdown();
 }
 
-bool Input::init()
+bool Input::init(const WheelSettings& wheel)
 {
+    m_wheel_settings = wheel;
+
+    // GAMEPAD implies JOYSTICK; HAPTIC is separate and only needed for a wheel's
+    // force feedback, so a failure there is not fatal.
     if (!SDL_InitSubSystem(SDL_INIT_GAMEPAD)) {
         SM2_ERROR("SDL_InitSubSystem(GAMEPAD) failed: %s", SDL_GetError());
         return false;
     }
+    if (!SDL_InitSubSystem(SDL_INIT_HAPTIC)) {
+        SM2_WARN("SDL_InitSubSystem(HAPTIC) failed, no force feedback: %s", SDL_GetError());
+    }
     m_started = true;
 
-    // Pads already plugged in do not generate connection events, so they have to
-    // be collected once at startup.
+    // Devices already plugged in do not generate connection events, so they have
+    // to be collected once at startup. A wheel enumerates as a joystick with no
+    // gamepad mapping, which is exactly what add_gamepad would reject, so the two
+    // lists are walked separately.
     int             count = 0;
     SDL_JoystickID* ids   = SDL_GetGamepads(&count);
     if (ids != nullptr) {
@@ -271,7 +280,17 @@ bool Input::init()
         SDL_free(ids);
     }
 
-    if (m_pads.empty()) {
+    ids = SDL_GetJoysticks(&count);
+    if (ids != nullptr) {
+        for (int index = 0; index < count; ++index) {
+            if (!SDL_IsGamepad(ids[index])) {
+                add_wheel(ids[index]);
+            }
+        }
+        SDL_free(ids);
+    }
+
+    if (m_pads.empty() && m_wheel.handle == nullptr) {
         SM2_INFO("no gamepad found; the keyboard covers both players");
     }
     return true;
@@ -286,7 +305,9 @@ void Input::shutdown()
         }
     }
     m_pads.clear();
+    remove_wheel(m_wheel.id);
     if (m_started) {
+        SDL_QuitSubSystem(SDL_INIT_HAPTIC);
         SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
         m_started = false;
     }
@@ -300,6 +321,16 @@ void Input::handle_event(const SDL_Event& event)
             break;
         case SDL_EVENT_GAMEPAD_REMOVED:
             remove_gamepad(event.gdevice.which);
+            break;
+        case SDL_EVENT_JOYSTICK_ADDED:
+            // A joystick with a gamepad mapping arrives as GAMEPAD_ADDED too and
+            // is handled there; only the unmapped ones (wheels) are ours here.
+            if (!SDL_IsGamepad(event.jdevice.which)) {
+                add_wheel(event.jdevice.which);
+            }
+            break;
+        case SDL_EVENT_JOYSTICK_REMOVED:
+            remove_wheel(event.jdevice.which);
             break;
         default:
             break;
@@ -377,8 +408,192 @@ SDL_Gamepad* Input::pad_for(u32 player) const
     return match != m_pads.end() ? match->handle : nullptr;
 }
 
+void Input::add_wheel(SDL_JoystickID id)
+{
+    if (m_wheel.handle != nullptr) {
+        return;  // One wheel, driving player one, is all a Model 2 cabinet wires.
+    }
+
+    // Only take a device SDL classifies as a wheel. Anything else that lacks a
+    // gamepad mapping -- a flightstick, an arcade panel, a controller SDL has no
+    // profile for -- must not be pressed into service as a steering wheel. A
+    // device that reports UNKNOWN is allowed through, since some wheels do, but a
+    // positively-different type is refused.
+    const SDL_JoystickType type = SDL_GetJoystickTypeForID(id);
+    if (type != SDL_JOYSTICK_TYPE_WHEEL && type != SDL_JOYSTICK_TYPE_UNKNOWN) {
+        return;
+    }
+
+    SDL_Joystick* handle = SDL_OpenJoystick(id);
+    if (handle == nullptr) {
+        SM2_WARN("could not open joystick %u: %s", static_cast<unsigned>(id),
+                 SDL_GetError());
+        return;
+    }
+
+    m_wheel        = Wheel{};
+    m_wheel.handle = handle;
+    m_wheel.id     = id;
+
+    // Axis roles: use the calibrated values when set, else auto-detect. Steering
+    // self-centres (rests mid-travel) while a pedal rests hard at one end; axis 0
+    // is steering on every wheel that exists, so it anchors the search and the
+    // other axes resting at an extreme are pedals, taken in order accel then
+    // brake. A wheel whose layout defeats this is corrected in the GUI.
+    const int axes = SDL_GetNumJoystickAxes(handle);
+    if (m_wheel_settings.steer_axis >= 0 || m_wheel_settings.accel_axis >= 0
+        || m_wheel_settings.brake_axis >= 0) {
+        m_wheel.steer_axis = m_wheel_settings.steer_axis;
+        m_wheel.accel_axis = m_wheel_settings.accel_axis;
+        m_wheel.brake_axis = m_wheel_settings.brake_axis;
+    } else {
+        m_wheel.steer_axis = axes > 0 ? 0 : -1;
+        int assigned_pedals = 0;
+        for (int axis = 1; axis < axes; ++axis) {
+            const int rest = static_cast<int>(SDL_GetJoystickAxis(handle, axis));
+            const bool at_extreme = rest < -16384 || rest > 16384;
+            if (!at_extreme) {
+                continue;
+            }
+            if (assigned_pedals == 0) {
+                m_wheel.accel_axis = axis;
+            } else if (assigned_pedals == 1) {
+                m_wheel.brake_axis = axis;
+            }
+            ++assigned_pedals;
+        }
+        if (assigned_pedals == 0) {
+            m_wheel.accel_axis = axes > 1 ? 1 : -1;
+            m_wheel.brake_axis = axes > 2 ? 2 : -1;
+        }
+    }
+
+    const char* name = SDL_GetJoystickName(handle);
+    SM2_INFO("wheel: %s (%d axes; steer %d accel %d brake %d)",
+             name != nullptr ? name : "steering wheel", axes,
+             m_wheel.steer_axis, m_wheel.accel_axis, m_wheel.brake_axis);
+
+    // Force feedback is a constant force we aim ourselves each frame (see
+    // update_force_feedback): the wheel's driver ignores FF_SPRING but honours
+    // FF_CONSTANT, so the centring pull is computed from the wheel angle rather
+    // than programmed as a spring. Uploaded once at zero level and left running.
+    if (m_wheel_settings.ffb) {
+        SDL_Haptic* haptic = SDL_OpenHapticFromJoystick(handle);
+        if (haptic == nullptr) {
+            SM2_INFO("wheel has no force feedback: %s", SDL_GetError());
+        } else if ((SDL_GetHapticFeatures(haptic) & SDL_HAPTIC_CONSTANT) == 0) {
+            SM2_INFO("wheel force feedback lacks a constant-force effect; leaving it limp");
+            SDL_CloseHaptic(haptic);
+        } else {
+            m_wheel.haptic = haptic;
+            // Turn off the wheel's built-in autocentre and set full gain, or the
+            // device fights or scales our own force. (Supermodel does the same.)
+            SDL_SetHapticAutocenter(haptic, 0);
+            SDL_SetHapticGain(haptic, 100);
+
+            SDL_HapticEffect effect{};
+            effect.type                 = SDL_HAPTIC_CONSTANT;
+            effect.constant.type        = SDL_HAPTIC_CONSTANT;
+            effect.constant.length      = SDL_HAPTIC_INFINITY;
+            // Cartesian direction with dir[0]=0: the sign of the level alone
+            // chooses which way the force pulls. This is the encoding Logitech's
+            // evdev FF honours; a steering-axis direction pulled hard one way.
+            effect.constant.direction.type  = SDL_HAPTIC_CARTESIAN;
+            effect.constant.direction.dir[0] = 0;
+            effect.constant.level            = 0;
+            m_wheel.force_effect = SDL_CreateHapticEffect(haptic, &effect);
+            if (m_wheel.force_effect < 0) {
+                SM2_INFO("could not create the force effect: %s", SDL_GetError());
+            } else {
+                SDL_RunHapticEffect(haptic, m_wheel.force_effect, SDL_HAPTIC_INFINITY);
+            }
+        }
+    }
+}
+
+void Input::remove_wheel(SDL_JoystickID id)
+{
+    if (m_wheel.handle == nullptr || m_wheel.id != id) {
+        return;
+    }
+    if (m_wheel.haptic != nullptr) {
+        SDL_CloseHaptic(m_wheel.haptic);  // Frees its effects too.
+    }
+    SDL_CloseJoystick(m_wheel.handle);
+    m_wheel = Wheel{};
+}
+
+bool Input::sample_wheel_channel(const rom::AnalogChannel& channel, u8* out) const
+{
+    if (m_wheel.handle == nullptr) {
+        return false;
+    }
+
+    // Which of the wheel's axes, if any, this control reads. Only the driving
+    // controls come off the wheel; anything else falls through to the gamepad.
+    int axis = -1;
+    switch (channel.control) {
+        case rom::AnalogControl::Steer:    axis = m_wheel.steer_axis; break;
+        case rom::AnalogControl::Accel:
+        case rom::AnalogControl::Throttle: axis = m_wheel.accel_axis; break;
+        case rom::AnalogControl::Brake:    axis = m_wheel.brake_axis; break;
+        default: return false;
+    }
+    if (axis < 0) {
+        return false;
+    }
+
+    const s16 raw = SDL_GetJoystickAxis(m_wheel.handle, axis);
+
+    const auto scaled = [&channel](float fraction) {
+        const float span  = static_cast<float>(channel.maximum - channel.minimum);
+        const float value = static_cast<float>(channel.minimum)
+                          + std::clamp(fraction, 0.0f, 1.0f) * span;
+        return static_cast<u8>(value + 0.5f);
+    };
+
+    // SDL normalises every joystick axis to -32768..32767. A wheel's steering
+    // rests at 0 (centre); its pedals rest at -32768 (released) and reach 32767
+    // fully pressed. So both are the same 0..1 map from the raw value -- the
+    // difference is only that a pedal at rest reads 0 and a wheel at rest 0.5.
+    float fraction = static_cast<float>(static_cast<int>(raw) + 32768) / 65535.0f;
+
+    if (channel.control == rom::AnalogControl::Steer) {
+        // A PC wheel spins far further than the cabinet did, so a small physical
+        // turn should reach full game lock. Scale the deflection about centre by
+        // the ratio of the wheel's assumed physical range to the configured one,
+        // then clamp: past the configured angle the game is already at full lock.
+        constexpr float kAssumedWheelDegrees = 900.0f;
+        const float scale = kAssumedWheelDegrees
+                          / static_cast<float>(std::max(1u, m_wheel_settings.steer_degrees));
+        fraction = 0.5f + (fraction - 0.5f) * scale;
+        fraction = std::clamp(fraction, 0.0f, 1.0f);
+    } else {
+        // A pedal that reads high released and low pressed (some wheels) is
+        // flipped so pressing always increases the fraction.
+        const bool invert =
+            (channel.control == rom::AnalogControl::Brake) ? m_wheel_settings.brake_invert
+                                                           : m_wheel_settings.accel_invert;
+        if (invert) {
+            fraction = 1.0f - fraction;
+        }
+    }
+
+    const u8 value = scaled(fraction);
+    *out = channel.reverse
+               ? static_cast<u8>(channel.maximum - (value - channel.minimum))
+               : value;
+    return true;
+}
+
 u8 Input::sample_channel(const rom::AnalogChannel& channel) const
 {
+    // A wheel, when present, owns the driving controls; everything else, and any
+    // control the wheel has no axis for, falls through to the gamepad.
+    if (u8 wheel_value = 0; sample_wheel_channel(channel, &wheel_value)) {
+        return wheel_value;
+    }
+
     const HostAxis axis = host_axis_for(channel.control);
     if (axis == HostAxis::None) {
         return channel.rest;
@@ -450,6 +665,122 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel) const
     return static_cast<u8>(channel.maximum - (value - channel.minimum));
 }
 
+s32 Input::pressed_wheel_button() const
+{
+    if (m_wheel.handle == nullptr) {
+        return -1;
+    }
+    const int count = SDL_GetNumJoystickButtons(m_wheel.handle);
+    for (int button = 0; button < count; ++button) {
+        if (SDL_GetJoystickButton(m_wheel.handle, button)) {
+            return button;
+        }
+    }
+    return -1;
+}
+
+int Input::wheel_axis_count() const
+{
+    return m_wheel.handle != nullptr ? SDL_GetNumJoystickAxes(m_wheel.handle) : 0;
+}
+
+void Input::wheel_axis_baseline(s16* out, int count) const
+{
+    for (int axis = 0; axis < count; ++axis) {
+        out[axis] = m_wheel.handle != nullptr
+                        ? SDL_GetJoystickAxis(m_wheel.handle, axis)
+                        : 0;
+    }
+}
+
+s32 Input::captured_axis(const s16* baseline, int count, bool* positive) const
+{
+    if (m_wheel.handle == nullptr) {
+        return -1;
+    }
+    // The axis that has travelled furthest from where it rested, once clearly
+    // past the noise: a deliberate turn or full pedal press swamps everything
+    // else, so the largest delta is the control the user is operating.
+    constexpr int kMoveThreshold = 12000;
+    int best_axis  = -1;
+    int best_delta = kMoveThreshold;
+    bool best_pos  = true;
+    for (int axis = 0; axis < count; ++axis) {
+        const int delta = static_cast<int>(SDL_GetJoystickAxis(m_wheel.handle, axis))
+                        - static_cast<int>(baseline[axis]);
+        if (std::abs(delta) > best_delta) {
+            best_delta = std::abs(delta);
+            best_axis  = axis;
+            best_pos   = delta > 0;
+        }
+    }
+    if (best_axis >= 0 && positive != nullptr) {
+        *positive = best_pos;
+    }
+    return best_axis;
+}
+
+void Input::update_force_feedback(const rom::GameSpec& game)
+{
+    if (m_wheel.haptic == nullptr || m_wheel.force_effect < 0 || m_wheel.steer_axis < 0) {
+        return;
+    }
+
+    // A software spring: read how far the wheel is turned and command a constant
+    // force back toward centre, growing with deflection. The wheel's driver
+    // honours FF_CONSTANT where it ignores FF_SPRING, so doing the spring maths
+    // here is what actually produces a felt force. Only driving cabinets pushed
+    // back; every other title leaves the wheel free.
+    int level = 0;
+    if (game.drive_board && m_wheel_settings.ffb) {
+        const int deflection = static_cast<int>(
+            SDL_GetJoystickAxis(m_wheel.handle, m_wheel.steer_axis));  // -32768..32767
+        const int ceiling = static_cast<int>(
+            std::clamp(m_wheel_settings.strength, 0u, 100u) * 32767 / 100);
+
+        // A centring spring, but firmer than a pure proportional pull: a linear
+        // force is nearly nothing near centre, so add a constant "bite" as soon
+        // as the wheel is off centre and reach the ceiling well before full lock.
+        // The force shares the deflection's sign, which on this driver's cartesian
+        // level opposes the physical turn (recentres); the opposite sign ran the
+        // wheel to the rail. Below a small deadzone the wheel is free.
+        constexpr int kDeadzone = 1200;    // ~3.5% of travel
+        constexpr int kFullAt   = 12000;   // deflection that reaches full ceiling
+        const int bite = std::min(10000, ceiling);  // constant pull once off centre
+        const int mag  = std::abs(deflection);
+        if (mag > kDeadzone) {
+            const int span   = std::min(mag - kDeadzone, kFullAt);
+            const int scaled = bite + (ceiling - bite) * span / kFullAt;
+            level = deflection < 0 ? -scaled : scaled;
+            level = std::clamp(level, -ceiling, ceiling);
+        }
+    }
+
+    // Reprogram only on a meaningful change: reuploading every frame makes the
+    // Linux FF driver stutter, but the force must track the wheel, so a small
+    // hysteresis band keeps it responsive without thrashing.
+    if (std::abs(level - m_wheel.force_level) < 256
+        && !(level == 0 && m_wheel.force_level != 0)) {
+        return;
+    }
+    m_wheel.force_level = level;
+
+    // Update the running effect in place and re-run it, the way Supermodel drives
+    // the same wheels: cartesian direction, and the signed level carries the pull
+    // direction.
+    SDL_HapticEffect effect{};
+    effect.type                      = SDL_HAPTIC_CONSTANT;
+    effect.constant.type             = SDL_HAPTIC_CONSTANT;
+    effect.constant.length           = SDL_HAPTIC_INFINITY;
+    effect.constant.direction.type   = SDL_HAPTIC_CARTESIAN;
+    effect.constant.direction.dir[0] = 0;
+    effect.constant.level            = static_cast<s16>(level);
+    SDL_UpdateHapticEffect(m_wheel.haptic, m_wheel.force_effect, &effect);
+    SDL_RunHapticEffect(m_wheel.haptic, m_wheel.force_effect, SDL_HAPTIC_INFINITY);
+    SM2_DEBUG("ffb: deflection=%d level=%d",
+              static_cast<int>(SDL_GetJoystickAxis(m_wheel.handle, m_wheel.steer_axis)), level);
+}
+
 void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) const
 {
     const rom::LightgunSpec& spec = game.lightgun;
@@ -515,6 +846,25 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         }
     }
 
+    // Wheel buttons, driving player one, each from its bound button index. The
+    // four arcade buttons are also where a driving cabinet's view/VR buttons sit,
+    // so binding those covers them. Gears are handled with the gearbox below.
+    if (m_wheel.handle != nullptr) {
+        const int count = SDL_GetNumJoystickButtons(m_wheel.handle);
+        const auto role_pressed = [&](Config::WheelRole role) {
+            const s32 button = m_wheel_settings.buttons[static_cast<usize>(role)];
+            return button >= 0 && button < count
+                && SDL_GetJoystickButton(m_wheel.handle, button);
+        };
+
+        if (role_pressed(Config::WheelRole::Button1)) ports[1] &= static_cast<u8>(~kButton1);
+        if (role_pressed(Config::WheelRole::Button2)) ports[1] &= static_cast<u8>(~kButton2);
+        if (role_pressed(Config::WheelRole::Button3)) ports[1] &= static_cast<u8>(~kButton3);
+        if (role_pressed(Config::WheelRole::Button4)) ports[1] &= static_cast<u8>(~kButton4);
+        if (role_pressed(Config::WheelRole::Start))   ports[0] &= static_cast<u8>(~kStart1);
+        if (role_pressed(Config::WheelRole::Coin))    ports[0] &= static_cast<u8>(~kCoin1);
+    }
+
     inputs->in0 = ports[0];
     inputs->in1 = ports[1];
     inputs->in2 = ports[2];
@@ -550,6 +900,42 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                 }
             }
         }
+
+        // Paddle shifters step through the same five positions sequentially.
+        // Edge-detected so one press is one shift, and the wheel remembers its
+        // gear between frames; when a paddle set it, that position wins over an
+        // idle keyboard. Gears 0..3 are 1st..4th; position 4 (reverse) is only
+        // reachable from the keyboard, since a paddle sequence should not fall
+        // into reverse.
+        if (m_wheel.handle != nullptr) {
+            const int count = SDL_GetNumJoystickButtons(m_wheel.handle);
+            const auto role_held = [&](Config::WheelRole role) {
+                const s32 button = m_wheel_settings.buttons[static_cast<usize>(role)];
+                return button >= 0 && button < count
+                    && SDL_GetJoystickButton(m_wheel.handle, button);
+            };
+            const bool up   = role_held(Config::WheelRole::GearUp);
+            const bool down = role_held(Config::WheelRole::GearDown);
+            bool shifted = false;
+            // The gate's five positions are neutral, 1, 2, 3, 4 (MAME's "GEARS"
+            // port: bit 0 = N, bits 1..4 = the gears). So m_wheel_gear is the gear
+            // number: 0 = neutral, up to 4. Shifting up from neutral engages 1st;
+            // shifting down from 1st returns to neutral.
+            if (up && !m_gear_up_held && m_wheel_gear < 4) {
+                ++m_wheel_gear;
+                shifted = true;
+            }
+            if (down && !m_gear_down_held && m_wheel_gear > 0) {
+                --m_wheel_gear;
+                shifted = true;
+            }
+            m_gear_up_held   = up;
+            m_gear_down_held = down;
+            if (shifted || gears == 0) {
+                gears = static_cast<u8>(1u << m_wheel_gear);
+            }
+        }
+
         inputs->gears = gears;
     }
 }

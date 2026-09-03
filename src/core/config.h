@@ -17,6 +17,7 @@
 #include "core/log.h"
 #include "core/types.h"
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -48,12 +49,65 @@ struct Config {
     bool throttle = true;
 
     bool fullscreen = false;
+
+    /// Show the FPS counter overlay in the top-right corner.
+    bool show_fps = true;
     u32  window_width  = 992;
     u32  window_height = 768;
 
     /// Exact device name to prefer, as `--list-gpus` prints it. Empty picks the
     /// best-scoring device.
     std::string gpu;
+
+    // -- steering wheel ----------------------------------------------------
+
+    /// Synthesised force feedback on a wheel that supports it: a centring spring
+    /// whose strength grows with how far the wheel is turned. The drive board is
+    /// not emulated, so there is no authentic motor force to replay; this is a
+    /// feel, not a reproduction. Off means the wheel still steers, just limp.
+    bool wheel_ffb = true;
+
+    /// Centring-spring strength, 0..100 percent of the wheel's maximum torque.
+    u32 wheel_ffb_strength = 50;
+
+    /// How many degrees of wheel rotation cover the cabinet's full lock. A PC
+    /// wheel turns ~900 degrees where a Model 2 cabinet turned ~270, so without
+    /// scaling the car barely responds. Lower means more sensitive steering.
+    u32 wheel_steer_degrees = 270;
+
+    /// Cabinet controls a wheel button can be bound to. Buttons 1..4 are the
+    /// arcade buttons, which is also where a driving cabinet's view-change / VR
+    /// buttons land (e.g. Daytona's VR1..VR4). Keep kCount last.
+    enum class WheelRole : u32 {
+        Start, Coin, Button1, Button2, Button3, Button4, GearUp, GearDown, kCount
+    };
+    static constexpr u32 kWheelRoleCount = static_cast<u32>(WheelRole::kCount);
+
+    /// Which wheel button (index) drives each role, or -1 for unbound. Button
+    /// numbering differs between wheels, so these are set by the user in the GUI
+    /// ("press the button for X"); the defaults suit a Logitech G-series.
+    std::array<s32, kWheelRoleCount> wheel_buttons = {
+        6,   // Start
+        7,   // Coin
+        0,   // Button1
+        1,   // Button2
+        2,   // Button3
+        3,   // Button4
+        4,   // GearUp   (right paddle)
+        5,   // GearDown (left paddle)
+    };
+
+    /// Which wheel axis drives each analogue control, or -1 to auto-detect
+    /// (steering is axis 0; pedals are found by which axes rest at an extreme).
+    /// The GUI calibration sets these when a wheel's layout differs.
+    s32 wheel_steer_axis = -1;
+    s32 wheel_accel_axis = -1;
+    s32 wheel_brake_axis = -1;
+
+    /// A pedal whose axis reads high when released and low when pressed. Captured
+    /// during calibration; only meaningful when the matching axis is set.
+    bool wheel_accel_invert = false;
+    bool wheel_brake_invert = false;
 
     // -- paths -------------------------------------------------------------
 

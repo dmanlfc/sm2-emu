@@ -69,6 +69,23 @@ constexpr const char* kFileName = "sm2-emu.ini";
     return true;
 }
 
+[[nodiscard]] constexpr usize cfg_role(Config::WheelRole role)
+{
+    return static_cast<usize>(role);
+}
+
+[[nodiscard]] bool parse_s32(const std::string& value, s32* out)
+{
+    std::istringstream stream(value);
+    long               parsed = 0;
+    stream >> parsed;
+    if (stream.fail() || !stream.eof()) {
+        return false;
+    }
+    *out = static_cast<s32>(parsed);
+    return true;
+}
+
 [[nodiscard]] const char* bool_text(bool value)
 {
     return value ? "true" : "false";
@@ -197,6 +214,10 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->fullscreen)) {
                 bad_value();
             }
+        } else if (key == "show_fps") {
+            if (!parse_bool(value, &out->show_fps)) {
+                bad_value();
+            }
         } else if (key == "validation") {
             if (!parse_bool(value, &out->validation)) {
                 bad_value();
@@ -211,6 +232,70 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             }
         } else if (key == "gpu") {
             out->gpu = value;
+        } else if (key == "wheel_ffb") {
+            if (!parse_bool(value, &out->wheel_ffb)) {
+                bad_value();
+            }
+        } else if (key == "wheel_ffb_strength") {
+            if (!parse_u32(value, &out->wheel_ffb_strength)) {
+                bad_value();
+            }
+        } else if (key == "wheel_steer_degrees") {
+            if (!parse_u32(value, &out->wheel_steer_degrees)) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_start") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Start)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_coin") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Coin)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_1") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Button1)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_2") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Button2)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_3") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Button3)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_4") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Button4)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_gear_up") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::GearUp)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_gear_down") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::GearDown)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_steer_axis") {
+            if (!parse_s32(value, &out->wheel_steer_axis)) {
+                bad_value();
+            }
+        } else if (key == "wheel_accel_axis") {
+            if (!parse_s32(value, &out->wheel_accel_axis)) {
+                bad_value();
+            }
+        } else if (key == "wheel_brake_axis") {
+            if (!parse_s32(value, &out->wheel_brake_axis)) {
+                bad_value();
+            }
+        } else if (key == "wheel_accel_invert") {
+            if (!parse_bool(value, &out->wheel_accel_invert)) {
+                bad_value();
+            }
+        } else if (key == "wheel_brake_invert") {
+            if (!parse_bool(value, &out->wheel_brake_invert)) {
+                bad_value();
+            }
         } else if (key == "nvram_dir") {
             out->nvram_dir = value;
         } else if (key == "games_xml") {
@@ -233,6 +318,10 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     // A window smaller than the raster is not useful and a zero one is not valid.
     out->window_width  = std::max(out->window_width, 256u);
     out->window_height = std::max(out->window_height, 192u);
+    out->wheel_ffb_strength = std::min(out->wheel_ffb_strength, 100u);
+    // A sane rotation range: tight enough to be usable, and never zero (which
+    // would divide by zero when scaling the steering).
+    out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
     return true;
 }
 
@@ -264,11 +353,39 @@ bool save_config(const std::string& path, const Config& config)
         << "throttle = " << bool_text(config.throttle) << "\n"
         << "\n"
         << "fullscreen = " << bool_text(config.fullscreen) << "\n"
+        << "show_fps = " << bool_text(config.show_fps) << "\n"
         << "window_width = " << config.window_width << "\n"
         << "window_height = " << config.window_height << "\n"
         << "\n"
         << "# Exact device name as --list-gpus prints it. Empty picks the best one.\n"
         << "gpu = " << config.gpu << "\n"
+        << "\n"
+        << "# Steering-wheel force feedback: a synthesised centring spring (the\n"
+        << "# drive board is not emulated, so this is a feel, not the real motor\n"
+        << "# force). Strength is 0..100 percent of the wheel's maximum torque.\n"
+        << "wheel_ffb = " << bool_text(config.wheel_ffb) << "\n"
+        << "wheel_ffb_strength = " << config.wheel_ffb_strength << "\n"
+        << "# Degrees of wheel rotation for full lock (a PC wheel is ~900, the\n"
+        << "# cabinet was ~270). Lower is more sensitive.\n"
+        << "wheel_steer_degrees = " << config.wheel_steer_degrees << "\n"
+        << "# Which wheel button drives each control (numbering varies by wheel;\n"
+        << "# -1 unbinds). Set these in the GUI's Wheel tab. Buttons 1..4 are the\n"
+        << "# arcade buttons, which is where a cabinet's VR/view buttons land too.\n"
+        << "wheel_button_start = " << config.wheel_buttons[cfg_role(Config::WheelRole::Start)] << "\n"
+        << "wheel_button_coin = " << config.wheel_buttons[cfg_role(Config::WheelRole::Coin)] << "\n"
+        << "wheel_button_1 = " << config.wheel_buttons[cfg_role(Config::WheelRole::Button1)] << "\n"
+        << "wheel_button_2 = " << config.wheel_buttons[cfg_role(Config::WheelRole::Button2)] << "\n"
+        << "wheel_button_3 = " << config.wheel_buttons[cfg_role(Config::WheelRole::Button3)] << "\n"
+        << "wheel_button_4 = " << config.wheel_buttons[cfg_role(Config::WheelRole::Button4)] << "\n"
+        << "wheel_button_gear_up = " << config.wheel_buttons[cfg_role(Config::WheelRole::GearUp)] << "\n"
+        << "wheel_button_gear_down = " << config.wheel_buttons[cfg_role(Config::WheelRole::GearDown)] << "\n"
+        << "# Wheel axes, or -1 to auto-detect (steering axis 0; pedals by rest\n"
+        << "# position). Set by the GUI calibration when a wheel differs.\n"
+        << "wheel_steer_axis = " << config.wheel_steer_axis << "\n"
+        << "wheel_accel_axis = " << config.wheel_accel_axis << "\n"
+        << "wheel_brake_axis = " << config.wheel_brake_axis << "\n"
+        << "wheel_accel_invert = " << bool_text(config.wheel_accel_invert) << "\n"
+        << "wheel_brake_invert = " << bool_text(config.wheel_brake_invert) << "\n"
         << "\n"
         << "# Where operator settings and the EEPROM image are kept.\n"
         << "nvram_dir = " << config.nvram_dir << "\n"

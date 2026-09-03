@@ -14,6 +14,7 @@
 //
 #include "osd/gui.h"
 #include "core/log.h"
+#include "osd/input.h"
 
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
@@ -62,6 +63,7 @@ bool Gui::init(SDL_Window* window)
         return false;
     }
 
+    m_window      = window;
     m_initialised = true;
     SM2_INFO("gui: initialised (ImGui %s)", IMGUI_VERSION);
     return true;
@@ -85,19 +87,57 @@ void Gui::new_frame()
 {
     if (!m_initialised) return;
     ImGui_ImplSDL3_NewFrame();
+
+    ImGuiIO& io = ImGui::GetIO();
+
+    // ImGui_ImplSDL3_NewFrame sizes the UI from SDL's logical window size, which
+    // does not always follow a live fullscreen switch or a HiDPI drawable. Pin
+    // DisplaySize to the actual framebuffer pixels so the overlay fills the
+    // window instead of shrinking to a corner of it.
+    if (m_window != nullptr) {
+        int pixel_w = 0;
+        int pixel_h = 0;
+        SDL_GetWindowSizeInPixels(m_window, &pixel_w, &pixel_h);
+        if (pixel_w > 0 && pixel_h > 0) {
+            io.DisplaySize             = ImVec2(static_cast<float>(pixel_w),
+                                                static_cast<float>(pixel_h));
+            io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+        }
+    }
+
+    // Scale the whole overlay with the window so it grows when the window is
+    // enlarged, maximised or made fullscreen. The reference is the default
+    // window height (768); scale never drops below 1.0 so small windows keep
+    // the base size. Widget metrics are rescaled from a one-time base-style
+    // snapshot (ScaleAllSizes is cumulative), and FontScaleMain drives ImGui
+    // 1.92's dynamic font sizing so text re-rasterises crisply at the new size.
+    static ImGuiStyle base_style = ImGui::GetStyle();
+    const float       reference  = 768.0f;
+    float             scale      = io.DisplaySize.y > 0.0f ? io.DisplaySize.y / reference : 1.0f;
+    scale                        = std::clamp(scale, 1.0f, 3.0f);
+    if (scale != m_ui_scale) {
+        m_ui_scale          = scale;
+        ImGuiStyle& style   = ImGui::GetStyle();
+        style               = base_style;
+        style.ScaleAllSizes(scale);
+        style.FontScaleMain = scale;
+    }
+
     ImGui::NewFrame();
 }
 
 bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
-               float measured_hz, const char* renderer_label)
+               float measured_hz, const char* renderer_label, Input* input)
 {
-    // Always on, regardless of F1: this is the counter the owner wants visible
-    // whether or not the settings overlay is open.
-    draw_fps_overlay(measured_hz, renderer_label);
+    // Shown regardless of F1 when enabled, so the counter is visible whether or
+    // not the settings overlay is open.
+    if (config.show_fps) {
+        draw_fps_overlay(measured_hz, renderer_label);
+    }
 
     if (m_visible) {
         draw_menu_bar(config);
-        draw_settings(config, gpu_names);
+        draw_settings(config, gpu_names, input);
         draw_status_bar(measured_hz);
     }
 
@@ -135,6 +175,7 @@ void Gui::draw_menu_bar(Config& config)
         if (ImGui::BeginMenu("Settings")) {
             ImGui::MenuItem("Vsync", nullptr, &config.vsync);
             ImGui::MenuItem("Fullscreen", nullptr, &config.fullscreen);
+            ImGui::MenuItem("FPS counter", nullptr, &config.show_fps);
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -145,10 +186,24 @@ void Gui::draw_menu_bar(Config& config)
 // Settings window
 // ---------------------------------------------------------------------------
 
-void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_names)
+void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_names,
+                        Input* input)
 {
-    ImGui::SetNextWindowPos(ImVec2(20, 40), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(420, 340), ImGuiCond_FirstUseEver);
+    // Size and place the window relative to the current display, re-snapping it
+    // whenever the overlay scale changes (a resize, maximise or fullscreen
+    // toggle). Between such changes the user can still nudge it, so the forced
+    // condition only applies on the frame the scale actually changed.
+    const ImVec2 display = ImGui::GetIO().DisplaySize;
+    const float  menu_h  = ImGui::GetFrameHeight();
+    const float  margin  = 20.0f * m_ui_scale;
+    const ImVec2 base_size(420.0f * m_ui_scale, 340.0f * m_ui_scale);
+    const ImVec2 win_size(std::min(base_size.x, display.x - margin * 2.0f),
+                          std::min(base_size.y, display.y - menu_h - margin * 2.0f));
+    const ImGuiCond cond = (m_ui_scale != m_settings_scale) ? ImGuiCond_Always
+                                                            : ImGuiCond_FirstUseEver;
+    m_settings_scale = m_ui_scale;
+    ImGui::SetNextWindowPos(ImVec2(margin, menu_h + margin), cond);
+    ImGui::SetNextWindowSize(win_size, cond);
 
     if (!ImGui::Begin("Settings", &m_visible)) {
         ImGui::End();
@@ -167,6 +222,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             }
 
             ImGui::Checkbox("Fullscreen", &config.fullscreen);
+            ImGui::Checkbox("FPS counter", &config.show_fps);
 
             // GPU selection.
             if (!gpu_names.empty()) {
@@ -249,6 +305,12 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::EndTabItem();
         }
 
+        // -- Wheel tab -----------------------------------------------------
+        if (ImGui::BeginTabItem("Wheel")) {
+            draw_wheel_tab(config, input);
+            ImGui::EndTabItem();
+        }
+
         // -- About tab -----------------------------------------------------
         if (ImGui::BeginTabItem("About")) {
             ImGui::Text("sm2-emu — A Sega Model 2 arcade emulator");
@@ -280,6 +342,187 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
     ImGui::TextDisabled("Saved to sm2-emu.ini");
 
     ImGui::End();
+}
+
+// ---------------------------------------------------------------------------
+// Wheel tab
+// ---------------------------------------------------------------------------
+
+void Gui::draw_wheel_tab(Config& config, Input* input)
+{
+    const bool connected = input != nullptr && input->wheel_connected();
+    if (connected) {
+        ImGui::TextDisabled("Wheel connected.");
+    } else {
+        ImGui::TextDisabled("No wheel connected. Settings still apply once one is.");
+    }
+    ImGui::Spacing();
+
+    // -- feel ---------------------------------------------------------------
+    ImGui::Checkbox("Force feedback", &config.wheel_ffb);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("A synthesised centring spring on driving games.\n"
+                          "The drive board is not emulated, so this is a feel,\n"
+                          "not the arcade's real motor force.");
+    }
+
+    int strength = static_cast<int>(config.wheel_ffb_strength);
+    ImGui::BeginDisabled(!config.wheel_ffb);
+    if (ImGui::SliderInt("Strength", &strength, 0, 100, "%d%%")) {
+        strength = ((strength + 5) / 10) * 10;  // snap to 10 % steps
+        config.wheel_ffb_strength = static_cast<u32>(std::clamp(strength, 0, 100));
+    }
+    ImGui::EndDisabled();
+
+    // Common wheel rotation ranges rather than a free slider: a wheel is set to
+    // one of these, and 270 matches the Model 2 cabinet.
+    static constexpr u32 kSteerRanges[] = {200, 240, 270, 360, 400, 540, 720, 900, 1080};
+    char current_range[16];
+    std::snprintf(current_range, sizeof(current_range), "%u deg", config.wheel_steer_degrees);
+    if (ImGui::BeginCombo("Steering range", current_range)) {
+        for (const u32 range : kSteerRanges) {
+            char label[16];
+            std::snprintf(label, sizeof(label), "%u deg", range);
+            const bool selected = config.wheel_steer_degrees == range;
+            if (ImGui::Selectable(label, selected)) {
+                config.wheel_steer_degrees = range;
+            }
+            if (selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Your wheel's rotation range. Lower is more sensitive;\n"
+                          "the Model 2 cabinet was about 270 degrees.");
+    }
+
+    // -- axis calibration ---------------------------------------------------
+    ImGui::Separator();
+    ImGui::Text("Axes");
+    ImGui::TextDisabled("Auto-detected. Recalibrate if steering or a pedal is wrong.");
+
+    struct AxisRow { const char* name; s32* axis; bool* invert; };
+    const AxisRow axis_rows[] = {
+        {"Steering", &config.wheel_steer_axis, nullptr},
+        {"Accelerator", &config.wheel_accel_axis, &config.wheel_accel_invert},
+        {"Brake", &config.wheel_brake_axis, &config.wheel_brake_invert},
+    };
+
+    ImGui::BeginDisabled(!connected);
+    for (int row = 0; row < 3; ++row) {
+        const AxisRow& r = axis_rows[row];
+        ImGui::PushID(row);
+        if (*r.axis < 0) {
+            ImGui::Text("%-12s auto", r.name);
+        } else {
+            ImGui::Text("%-12s axis %d%s", r.name, *r.axis,
+                        (r.invert != nullptr && *r.invert) ? " (inverted)" : "");
+        }
+        ImGui::SameLine();
+        const bool capturing = m_capture == Capture::Axis && m_capture_axis == row;
+        if (capturing) {
+            ImGui::TextColored(ImVec4(1, 0.8f, 0.2f, 1), "operate it...");
+            if (input != nullptr) {
+                bool positive = true;
+                const s32 got = input->captured_axis(
+                    m_axis_baseline.data(),
+                    std::min<int>(input->wheel_axis_count(),
+                                  static_cast<int>(m_axis_baseline.size())),
+                    &positive);
+                if (got >= 0) {
+                    *r.axis = got;
+                    // A pedal read as "released high, pressed low" is inverted; a
+                    // downward move at capture time means exactly that.
+                    if (r.invert != nullptr) {
+                        *r.invert = !positive;
+                    }
+                    m_capture = Capture::None;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton("cancel")) {
+                m_capture = Capture::None;
+            }
+        } else if (ImGui::SmallButton("Calibrate")) {
+            m_capture      = Capture::Axis;
+            m_capture_axis = row;
+            if (input != nullptr) {
+                input->wheel_axis_baseline(
+                    m_axis_baseline.data(),
+                    std::min<int>(input->wheel_axis_count(),
+                                  static_cast<int>(m_axis_baseline.size())));
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("auto")) {
+            *r.axis = -1;
+            if (r.invert != nullptr) {
+                *r.invert = false;
+            }
+        }
+        ImGui::PopID();
+    }
+    ImGui::EndDisabled();
+
+    // -- button binding -----------------------------------------------------
+    ImGui::Separator();
+    ImGui::Text("Buttons");
+    ImGui::TextDisabled("Press Bind, then press the wheel button for that control.");
+
+    struct ButtonRow { const char* name; Config::WheelRole role; };
+    const ButtonRow button_rows[] = {
+        {"Start",      Config::WheelRole::Start},
+        {"Coin",       Config::WheelRole::Coin},
+        {"Button 1",   Config::WheelRole::Button1},
+        {"Button 2",   Config::WheelRole::Button2},
+        {"Button 3",   Config::WheelRole::Button3},
+        {"Button 4",   Config::WheelRole::Button4},
+        {"Shift up",   Config::WheelRole::GearUp},
+        {"Shift down", Config::WheelRole::GearDown},
+    };
+
+    ImGui::BeginDisabled(!connected);
+    for (const ButtonRow& r : button_rows) {
+        const u32 role_index = static_cast<u32>(r.role);
+        ImGui::PushID(static_cast<int>(role_index));
+        const s32 bound = config.wheel_buttons[role_index];
+        if (bound < 0) {
+            ImGui::Text("%-11s unbound", r.name);
+        } else {
+            ImGui::Text("%-11s button %d", r.name, bound);
+        }
+        ImGui::SameLine();
+        const bool capturing = m_capture == Capture::Button && m_capture_role == role_index;
+        if (capturing) {
+            ImGui::TextColored(ImVec4(1, 0.8f, 0.2f, 1), "press a button...");
+            if (input != nullptr) {
+                const s32 got = input->pressed_wheel_button();
+                if (got >= 0) {
+                    config.wheel_buttons[role_index] = got;
+                    m_capture = Capture::None;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton("cancel")) {
+                m_capture = Capture::None;
+            }
+        } else if (ImGui::SmallButton("Bind")) {
+            m_capture      = Capture::Button;
+            m_capture_role = role_index;
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("clear")) {
+            config.wheel_buttons[role_index] = -1;
+        }
+        ImGui::PopID();
+    }
+    ImGui::EndDisabled();
 }
 
 // ---------------------------------------------------------------------------

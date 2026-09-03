@@ -97,6 +97,22 @@ enum class GraphicsBackendChoice {
     return false;
 }
 
+/// Build the input layer's wheel settings from the persisted config.
+[[nodiscard]] sm2::osd::Input::WheelSettings wheel_settings_from(const sm2::Config& c)
+{
+    sm2::osd::Input::WheelSettings w;
+    w.ffb           = c.wheel_ffb;
+    w.strength      = c.wheel_ffb_strength;
+    w.steer_degrees = c.wheel_steer_degrees;
+    w.buttons       = c.wheel_buttons;
+    w.steer_axis    = c.wheel_steer_axis;
+    w.accel_axis    = c.wheel_accel_axis;
+    w.brake_axis    = c.wheel_brake_axis;
+    w.accel_invert  = c.wheel_accel_invert;
+    w.brake_invert  = c.wheel_brake_invert;
+    return w;
+}
+
 /// Default when --graphics-backend is not given: whichever GPU backend was
 /// compiled in, else software.
 ///
@@ -676,7 +692,7 @@ int main(int argc, char** argv)
             return 1;
         }
         osd::Input input;
-        const bool started = input.init();
+        const bool started = input.init(osd::Input::WheelSettings{});
         if (started) {
             const std::vector<std::string> names = input.gamepad_names();
             std::printf("Gamepads:\n");
@@ -1273,7 +1289,7 @@ int main(int argc, char** argv)
         // reporting but not worth refusing to run over: the keyboard covers
         // everything the cabinet has.
         osd::Input input;
-        if (!input.init()) {
+        if (!input.init(wheel_settings_from(options.config))) {
             SM2_WARN("gamepads are unavailable; the keyboard still works");
         }
 
@@ -1501,6 +1517,10 @@ int main(int argc, char** argv)
                 // controller during the frame, so they have to be set before the
                 // frame runs rather than after.
                 input.poll(&machine_iface->inputs(), loaded->game);
+                // Push the live settings (the GUI changes these) before computing
+                // this frame's force, so slider and calibration take effect now.
+                input.set_wheel_settings(wheel_settings_from(options.config));
+                input.update_force_feedback(loaded->game);
                 if (options.coin_at != 0) {
                     // Scripted coin, start and character confirmation, so an
                     // unattended capture can reach the game itself rather than
@@ -1750,7 +1770,12 @@ int main(int argc, char** argv)
             gui.new_frame();
             const bool gui_active =
                 gui.draw(options.config, gpu_names, pacer.measured_hz(),
-                        use_software_renderer ? "Software" : gpu_backend_name);
+                        use_software_renderer ? "Software" : gpu_backend_name, &input);
+            // Apply a fullscreen toggle from the Settings menu the moment it
+            // changes, rather than only at the next launch.
+            if (options.config.fullscreen != window.fullscreen()) {
+                window.set_fullscreen(options.config.fullscreen);
+            }
             // Always finalise the ImGui frame (Render must follow NewFrame).
             gui.end_frame();
             backend->draw_overlay(gui_active);

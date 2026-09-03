@@ -17,6 +17,7 @@
 #include "core/config.h"
 #include "core/types.h"
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -62,7 +63,8 @@ public:
     [[nodiscard]] bool draw(Config& config,
                             const std::vector<std::string>& gpu_names,
                             float measured_hz,
-                            const char* renderer_label);
+                            const char* renderer_label,
+                            class Input* input);
 
     /// Finish this frame's ImGui build. Call once, after draw(), before the
     /// render backend submits ImGui's draw data.
@@ -80,12 +82,26 @@ public:
 
 private:
     void draw_menu_bar(Config& config);
-    void draw_settings(Config& config, const std::vector<std::string>& gpu_names);
+    void draw_settings(Config& config, const std::vector<std::string>& gpu_names,
+                       class Input* input);
+    void draw_wheel_tab(Config& config, class Input* input);
     void draw_status_bar(float measured_hz);
     void draw_fps_overlay(float measured_hz, const char* renderer_label);
 
-    bool m_visible     = false;
-    bool m_initialised = false;
+    SDL_Window* m_window      = nullptr;
+    bool        m_visible     = false;
+    bool        m_initialised = false;
+    float       m_ui_scale       = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.
+    float       m_settings_scale = -1.0f; ///< scale the Settings window was last snapped to.
+
+    // -- wheel calibration capture state -----------------------------------
+    // Which control (if any) is currently waiting for the user to operate it,
+    // and the axis baseline captured when an axis calibration began.
+    enum class Capture { None, Button, Axis };
+    Capture m_capture       = Capture::None;
+    u32     m_capture_role  = 0;   ///< Config::WheelRole being bound, when Button.
+    int     m_capture_axis  = 0;   ///< which analogue control, when Axis (0=steer,1=accel,2=brake).
+    std::array<s16, 16> m_axis_baseline{};
 };
 
 }  // namespace sm2::osd

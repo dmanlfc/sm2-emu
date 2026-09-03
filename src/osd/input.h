@@ -14,6 +14,7 @@
 //
 #pragma once
 
+#include "core/config.h"
 #include "core/types.h"
 #include "rom/game.h"
 
@@ -88,11 +89,32 @@ public:
     Input(const Input&)            = delete;
     Input& operator=(const Input&) = delete;
 
+    /// Feel settings for a force-feedback wheel. `ffb` off leaves the wheel
+    /// steering but limp; `strength` is 0..100 percent of the wheel's torque.
+    struct WheelSettings {
+        bool ffb           = true;
+        u32  strength      = 50;
+        u32  steer_degrees = 270;
+
+        /// Wheel button index per cabinet role, indexed by Config::WheelRole;
+        /// -1 unbinds. Set by the GUI, since numbering differs between wheels.
+        std::array<s32, Config::kWheelRoleCount> buttons =
+            Config{}.wheel_buttons;
+
+        /// Wheel axis per analogue control, or -1 to auto-detect. Invert flags
+        /// apply to a pedal that reads high released, low pressed.
+        s32  steer_axis   = -1;
+        s32  accel_axis   = -1;
+        s32  brake_axis   = -1;
+        bool accel_invert = false;
+        bool brake_invert = false;
+    };
+
     /// Start the gamepad subsystem and open whatever is already plugged in.
     ///
     /// Returns false only if the subsystem itself will not start. A machine with no
     /// gamepad is not an error: the keyboard covers everything.
-    [[nodiscard]] bool init();
+    [[nodiscard]] bool init(const WheelSettings& wheel);
     void shutdown();
 
     /// Offer an SDL event. Consumes connection and disconnection only; everything
@@ -110,6 +132,35 @@ public:
     /// Digital-only overload, for callers with no game metadata. Leaves every
     /// analogue channel at zero.
     void poll(hw::Inputs* inputs) const;
+
+    /// Replace the wheel feel settings live, e.g. from a GUI slider. Cheap; the
+    /// steering range and FFB strength take effect on the next frame.
+    void set_wheel_settings(const WheelSettings& wheel) { m_wheel_settings = wheel; }
+
+    /// True when a wheel is connected, for the settings UI to show its controls.
+    [[nodiscard]] bool wheel_connected() const { return m_wheel.handle != nullptr; }
+
+    /// The lowest-numbered wheel button currently held, or -1 if none. The
+    /// button-binding UI polls this to capture "press the button for X".
+    [[nodiscard]] s32 pressed_wheel_button() const;
+
+    /// Number of axes on the connected wheel, or 0 if none.
+    [[nodiscard]] int wheel_axis_count() const;
+
+    /// Snapshot the current value of every wheel axis into `out` (up to `count`),
+    /// for the calibration UI to record a resting baseline before the user
+    /// operates a control.
+    void wheel_axis_baseline(s16* out, int count) const;
+
+    /// The axis that has moved furthest from `baseline`, once past a threshold,
+    /// or -1 if none has moved enough yet. `positive` is set to whether it moved
+    /// up from its baseline (a pedal that reads low when pressed reports false).
+    [[nodiscard]] s32 captured_axis(const s16* baseline, int count, bool* positive) const;
+
+    /// Update the wheel's centring force from the current steering position.
+    /// Call once per frame after poll(). Does nothing without a wheel, without
+    /// force feedback, or for a title that is not a driving game (`drive_board`).
+    void update_force_feedback(const rom::GameSpec& game);
 
     /// Names of the gamepads currently open, in player order. An empty string means
     /// that player has no pad.
@@ -144,8 +195,37 @@ private:
         u32            player = 0;
     };
 
+    /// A steering wheel, opened through the joystick API because a wheel has no
+    /// gamepad mapping and its steering axis wants the full 16 bits a gamepad
+    /// stick throws away. Drives player one. Force feedback, when the device and
+    /// the settings allow it, is a synthesised centring spring.
+    struct Wheel {
+        SDL_Joystick*  handle  = nullptr;
+        SDL_JoystickID id      = 0;
+        SDL_Haptic*    haptic  = nullptr;
+        /// A constant-force effect we steer ourselves each frame: the driver
+        /// honours FF_CONSTANT where it ignores FF_SPRING, so the centring feel
+        /// is computed here from the wheel angle rather than left to the spring.
+        int            force_effect = -1;  ///< SDL effect id, or -1 if none.
+        int            force_level  = 0;   ///< Last level commanded, to skip no-ops.
+        /// Axis numbers on the device. Steering is the self-centring one;
+        /// the pedals rest at one end. -1 means the device lacks it.
+        int steer_axis = -1;
+        int accel_axis = -1;
+        int brake_axis = -1;
+    };
+
     void add_gamepad(SDL_JoystickID id);
     void remove_gamepad(SDL_JoystickID id);
+
+    /// Open `id` as a wheel if it looks like one and no wheel is open yet.
+    void add_wheel(SDL_JoystickID id);
+    void remove_wheel(SDL_JoystickID id);
+
+    /// Read one driving control straight off the wheel, or a sentinel byte when
+    /// the wheel has no axis for it. Steering is centred, pedals rest low.
+    [[nodiscard]] bool sample_wheel_channel(const rom::AnalogChannel& channel,
+                                            u8* out) const;
 
     /// The pad driving a given player, or nullptr if that player has none.
     [[nodiscard]] SDL_Gamepad* pad_for(u32 player) const;
@@ -160,6 +240,17 @@ private:
     [[nodiscard]] u32 first_free_player() const;
 
     std::vector<Pad> m_pads;
+    Wheel            m_wheel;
+    WheelSettings    m_wheel_settings;
+
+    /// Sequential-shifter state for a wheel's paddles. The cabinet's gearbox is a
+    /// five-position gate (four gears + reverse); paddles shift up and down
+    /// through it. Mutable because poll() is const but must remember the gear
+    /// between frames and fire once per press, not once per frame held.
+    mutable u32  m_wheel_gear      = 0;      ///< 0..4 = gears 1..4, reverse.
+    mutable bool m_gear_up_held    = false;
+    mutable bool m_gear_down_held  = false;
+
     bool             m_started = false;
 };
 

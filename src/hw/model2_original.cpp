@@ -217,7 +217,7 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
     // title on this board that is in scope, and an unbound port reads as an open
     // input, which is the same thing an idle panel gives.
     m_ioboard.set_input(0, [this] { return m_inputs.in0; });
-    m_ioboard.set_input(1, [this] { return m_inputs.in1; });
+    m_ioboard.set_input(1, [this] { return gearbox_in1(); });
 
     // Desert Tank's three analogue controls, as model2o_state::desert binds them:
     // an_callback<0> STEER, <1> ACCEL, <2> BRAKE. The remaining five channels stay
@@ -570,6 +570,25 @@ void Model2Original::lamp_output_w(u8 value)
 void Model2Original::drive_board_write(u8 value)
 {
     m_drive_board_latch = value;
+}
+
+u8 Model2Original::gearbox_in1() const
+{
+    u8 data = m_inputs.in1;
+    if (!m_game.gearbox) {
+        return data;
+    }
+    // MAME's daytona_gearbox_r, same as the CRX boards: IN1 bits 0x70 carry the
+    // shifter's five positions encoded as 0, 2, 1, 6, 5, and an idle shifter
+    // holds the last selection rather than reading back the illegal code 7.
+    static constexpr u8 kGearValues[5] = {0, 2, 1, 6, 5};
+    for (u32 gear = 0; gear < 5; ++gear) {
+        if ((m_inputs.gears & (1u << gear)) != 0) {
+            m_gear_selected = static_cast<u8>(gear);
+            break;
+        }
+    }
+    return static_cast<u8>((data & ~0x70u) | (kGearValues[m_gear_selected] << 4));
 }
 
 // ---------------------------------------------------------------------------
