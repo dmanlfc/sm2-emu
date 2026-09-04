@@ -1128,6 +1128,22 @@ void Model2C::register_write(u32 address, u32 value, u32 width)
             m_intreq &= value;
             irq_update();
         } else {
+            // The mask update is deferred, as on MAME (80 ns via the scheduler).
+            // The sound driver's timer-ack routine writes the mask register three
+            // times around one interrupt -- mask the source, zero its timer,
+            // re-enable -- and MAME's scheduler runs the masked window (and the
+            // zeroed timer's harmless immediate re-fire) in between those writes.
+            // The i960 here runs the whole routine in one uninterrupted slice, so
+            // unless the pending mask is flushed AND its timers serviced when the
+            // next mask write arrives, the masked re-fire never happens and the
+            // byte-by-byte sound command send runs away on its first byte.
+            if (m_pending_intena_valid) {
+                m_intena = m_pending_intena;
+                m_pending_intena_valid = false;
+                sound_ready_w();
+                irq_update();
+                service_timers();
+            }
             m_pending_intena       = value;
             m_pending_intena_cycle = m_cycles + 2;
             m_pending_intena_valid = true;
