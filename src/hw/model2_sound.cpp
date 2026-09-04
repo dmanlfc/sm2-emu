@@ -104,6 +104,11 @@ void Model2Sound::attach(std::span<const u8> program_rom, std::span<const u8> sa
     m_samples     = samples;
 }
 
+void Model2Sound::attach_dsb(std::span<const u8> dsb_program, std::span<const u8> dsb_mpeg)
+{
+    m_dsb.attach(dsb_program, dsb_mpeg);
+}
+
 void Model2Sound::set_midi_out_handler(Scsp::MidiOutHandler handler)
 {
     m_scsp.set_midi_out_handler(std::move(handler));
@@ -111,7 +116,10 @@ void Model2Sound::set_midi_out_handler(Scsp::MidiOutHandler handler)
 
 void Model2Sound::midi_in(u8 value)
 {
+    // The host serial link drives both the SCSP's MIDI port and, on the sets
+    // that carry one, the DSB. MAME fans the same txd out to both.
     m_scsp.midi_in(value);
+    m_dsb.write_txd(value);
 }
 
 void Model2Sound::reset()
@@ -128,6 +136,7 @@ void Model2Sound::reset()
     m_pending.clear();
 
     m_scsp.reset();
+    m_dsb.reset();
 
     // Seed the vector table. Without this the 68000 would fetch its stack
     // pointer and entry point out of cleared RAM and immediately run off into
@@ -196,6 +205,15 @@ void Model2Sound::generate_audio(u32 host_cycles)
     const usize offset = m_pending.size();
     m_pending.resize(offset + static_cast<usize>(frames) * 2);
     m_scsp.generate(m_pending.data() + offset, static_cast<u32>(frames));
+
+    // The DSB (music board, DSB titles only) runs its Z80 over the same host
+    // interval and mixes its decoded MPEG audio into the frames the SCSP just
+    // produced. Inert -- and free -- for the sets without one.
+    if (m_dsb.present()) {
+        m_dsb.run(host_cycles);
+        m_dsb.mix(m_pending.data() + offset, static_cast<u32>(frames),
+                  m_scsp.sample_rate());
+    }
 
     const usize limit = kMaxPendingFrames * 2;
     if (m_pending.size() > limit) {

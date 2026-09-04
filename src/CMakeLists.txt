@@ -188,6 +188,7 @@ target_link_libraries(sm2_rom
 
 add_library(sm2_hw_ported STATIC
     hw/geometrizer.cpp
+    hw/mpeg_audio.cpp
     hw/multipcm.cpp
     hw/scsp.cpp
     hw/scsp_dsp.cpp
@@ -206,6 +207,7 @@ target_link_libraries(sm2_hw_ported
 add_library(sm2_hw STATIC
     hw/copro_fifo.cpp
     hw/copro_tgp.cpp
+    hw/dsbz80.cpp
     hw/eeprom_93c46.cpp
     hw/i8251.cpp
     hw/io_315_5649.cpp

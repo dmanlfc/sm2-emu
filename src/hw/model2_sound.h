@@ -31,6 +31,7 @@
 #include "cpu/m68000/m68000.h"
 #include "hw/scsp.h"
 #include "hw/scsp_dsp.h"
+#include "hw/dsbz80.h"
 #include "hw/sound_board.h"
 
 #include <span>
@@ -51,6 +52,12 @@ public:
     /// Either may be empty. A board with no program ROM is inert: run() does
     /// nothing, which keeps a synthetic machine in the tests usable.
     void attach(std::span<const u8> program_rom, std::span<const u8> samples);
+
+    /// Attach the Z80 Digital Sound Board's ROMs, for the sets that carry one
+    /// (Sega Touring Car and other DSB titles). The board plays the music as
+    /// MPEG audio; its output mixes into this board's stream. Absent for most
+    /// sets, in which case the DSB stays inert.
+    void attach_dsb(std::span<const u8> dsb_program, std::span<const u8> dsb_mpeg);
 
     void reset();
 
@@ -145,6 +152,9 @@ private:
     /// Constructed with *this as its memory. Safe in the initialiser list: the
     /// SCSP's constructor only stores the pointer.
     Scsp m_scsp;
+
+    /// The MPEG music board, present only on DSB titles. Inert otherwise.
+    DsbZ80 m_dsb;
 
     std::span<const u8> m_program_rom;
     std::span<const u8> m_samples;
