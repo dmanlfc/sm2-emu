@@ -21,52 +21,72 @@
 #include "core/log.h"
 
 #include <cassert>
+#include <algorithm>
 #include <cstdio>
 
 extern "C" {
 #include <m68k.h>
 }
 
+namespace sm2::cpu::m68000 {
+class M68000;
+}
+
 namespace {
 
-/// The bus Musashi's callbacks forward to.
-///
-/// Musashi's memory interface is a set of free functions, so the binding has to
-/// live at file scope, above both the class and the extern "C" callbacks that
-/// share it. Guarded by the single-instance assertion in the constructor.
+/// Musashi's global memory binding and current-context tracking. Only one
+/// instance's context is live at a time; make_current swaps it and g_bus in.
 sm2::cpu::Bus* g_bus = nullptr;
+const sm2::cpu::m68000::M68000* g_current = nullptr;
+bool g_musashi_inited = false;
 
 }  // namespace
 
 namespace sm2::cpu::m68000 {
 
-M68000::M68000(Bus& bus)
+M68000::M68000(Bus& bus) : m_bus(&bus)
 {
-    // Musashi keeps its state in one global structure, so a second instance
-    // would silently share registers with the first. Loud in every build, not
-    // just the ones with assertions on, because the symptom otherwise is a sound
-    // CPU that appears to execute someone else's program.
-    if (g_bus != nullptr) {
-        SM2_ERROR("m68000: a second M68000 was constructed; Musashi is a "
-                  "single-instance core and the two will share state");
+    if (!g_musashi_inited) {
+        m68k_init();
+        m68k_set_cpu_type(M68K_CPU_TYPE_68000);
+        g_musashi_inited = true;
     }
-    assert(g_bus == nullptr && "only one M68000 may exist; Musashi is a single-instance core");
-    g_bus = &bus;
 
-    // Builds the opcode jump table. Musashi guards the expensive part with its
-    // own static, so calling it per instance is cheap and keeps the ordering
-    // requirement (init before set_cpu_type before pulse_reset) local.
-    m68k_init();
-    m68k_set_cpu_type(M68K_CPU_TYPE_68000);
+    // Seed from Musashi's initialised state (cpu type + callback pointers set),
+    // not a zero blob -- a zero context wipes those and the next pulse_reset
+    // segfaults. Snapshot the live context and restore it so a currently-active
+    // instance is left undisturbed.
+    m_context.assign(m68k_context_size(), 0);
+    std::vector<u8> saved(m68k_context_size(), 0);
+    m68k_get_context(saved.data());
+    std::copy(saved.begin(), saved.end(), m_context.begin());
+    m68k_set_context(saved.data());
 }
 
 M68000::~M68000()
 {
-    g_bus = nullptr;
+    if (g_current == this) {
+        g_current = nullptr;
+        g_bus     = nullptr;
+    }
+}
+
+void M68000::make_current() const
+{
+    if (g_current == this) {
+        return;
+    }
+    if (g_current != nullptr) {
+        m68k_get_context(g_current->m_context.data());
+    }
+    m68k_set_context(m_context.data());
+    g_current = this;
+    g_bus     = m_bus;
 }
 
 void M68000::reset()
 {
+    make_current();
     m_irq_mask     = 0;
     m_total_cycles = 0;
     m68k_pulse_reset();
@@ -79,6 +99,8 @@ s32 M68000::run(s32 cycles)
         return 0;
     }
 
+    make_current();
+
     // Musashi drops the interrupt level when it takes the exception, so a level
     // that is still being held has to be put back. See set_irq_line.
     apply_irq();
@@ -90,6 +112,7 @@ s32 M68000::run(s32 cycles)
 
 void M68000::set_irq_line(int level, bool asserted)
 {
+    make_current();
     if (level < kIrqMin || level > kIrqMax) {
         SM2_WARN("m68000: interrupt level %d out of range", level);
         return;
@@ -106,12 +129,14 @@ void M68000::set_irq_line(int level, bool asserted)
 
 void M68000::clear_irq_lines()
 {
+    make_current();
     m_irq_mask = 0;
     apply_irq();
 }
 
 void M68000::set_irq_level(int level)
 {
+    make_current();
     m68k_set_irq(static_cast<unsigned int>(level));
 }
 
@@ -132,26 +157,31 @@ void M68000::apply_irq() const
 
 u32 M68000::pc() const
 {
+    make_current();
     return m68k_get_reg(nullptr, M68K_REG_PC);
 }
 
 u32 M68000::sr() const
 {
+    make_current();
     return m68k_get_reg(nullptr, M68K_REG_SR);
 }
 
 u32 M68000::sp() const
 {
+    make_current();
     return m68k_get_reg(nullptr, M68K_REG_SP);
 }
 
 u32 M68000::data_reg(int index) const
 {
+    make_current();
     return m68k_get_reg(nullptr, static_cast<m68k_register_t>(M68K_REG_D0 + (index & 7)));
 }
 
 u32 M68000::address_reg(int index) const
 {
+    make_current();
     return m68k_get_reg(nullptr, static_cast<m68k_register_t>(M68K_REG_A0 + (index & 7)));
 }
 

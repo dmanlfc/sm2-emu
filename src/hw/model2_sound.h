@@ -32,6 +32,7 @@
 #include "hw/scsp.h"
 #include "hw/scsp_dsp.h"
 #include "hw/dsbz80.h"
+#include "hw/dsb2.h"
 #include "hw/sound_board.h"
 
 #include <span>
@@ -58,6 +59,11 @@ public:
     /// MPEG audio; its output mixes into this board's stream. Absent for most
     /// sets, in which case the DSB stays inert.
     void attach_dsb(std::span<const u8> dsb_program, std::span<const u8> dsb_mpeg);
+
+    /// Attach the 68000-based DSB2 music board's ROMs, for the sets that carry
+    /// one (Top Skater). Same role as the Z80 DSB, different board; a set has at
+    /// most one. Empty regions leave it inert.
+    void attach_dsb2(std::span<const u8> dsb_program, std::span<const u8> dsb_mpeg);
 
     void reset();
 
@@ -153,8 +159,11 @@ private:
     /// SCSP's constructor only stores the pointer.
     Scsp m_scsp;
 
-    /// The MPEG music board, present only on DSB titles. Inert otherwise.
+    /// The MPEG music boards, present only on DSB titles. A set carries at
+    /// most one; both are inert otherwise. m_dsb is the Z80 board (stcc),
+    /// m_dsb2 the 68000 board (topskatr).
     DsbZ80 m_dsb;
+    Dsb2   m_dsb2;
 
     std::span<const u8> m_program_rom;
     std::span<const u8> m_samples;

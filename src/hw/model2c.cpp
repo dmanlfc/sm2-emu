@@ -392,6 +392,8 @@ bool Model2C::init(const rom::GameSpec& game, rom::RomSet roms)
     // The DSB music board, for the sets that ship one (Sega Touring Car and
     // other DSB titles). Empty regions for the rest leave it inert.
     m_sound.attach_dsb(m_roms.region("dsbz80:mpegcpu"), m_roms.region("dsbz80:mpeg"));
+    // The 68000-based DSB2 music board (Top Skater). Empty regions -> inert.
+    m_sound.attach_dsb2(m_roms.region("dsb2:mpegcpu"), m_roms.region("dsb2:mpeg"));
     m_uart.set_tx_handler([this](u8 value) { m_sound.midi_in(value); });
     m_sound.set_midi_out_handler([this](u8 value) { m_uart.write_rxd(value); });
     m_uart.set_ready_handler([this] { sound_ready_w(); });

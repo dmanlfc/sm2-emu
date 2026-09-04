@@ -10,14 +10,13 @@
 // decoder through a handful of I/O ports (start/end address, trigger, volume,
 // stereo mode) and reads back the current playback position.
 //
-// Several Model 2C titles carry it -- Sega Touring Car, Sega Water Ski, Dynamite
-// Baseball, Sega Ski Super G. Their sound effects come from the SCSP as usual;
-// only the music is on this board, which is why a set with a DSB is silent in
-// the music while its effects play when the board is absent.
+// On Model 2 the Sega Touring Car (stcc) family carries it; sound effects come
+// from the SCSP, only the music is on this board. (Top Skater uses the other
+// board, the 68000-based DSB2 -- see hw/dsb2.)
 //
 // Changes from upstream: MAME's device/sound-stream plumbing is replaced by the
-// project's Z80 Bus and i8251, and an explicit generate() that decodes and
-// resamples into a caller's buffer, mixed with whatever the SCSP produced.
+// project's Z80 Bus and i8251, and an explicit mix() that decodes and resamples
+// into a caller's buffer on top of whatever the SCSP produced.
 
 #pragma once
 

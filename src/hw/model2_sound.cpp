@@ -109,6 +109,11 @@ void Model2Sound::attach_dsb(std::span<const u8> dsb_program, std::span<const u8
     m_dsb.attach(dsb_program, dsb_mpeg);
 }
 
+void Model2Sound::attach_dsb2(std::span<const u8> dsb_program, std::span<const u8> dsb_mpeg)
+{
+    m_dsb2.attach(dsb_program, dsb_mpeg);
+}
+
 void Model2Sound::set_midi_out_handler(Scsp::MidiOutHandler handler)
 {
     m_scsp.set_midi_out_handler(std::move(handler));
@@ -120,6 +125,7 @@ void Model2Sound::midi_in(u8 value)
     // that carry one, the DSB. MAME fans the same txd out to both.
     m_scsp.midi_in(value);
     m_dsb.write_txd(value);
+    m_dsb2.write_txd(value);
 }
 
 void Model2Sound::reset()
@@ -137,6 +143,7 @@ void Model2Sound::reset()
 
     m_scsp.reset();
     m_dsb.reset();
+    m_dsb2.reset();
 
     // Seed the vector table. Without this the 68000 would fetch its stack
     // pointer and entry point out of cleared RAM and immediately run off into
@@ -213,6 +220,11 @@ void Model2Sound::generate_audio(u32 host_cycles)
         m_dsb.run(host_cycles);
         m_dsb.mix(m_pending.data() + offset, static_cast<u32>(frames),
                   m_scsp.sample_rate());
+    }
+    if (m_dsb2.present()) {
+        m_dsb2.run(host_cycles);
+        m_dsb2.mix(m_pending.data() + offset, static_cast<u32>(frames),
+                   m_scsp.sample_rate());
     }
 
     const usize limit = kMaxPendingFrames * 2;

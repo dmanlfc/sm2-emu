@@ -25,10 +25,11 @@
 // reverse-engineering insight in one implementation over another and nothing is
 // lost by not tracking MAME's.
 //
-// Musashi reaches memory through global functions, so it supports exactly one
-// instance per process. Model 2 has one sound 68000, so that is not a
-// constraint here, but the constructor asserts it rather than letting a second
-// instance silently steal the bus.
+// Musashi keeps its live registers in one global structure and reaches memory
+// through global callbacks. To let more than one 68000 coexist -- the sound
+// board's and the DSB2 music board's -- each instance owns a saved Musashi
+// context and bus, and every entry point makes itself current (via
+// m68k_get/set_context) before touching Musashi, saving whoever was current.
 
 #pragma once
 
@@ -36,6 +37,7 @@
 #include "cpu/bus.h"
 
 #include <string>
+#include <vector>
 
 namespace sm2::cpu::m68000 {
 
@@ -48,10 +50,9 @@ enum {
 
 class M68000 {
 public:
-    /// Binds the bus Musashi's global memory callbacks will forward to.
-    ///
-    /// Only one instance may exist at a time; constructing a second is a
-    /// programming error and aborts.
+    /// Binds the bus Musashi's global memory callbacks forward to while this
+    /// instance is current. Multiple instances may coexist; each carries its own
+    /// saved Musashi context, swapped in on demand.
     explicit M68000(Bus& bus);
     ~M68000();
 
@@ -116,9 +117,13 @@ public:
 private:
     void apply_irq() const;
 
-    // The bus itself is not held here: Musashi's memory callbacks are free
-    // functions, so the binding lives at file scope in m68000.cpp and this class
-    // only owns the interrupt state.
+    /// Make this instance Musashi's current context, saving whoever held it.
+    /// Every public entry point calls this first.
+    void make_current() const;
+
+    Bus*            m_bus = nullptr;
+    mutable std::vector<u8> m_context;  ///< Saved Musashi state when not current.
+
     u8  m_irq_mask     = 0;  ///< Bit n set means level n is asserted.
     u64 m_total_cycles = 0;
 };

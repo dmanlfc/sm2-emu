@@ -207,6 +207,7 @@ target_link_libraries(sm2_hw_ported
 add_library(sm2_hw STATIC
     hw/copro_fifo.cpp
     hw/copro_tgp.cpp
+    hw/dsb2.cpp
     hw/dsbz80.cpp
     hw/eeprom_93c46.cpp
     hw/i8251.cpp
