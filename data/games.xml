@@ -2115,7 +2115,8 @@
 
     <!-- Lightgun calibration, from MAME's hotd input ports. The guns are 10-bit and arrive over RS-422
          channel 2, not through the analogue mux. -->
-    <lightgun>
+    <!-- P2 trigger on IN2 (stock two-player layout), unlike Virtua Cop / Rail Chase which put it on IN1 bit 1. From MAME hotd input ports. -->
+    <lightgun p2_trigger="in2">
       <axis name="p1y" min="0x057" max="0x17c" rest="0x0e9"/>
       <axis name="p1x" min="0x0ad" max="0x254" rest="0x180"/>
       <axis name="p2y" min="0x057" max="0x17c" rest="0x0e9"/>

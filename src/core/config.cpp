@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <sstream>
 
 namespace sm2 {
@@ -218,6 +219,40 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->show_fps)) {
                 bad_value();
             }
+        } else if (key == "lightgun") {
+            if (!parse_bool(value, &out->lightgun)) {
+                bad_value();
+            }
+        } else if (key == "lightgun_crosshair") {
+            if (!parse_bool(value, &out->lightgun_crosshair)) {
+                bad_value();
+            }
+        } else if (key == "lightgun_recoil") {
+            if (!parse_bool(value, &out->lightgun_recoil)) {
+                bad_value();
+            }
+        } else if (key == "lightgun_recoil_strength") {
+            if (!parse_u32(value, &out->lightgun_recoil_strength)) {
+                bad_value();
+            }
+        } else if (key == "sinden_border") {
+            if (!parse_bool(value, &out->sinden_border)) {
+                bad_value();
+            }
+        } else if (key == "sinden_border_colour") {
+            // Accepts hex (0xRRGGBB) or decimal.
+            const int base = value.rfind("0x", 0) == 0 ? 16 : 10;
+            char*     end  = nullptr;
+            const unsigned long parsed = std::strtoul(value.c_str(), &end, base);
+            if (end == value.c_str() || *end != '\0') {
+                bad_value();
+            } else {
+                out->sinden_border_colour = static_cast<u32>(parsed) & 0xffffff;
+            }
+        } else if (key == "sinden_border_thickness") {
+            if (!parse_u32(value, &out->sinden_border_thickness)) {
+                bad_value();
+            }
 
         } else if (key == "validation") {
             if (!parse_bool(value, &out->validation)) {
@@ -381,6 +416,15 @@ bool save_config(const std::string& path, const Config& config)
         << "\n"
         << "fullscreen = " << bool_text(config.fullscreen) << "\n"
         << "show_fps = " << bool_text(config.show_fps) << "\n"
+        << "lightgun = " << bool_text(config.lightgun) << "\n"
+        << "lightgun_crosshair = " << bool_text(config.lightgun_crosshair) << "\n"
+        << "lightgun_recoil = " << bool_text(config.lightgun_recoil) << "\n"
+        << "lightgun_recoil_strength = " << config.lightgun_recoil_strength << "\n"
+        << "sinden_border = " << bool_text(config.sinden_border) << "\n"
+        << "sinden_border_colour = 0x" << std::hex << std::setw(6)
+        << std::setfill('0') << (config.sinden_border_colour & 0xffffff) << std::dec
+        << std::setfill(' ') << "\n"
+        << "sinden_border_thickness = " << config.sinden_border_thickness << "\n"
         << "window_width = " << config.window_width << "\n"
         << "window_height = " << config.window_height << "\n"
         << "\n"

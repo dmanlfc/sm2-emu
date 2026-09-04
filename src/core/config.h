@@ -53,6 +53,30 @@ struct Config {
     /// Show the FPS counter overlay in the top-right corner.
     bool show_fps = true;
 
+    /// Light-gun mode: draw the aiming crosshair(s) and hide the OS mouse cursor
+    /// over the window, for the gun titles. Off leaves the crosshair hidden and
+    /// the cursor visible (aiming still works, it is just not shown).
+    bool lightgun = false;
+
+    /// Draw sm2-emu's own aiming crosshair in light-gun mode. On by default;
+    /// turn it off when the gun provides its own aiming (e.g. a Sinden with a
+    /// physical sight) so the screen is not cluttered. Independent of the mode
+    /// itself, which still hides the cursor and enables the gun paths.
+    bool lightgun_crosshair = true;
+
+    /// Fire the gun's recoil / rumble motor on each shot, for guns that have one
+    /// (Sinden and similar, exposed as a force-feedback device). No effect on a
+    /// gun without a motor. Strength is 0..100 percent.
+    bool lightgun_recoil          = true;
+    u32  lightgun_recoil_strength = 60;
+
+    /// Sinden light-gun border: a solid bright frame around the game image that
+    /// the gun's camera tracks. Colour is 0xRRGGBB; thickness is in game-image
+    /// pixels. Only drawn in light-gun mode.
+    bool sinden_border           = false;
+    u32  sinden_border_colour    = 0xffffff;  ///< white by default.
+    u32  sinden_border_thickness = 12;
+
     u32  window_width  = 992;
     u32  window_height = 768;
 

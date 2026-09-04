@@ -78,6 +78,13 @@ option(SM2_BUILD_VULKAN         "Build the Vulkan backend"                 OFF)
 option(SM2_BUILD_OPENGL_DESKTOP "Build the OpenGL 4.3 core desktop backend" ON)
 option(SM2_BUILD_OPENGL_ES      "Build the OpenGL ES 3.1 backend (ARM)"    OFF)
 
+# Per-device light guns on Linux, read straight from evdev via libudev. SDL
+# merges all mice into one pointer, so this is the only way to tell two guns
+# apart. AUTO builds it when libudev is present and skips it otherwise; ON turns
+# a missing libudev into a hard error, OFF forces the single-mouse path.
+set(SM2_EVDEV "AUTO" CACHE STRING "evdev light guns via libudev: AUTO, ON or OFF")
+set_property(CACHE SM2_EVDEV PROPERTY STRINGS AUTO ON OFF)
+
 # ---------------------------------------------------------------------------
 # Platform identification
 # ---------------------------------------------------------------------------
@@ -93,6 +100,25 @@ elseif(WIN32)
     set(SM2_PLATFORM_WINDOWS TRUE)
 else()
     message(WARNING "sm2-emu has not been tested on ${CMAKE_SYSTEM_NAME}")
+endif()
+
+# evdev light guns need libudev, which only exists on Linux.
+set(SM2_HAVE_EVDEV FALSE)
+if(NOT SM2_EVDEV STREQUAL "OFF" AND SM2_PLATFORM_LINUX)
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(UDEV IMPORTED_TARGET libudev)
+    endif()
+    if(UDEV_FOUND)
+        set(SM2_HAVE_EVDEV TRUE)
+    elseif(SM2_EVDEV STREQUAL "ON")
+        message(FATAL_ERROR
+            "SM2_EVDEV=ON but libudev was not found. Install libudev-dev "
+            "(Debian/Ubuntu), systemd-devel (Fedora) or systemd-libs (Arch), "
+            "or configure with -DSM2_EVDEV=OFF.")
+    endif()
+elseif(SM2_EVDEV STREQUAL "ON")
+    message(FATAL_ERROR "SM2_EVDEV=ON is only supported on Linux.")
 endif()
 
 include(Optimization)

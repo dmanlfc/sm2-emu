@@ -86,12 +86,20 @@ private:
     void draw_settings(Config& config, const std::vector<std::string>& gpu_names,
                        class Input* input);
     void draw_wheel_tab(Config& config, class Input* input);
+    void draw_lightgun_tab(Config& config, class Input* input);
     void draw_status_bar(float measured_hz);
     void draw_fps_overlay(float measured_hz, const char* renderer_label);
+    void draw_crosshairs(const class Input* input);
+    void draw_sinden_border(const Config& config);
 
     bool        m_visible     = false;
     bool        m_initialised = false;
     float       m_ui_scale    = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.
+
+    /// Whether the OS cursor is currently hidden for light-gun mode. Tracked so
+    /// Hide/Show is only called on a change: polling SDL_CursorVisible() every
+    /// frame races the compositor re-showing the cursor on motion, which flickers.
+    bool        m_cursor_hidden = false;
 
     // -- wheel calibration capture state -----------------------------------
     // Which control (if any) is currently waiting for the user to operate it,

@@ -15,6 +15,7 @@
 #include "osd/gui.h"
 #include "core/log.h"
 #include "osd/input.h"
+#include "render/geometry.h"
 
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
@@ -22,6 +23,7 @@
 #include <SDL3/SDL.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 
 namespace sm2::osd {
@@ -124,6 +126,37 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
         draw_fps_overlay(measured_hz, renderer_label);
     }
 
+    // In light-gun mode draw the aiming crosshair(s) and hide the OS cursor, so
+    // only the crosshair is visible. gun_aims() is inactive for non-gun titles,
+    // so a non-gun game shows nothing even with the mode on.
+    //
+    // The cursor is only hidden while the settings overlay is CLOSED: with the
+    // overlay open the real pointer is needed to click its buttons and the close
+    // box, and the crosshair is clamped to the game area so it cannot reach them.
+    //
+    // Toggle only on a state change. ImGui's SDL3 backend drives the OS cursor
+    // itself every frame, so a bare SDL_HideCursor() is fought back the next
+    // frame (which is what flickered). NoMouseCursorChange makes ImGui stop
+    // touching the cursor, and then SDL_HideCursor() sticks.
+    const bool hide_cursor = config.lightgun && !m_visible;
+    if (hide_cursor != m_cursor_hidden) {
+        ImGuiIO& io = ImGui::GetIO();
+        if (hide_cursor) {
+            io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+            SDL_HideCursor();
+        } else {
+            io.ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
+            SDL_ShowCursor();
+        }
+        m_cursor_hidden = hide_cursor;
+    }
+    if (config.lightgun) {
+        draw_sinden_border(config);
+        if (config.lightgun_crosshair) {
+            draw_crosshairs(input);
+        }
+    }
+
     if (m_visible) {
         draw_menu_bar(config);
         draw_settings(config, gpu_names, input);
@@ -165,6 +198,7 @@ void Gui::draw_menu_bar(Config& config)
             ImGui::MenuItem("Vsync", nullptr, &config.vsync);
             ImGui::MenuItem("Fullscreen", nullptr, &config.fullscreen);
             ImGui::MenuItem("FPS counter", nullptr, &config.show_fps);
+            ImGui::MenuItem("Light-gun mode", nullptr, &config.lightgun);
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -293,8 +327,17 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::EndTabItem();
         }
 
+        if (ImGui::BeginTabItem("Light Gun")) {
+            draw_lightgun_tab(config, input);
+            ImGui::EndTabItem();
+        }
+
         // -- About tab -----------------------------------------------------
+        // The Save button below is suppressed on this tab: it carries no
+        // settings, so a save control there is meaningless.
+        bool on_about_tab = false;
         if (ImGui::BeginTabItem("About")) {
+            on_about_tab = true;
             ImGui::Text("sm2-emu — A Sega Model 2 arcade emulator");
             ImGui::Spacing();
             ImGui::Text("Copyright (c) 2025+ Daniel Martin (dmanlfc)");
@@ -308,20 +351,22 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
         }
 
         ImGui::EndTabBar();
-    }
 
-    // Save button at the bottom.
-    ImGui::Separator();
-    if (ImGui::Button("Save settings")) {
-        const std::string path = default_config_path();
-        if (save_config(path, config)) {
-            SM2_INFO("gui: settings saved to %s", path.c_str());
-        } else {
-            SM2_ERROR("gui: could not save settings to %s", path.c_str());
+        // Save button, on the tabs that carry settings but not on About.
+        if (!on_about_tab) {
+            ImGui::Separator();
+            if (ImGui::Button("Save settings")) {
+                const std::string path = default_config_path();
+                if (save_config(path, config)) {
+                    SM2_INFO("gui: settings saved to %s", path.c_str());
+                } else {
+                    SM2_ERROR("gui: could not save settings to %s", path.c_str());
+                }
+            }
+            ImGui::SameLine();
+            ImGui::TextDisabled("Saved to sm2-emu.ini");
         }
     }
-    ImGui::SameLine();
-    ImGui::TextDisabled("Saved to sm2-emu.ini");
 
     ImGui::End();
 }
@@ -540,6 +585,93 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
 }
 
 // ---------------------------------------------------------------------------
+// Light Gun tab
+// ---------------------------------------------------------------------------
+
+void Gui::draw_lightgun_tab(Config& config, Input* input)
+{
+    ImGui::Checkbox("Light-gun mode", &config.lightgun);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Show the aiming crosshair and hide the mouse cursor,\n"
+                          "for the light-gun titles (Virtua Cop 2, House of the\n"
+                          "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines).");
+    }
+
+    ImGui::BeginDisabled(!config.lightgun);
+    ImGui::Checkbox("Show crosshair", &config.lightgun_crosshair);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Draw sm2-emu's own crosshair. Turn off if the gun\n"
+                          "has its own sight (e.g. a Sinden). Positional-gun\n"
+                          "titles always draw their own regardless.");
+    }
+    ImGui::EndDisabled();
+
+    ImGui::Separator();
+    ImGui::TextUnformatted("Recoil");
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Kick the gun's rumble motor on each shot, for guns\n"
+                          "that have one (Sinden and similar). No effect on a\n"
+                          "gun without a motor.");
+    }
+    ImGui::Checkbox("Enable recoil", &config.lightgun_recoil);
+    ImGui::BeginDisabled(!config.lightgun_recoil);
+    int strength = static_cast<int>(config.lightgun_recoil_strength);
+    if (ImGui::SliderInt("Strength", &strength, 0, 100)) {
+        config.lightgun_recoil_strength = static_cast<u32>(std::clamp(strength, 0, 100));
+    }
+    ImGui::EndDisabled();
+
+    ImGui::Separator();
+    ImGui::TextUnformatted("Devices");
+    if (input != nullptr && input->gun_count() > 0) {
+        for (usize i = 0; i < input->gun_count(); ++i) {
+            ImGui::BulletText("Gun %zu (player %zu): %s", i + 1, i + 1,
+                              input->gun_name(i).c_str());
+        }
+    } else {
+        ImGui::TextWrapped(
+            "No dedicated light guns detected. Player 1 aims with the mouse; the "
+            "left button fires and the right button reloads (shoot off screen). "
+            "Plug in guns tagged ID_INPUT_GUN for independent per-player aiming.");
+    }
+
+    ImGui::Separator();
+    ImGui::TextUnformatted("Sinden border");
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("A bright frame around the game image that a Sinden\n"
+                          "gun's camera tracks for aiming. Only shown in\n"
+                          "light-gun mode.");
+    }
+    ImGui::Checkbox("Show border", &config.sinden_border);
+
+    ImGui::BeginDisabled(!config.sinden_border);
+    float rgb[3] = {
+        static_cast<float>((config.sinden_border_colour >> 16) & 0xff) / 255.0f,
+        static_cast<float>((config.sinden_border_colour >> 8) & 0xff) / 255.0f,
+        static_cast<float>(config.sinden_border_colour & 0xff) / 255.0f,
+    };
+    if (ImGui::ColorEdit3("Colour", rgb, ImGuiColorEditFlags_NoInputs)) {
+        const u32 r = static_cast<u32>(std::clamp(rgb[0], 0.0f, 1.0f) * 255.0f + 0.5f);
+        const u32 g = static_cast<u32>(std::clamp(rgb[1], 0.0f, 1.0f) * 255.0f + 0.5f);
+        const u32 b = static_cast<u32>(std::clamp(rgb[2], 0.0f, 1.0f) * 255.0f + 0.5f);
+        config.sinden_border_colour = (r << 16) | (g << 8) | b;
+    }
+    int thickness = static_cast<int>(config.sinden_border_thickness);
+    if (ImGui::SliderInt("Thickness", &thickness, 1, 64)) {
+        config.sinden_border_thickness = static_cast<u32>(std::max(1, thickness));
+    }
+    ImGui::EndDisabled();
+}
+
+// ---------------------------------------------------------------------------
 // FPS overlay (top right, always on)
 // ---------------------------------------------------------------------------
 
@@ -573,6 +705,112 @@ void Gui::draw_fps_overlay(float measured_hz, const char* renderer_label)
     }
     ImGui::End();
     ImGui::PopStyleVar();
+}
+
+// ---------------------------------------------------------------------------
+// Light-gun crosshairs
+// ---------------------------------------------------------------------------
+
+void Gui::draw_crosshairs(const Input* input)
+{
+    if (input == nullptr) {
+        return;
+    }
+
+    // Each aim is a 0..1 fraction of the game image. Map it back onto the same
+    // letterboxed 4:3 rectangle the frame is presented into, so the crosshair
+    // sits exactly where a shot lands. io.DisplaySize is that window.
+    const ImGuiIO& io = ImGui::GetIO();
+    if (io.DisplaySize.x < 1.0f || io.DisplaySize.y < 1.0f) {
+        return;
+    }
+    const render::Letterbox box = render::compute_letterbox(
+        static_cast<u32>(io.DisplaySize.x), static_cast<u32>(io.DisplaySize.y));
+
+    // Distinct per player: green for 1, cyan for 2.
+    static const std::array<ImU32, 2> colours = {
+        IM_COL32(0, 255, 0, 220),
+        IM_COL32(0, 200, 255, 220),
+    };
+
+    ImDrawList* list = ImGui::GetForegroundDrawList();
+    const float radius = std::max(8.0f, box.height * 0.02f);
+    const auto& aims = input->gun_aims();
+
+    // The aim positions come from the input poll, which does not run while the
+    // game is paused (settings overlay open). So player 1's crosshair would
+    // freeze there. When player 1 is on the mouse fallback (no dedicated gun),
+    // track the live ImGui pointer instead so the crosshair still follows the
+    // mouse in the overlay. A player with a real gun still freezes, which is
+    // correct -- its position only exists when polled.
+    const bool p1_on_mouse = input->gun_count() < 1;
+
+    for (usize player = 0; player < aims.size(); ++player) {
+        const Input::GunAim& aim = aims[player];
+        if (!aim.active) {
+            continue;
+        }
+        float fx = aim.x;
+        float fy = aim.y;
+        if (player == 0 && p1_on_mouse && box.width > 0.0f && box.height > 0.0f) {
+            // Read the pointer straight from SDL rather than io.MousePos: while
+            // the settings window is focused ImGui reports a position relative to
+            // that window, which would confine the crosshair to its width. SDL's
+            // window-relative position spans the whole window. The overlay draws
+            // in io.DisplaySize space, which the SDL3 backend keeps equal to the
+            // window size, so this shares the letterbox already computed above.
+            float mx = 0.0f;
+            float my = 0.0f;
+            SDL_GetMouseState(&mx, &my);
+            fx = std::clamp((mx - box.x) / box.width, 0.0f, 1.0f);
+            fy = std::clamp((my - box.y) / box.height, 0.0f, 1.0f);
+        }
+        const float cx = box.x + fx * box.width;
+        const float cy = box.y + fy * box.height;
+        const ImU32 colour = colours[player < colours.size() ? player : 0];
+        list->AddCircle(ImVec2(cx, cy), radius, colour, 24, 2.0f);
+        list->AddLine(ImVec2(cx - radius * 1.6f, cy), ImVec2(cx - radius * 0.4f, cy), colour, 2.0f);
+        list->AddLine(ImVec2(cx + radius * 0.4f, cy), ImVec2(cx + radius * 1.6f, cy), colour, 2.0f);
+        list->AddLine(ImVec2(cx, cy - radius * 1.6f), ImVec2(cx, cy - radius * 0.4f), colour, 2.0f);
+        list->AddLine(ImVec2(cx, cy + radius * 0.4f), ImVec2(cx, cy + radius * 1.6f), colour, 2.0f);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Sinden light-gun border
+// ---------------------------------------------------------------------------
+
+void Gui::draw_sinden_border(const Config& config)
+{
+    if (!config.sinden_border) {
+        return;
+    }
+    const ImGuiIO& io = ImGui::GetIO();
+    if (io.DisplaySize.x < 1.0f || io.DisplaySize.y < 1.0f) {
+        return;
+    }
+
+    // Frame the letterboxed game image, not the raw window, so the border sits
+    // on the picture the gun's camera actually sees.
+    const render::Letterbox box = render::compute_letterbox(
+        static_cast<u32>(io.DisplaySize.x), static_cast<u32>(io.DisplaySize.y));
+
+    const u32   rgb = config.sinden_border_colour & 0xffffff;
+    const ImU32 colour = IM_COL32((rgb >> 16) & 0xff, (rgb >> 8) & 0xff, rgb & 0xff, 255);
+    const float t = std::max(1.0f, static_cast<float>(config.sinden_border_thickness));
+
+    const float x0 = box.x;
+    const float y0 = box.y;
+    const float x1 = box.x + box.width;
+    const float y1 = box.y + box.height;
+
+    // Four filled bands inset into the image edge. A solid band reads more
+    // reliably to the gun's camera than a one-pixel outline.
+    ImDrawList* list = ImGui::GetForegroundDrawList();
+    list->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y0 + t), colour);        // top
+    list->AddRectFilled(ImVec2(x0, y1 - t), ImVec2(x1, y1), colour);        // bottom
+    list->AddRectFilled(ImVec2(x0, y0), ImVec2(x0 + t, y1), colour);        // left
+    list->AddRectFilled(ImVec2(x1 - t, y0), ImVec2(x1, y1), colour);        // right
 }
 
 // ---------------------------------------------------------------------------

@@ -21,6 +21,7 @@
 #include <SDL3/SDL.h>
 
 #include <array>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,8 @@ struct Inputs;
 }
 
 namespace sm2::osd {
+
+class EvdevGuns;
 
 /// The cabinet's controls, driven by gamepads and the keyboard.
 ///
@@ -83,7 +86,7 @@ public:
     /// An axis that rests at one end, such as a pedal.
     [[nodiscard]] static u8 axis_to_pedal(s16 value);
 
-    Input() = default;
+    Input();
     ~Input();
 
     Input(const Input&)            = delete;
@@ -176,6 +179,31 @@ public:
     /// Names of the gamepads currently open, in player order. An empty string means
     /// that player has no pad.
     [[nodiscard]] std::vector<std::string> gamepad_names() const;
+
+    /// Where each player is aiming, for the crosshair overlay: 0..1 across the
+    /// game image (the letterboxed area, not the window). Updated every poll of a
+    /// lightgun title.
+    struct GunAim {
+        bool  active = false;  ///< This player is aiming a gun this frame.
+        float x      = 0.5f;
+        float y      = 0.5f;
+    };
+    [[nodiscard]] const std::array<GunAim, kPlayers>& gun_aims() const { return m_gun_aims; }
+
+    /// Number of dedicated evdev light guns opened (0 when built without evdev,
+    /// none are plugged in, or the single-mouse fallback is in use).
+    [[nodiscard]] usize gun_count() const;
+
+    /// The name of gun `index`, for the settings UI, or empty if out of range.
+    [[nodiscard]] std::string gun_name(usize index) const;
+
+    /// Recoil settings, pushed from the GUI/config each frame. When on, a gun
+    /// with a motor pulses on each trigger pull.
+    void set_recoil(bool enabled, u32 strength)
+    {
+        m_recoil_enabled  = enabled;
+        m_recoil_strength = strength;
+    }
 
     /// Bits to pull low on each port at a given frame, for unattended testing.
     struct ScriptedPress {
@@ -276,6 +304,24 @@ private:
     mutable bool m_gear_up_held    = false;
     mutable bool m_gear_down_held  = false;
     bool         m_menu_held       = false;  ///< edge state for the Menu-bound wheel button.
+
+    /// Per-device light guns from evdev, when built and present. Held by pointer
+    /// so the evdev/libudev detail stays out of this header; null when no guns
+    /// were opened, in which case the single-mouse pointer path is used.
+    /// Mutable because poll() is const but must drain each gun's event queue.
+    mutable std::unique_ptr<EvdevGuns> m_guns;
+
+    /// Latest per-player aim in game-image space, for the crosshair overlay.
+    /// Written by gather_lightguns, read by the GUI. Mutable for the same reason.
+    mutable std::array<GunAim, kPlayers> m_gun_aims{};
+
+    /// Recoil settings and the previous trigger level per gun, so a pulse fires
+    /// once on the press edge rather than every frame the trigger is held.
+    /// Sized to EvdevGuns::kMaxGuns (which is forward-declared here) plus slack.
+    static constexpr usize kMaxGuns = 8;
+    bool                             m_recoil_enabled  = true;
+    u32                              m_recoil_strength = 60;
+    mutable std::array<bool, kMaxGuns> m_trigger_was_down{};
 
     bool             m_started = false;
 };

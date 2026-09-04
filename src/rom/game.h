@@ -135,6 +135,13 @@ struct LightgunSpec {
     LightgunAxis p1x;
     LightgunAxis p2y;
     LightgunAxis p2x;
+
+    /// Player 1's trigger is always IN1 bit 0. Player 2's trigger, though,
+    /// differs by title: Virtua Cop 1/2 and Rail Chase 2 put it on IN1 bit 1,
+    /// while The House of the Dead (which keeps the stock two-player port
+    /// layout) puts it on IN2 bit 0. True selects the IN2 layout. From MAME's
+    /// per-title input ports.
+    bool p2_trigger_on_in2 = false;
 };
 
 /// A protection chip a title's main board needs. One value per chip/mode

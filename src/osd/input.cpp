@@ -17,6 +17,12 @@
 #include "core/log.h"
 #include "hw/model2.h"
 
+#ifdef SM2_HAVE_EVDEV
+#include "osd/evdev_gun.h"
+#endif
+
+#include "render/geometry.h"
+
 #include <algorithm>
 #include <cstdio>
 
@@ -217,35 +223,61 @@ u8 Input::axis_to_pedal(s16 value)
 /// so a pointer at the edge of the window has to land on that title's own
 /// minimum or maximum rather than on 0 or 0x3ff. Anything else puts the
 /// crosshair in the wrong place and makes the offscreen test fire early.
+/// Scale a 0..1 screen fraction into one lightgun axis's calibrated travel.
+/// Both the mouse pointer and an evdev gun feed through here so the two sources
+/// land on the same coordinates.
+[[nodiscard]] u16 fraction_to_gun(float fraction, const rom::LightgunAxis& axis)
+{
+    const float clamped = std::clamp(fraction, 0.0f, 1.0f);
+    const float span    = static_cast<float>(axis.maximum - axis.minimum);
+    return static_cast<u16>(static_cast<float>(axis.minimum) + clamped * span + 0.5f);
+}
+
 [[nodiscard]] u16 mouse_to_gun(float position, int extent, const rom::LightgunAxis& axis)
 {
     if (extent <= 1) {
         return axis.rest;
     }
-    const float maximum  = static_cast<float>(extent - 1);
-    const float clamped  = std::clamp(position, 0.0f, maximum);
-    const float fraction = clamped / maximum;
-    const float span     = static_cast<float>(axis.maximum - axis.minimum);
-    return static_cast<u16>(static_cast<float>(axis.minimum) + fraction * span + 0.5f);
+    const float maximum = static_cast<float>(extent - 1);
+    return fraction_to_gun(position / maximum, axis);
 }
 
-/// Mouse position in the focused window, and that window's size.
+/// Mouse position in the focused window, that window's size, and its buttons.
 struct PointerState {
-    float x      = 0.0f;
-    float y      = 0.0f;
-    int   width  = 0;
-    int   height = 0;
+    float x       = 0.0f;
+    float y       = 0.0f;
+    int   width   = 0;
+    int   height  = 0;
+    bool  left    = false;  ///< left button held (gun trigger in mouse mode).
+    bool  right   = false;  ///< right button held (reload / off-screen shot).
 };
 
 [[nodiscard]] PointerState pointer_state()
 {
-    PointerState state;
-    SDL_GetMouseState(&state.x, &state.y);
+    PointerState     state;
+    const SDL_MouseButtonFlags buttons = SDL_GetMouseState(&state.x, &state.y);
+    state.left  = (buttons & SDL_BUTTON_LMASK) != 0;
+    state.right = (buttons & SDL_BUTTON_RMASK) != 0;
     if (SDL_Window* focus = SDL_GetMouseFocus(); focus != nullptr) {
-        SDL_GetWindowSize(focus, &state.width, &state.height);
+        // The renderer computes its letterbox from the window's pixel size, and
+        // the gun coordinate is mapped against that same letterbox, so the
+        // pointer and its extent must be in pixels too. SDL_GetMouseState reports
+        // logical units; on a HiDPI or fullscreen surface those differ from
+        // pixels, which otherwise scales the aim to the wrong width. Convert the
+        // pointer to pixels and take the pixel size for the extent.
+        int logical_w = 0;
+        int logical_h = 0;
+        SDL_GetWindowSize(focus, &logical_w, &logical_h);
+        SDL_GetWindowSizeInPixels(focus, &state.width, &state.height);
+        if (logical_w > 0 && logical_h > 0) {
+            state.x *= static_cast<float>(state.width) / static_cast<float>(logical_w);
+            state.y *= static_cast<float>(state.height) / static_cast<float>(logical_h);
+        }
     }
     return state;
 }
+
+Input::Input() = default;
 
 Input::~Input()
 {
@@ -293,6 +325,16 @@ bool Input::init(const WheelSettings& wheel)
     if (m_pads.empty() && m_wheel.handle == nullptr) {
         SM2_INFO("no gamepad found; the keyboard covers both players");
     }
+
+#ifdef SM2_HAVE_EVDEV
+    // Open any per-device light guns. If none are present the pointer stays the
+    // gun source, so this failing to find anything is not an error.
+    m_guns = std::make_unique<EvdevGuns>();
+    if (!m_guns->init() || m_guns->count() == 0) {
+        m_guns.reset();
+    }
+#endif
+
     return true;
 }
 
@@ -950,18 +992,152 @@ void Input::update_force_feedback(const rom::GameSpec& game, u8 drive_force)
 void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) const
 {
     const rom::LightgunSpec& spec = game.lightgun;
-    if (!spec.present) {
+
+    // Two kinds of gun cabinet. The RS-422 lightgun titles (Virtua Cop, House of
+    // the Dead) declare a <lightgun> spec and take their aim through the serial
+    // gun board (inputs->gun_p1x/y). The positional-gun titles (Gunblade NY,
+    // Behind Enemy Lines, Rail Chase 2) have no such board: their aim is an
+    // analogue stick, wired to analog[] channels carrying the Gun1X/Y, Gun2X/Y
+    // controls. Both aim with the mouse here, but write to different places.
+    int pos_gun_ch[4] = {-1, -1, -1, -1};  // p1x, p1y, p2x, p2y -> analog channel
+    for (usize ch = 0; ch < game.analog.size(); ++ch) {
+        switch (game.analog[ch].control) {
+            case rom::AnalogControl::Gun1X: pos_gun_ch[0] = static_cast<int>(ch); break;
+            case rom::AnalogControl::Gun1Y: pos_gun_ch[1] = static_cast<int>(ch); break;
+            case rom::AnalogControl::Gun2X: pos_gun_ch[2] = static_cast<int>(ch); break;
+            case rom::AnalogControl::Gun2Y: pos_gun_ch[3] = static_cast<int>(ch); break;
+            default: break;
+        }
+    }
+    const bool positional = pos_gun_ch[0] >= 0 || pos_gun_ch[1] >= 0;
+
+    if (!spec.present && !positional) {
+        m_gun_aims[0].active = false;
+        m_gun_aims[1].active = false;
         return;
     }
 
-    // One pointer for both players: there is no per-gun host device yet, so
-    // player 2's gun follows the mouse as well rather than sitting at a corner
-    // where the offscreen test would fire continuously.
+    // The single system pointer, used for any player without a dedicated gun.
+    // The finished frame is letterboxed to 4:3 inside the window, so the pointer
+    // has to be mapped onto that game-image rectangle, not the whole window, or
+    // the shot lands offset from the cursor by the size of the bars.
     const PointerState pointer = pointer_state();
-    inputs->gun_p1x = mouse_to_gun(pointer.x, pointer.width, spec.p1x);
-    inputs->gun_p1y = mouse_to_gun(pointer.y, pointer.height, spec.p1y);
-    inputs->gun_p2x = mouse_to_gun(pointer.x, pointer.width, spec.p2x);
-    inputs->gun_p2y = mouse_to_gun(pointer.y, pointer.height, spec.p2y);
+    float ptr_fx = 0.5f;
+    float ptr_fy = 0.5f;
+    if (pointer.width > 1 && pointer.height > 1) {
+        const render::Letterbox box = render::compute_letterbox(
+            static_cast<u32>(pointer.width), static_cast<u32>(pointer.height));
+        if (box.width > 0.0f && box.height > 0.0f) {
+            ptr_fx = std::clamp((pointer.x - box.x) / box.width, 0.0f, 1.0f);
+            ptr_fy = std::clamp((pointer.y - box.y) / box.height, 0.0f, 1.0f);
+        }
+    }
+
+    // Resolve each player's aim, trigger and reload from either a dedicated
+    // evdev gun or the shared mouse pointer.
+    //
+    // These titles have no reload button: the gun reloads when fired while aimed
+    // off screen (`lightgun_offscreen_read` treats a coordinate near the edge of
+    // the calibrated travel as off-screen). So a reload -- the mouse's right
+    // button, or a gun's reload button -- forces the aim to the corner and pulls
+    // the trigger.
+    struct GunInput {
+        float x       = 0.5f;
+        float y       = 0.5f;
+        bool  trigger = false;
+        bool  reload  = false;
+    };
+    GunInput p1{ptr_fx, ptr_fy, pointer.left || pointer.right, pointer.right};
+    GunInput p2{ptr_fx, ptr_fy, false, false};
+
+#ifdef SM2_HAVE_EVDEV
+    // Per-device guns override the pointer for the players they cover: gun 0
+    // drives player 1, gun 1 drives player 2. A player with no gun keeps the
+    // pointer, so one gun plus the mouse still gives two independent aims.
+    if (m_guns) {
+        m_guns->poll();
+        const auto from_gun = [](const EvdevGuns::Gun& g) {
+            GunInput gi;
+            gi.x       = g.x;
+            gi.y       = g.y;
+            gi.trigger = g.buttons[EvdevGuns::Trigger] || g.buttons[EvdevGuns::Reload];
+            gi.reload  = g.buttons[EvdevGuns::Reload];
+            return gi;
+        };
+        if (m_guns->count() >= 1) {
+            p1 = from_gun(m_guns->gun(0));
+        }
+        if (m_guns->count() >= 2) {
+            p2 = from_gun(m_guns->gun(1));
+        }
+
+        // Recoil: pulse a gun's motor once on the trigger's press edge. Keyed on
+        // the real trigger button, not the reload, so racking the gun off-screen
+        // does not kick.
+        for (usize i = 0; i < m_guns->count() && i < kMaxGuns; ++i) {
+            const bool down = m_guns->gun(i).buttons[EvdevGuns::Trigger];
+            if (m_recoil_enabled && down && !m_trigger_was_down[i]
+                && m_guns->has_recoil(i)) {
+                m_guns->fire_recoil(i, m_recoil_strength);
+            }
+            m_trigger_was_down[i] = down;
+        }
+    }
+#endif
+
+    // Record the aim (before the reload snap) for the crosshair overlay. Player
+    // 2's crosshair only shows when a second gun is actually aiming it, so a
+    // single-mouse session does not paint two overlapping crosshairs.
+    bool p2_active = false;
+#ifdef SM2_HAVE_EVDEV
+    p2_active = m_guns && m_guns->count() >= 2;
+#endif
+    // Positional-gun titles draw their own in-game crosshair, so suppress ours
+    // to avoid two overlapping reticles; the RS-422 lightgun titles do not.
+    m_gun_aims[0] = GunAim{!positional, p1.x, p1.y};
+    m_gun_aims[1] = GunAim{p2_active && !positional, p2.x, p2.y};
+
+    if (positional) {
+        // Positional gun: the aim is an analogue axis. Scale the mouse fraction
+        // into each channel's calibrated travel and overwrite the value the
+        // stick sampled. No off-screen reload here, so the reload snap is not
+        // applied; these titles use an explicit missile/reload button instead.
+        const auto write_channel = [&](int idx, float fraction) {
+            if (idx < 0) {
+                return;
+            }
+            const rom::AnalogChannel& c = game.analog[static_cast<usize>(idx)];
+            const float f    = c.reverse ? 1.0f - fraction : fraction;
+            const float span = static_cast<float>(c.maximum - c.minimum);
+            inputs->analog[static_cast<usize>(idx)] =
+                static_cast<u8>(static_cast<float>(c.minimum) + f * span + 0.5f);
+        };
+        write_channel(pos_gun_ch[0], p1.x);
+        write_channel(pos_gun_ch[1], p1.y);
+        write_channel(pos_gun_ch[2], p2.x);
+        write_channel(pos_gun_ch[3], p2.y);
+    } else {
+        // RS-422 lightgun: off-screen reload snaps the aim to the corner.
+        if (p1.reload) { p1.x = 0.0f; p1.y = 0.0f; }
+        if (p2.reload) { p2.x = 0.0f; p2.y = 0.0f; }
+        inputs->gun_p1x = fraction_to_gun(p1.x, spec.p1x);
+        inputs->gun_p1y = fraction_to_gun(p1.y, spec.p1y);
+        inputs->gun_p2x = fraction_to_gun(p2.x, spec.p2x);
+        inputs->gun_p2y = fraction_to_gun(p2.y, spec.p2y);
+    }
+
+    // Triggers, active low. Player 1 is always IN1 bit 0. Player 2 differs by
+    // title: Virtua Cop 1/2 and Rail Chase 2 put it on IN1 bit 1; House of the
+    // Dead keeps the stock two-player layout with it on IN2 bit 0. The game's
+    // lightgun spec carries which.
+    if (p1.trigger) inputs->in1 &= static_cast<u8>(~kButton1);
+    if (p2.trigger) {
+        if (spec.p2_trigger_on_in2) {
+            inputs->in2 &= static_cast<u8>(~kButton1);
+        } else {
+            inputs->in1 &= static_cast<u8>(~kButton2);
+        }
+    }
 }
 
 void Input::poll(hw::Inputs* inputs) const
@@ -1151,6 +1327,27 @@ std::vector<std::string> Input::gamepad_names() const
         }
     }
     return names;
+}
+
+usize Input::gun_count() const
+{
+#ifdef SM2_HAVE_EVDEV
+    return m_guns ? m_guns->count() : 0;
+#else
+    return 0;
+#endif
+}
+
+std::string Input::gun_name(usize index) const
+{
+#ifdef SM2_HAVE_EVDEV
+    if (m_guns && index < m_guns->count()) {
+        return m_guns->gun(index).name;
+    }
+#else
+    (void)index;
+#endif
+    return {};
 }
 
 void Input::print_bindings()

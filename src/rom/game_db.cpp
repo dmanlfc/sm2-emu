@@ -492,6 +492,20 @@ bool GameDatabase::load(const std::string& path)
             game.lightgun.present = true;
         }
 
+        // Player 2's trigger port. Default IN1 (the Virtua Cop / Rail Chase
+        // layout, P2 on bit 1); "in2" selects the House of the Dead layout,
+        // P2 on IN2 bit 0.
+        if (const pugi::xml_node lg = game_node.child("lightgun"); lg) {
+            const std::string_view p2t = lg.attribute("p2_trigger").value();
+            if (p2t == "in2") {
+                game.lightgun.p2_trigger_on_in2 = true;
+            } else if (!p2t.empty() && p2t != "in1") {
+                SM2_ERROR("%s: lightgun p2_trigger must be 'in1' or 'in2'",
+                          context.c_str());
+                return false;
+            }
+        }
+
         for (const pugi::xml_node region_node : game_node.child("roms").children("region")) {
             RegionSpec region;
             region.name = region_node.attribute("name").value();

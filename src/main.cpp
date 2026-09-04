@@ -144,6 +144,7 @@ struct Options {
         bool vsync      = false;
         bool throttle   = false;
         bool fullscreen = false;
+        bool lightgun   = false;
         bool validation = false;
         bool log_level  = false;
         bool gpu        = false;
@@ -308,6 +309,8 @@ void print_usage()
         "      --no-throttle   Run as fast as this computer manages instead of at\n"
         "                      the machine's own 57.52 Hz\n"
         "      --fullscreen    Start filling the screen\n"
+        "      --lightgun      Light-gun mode: show the aiming crosshair and\n"
+        "                      hide the mouse cursor (for the gun titles)\n"
         "      --config <p>    Read settings from this file instead of the usual\n"
         "                      places\n"
         "      --write-config  Write the settings this run would use, then exit,\n"
@@ -372,6 +375,9 @@ void print_usage()
         } else if (std::strcmp(arg, "--fullscreen") == 0) {
             out->config.fullscreen = true;
             out->given.fullscreen  = true;
+        } else if (std::strcmp(arg, "--lightgun") == 0) {
+            out->config.lightgun = true;
+            out->given.lightgun  = true;
         } else if (std::strcmp(arg, "--write-config") == 0) {
             out->write_config = true;
         } else if (std::strcmp(arg, "-v") == 0 || std::strcmp(arg, "--verbose") == 0) {
@@ -617,6 +623,9 @@ int main(int argc, char** argv)
     if (!options.given.fullscreen) {
         options.config.fullscreen = from_file.fullscreen;
     }
+    if (!options.given.lightgun) {
+        options.config.lightgun = from_file.lightgun;
+    }
     if (!options.given.validation) {
         options.config.validation = from_file.validation;
     }
@@ -651,6 +660,13 @@ int main(int argc, char** argv)
     options.config.wheel_brake_axis    = from_file.wheel_brake_axis;
     options.config.wheel_accel_invert  = from_file.wheel_accel_invert;
     options.config.wheel_brake_invert  = from_file.wheel_brake_invert;
+
+    options.config.lightgun_crosshair       = from_file.lightgun_crosshair;
+    options.config.lightgun_recoil          = from_file.lightgun_recoil;
+    options.config.lightgun_recoil_strength = from_file.lightgun_recoil_strength;
+    options.config.sinden_border            = from_file.sinden_border;
+    options.config.sinden_border_colour     = from_file.sinden_border_colour;
+    options.config.sinden_border_thickness  = from_file.sinden_border_thickness;
 
     // --verbose is shorthand, so an explicit level beats it.
     log::Level level = log::Level::Info;
@@ -1556,6 +1572,8 @@ int main(int argc, char** argv)
                 // Push the live settings (the GUI changes these) before computing
                 // this frame's force, so slider and calibration take effect now.
                 input.set_wheel_settings(wheel_settings_from(options.config));
+                input.set_recoil(options.config.lightgun_recoil,
+                                 options.config.lightgun_recoil_strength);
                 input.update_force_feedback(loaded->game, machine_iface->drive_board_force());
                 if (options.coin_at != 0) {
                     // Scripted coin, start and character confirmation, so an

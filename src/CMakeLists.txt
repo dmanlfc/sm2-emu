@@ -260,6 +260,11 @@ add_library(sm2_osd STATIC
     osd/input.cpp
     osd/window.cpp
 )
+if(SM2_HAVE_EVDEV)
+    target_sources(sm2_osd PRIVATE osd/evdev_gun.cpp)
+    target_compile_definitions(sm2_osd PRIVATE SM2_HAVE_EVDEV=1)
+    target_link_libraries(sm2_osd PRIVATE PkgConfig::UDEV)
+endif()
 target_link_libraries(sm2_osd
     PUBLIC
         sm2_core
@@ -267,6 +272,7 @@ target_link_libraries(sm2_osd
         sm2_imgui
         SDL3::SDL3
     PRIVATE
+        sm2_render
         sm2_warnings
 )
 
