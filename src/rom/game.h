@@ -271,6 +271,12 @@ struct GameSpec {
     /// Sega Rally's and Daytona's do through MAME's daytona_gearbox_r.
     bool gearbox = false;
 
+    /// True when shifting is two momentary buttons (shift up / shift down) on
+    /// IN1 bits 0x10 and 0x20 rather than the 0x70 sequential gate. Indy 500 and
+    /// Manx TT and everything inheriting from them wire it this way. The GearUp/
+    /// GearDown wheel roles drive those bits directly, no gear-position state.
+    bool shift_buttons = false;
+
     /// True when the title latches bytes to a force-feedback drive board on the
     /// I/O controller's port E.
     bool drive_board = false;

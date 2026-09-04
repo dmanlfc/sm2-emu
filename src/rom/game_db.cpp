@@ -371,6 +371,8 @@ bool GameDatabase::load(const std::string& path)
         }
 
         if (!attribute_bool(game_node, "gearbox", false, &game.gearbox, context.c_str())
+            || !attribute_bool(game_node, "shift_buttons", false, &game.shift_buttons,
+                               context.c_str())
             || !attribute_bool(game_node, "drive_board", false, &game.drive_board,
                                context.c_str())
             || !attribute_bool(game_node, "motion_base", false, &game.motion_base,
@@ -706,6 +708,7 @@ bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
         if (!declares_analog)          { game.analog = parent.analog; }
         if (!game.lightgun.present)    { game.lightgun = parent.lightgun; }
         if (!game.gearbox)             { game.gearbox = parent.gearbox; }
+        if (!game.shift_buttons)       { game.shift_buttons = parent.shift_buttons; }
         if (!game.drive_board)         { game.drive_board = parent.drive_board; }
         if (!game.motion_base)         { game.motion_base = parent.motion_base; }
         if (game.device_sets.empty())  { game.device_sets = parent.device_sets; }

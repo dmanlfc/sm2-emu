@@ -80,6 +80,15 @@
   `gearbox="true"` marks a title whose IN1 bits 0x70 read a gear selector
   rather than buttons (MAME's daytona_gearbox_r). `drive_board="true"` marks
   one that latches force-feedback commands on port E.
+
+  `shift_buttons="true"` marks a title that shifts with two momentary buttons,
+  Shift Up on IN1 0x10 and Shift Down on IN1 0x20, rather than the 0x70 gate
+  (Indy 500, Manx TT and family).
+
+  `vr_buttons="inN:0xMM,..."` places the four wheel action buttons (which a
+  driving cabinet's view/VR buttons land on) when they are not player one's
+  default IN1 nibble (0x01..0x08). Four comma-separated port:bit entries, e.g.
+  Daytona's "in0:0x20,in0:0x40,in0:0x80,in1:0x01".
 -->
 
 <games>
@@ -2385,7 +2394,7 @@
   </game>
 
 
-  <game name="indy500" drive_board="true" board="model2b" start1="0x40" preliminary="true">
+  <game name="indy500" drive_board="true" shift_buttons="true" board="model2b" start1="0x40" preliminary="true">
     <title>INDY 500 Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -2733,7 +2742,10 @@
   </game>
 
 
-  <game name="manxtt" board="model2a" start1="0x40" preliminary="true">
+  <!-- Motorbike: the wheel's steering axis leans the bike (Bank channel), the
+       paddles are the gear shift (IN1 0x10/0x20), and drive_board enables the
+       synthesised centring/rumble for a wheel player. -->
+  <game name="manxtt" board="model2a" start1="0x40" shift_buttons="true" drive_board="true" preliminary="true">
     <title>Manx TT Superbike - DX/Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -2991,7 +3003,11 @@
   </game>
 
 
-  <game name="motoraid" board="model2a" start1="0x40" preliminary="true">
+  <!-- Motor Raid has no gears; its IN1 0x10/0x20 are Punch/Kick, the same bits
+       shift_buttons drives, so the wheel's shift paddles become punch and kick.
+       drive_board enables the synthesised centring/rumble for a wheel; the bike
+       had no force board, so this is a wheel-player feel, not the cabinet. -->
+  <game name="motoraid" board="model2a" start1="0x40" shift_buttons="true" drive_board="true" preliminary="true">
     <title>Motor Raid - Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1997</year>
@@ -3151,7 +3167,7 @@
   </game>
 
 
-  <game name="overrev" board="model2c" preliminary="true">
+  <game name="overrev" board="model2c" start1="0x40" shift_buttons="true" preliminary="true">
     <title>Over Rev</title>
     <manufacturer>Jaleco</manufacturer>
     <year>1997</year>
@@ -3803,7 +3819,7 @@
   </game>
 
 
-  <game name="sgt24h" drive_board="true" board="model2b" start1="0x40" preliminary="true">
+  <game name="sgt24h" drive_board="true" shift_buttons="true" board="model2b" start1="0x40" preliminary="true">
     <title>Super GT 24h</title>
     <manufacturer>Jaleco</manufacturer>
     <year>1996</year>
@@ -3908,7 +3924,7 @@
   </game>
 
 
-  <game name="srallyc" gearbox="true" drive_board="true" board="model2a" start1="0x40" preliminary="true">
+  <game name="srallyc" gearbox="true" drive_board="true" vr_buttons="in0:0x20,in1:0x02,in1:0x04,in1:0x08" board="model2a" start1="0x40" preliminary="true">
     <title>Sega Rally Championship - Twin/DX</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -4270,7 +4286,7 @@
   </game>
 
 
-  <game name="stcc" board="model2c" start1="0x40" preliminary="true">
+  <game name="stcc" board="model2c" start1="0x40" shift_buttons="true" drive_board="true" preliminary="true">
     <title>Sega Touring Car Championship</title>
     <manufacturer>Sega</manufacturer>
     <year>1996</year>

@@ -528,11 +528,10 @@ void Input::add_wheel(SDL_JoystickID id)
                     SDL_RunHapticEffect(haptic, m_wheel.rumble_effect, SDL_HAPTIC_INFINITY);
                 }
             }
-            SM2_INFO("wheel FFB: %d simultaneous effect(s), constant=%d sine=%d rumble_effect=%d",
-                     SDL_GetMaxHapticEffectsPlaying(haptic),
-                     (SDL_GetHapticFeatures(haptic) & SDL_HAPTIC_CONSTANT) ? 1 : 0,
-                     (SDL_GetHapticFeatures(haptic) & SDL_HAPTIC_SINE) ? 1 : 0,
-                     m_wheel.rumble_effect);
+            SM2_DEBUG("wheel FFB: %d simultaneous effect(s), constant/sine %d/%d",
+                      SDL_GetMaxHapticEffectsPlaying(haptic),
+                      (SDL_GetHapticFeatures(haptic) & SDL_HAPTIC_CONSTANT) ? 1 : 0,
+                      (SDL_GetHapticFeatures(haptic) & SDL_HAPTIC_SINE) ? 1 : 0);
         }
     }
 }
@@ -559,7 +558,12 @@ bool Input::sample_wheel_channel(const rom::AnalogChannel& channel, u8* out) con
     // controls come off the wheel; anything else falls through to the gamepad.
     int axis = -1;
     switch (channel.control) {
-        case rom::AnalogControl::Steer:    axis = m_wheel.steer_axis; break;
+        // Steer, and the bike's lean (Bank) and jetski's handlebar (Handle), are
+        // all the self-centring "which way am I pointing" control -- the wheel
+        // drives them the same way.
+        case rom::AnalogControl::Steer:
+        case rom::AnalogControl::Bank:
+        case rom::AnalogControl::Handle:   axis = m_wheel.steer_axis; break;
         case rom::AnalogControl::Accel:
         case rom::AnalogControl::Throttle: axis = m_wheel.accel_axis; break;
         case rom::AnalogControl::Brake:    axis = m_wheel.brake_axis; break;
@@ -584,7 +588,10 @@ bool Input::sample_wheel_channel(const rom::AnalogChannel& channel, u8* out) con
     // difference is only that a pedal at rest reads 0 and a wheel at rest 0.5.
     float fraction = static_cast<float>(static_cast<int>(raw) + 32768) / 65535.0f;
 
-    if (channel.control == rom::AnalogControl::Steer) {
+    const bool is_steering = channel.control == rom::AnalogControl::Steer
+                          || channel.control == rom::AnalogControl::Bank
+                          || channel.control == rom::AnalogControl::Handle;
+    if (is_steering) {
         // steer_degrees is the wheel's own physical rotation range; lock_degrees
         // is the physical rotation (total) at which the game reaches full lock.
         // Mapping one onto the other makes full lock arrive after turning about
@@ -595,21 +602,33 @@ bool Input::sample_wheel_channel(const rom::AnalogChannel& channel, u8* out) con
                           / static_cast<float>(std::max(1u, m_wheel_settings.lock_degrees));
         fraction = 0.5f + (fraction - 0.5f) * scale;
         fraction = std::clamp(fraction, 0.0f, 1.0f);
-    } else {
-        // A pedal that reads high released and low pressed (some wheels) is
-        // flipped so pressing always increases the fraction.
-        const bool invert =
-            (channel.control == rom::AnalogControl::Brake) ? m_wheel_settings.brake_invert
-                                                           : m_wheel_settings.accel_invert;
-        if (invert) {
-            fraction = 1.0f - fraction;
-        }
+        const u8 value = scaled(fraction);
+        *out = channel.reverse
+                   ? static_cast<u8>(channel.maximum - (value - channel.minimum))
+                   : value;
+        return true;
     }
 
-    const u8 value = scaled(fraction);
-    *out = channel.reverse
-               ? static_cast<u8>(channel.maximum - (value - channel.minimum))
-               : value;
+    // A pedal. The physical pedal gives fraction 0 released, 1 pressed. A wheel
+    // whose pedal reads the other way is corrected by the user's invert flag.
+    const bool invert =
+        (channel.control == rom::AnalogControl::Brake) ? m_wheel_settings.brake_invert
+                                                       : m_wheel_settings.accel_invert;
+    if (invert) {
+        fraction = 1.0f - fraction;
+    }
+    fraction = std::clamp(fraction, 0.0f, 1.0f);
+
+    // Map the pedal the way MAME's PORT_BIT does. A PORT_REVERSE pedal (Over
+    // Rev, Super GT) reads inverted -- released at the maximum, pressed at the
+    // minimum -- because the game treats the resting ADC value as idle; feeding
+    // it non-reversed makes the game read a released pedal (0x00) as full
+    // throttle, which is the "accelerates on its own" fault.
+    const float span = static_cast<float>(channel.maximum - channel.minimum);
+    const float value = channel.reverse
+                            ? static_cast<float>(channel.maximum) - fraction * span
+                            : static_cast<float>(channel.minimum) + fraction * span;
+    *out = static_cast<u8>(value + 0.5f);
     return true;
 }
 
@@ -1019,7 +1038,10 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                 }
             }
         }
-        if (role_pressed(Config::WheelRole::Start))   ports[0] &= static_cast<u8>(~kStart1);
+        // Start sits on whichever IN0 bit this title uses (0x10 by default, but
+        // Indy 500, Sky Target, Manx TT and family move it to 0x40).
+        const u8 start_bit = game.start1_bit != 0 ? game.start1_bit : kStart1;
+        if (role_pressed(Config::WheelRole::Start))   ports[0] &= static_cast<u8>(~start_bit);
         if (role_pressed(Config::WheelRole::Coin))    ports[0] &= static_cast<u8>(~kCoin1);
         if (role_pressed(Config::WheelRole::Test))    ports[0] &= static_cast<u8>(~kTest);
         if (role_pressed(Config::WheelRole::Service)) ports[0] &= static_cast<u8>(~kService);
@@ -1038,6 +1060,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                                       ? 0x00
                                       : sample_channel(wiring);
     }
+
 
     gather_lightguns(inputs, game);
 
@@ -1097,6 +1120,24 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         }
 
         inputs->gears = gears;
+    }
+
+    // Games that shift with two momentary buttons rather than a gate (Indy 500,
+    // Manx TT and family) put Shift Up on IN1 0x10 and Shift Down on IN1 0x20.
+    // The GearUp/GearDown wheel roles press those bits directly; no gear state.
+    if (game.shift_buttons && m_wheel.handle != nullptr) {
+        const int count = SDL_GetNumJoystickButtons(m_wheel.handle);
+        const auto role_held = [&](Config::WheelRole role) {
+            const s32 button = m_wheel_settings.buttons[static_cast<usize>(role)];
+            return button >= 0 && button < count
+                && SDL_GetJoystickButton(m_wheel.handle, button);
+        };
+        if (role_held(Config::WheelRole::GearUp)) {
+            inputs->in1 &= static_cast<u8>(~0x10);
+        }
+        if (role_held(Config::WheelRole::GearDown)) {
+            inputs->in1 &= static_cast<u8>(~0x20);
+        }
     }
 }
 

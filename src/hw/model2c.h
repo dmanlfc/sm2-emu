@@ -242,6 +242,7 @@ public:
 
     [[nodiscard]] u32 intreq() const override { return m_intreq; }
     [[nodiscard]] u32 intena() const override { return m_intena; }
+    [[nodiscard]] u8  drive_board_force() const override { return m_drive_board_latch; }
 
     void set_nvram_directory(const std::string& directory) override;
     void load_nvram() override;
