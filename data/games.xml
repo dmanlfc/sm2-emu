@@ -2742,10 +2742,11 @@
   </game>
 
 
-  <!-- Motorbike: the wheel's steering axis leans the bike (Bank channel), the
-       paddles are the gear shift (IN1 0x10/0x20), and drive_board enables the
-       synthesised centring/rumble for a wheel player. -->
-  <game name="manxtt" board="model2a" start1="0x40" shift_buttons="true" drive_board="true" preliminary="true">
+  <!-- Motorbike: the wheel's steering axis leans the bike (Bank channel) and the
+       paddles are the gear shift (IN1 0x10/0x20). The synthesised centring/rumble
+       follows from having a steering control; the cabinet had a motion base, not
+       a force-feedback drive board (port E drives the billboard). -->
+  <game name="manxtt" board="model2a" start1="0x40" shift_buttons="true" preliminary="true">
     <title>Manx TT Superbike - DX/Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -3005,9 +3006,9 @@
 
   <!-- Motor Raid has no gears; its IN1 0x10/0x20 are Punch/Kick, the same bits
        shift_buttons drives, so the wheel's shift paddles become punch and kick.
-       drive_board enables the synthesised centring/rumble for a wheel; the bike
-       had no force board, so this is a wheel-player feel, not the cabinet. -->
-  <game name="motoraid" board="model2a" start1="0x40" shift_buttons="true" drive_board="true" preliminary="true">
+       The synthesised centring/rumble follows from having a steering (Bank)
+       control; the bike used a motion base, not a force-feedback drive board. -->
+  <game name="motoraid" board="model2a" start1="0x40" shift_buttons="true" preliminary="true">
     <title>Motor Raid - Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1997</year>
@@ -4286,7 +4287,7 @@
   </game>
 
 
-  <game name="stcc" board="model2c" start1="0x40" shift_buttons="true" drive_board="true" preliminary="true">
+  <game name="stcc" board="model2c" start1="0x40" shift_buttons="true" preliminary="true">
     <title>Sega Touring Car Championship</title>
     <manufacturer>Sega</manufacturer>
     <year>1996</year>

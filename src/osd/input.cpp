@@ -797,7 +797,7 @@ void Input::update_force_feedback(const rom::GameSpec& game, u8 drive_force)
     // negative level pushes the wheel right, a positive level pushes it left.
     int level  = 0;
     int rumble = 0;   // periodic-effect magnitude, felt as a buzz not a push
-    if (game.drive_board && m_wheel_settings.ffb) {
+    if (game.has_steering() && m_wheel_settings.ffb) {
         const int ceiling = static_cast<int>(
             std::clamp(m_wheel_settings.strength, 0u, 100u) * 32767 / 100);
         const int cmd   = drive_force & 0xf0;
@@ -893,7 +893,7 @@ void Input::update_force_feedback(const rom::GameSpec& game, u8 drive_force)
     // gas. This is a feel, not replayed game data, with its own on/off + strength.
     // Kept deliberately subtle: even at full strength it is a fraction of the
     // device maximum, so it reads as an engine hum rather than a jackhammer.
-    if (game.drive_board && m_wheel_settings.ffb && m_wheel_settings.rumble
+    if (game.has_steering() && m_wheel_settings.ffb && m_wheel_settings.rumble
         && m_wheel.accel_axis >= 0) {
         // Full strength maps to ~12% of the device max at full throttle; the
         // G923's motor is strong, so even a small sine magnitude is plenty.

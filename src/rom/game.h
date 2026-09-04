@@ -264,6 +264,22 @@ struct GameSpec {
     /// channel number; an entry with control None is an unconnected channel.
     std::array<AnalogChannel, 8> analog{};
 
+    /// True when the title has a self-centring steering-type control (a wheel,
+    /// a bike's lean, or a jetski's handlebar). The wheel's synthesised centring
+    /// spring and rumble apply to these, independent of any force-feedback drive
+    /// board -- a bike had a motion base, not a force wheel, but a wheel player
+    /// still wants the feel.
+    [[nodiscard]] bool has_steering() const
+    {
+        for (const AnalogChannel& c : analog) {
+            if (c.control == AnalogControl::Steer || c.control == AnalogControl::Bank
+                || c.control == AnalogControl::Handle) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// The serial lightgun interface board, when the cabinet has one.
     LightgunSpec lightgun;
 
