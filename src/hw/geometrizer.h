@@ -317,8 +317,8 @@ private:
 
     void geo_parse_np_ns(GeoState* geo, u32* input, u32 count);
     void geo_parse_np_s(GeoState* geo, u32* input, u32 count);
-    void geo_parse_nn_ns(GeoState* geo, u32* input, u32 count);
-    void geo_parse_nn_s(GeoState* geo, u32* input, u32 count);
+    void geo_parse_nn_ns(GeoState* geo, u32* input, u32 count, bool compact = false);
+    void geo_parse_nn_s(GeoState* geo, u32* input, u32 count, bool compact = false);
 
     u32* geo_nop(GeoState* geo, u32 opcode, u32* input);
     u32* geo_object_data(GeoState* geo, u32 opcode, u32* input);

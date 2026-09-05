@@ -321,7 +321,9 @@ private:
     /// so the evdev/libudev detail stays out of this header; null when no guns
     /// were opened, in which case the single-mouse pointer path is used.
     /// Mutable because poll() is const but must drain each gun's event queue.
+#ifdef SM2_HAVE_EVDEV
     mutable std::unique_ptr<EvdevGuns> m_guns;
+#endif
 
     /// Latest per-player aim in game-image space, for the crosshair overlay.
     /// Written by gather_lightguns, read by the GUI. Mutable for the same reason.

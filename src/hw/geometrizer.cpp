@@ -1274,7 +1274,7 @@ void Geometrizer::geo_parse_np_s(GeoState *geo, u32 *input, u32 count)
 }
 
 /* Parse Polygons: No Normals, No Specular case */
-void Geometrizer::geo_parse_nn_ns(GeoState *geo, u32 *input, u32 count)
+void Geometrizer::geo_parse_nn_ns(GeoState *geo, u32 *input, u32 count, bool compact)
 {
 	RasterState *raster = geo->raster;
 	PolyVertex point, normal, p0, p1, p2, p3;
@@ -1334,8 +1334,9 @@ void Geometrizer::geo_parse_nn_ns(GeoState *geo, u32 *input, u32 count)
 			s32             luma;
 			TextureParameter * texparam;
 
-			/* Skip normal */
-			input += 3;
+			/* skip the reserved normal; compact records have none */
+			if (!compact)
+				input += 3;
 
 			/* read in the next point */
 			point.x = u2f(*input++);
@@ -1419,8 +1420,9 @@ void Geometrizer::geo_parse_nn_ns(GeoState *geo, u32 *input, u32 count)
 			}
 			else
 			{
-				/* skip the next 3 points */
-				input += 3;
+				/* skip the reserved quad-gap; compact records have none */
+				if (!compact)
+					input += 3;
 
 				/* for triangles, the rope of P1(n) is achieved by P0(n-1) (linktype 3) */
 				p3.x = p2.x; p3.y = p2.y; p3.pz = p2.pz;
@@ -1464,7 +1466,7 @@ void Geometrizer::geo_parse_nn_ns(GeoState *geo, u32 *input, u32 count)
 }
 
 /* Parse Polygons: No Normals, Specular case */
-void Geometrizer::geo_parse_nn_s(GeoState *geo, u32 *input, u32 count)
+void Geometrizer::geo_parse_nn_s(GeoState *geo, u32 *input, u32 count, bool compact)
 {
 	RasterState *raster = geo->raster;
 	PolyVertex point, normal, p0, p1, p2, p3;
@@ -1524,8 +1526,9 @@ void Geometrizer::geo_parse_nn_s(GeoState *geo, u32 *input, u32 count)
 			s32             luma;
 			TextureParameter * texparam;
 
-			/* Skip normal */
-			input += 3;
+			/* skip the reserved normal; compact records have none */
+			if (!compact)
+				input += 3;
 
 			/* read in the next point */
 			point.x = u2f(*input++);
@@ -1618,8 +1621,9 @@ void Geometrizer::geo_parse_nn_s(GeoState *geo, u32 *input, u32 count)
 			}
 			else
 			{
-				/* skip the next 3 points */
-				input += 3;
+				/* skip the reserved quad-gap; compact records have none */
+				if (!compact)
+					input += 3;
 
 				/* for triangles, the rope of P1(n) is achieved by P0(n-1) (linktype 3) */
 				p3.x = p2.x; p3.y = p2.y; p3.pz = p2.pz;
@@ -1691,7 +1695,10 @@ u32 *Geometrizer::geo_object_data(GeoState *geo, u32 opcode, u32 *input)
 	u32 *obp;                /* Object Pointer */
 
 	/* push the initial set of data to the 3d rasterizer */
-	model2_3d_push(raster, opcode >> 23);
+	// Opcode bits 6-7 are a per-object centre-select (eye mode) picking one of
+	// the window's four vanishing points. model2_3d_push reads it from those
+	// bits, so carry them through; MAME pushes only opcode>>23 and loses it.
+	model2_3d_push(raster, (opcode >> 23) | (opcode & 0x000000c0));
 	model2_3d_push(raster, tpa);
 	model2_3d_push(raster, tha);
 
@@ -1717,6 +1724,11 @@ u32 *Geometrizer::geo_object_data(GeoState *geo, u32 opcode, u32 *input)
 	if (obc == 0)
 		obc = 0xfffff;
 
+	// Top Skater's objects use geo command 0x11 with compact link records that
+	// omit the reserved normal-word triple; the shared 10-word walk would read
+	// its attribute words as coordinates (the starburst). 0x01 stays 10-word.
+	const bool compact = ((opcode >> 23) & 0x1f) == 0x11;
+
 	switch (geo->mode & 3)
 	{
 		/* Normals present, No Specular */
@@ -1726,10 +1738,10 @@ u32 *Geometrizer::geo_object_data(GeoState *geo, u32 opcode, u32 *input)
 		case 1: geo_parse_np_s(geo, obp, obc); break;
 
 		/* No Normals present, No Specular */
-		case 2: geo_parse_nn_ns(geo, obp, obc); break;
+		case 2: geo_parse_nn_ns(geo, obp, obc, compact); break;
 
 		/* No Normals present, Specular */
-		case 3: geo_parse_nn_s(geo, obp, obc); break;
+		case 3: geo_parse_nn_s(geo, obp, obc, compact); break;
 	}
 
 	/* move by 4 parameters */
