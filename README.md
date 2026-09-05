@@ -370,11 +370,6 @@ Roughly in order of increasing difficulty.
 
 Everything with a local ROM archive runs. The exceptions:
 
-- **Top Skater — shattered 3D geometry (post-1.0.0 fix).** Its 3D screens draw
-  badly broken polygons. The fault is in the geometry engine, not the
-  renderers — the software, Vulkan and OpenGL backends all draw the same
-  corruption from the same geometry output — and MAME's own driver crashes
-  before reaching those screens, so there is no reference to fix against yet.
 - A handful of sets produce nothing here *and nothing in MAME*, because they
   are marked not-working upstream: Manx TT (both DX sets), Motor Raid DX,
   Virtual-On Relay, Royal Ascot II, and Sega Ski Super G (also unemulated
