@@ -92,6 +92,7 @@ private:
     void draw_crosshairs(const class Input* input);
     void draw_sinden_border(const Config& config);
 
+    SDL_Window* m_window      = nullptr;
     bool        m_visible     = false;
     bool        m_initialised = false;
     float       m_ui_scale    = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.

@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <bit>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <type_traits>
@@ -556,6 +557,67 @@ void Model2C::run_frame()
 
     m_frame_start += kCyclesPerFrame;
     ++m_frames;
+
+    // bel gun calibration seed. bel's gun aim (routines 0x5be10 X / 0x63720 Y)
+    // reads calibration center/scale floats that its own calibration procedure
+    // would fill -- but that capture is gated on a gun-board handshake we cannot
+    // reproduce, so absent a seed the values stay at their 0xff power-on state
+    // (center 255) and the crosshair sits off-screen. Gunblade, the same style
+    // of positional gun, simply seeds working defaults at boot; do the same here.
+    // The transform at 0x632f0 recomputes these from calibration bytes at boot
+    // and on leaving the calibration menu, so writing them each frame keeps the
+    // seed in force without fighting the game.  Tunable via SM2_BEL_CAL for now.
+    if (m_game.gun_missile && std::getenv("SM2_BEL_NOSEED") == nullptr) {
+        float cx = 127.0f, sx = 127.0f, cy = 86.0f, sy = -86.0f;
+        if (const char* env = std::getenv("SM2_BEL_CAL"); env != nullptr) {
+            std::sscanf(env, "%f %f %f %f", &cx, &sx, &cy, &sy);
+        }
+        auto wf = [this](u32 addr, float v) {
+            const u32 off = addr - 0x00500000;
+            if (off + 4 > m_work_ram.size()) return;
+            u32 bits; std::memcpy(&bits, &v, 4);
+            u8* p = reinterpret_cast<u8*>(m_work_ram.data()) + off;
+            p[0] = bits; p[1] = bits >> 8; p[2] = bits >> 16; p[3] = bits >> 24;
+        };
+        wf(0x5a17d4, cx); wf(0x5a021c, sx);   // X center, scale
+        wf(0x5a2230, cy); wf(0x5a0224, sy);   // Y center, scale (negated: un-invert)
+    }
+
+    // TEMP PROBE (SM2_BEL_WATCH): report bel's calibration bytes and the derived
+    // float params whenever they change, to learn what a two-gun in-game
+    // calibration actually captures. Revert.
+    if (std::getenv("SM2_BEL_WATCH") != nullptr && (m_frames % 15) == 0) {
+        auto rb = [this](u32 a) -> u8 {
+            const u32 o = a - 0x00500000;
+            return o < m_work_ram.size()
+                       ? reinterpret_cast<u8*>(m_work_ram.data())[o] : 0;
+        };
+        auto rw = [this](u32 a) -> u32 {
+            const u32 o = a - 0x00500000;
+            if (o + 4 > m_work_ram.size()) return 0;
+            const u8* p = reinterpret_cast<u8*>(m_work_ram.data()) + o;
+            return p[0] | (p[1] << 8) | (p[2] << 16) | (static_cast<u32>(p[3]) << 24);
+        };
+        static u64 sig = 0;
+        const u64 now = (static_cast<u64>(rb(0x5a8607)) << 0)
+                      | (static_cast<u64>(rb(0x5a8608)) << 8)
+                      | (static_cast<u64>(rb(0x5a8609)) << 16)
+                      | (static_cast<u64>(rb(0x5a860a)) << 24)
+                      | (static_cast<u64>(rb(0x5a860b)) << 32)
+                      | (static_cast<u64>(rb(0x5a860c)) << 40)
+                      | (static_cast<u64>(rb(0x5a860d)) << 48)
+                      | (static_cast<u64>(rb(0x5a860e)) << 56);
+        if (now != sig) {
+            sig = now;
+            std::fprintf(stderr,
+                "[belwatch] calbytes P1[cx=%02x dx=%02x cy=%02x dy=%02x] "
+                "P2[cx=%02x dx=%02x cy=%02x dy=%02x] | "
+                "floats P1 Xc=%08x Xs=%08x Yc=%08x Ys=%08x\n",
+                rb(0x5a8607), rb(0x5a860b), rb(0x5a8609), rb(0x5a860d),
+                rb(0x5a8608), rb(0x5a860c), rb(0x5a860a), rb(0x5a860e),
+                rw(0x5a17d4), rw(0x5a021c), rw(0x5a2230), rw(0x5a0224));
+        }
+    }
 }
 
 void Model2C::step_copro(u32 host_cycles)

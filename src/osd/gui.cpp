@@ -65,6 +65,7 @@ bool Gui::init(SDL_Window* window)
         return false;
     }
 
+    m_window      = window;
     m_initialised = true;
     SM2_INFO("gui: initialised (ImGui %s)", IMGUI_VERSION);
     return true;
@@ -147,6 +148,13 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
         } else {
             io.ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
             SDL_ShowCursor();
+        }
+        // Confine the pointer to the window while playing, so a light gun that
+        // presents as a mouse (e.g. a Sinden) cannot drag the desktop cursor off
+        // onto another monitor, and its motion stays with sm2-emu. Released when
+        // the settings overlay opens, so its buttons stay clickable.
+        if (m_window != nullptr) {
+            SDL_SetWindowMouseGrab(m_window, hide_cursor);
         }
         m_cursor_hidden = hide_cursor;
     }

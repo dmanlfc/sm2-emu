@@ -304,6 +304,12 @@ struct GameSpec {
     /// I/O controller's port E.
     bool drive_board = false;
 
+    /// True when the positional-gun cabinet has a separate Missile button
+    /// (Behind Enemy Lines: P1 on IN1 bit 0x10, P2 on 0x20) rather than an
+    /// off-screen reload. The second mouse button fires the missile instead of
+    /// acting as a reload. From MAME's bel input ports.
+    bool gun_missile = false;
+
     /// True when the cabinet's motion base answers on the I/O controller's ports
     /// D and E and the title refuses to start until it does.
     ///

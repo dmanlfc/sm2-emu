@@ -741,7 +741,7 @@
   </game>
 
 
-  <game name="bel" board="model2c" preliminary="true">
+  <game name="bel" board="model2c" preliminary="true" gun_missile="true">
     <title>Behind Enemy Lines</title>
     <manufacturer>Sega / EPL Productions</manufacturer>
     <year>1997</year>

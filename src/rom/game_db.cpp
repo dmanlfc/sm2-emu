@@ -376,6 +376,8 @@ bool GameDatabase::load(const std::string& path)
             || !attribute_bool(game_node, "drive_board", false, &game.drive_board,
                                context.c_str())
             || !attribute_bool(game_node, "motion_base", false, &game.motion_base,
+                               context.c_str())
+            || !attribute_bool(game_node, "gun_missile", false, &game.gun_missile,
                                context.c_str())) {
             return false;
         }
