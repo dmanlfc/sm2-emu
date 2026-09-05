@@ -703,8 +703,9 @@ int main(int argc, char** argv)
     // an existing one is left untouched. save_config creates the parent dir.
     {
         std::error_code error;
-        if (!std::filesystem::exists(config_path, error) || error) {
-            save_config(config_path, options.config);
+        if ((!std::filesystem::exists(config_path, error) || error)
+            && !save_config(config_path, options.config)) {
+            SM2_WARN("could not create '%s'", config_path.c_str());
         }
         if (!options.config.nvram_dir.empty()) {
             std::filesystem::create_directories(options.config.nvram_dir, error);
