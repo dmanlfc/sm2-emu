@@ -1047,10 +1047,14 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         bool  trigger = false;
         bool  reload  = false;
         bool  missile = false;
+        bool  coin    = false;
+        bool  start   = false;
+        bool  up      = false;
+        bool  down    = false;
+        bool  left    = false;
+        bool  right   = false;
     };
-    // For a title with a Missile button (bel), the right mouse button fires the
-    // missile and the trigger is the left button only; otherwise the right
-    // button doubles as the off-screen reload.
+    // With a Missile button (bel), right = missile; otherwise right = reload.
     const bool has_missile = game.gun_missile;
     const auto from_mouse = [&]() {
         GunInput gi;
@@ -1069,39 +1073,48 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
     GunInput p2 = from_mouse();
 
 #ifdef SM2_HAVE_EVDEV
-    // Per-device guns override the pointer for the players they cover: gun 0
-    // drives player 1, gun 1 drives player 2. A player with no gun keeps the
-    // mouse (aim AND buttons), so one gun plus the mouse still gives two
-    // independent, fully usable aims.
+    // Gun 0 drives player 1, gun 1 player 2. A player with no gun keeps the
+    // mouse (aim and buttons), so one gun plus the mouse gives two aims.
     if (m_guns) {
         m_guns->poll();
-        const auto from_gun = [has_missile](const EvdevGuns::Gun& g) {
+        const auto from_gun = [&](const EvdevGuns::Gun& g, usize player) {
+            const auto& bind = m_gun_buttons[player];
+            const auto held  = [&](usize role) {
+                const u32 code = bind[role];
+                return code != 0 && g.held(static_cast<u16>(code));
+            };
             GunInput gi;
-            gi.x       = g.x;
-            gi.y       = g.y;
-            // On a missile title the Reload button is the missile; otherwise it
-            // is the off-screen reload (and also pulls the trigger).
+            gi.x = g.x;
+            gi.y = g.y;
+            const bool reload = held(GrReload);
             if (has_missile) {
-                gi.trigger = g.buttons[EvdevGuns::Trigger];
-                gi.missile = g.buttons[EvdevGuns::Reload];
+                gi.trigger = held(GrTrigger);
+                gi.missile = reload;
             } else {
-                gi.trigger = g.buttons[EvdevGuns::Trigger] || g.buttons[EvdevGuns::Reload];
-                gi.reload  = g.buttons[EvdevGuns::Reload];
+                gi.trigger = held(GrTrigger) || reload;
+                gi.reload  = reload;
             }
+            gi.coin  = held(GrCoin);
+            gi.start = held(GrStart);
+            gi.up    = held(GrHatUp);
+            gi.down  = held(GrHatDown);
+            gi.left  = held(GrHatLeft);
+            gi.right = held(GrHatRight);
             return gi;
         };
         if (m_guns->count() >= 1) {
-            p1 = from_gun(m_guns->gun(0));
+            p1 = from_gun(m_guns->gun(0), 0);
         }
         if (m_guns->count() >= 2) {
-            p2 = from_gun(m_guns->gun(1));
+            p2 = from_gun(m_guns->gun(1), 1);
         }
 
-        // Recoil: pulse a gun's motor once on the trigger's press edge. Keyed on
-        // the real trigger button, not the reload, so racking the gun off-screen
-        // does not kick.
+        // Recoil: pulse a gun's motor once on the trigger's press edge, keyed on
+        // the bound trigger code (not reload) so racking off-screen does not kick.
         for (usize i = 0; i < m_guns->count() && i < kMaxGuns; ++i) {
-            const bool down = m_guns->gun(i).buttons[EvdevGuns::Trigger];
+            const u32  code = m_gun_buttons[i < 2 ? i : 1][GrTrigger];
+            const bool down = code != 0
+                              && m_guns->gun(i).held(static_cast<u16>(code));
             if (m_recoil_enabled && down && !m_trigger_was_down[i]
                 && m_guns->has_recoil(i)) {
                 m_guns->fire_recoil(i, m_recoil_strength);
@@ -1165,9 +1178,27 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         }
     }
 
-    // Missile button (bel): P1 on IN1 bit 0x10, P2 on IN1 bit 0x20.
+    // Missile (bel): P1 IN1 0x10, P2 IN1 0x20.
     if (p1.missile) inputs->in1 &= static_cast<u8>(~0x10);
     if (p2.missile) inputs->in1 &= static_cast<u8>(~0x20);
+
+    // Coin and Start from the gun buttons, on the operator port. start1_bit
+    // carries the title's start bit, which some sets move off 0x10.
+    const u8 start1 = game.start1_bit != 0 ? game.start1_bit : kStart1;
+    if (p1.coin)  inputs->in0 &= static_cast<u8>(~kCoin1);
+    if (p1.start) inputs->in0 &= static_cast<u8>(~start1);
+    if (p2.coin)  inputs->in0 &= static_cast<u8>(~kCoin2);
+    if (p2.start) inputs->in0 &= static_cast<u8>(~kStart2);
+
+    // Gun hat -> the player port's direction bits (P1 in1, P2 in2).
+    const auto hat = [](u8& port, const GunInput& g) {
+        if (g.up)    port &= static_cast<u8>(~kUp);
+        if (g.down)  port &= static_cast<u8>(~kDown);
+        if (g.left)  port &= static_cast<u8>(~kLeft);
+        if (g.right) port &= static_cast<u8>(~kRight);
+    };
+    hat(inputs->in1, p1);
+    hat(inputs->in2, p2);
 }
 
 void Input::poll(hw::Inputs* inputs) const
@@ -1378,6 +1409,19 @@ std::string Input::gun_name(usize index) const
     (void)index;
 #endif
     return {};
+}
+
+u16 Input::gun_take_last_pressed(usize index) const
+{
+#ifdef SM2_HAVE_EVDEV
+    if (m_guns && index < m_guns->count()) {
+        m_guns->poll();  // ensure fresh while the overlay is open
+        return m_guns->take_last_pressed(index);
+    }
+#else
+    (void)index;
+#endif
+    return 0;
 }
 
 void Input::print_bindings()

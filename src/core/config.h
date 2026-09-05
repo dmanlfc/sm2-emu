@@ -151,6 +151,24 @@ struct Config {
     bool wheel_accel_invert = false;
     bool wheel_brake_invert = false;
 
+    // -- light-gun buttons -------------------------------------------------
+
+    /// Actions a gun's buttons can drive. Reload doubles as Missile on titles
+    /// that have one; the Hat directions are a D-pad some guns carry. kCount last.
+    enum class GunRole : u32 {
+        Trigger, Reload, Coin, Start, HatUp, HatDown, HatLeft, HatRight, kCount
+    };
+    static constexpr u32 kGunRoleCount = static_cast<u32>(GunRole::kCount);
+
+    /// Raw evdev key code per gun role, per player, or 0 for unbound. Addressed
+    /// by evdev code (not a joystick index) so bindings port across gun rules.
+    /// Defaults suit a Batocera Sinden.
+    std::array<std::array<u32, kGunRoleCount>, 2> gun_buttons = {{
+        // Trigger, Reload,  Coin,    Start,   HatU,    HatD,    HatL,    HatR
+        {0x110u,   0x111u,  0x101u,  0x102u,  0x105u,  0x106u,  0x107u,  0x108u},
+        {0x110u,   0x111u,  0x101u,  0x102u,  0x105u,  0x106u,  0x107u,  0x108u},
+    }};
+
     // -- paths -------------------------------------------------------------
 
     std::string nvram_dir = "nvram";

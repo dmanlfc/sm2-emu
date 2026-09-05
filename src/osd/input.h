@@ -197,12 +197,24 @@ public:
     /// The name of gun `index`, for the settings UI, or empty if out of range.
     [[nodiscard]] std::string gun_name(usize index) const;
 
+    /// Most recent button press on gun `index` (0 if none), consumed on read,
+    /// for the settings UI's bind capture. Always 0 without evdev or a gun.
+    [[nodiscard]] u16 gun_take_last_pressed(usize index) const;
+
     /// Recoil settings, pushed from the GUI/config each frame. When on, a gun
     /// with a motor pulses on each trigger pull.
     void set_recoil(bool enabled, u32 strength)
     {
         m_recoil_enabled  = enabled;
         m_recoil_strength = strength;
+    }
+
+    /// Per-player gun button bindings: the evdev key code for each GunRole,
+    /// pushed from the config each frame. Sized [2 players][kGunRoles].
+    static constexpr usize kGunRoles = 8;
+    void set_gun_buttons(const std::array<std::array<u32, kGunRoles>, 2>& b)
+    {
+        m_gun_buttons = b;
     }
 
     /// Bits to pull low on each port at a given frame, for unattended testing.
@@ -322,6 +334,15 @@ private:
     bool                             m_recoil_enabled  = true;
     u32                              m_recoil_strength = 60;
     mutable std::array<bool, kMaxGuns> m_trigger_was_down{};
+
+    /// Gun role -> evdev key code, per player; Sinden defaults until the config
+    /// is applied. [player][role].
+    std::array<std::array<u32, kGunRoles>, 2> m_gun_buttons = {{
+        {0x110u, 0x111u, 0x101u, 0x102u, 0x105u, 0x106u, 0x107u, 0x108u},
+        {0x110u, 0x111u, 0x101u, 0x102u, 0x105u, 0x106u, 0x107u, 0x108u},
+    }};
+    enum GunRoleIdx { GrTrigger, GrReload, GrCoin, GrStart,
+                      GrHatUp, GrHatDown, GrHatLeft, GrHatRight };
 
     bool             m_started = false;
 };

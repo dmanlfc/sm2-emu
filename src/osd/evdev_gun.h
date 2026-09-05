@@ -31,6 +31,7 @@
 
 #include <array>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace sm2::osd {
@@ -42,23 +43,20 @@ public:
     /// with hubs presenting extra nodes.
     static constexpr usize kMaxGuns = 8;
 
-    /// One gun's current state: normalised position and button levels.
+    /// One gun's current state: normalised position and the evdev key codes
+    /// currently held. Buttons are tracked by their raw evdev code so any
+    /// binding (set in the config) resolves without a fixed slot table.
     struct Gun {
         float x = 0.5f;  ///< 0..1 across the screen, centred until moved.
         float y = 0.5f;
-        /// Button levels, indexed by Button below. Held == true.
-        std::array<bool, 5> buttons{};
         std::string name;
-    };
 
-    /// Button slots, mapped from the evdev codes a gun driver uses.
-    enum Button : u32 {
-        Trigger  = 0,  ///< BTN_LEFT
-        Button2  = 1,  ///< BTN_2
-        Reload   = 2,  ///< BTN_RIGHT (offscreen / reload on most guns)
-        Button4  = 3,  ///< BTN_MIDDLE
-        Button5  = 4,  ///< BTN_1
-        kCount   = 5,
+        /// Whether evdev key `code` (e.g. BTN_LEFT, BTN_1) is held.
+        [[nodiscard]] bool held(u16 code) const {
+            const auto it = pressed.find(code);
+            return it != pressed.end() && it->second;
+        }
+        std::unordered_map<u16, bool> pressed;
     };
 
     EvdevGuns() = default;
@@ -88,6 +86,10 @@ public:
     /// no-op for a gun without a motor, or when strength is zero.
     void fire_recoil(usize index, u32 strength);
 
+    /// Most recent button press on gun `index` since the last call (0 if none),
+    /// consumed on read, for the GUI bind capture.
+    [[nodiscard]] u16 take_last_pressed(usize index);
+
 private:
     struct Device {
         int         fd = -1;
@@ -100,6 +102,7 @@ private:
         /// so fire_recoil can re-upload at the requested level on demand.
         int  ff_effect = -1;
         u32  ff_strength = 0;  ///< strength the current effect was built at.
+        u16  last_pressed = 0;  ///< most recent EV_KEY press, for GUI capture.
     };
 
     bool open_gun(const std::string& node);

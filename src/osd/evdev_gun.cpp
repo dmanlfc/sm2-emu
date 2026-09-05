@@ -61,19 +61,6 @@ namespace {
     return false;
 }
 
-/// Map an evdev key code to a Gun::Button slot, or -1 if we do not track it.
-[[nodiscard]] int button_slot(u16 code)
-{
-    switch (code) {
-        case BTN_LEFT:   return EvdevGuns::Trigger;
-        case BTN_2:      return EvdevGuns::Button2;
-        case BTN_RIGHT:  return EvdevGuns::Reload;
-        case BTN_MIDDLE: return EvdevGuns::Button4;
-        case BTN_1:      return EvdevGuns::Button5;
-        default:         return -1;
-    }
-}
-
 }  // namespace
 
 EvdevGuns::~EvdevGuns()
@@ -245,6 +232,16 @@ void EvdevGuns::fire_recoil(usize index, u32 strength)
     }
 }
 
+u16 EvdevGuns::take_last_pressed(usize index)
+{
+    if (index >= m_guns.size()) {
+        return 0;
+    }
+    const u16 code = m_guns[index].last_pressed;
+    m_guns[index].last_pressed = 0;
+    return code;
+}
+
 void EvdevGuns::shutdown()
 {
     for (Device& device : m_guns) {
@@ -285,9 +282,10 @@ void EvdevGuns::read_device(Device& device)
                     device.raw[1] = event.value;
                 }
             } else if (event.type == EV_KEY) {
-                if (const int slot = button_slot(event.code); slot >= 0) {
-                    device.state.buttons[static_cast<usize>(slot)] = event.value != 0;
+                if (event.value != 0 && !device.state.pressed[event.code]) {
+                    device.last_pressed = event.code;  // rising edge
                 }
+                device.state.pressed[event.code] = event.value != 0;
             }
         }
     }

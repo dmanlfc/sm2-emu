@@ -667,6 +667,7 @@ int main(int argc, char** argv)
     options.config.sinden_border            = from_file.sinden_border;
     options.config.sinden_border_colour     = from_file.sinden_border_colour;
     options.config.sinden_border_thickness  = from_file.sinden_border_thickness;
+    options.config.gun_buttons              = from_file.gun_buttons;
 
     // --verbose is shorthand, so an explicit level beats it.
     log::Level level = log::Level::Info;
@@ -1574,6 +1575,7 @@ int main(int argc, char** argv)
                 input.set_wheel_settings(wheel_settings_from(options.config));
                 input.set_recoil(options.config.lightgun_recoil,
                                  options.config.lightgun_recoil_strength);
+                input.set_gun_buttons(options.config.gun_buttons);
                 input.update_force_feedback(loaded->game, machine_iface->drive_board_force());
                 if (options.coin_at != 0) {
                     // Scripted coin, start and character confirmation, so an

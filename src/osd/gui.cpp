@@ -28,6 +28,29 @@
 
 namespace sm2::osd {
 
+namespace {
+
+// Name an evdev key code for the gun-button UI; hex fallback for anything odd.
+[[nodiscard]] std::string evdev_button_name(u32 code)
+{
+    switch (code) {
+        case 0x110: return "BTN_LEFT";
+        case 0x111: return "BTN_RIGHT";
+        case 0x112: return "BTN_MIDDLE";
+        case 0x113: return "BTN_SIDE";
+        case 0x114: return "BTN_EXTRA";
+        default: break;
+    }
+    if (code >= 0x100 && code <= 0x109) {  // BTN_0..BTN_9
+        return "BTN_" + std::to_string(code - 0x100);
+    }
+    char buf[16];
+    std::snprintf(buf, sizeof buf, "0x%x", code);
+    return buf;
+}
+
+}  // namespace
+
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
@@ -647,6 +670,60 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
             "No dedicated light guns detected. Player 1 aims with the mouse; the "
             "left button fires and the right button reloads (shoot off screen). "
             "Plug in guns tagged ID_INPUT_GUN for independent per-player aiming.");
+    }
+
+    ImGui::Separator();
+    ImGui::TextUnformatted("Gun buttons");
+    ImGui::TextDisabled("Press Bind, then press the button on that player's gun.");
+    {
+        static const char* const kRoleNames[] = {
+            "Trigger", "Reload/Missile", "Coin", "Start",
+            "Hat up", "Hat down", "Hat left", "Hat right",
+        };
+        const usize guns = input != nullptr ? input->gun_count() : 0;
+        for (int p = 0; p < 2; ++p) {
+            ImGui::Text("Player %d", p + 1);
+            for (u32 r = 0; r < Config::kGunRoleCount; ++r) {
+                ImGui::PushID(p * 100 + static_cast<int>(r));
+                const u32 code = config.gun_buttons[static_cast<usize>(p)][r];
+                if (code == 0) {
+                    ImGui::Text("  %-14s unbound", kRoleNames[r]);
+                } else {
+                    ImGui::Text("  %-14s %s", kRoleNames[r],
+                                evdev_button_name(code).c_str());
+                }
+                ImGui::SameLine();
+                const bool capturing = m_gun_capture_player == p
+                                       && m_gun_capture_role == r;
+                if (capturing) {
+                    ImGui::TextColored(ImVec4(1, 0.8f, 0.2f, 1), "press a button...");
+                    u32 got = 0;
+                    if (p < static_cast<int>(guns)) {
+                        got = input->gun_take_last_pressed(static_cast<usize>(p));
+                    }
+                    // Mouse fallback so a binding can be set with no gun present.
+                    if (got == 0) {
+                        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))   got = 0x110;
+                        else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))  got = 0x111;
+                        else if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle)) got = 0x112;
+                    }
+                    if (got != 0) {
+                        config.gun_buttons[static_cast<usize>(p)][r] = got;
+                        m_gun_capture_player = -1;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::SmallButton("cancel")) m_gun_capture_player = -1;
+                } else if (ImGui::SmallButton("Bind")) {
+                    m_gun_capture_player = p;
+                    m_gun_capture_role   = r;
+                }
+                ImGui::SameLine();
+                if (ImGui::SmallButton("clear")) {
+                    config.gun_buttons[static_cast<usize>(p)][r] = 0;
+                }
+                ImGui::PopID();
+            }
+        }
     }
 
     ImGui::Separator();

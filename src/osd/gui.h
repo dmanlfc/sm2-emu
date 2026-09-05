@@ -110,6 +110,10 @@ private:
     u32     m_capture_role  = 0;   ///< Config::WheelRole being bound, when Button.
     int     m_capture_axis  = 0;   ///< which analogue control, when Axis (0=steer,1=accel,2=brake).
     std::array<s16, 16> m_axis_baseline{};
+
+    // Gun-button bind capture: which (player, role) awaits a press, or -1.
+    int m_gun_capture_player = -1;
+    u32 m_gun_capture_role   = 0;
 };
 
 }  // namespace sm2::osd

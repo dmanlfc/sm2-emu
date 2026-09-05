@@ -15,8 +15,10 @@
 #include "core/config.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -74,6 +76,12 @@ constexpr const char* kFileName = "sm2-emu.ini";
 {
     return static_cast<usize>(role);
 }
+
+/// Gun-role names as they appear in the ini, in Config::GunRole order.
+constexpr std::array<const char*, Config::kGunRoleCount> kGunRoleNames = {
+    "trigger", "reload", "coin", "start",
+    "hat_up", "hat_down", "hat_left", "hat_right",
+};
 
 [[nodiscard]] bool parse_s32(const std::string& value, s32* out)
 {
@@ -356,6 +364,21 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->wheel_brake_invert)) {
                 bad_value();
             }
+        } else if (key.rfind("gun1_button_", 0) == 0 || key.rfind("gun2_button_", 0) == 0) {
+            const usize player = key[3] == '2' ? 1 : 0;
+            const std::string role = key.substr(std::strlen("gun1_button_"));
+            bool matched = false;
+            for (u32 r = 0; r < Config::kGunRoleCount; ++r) {
+                if (role == kGunRoleNames[r]) {
+                    if (!parse_u32(value, &out->gun_buttons[player][r])) bad_value();
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                problems->push_back(path + ":" + std::to_string(number)
+                                    + ": unknown setting '" + key + "'");
+            }
         } else if (key == "nvram_dir") {
             out->nvram_dir = value;
         } else if (key == "games_xml") {
@@ -465,6 +488,18 @@ bool save_config(const std::string& path, const Config& config)
         << "wheel_accel_invert = " << bool_text(config.wheel_accel_invert) << "\n"
         << "wheel_brake_invert = " << bool_text(config.wheel_brake_invert) << "\n"
         << "\n"
+        << "# Light-gun buttons, per player, as raw Linux evdev key codes (0\n"
+        << "# unbinds). Trigger fires, reload is the off-screen reload / missile,\n"
+        << "# coin and start are the operator inputs, hat_* are a gun's D-pad.\n"
+        << "# Defaults suit a Sinden: BTN_LEFT 0x110, BTN_RIGHT 0x111, BTN_1..8\n"
+        << "# 0x101..0x108.\n";
+    for (u32 p = 0; p < 2; ++p) {
+        for (u32 r = 0; r < Config::kGunRoleCount; ++r) {
+            out << "gun" << (p + 1) << "_button_" << kGunRoleNames[r] << " = "
+                << config.gun_buttons[p][r] << "\n";
+        }
+    }
+    out << "\n"
         << "# Where operator settings and the EEPROM image are kept.\n"
         << "nvram_dir = " << config.nvram_dir << "\n"
         << "\n"
