@@ -80,6 +80,10 @@ public:
     /// Force the overlay visible (e.g. when launched with no ROM).
     void show() { m_visible = true; }
 
+    /// Where the Save button writes. Set to the path the config was loaded from
+    /// so a saved file goes back to the same place (including a --config path).
+    void set_config_path(std::string path) { m_config_path = std::move(path); }
+
 private:
     void apply_scale();
     void draw_menu_bar(Config& config);
@@ -93,6 +97,7 @@ private:
     void draw_sinden_border(const Config& config);
 
     SDL_Window* m_window      = nullptr;
+    std::string m_config_path;  ///< where Save writes; empty -> default path.
     bool        m_visible     = false;
     bool        m_initialised = false;
     float       m_ui_scale    = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.

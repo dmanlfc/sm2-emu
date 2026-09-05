@@ -311,8 +311,8 @@ void print_usage()
         "      --fullscreen    Start filling the screen\n"
         "      --lightgun      Light-gun mode: show the aiming crosshair and\n"
         "                      hide the mouse cursor (for the gun titles)\n"
-        "      --config <p>    Read settings from this file instead of the usual\n"
-        "                      places\n"
+        "      --config <dir>  Directory holding sm2-emu.ini, used for both\n"
+        "                      reading and saving settings\n"
         "      --write-config  Write the settings this run would use, then exit,\n"
         "                      so there is a file to edit\n"
         "      --log-level <l> trace, debug, info, warning or error\n"
@@ -607,8 +607,11 @@ int main(int argc, char** argv)
     defaults.validation = true;
 #endif
 
+    // --config names a directory; the file within it is always sm2-emu.ini.
     const std::string config_path =
-        options.config_path.empty() ? default_config_path() : options.config_path;
+        options.config_path.empty()
+            ? default_config_path()
+            : (std::filesystem::path(options.config_path) / "sm2-emu.ini").string();
 
     Config                   from_file = defaults;
     std::vector<std::string> problems;
@@ -693,6 +696,19 @@ int main(int argc, char** argv)
         }
         std::printf("Wrote %s\n", config_path.c_str());
         return 0;
+    }
+
+    // Make sure the settings and NVRAM locations exist. If there is no ini yet,
+    // write one so there is a file to edit and later saves have somewhere to go;
+    // an existing one is left untouched. save_config creates the parent dir.
+    {
+        std::error_code error;
+        if (!std::filesystem::exists(config_path, error) || error) {
+            save_config(config_path, options.config);
+        }
+        if (!options.config.nvram_dir.empty()) {
+            std::filesystem::create_directories(options.config.nvram_dir, error);
+        }
     }
 
     if (options.list_gpus) {
@@ -1300,6 +1316,7 @@ int main(int argc, char** argv)
         // only ImGui's context and its SDL3 platform backend; the backend
         // above owns whichever GPU API actually draws what it builds.
         osd::Gui gui;
+        gui.set_config_path(config_path);
         if (!gui.init(window.handle())) {
             SM2_ERROR("could not initialise the GUI overlay");
             SDL_Quit();

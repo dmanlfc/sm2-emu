@@ -387,7 +387,8 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
         if (!on_about_tab) {
             ImGui::Separator();
             if (ImGui::Button("Save settings")) {
-                const std::string path = default_config_path();
+                const std::string path =
+                    m_config_path.empty() ? default_config_path() : m_config_path;
                 if (save_config(path, config)) {
                     SM2_INFO("gui: settings saved to %s", path.c_str());
                 } else {
@@ -395,7 +396,9 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 }
             }
             ImGui::SameLine();
-            ImGui::TextDisabled("Saved to sm2-emu.ini");
+            ImGui::TextDisabled("Saved to %s", m_config_path.empty()
+                                    ? default_config_path().c_str()
+                                    : m_config_path.c_str());
         }
     }
 
