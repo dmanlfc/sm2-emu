@@ -2078,6 +2078,12 @@ int main(int argc, char** argv)
             exit_code = 1;
         }
 
+        // Persist settings on exit, so changes made in the overlay (gun
+        // bindings, wheel, video) stick without needing the Save button.
+        if (!save_config(config_path, options.config)) {
+            SM2_WARN("could not save settings to '%s'", config_path.c_str());
+        }
+
         audio.shutdown();
         input.shutdown();
         // Before gui.shutdown(): the backend's own ImGui renderer backend
