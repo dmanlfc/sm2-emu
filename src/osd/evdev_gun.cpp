@@ -61,6 +61,28 @@ namespace {
     return false;
 }
 
+/// A key shared by every input node of one physical device, so a gun's several
+/// nodes collapse to one. The parent USB device's syspath is common to all its
+/// nodes; fall back to ID_PATH then the node for a device with no USB parent.
+[[nodiscard]] std::string physical_device_key(udev_device* dev)
+{
+    if (udev_device* usb =
+            udev_device_get_parent_with_subsystem_devtype(dev, "usb", "usb_device");
+        usb != nullptr) {
+        if (const char* syspath = udev_device_get_syspath(usb); syspath != nullptr) {
+            return syspath;
+        }
+    }
+    if (const char* path = udev_device_get_property_value(dev, "ID_PATH");
+        path != nullptr) {
+        return path;
+    }
+    if (const char* node = udev_device_get_devnode(dev); node != nullptr) {
+        return node;
+    }
+    return {};
+}
+
 }  // namespace
 
 EvdevGuns::~EvdevGuns()
@@ -76,14 +98,18 @@ bool EvdevGuns::init()
         return false;
     }
 
-    // A gun is any input node the udev light-gun rules tag ID_INPUT_GUN=1, or
-    // one whose model name says it is a light gun. The latter catches guns like
-    // the Sinden, which present as an ordinary absolute mouse tagged
-    // ID_INPUT_MOUSE with no gun rule installed. Non-aiming nodes that slip
-    // through (a gun's companion keyboard node) are rejected later by open_gun,
-    // which requires an absolute X/Y axis. Collect the nodes, then sort so gun
-    // numbering is stable across runs.
-    std::vector<std::string> nodes;
+    // A single physical gun exposes several input nodes (the Sinden shows both a
+    // "SindenLightgun Mouse" node and a "Sinden Lightgun" node, both tagged
+    // ID_INPUT_GUN), so opening every node would present one gun as two players.
+    // Group nodes by physical device and keep one per device, preferring the
+    // dedicated light-gun node (prio 0) over the "Mouse" node -- the Sinden's
+    // calibration handshake only works through the former.
+    struct Candidate {
+        std::string node;
+        std::string phys;  // physical_device_key: one per physical gun.
+        int         prio = 1;
+    };
+    std::vector<Candidate> candidates;
     if (udev_enumerate* enumerate = udev_enumerate_new(ctx); enumerate != nullptr) {
         udev_enumerate_add_match_subsystem(enumerate, "input");
         udev_enumerate_scan_devices(enumerate);
@@ -97,7 +123,17 @@ bool EvdevGuns::init()
             }
             const char* node = udev_device_get_devnode(dev);
             if (node != nullptr && is_gun_device(dev)) {
-                nodes.emplace_back(node);
+                // Prefer a dedicated light-gun node over the companion "Mouse".
+                bool named_lightgun = false;
+                bool named_mouse    = false;
+                for (const char* key : {"NAME", "ID_MODEL", "ID_MODEL_ENC"}) {
+                    const char* v = udev_device_get_property_value(dev, key);
+                    named_lightgun |= contains_ci(v, "lightgun")
+                                      || contains_ci(v, "light gun");
+                    named_mouse    |= contains_ci(v, "mouse");
+                }
+                const int prio = (named_lightgun && !named_mouse) ? 0 : 1;
+                candidates.push_back({node, physical_device_key(dev), prio});
             }
             udev_device_unref(dev);
         }
@@ -105,12 +141,26 @@ bool EvdevGuns::init()
     }
     udev_unref(ctx);
 
-    std::sort(nodes.begin(), nodes.end());
-    for (const std::string& node : nodes) {
+    std::sort(candidates.begin(), candidates.end(),
+              [](const Candidate& a, const Candidate& b) {
+                  if (a.phys != b.phys) return a.phys < b.phys;
+                  if (a.prio != b.prio) return a.prio < b.prio;
+                  return a.node < b.node;
+              });
+    std::string last_phys;
+    for (const Candidate& c : candidates) {
         if (m_guns.size() >= kMaxGuns) {
             break;
         }
-        open_gun(node);
+        if (c.phys == last_phys) {
+            continue;  // another node of a device already opened
+        }
+        // open_gun rejects a node with no absolute axis; only count the device
+        // as taken once a node actually opened, so a non-aiming node does not
+        // shadow the sibling that carries the aim.
+        if (open_gun(c.node)) {
+            last_phys = c.phys;
+        }
     }
 
     if (!m_guns.empty()) {
