@@ -93,6 +93,10 @@ private:
 
     bool m_capture_requested = false;
     bool m_overlay_ready     = false;
+
+    /// Internal 3D render scale (1..kMaxRenderScale). Stored from the config;
+    /// at 1 every target is native size and nothing behaves differently.
+    u32 m_render_scale = 1;
 };
 
 }  // namespace sm2::render::gl

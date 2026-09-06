@@ -61,7 +61,10 @@ public:
     TilemapPass(const TilemapPass&)            = delete;
     TilemapPass& operator=(const TilemapPass&) = delete;
 
-    [[nodiscard]] bool init(Context& context);
+    /// The two band surfaces stay native (kSourceWidth x kSourceHeight); only
+    /// the composite scope this pass opens is sized to N*native so the 3D drawn
+    /// between the bands fills the scaled target. `render_scale` is N.
+    [[nodiscard]] bool init(Context& context, u32 render_scale);
     void shutdown();
 
     /// Refresh this frame's copies of tile RAM, character RAM and the pen table
@@ -206,6 +209,9 @@ private:
     VkPipeline            m_compute_pipeline    = VK_NULL_HANDLE;
 
     std::array<ComputeFrame, Context::kFramesInFlight> m_compute_frames{};
+
+    /// Internal 3D render scale; the composite scope is N*native.
+    u32 m_render_scale = 1;
 };
 
 }  // namespace sm2::render::vk

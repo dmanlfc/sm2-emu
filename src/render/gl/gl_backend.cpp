@@ -20,6 +20,9 @@
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 
+#include <algorithm>
+#include <cstdlib>
+
 namespace sm2::render::gl {
 
 GlBackend::~GlBackend()
@@ -30,6 +33,8 @@ GlBackend::~GlBackend()
 bool GlBackend::init(osd::Window& window, const BackendConfig& config)
 {
     m_window = &window;
+
+    m_render_scale = std::clamp(config.render_scale, 1U, kMaxRenderScale);
 
     ContextConfig context_config;
     context_config.vsync = config.vsync;
@@ -45,15 +50,43 @@ bool GlBackend::init(osd::Window& window, const BackendConfig& config)
     set_version_directive(m_context.is_es() ? kEsVersionDirective
                                             : kDesktopVersionDirective);
 
+    // Clamp to what the driver can allocate. The composite target is a texture
+    // (GL_MAX_TEXTURE_SIZE) and its fill mask a renderbuffer
+    // (GL_MAX_RENDERBUFFER_SIZE); N*496 or N*384 beyond either would fail
+    // allocation, so bound N by the smaller of the two.
+    s32 max_texture      = 0;
+    s32 max_renderbuffer = 0;
+    GetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture);
+    GetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &max_renderbuffer);
+    u32 max_dimension = std::min(static_cast<u32>(max_texture),
+                                 static_cast<u32>(max_renderbuffer));
+    if (const char* env = std::getenv("SM2_TEST_MAX_IMAGE_DIM")) {  // test-only override
+        max_dimension = static_cast<u32>(std::strtoul(env, nullptr, 10));
+    }
+    const u32 fitted = clamp_scale_to_max_dimension(m_render_scale, max_dimension);
+    if (fitted != m_render_scale) {
+        SM2_WARN("gl: render scale %ux (%ux%u) exceeds device limit %u "
+                 "(GL_MAX_TEXTURE_SIZE %d, GL_MAX_RENDERBUFFER_SIZE %d); using %ux",
+                 m_render_scale, scaled_width(m_render_scale),
+                 scaled_height(m_render_scale), max_dimension, max_texture,
+                 max_renderbuffer, fitted);
+        m_render_scale = fitted;
+    }
+    if (m_render_scale != 1) {
+        SM2_INFO("gl: render scale %ux: 3D and composite targets at %ux%u",
+                 m_render_scale, scaled_width(m_render_scale),
+                 scaled_height(m_render_scale));
+    }
+
     if (!m_tilemaps.init()) {
         SM2_ERROR("gl: could not create the 2D pipeline");
         return false;
     }
-    if (!m_polygons.init()) {
+    if (!m_polygons.init(m_render_scale)) {
         SM2_ERROR("gl: could not create the 3D pipeline");
         return false;
     }
-    if (!m_present.init()) {
+    if (!m_present.init(m_render_scale)) {
         SM2_ERROR("gl: could not create the presentation pipeline");
         return false;
     }
@@ -110,8 +143,8 @@ void GlBackend::submit_polygons(const hw::Model2MachineBase* machine,
 void GlBackend::render_polygons()
 {
     // The 3D now draws inside the native framebuffer via composite_native_frame(),
-    // between the tilemap layers. Nothing to do here: GL clears the fill mask
-    // inline in draw_polygons(), with no separate stencil transition to record.
+    // between the tilemap layers. Nothing to do here: GL clears the depth buffer
+    // inline in draw_polygons(), with no separate transition to record.
 }
 
 void GlBackend::composite_native_frame(u32 background_rgba, bool skip_3d)

@@ -80,6 +80,11 @@ struct Config {
     u32  window_width  = 992;
     u32  window_height = 768;
 
+    /// Internal 3D render scale, N in 1..render::kMaxRenderScale (1 = native).
+    /// GPU backends only; the software renderer ignores it. Takes effect on the
+    /// next launch. Read clamps into range.
+    u32 render_scale = 1;
+
     /// Exact device name to prefer, as `--list-gpus` prints it. Empty picks the
     /// best-scoring device.
     std::string gpu;

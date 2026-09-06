@@ -81,6 +81,9 @@ void TilemapPass::shutdown()
 
 bool TilemapPass::create_textures()
 {
+    // NEAREST: at N=1 the bands draw 1:1; at N>1 the N*native FBO viewport
+    // integer-upscales them by exactly N, each native texel a crisp NxN block.
+    // The final non-integer magnification to the window is PresentPass's LINEAR.
     GenTextures(1, &m_below_texture);
     BindTexture(GL_TEXTURE_2D, m_below_texture);
     TexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, static_cast<GLsizei>(kSourceWidth),

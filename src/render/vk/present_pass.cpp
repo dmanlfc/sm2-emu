@@ -63,9 +63,10 @@ PresentPass::~PresentPass()
     shutdown();
 }
 
-bool PresentPass::init(Context& context)
+bool PresentPass::init(Context& context, u32 render_scale)
 {
-    m_context = &context;
+    m_context      = &context;
+    m_render_scale = render_scale;
 
     VkSamplerCreateInfo sampler{};
     sampler.sType      = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -141,13 +142,15 @@ bool PresentPass::create_targets()
 {
     const VkDevice     device    = m_context->device();
     const VmaAllocator allocator = m_context->allocator();
+    const u32          w         = width();
+    const u32          h         = height();
 
     for (Target& target : m_targets) {
         VkImageCreateInfo image{};
         image.sType       = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         image.imageType   = VK_IMAGE_TYPE_2D;
         image.format      = native_format();
-        image.extent      = VkExtent3D{kWidth, kHeight, 1};
+        image.extent      = VkExtent3D{w, h, 1};
         image.mipLevels   = 1;
         image.arrayLayers = 1;
         image.samples     = VK_SAMPLE_COUNT_1_BIT;

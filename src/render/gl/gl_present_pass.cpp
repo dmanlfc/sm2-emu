@@ -35,8 +35,9 @@ PresentPass::~PresentPass()
     shutdown();
 }
 
-bool PresentPass::init()
+bool PresentPass::init(u32 render_scale)
 {
+    m_render_scale = render_scale;
     return create_target() && create_program();
 }
 
@@ -70,10 +71,14 @@ void PresentPass::shutdown()
 
 bool PresentPass::create_target()
 {
+    // The composite target is N*native; the software upload and a capture stay
+    // native (subregions of this texture). At N=1 these are kWidth x kHeight.
+    const auto w = static_cast<GLsizei>(width());
+    const auto h = static_cast<GLsizei>(height());
+
     GenTextures(1, &m_native_texture);
     BindTexture(GL_TEXTURE_2D, m_native_texture);
-    TexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, static_cast<GLsizei>(kWidth),
-                static_cast<GLsizei>(kHeight));
+    TexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
     // Linear, matching render::vk::PresentPass's kMagnifyFilter exactly: the
     // raster is scaled by a non-integer factor at almost every window size,
     // where nearest sampling makes glyph stems alternate between one and two
@@ -82,12 +87,12 @@ bool PresentPass::create_target()
     TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // The 3D pass draws its fill mask into this framebuffer now, so it carries a
-    // stencil. GL_STENCIL_INDEX8 is a mandatory renderable format at this floor,
-    // matching gl_poly3d_pass's old offscreen stencil renderbuffer exactly.
+    // stencil sized to match the colour attachment. GL_STENCIL_INDEX8 is a
+    // mandatory renderable format at this floor, matching gl_poly3d_pass's old
+    // offscreen stencil renderbuffer exactly.
     GenRenderbuffers(1, &m_stencil_renderbuffer);
     BindRenderbuffer(GL_RENDERBUFFER, m_stencil_renderbuffer);
-    RenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, static_cast<GLsizei>(kWidth),
-                       static_cast<GLsizei>(kHeight));
+    RenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, w, h);
 
     GenFramebuffers(1, &m_fbo);
     BindFramebuffer(GL_FRAMEBUFFER, m_fbo);
@@ -127,9 +132,9 @@ bool PresentPass::create_program()
 void PresentPass::begin_frame()
 {
     BindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-    // The native draws rasterise at 496x384. Set here (the deleted offscreen 3D
-    // pass used to) so they don't inherit present()'s letterbox viewport.
-    Viewport(0, 0, static_cast<GLsizei>(kWidth), static_cast<GLsizei>(kHeight));
+    // Bind the composite scope's full N*native viewport so the draws don't
+    // inherit present()'s letterbox viewport.
+    Viewport(0, 0, static_cast<GLsizei>(width()), static_cast<GLsizei>(height()));
 }
 
 void PresentPass::upload_from_host(std::span<const u32> pixels)

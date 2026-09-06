@@ -55,7 +55,9 @@ public:
     Poly3DPass(const Poly3DPass&)            = delete;
     Poly3DPass& operator=(const Poly3DPass&) = delete;
 
-    [[nodiscard]] bool init();
+    /// `render_scale` (N) scales the per-batch scissor to the N*native target;
+    /// the vertex path stays in native coordinates. Identity at N=1.
+    [[nodiscard]] bool init(u32 render_scale);
     void shutdown();
 
     /// As render::vk::Poly3DPass::build(): triangulate this frame's polygons
@@ -112,6 +114,9 @@ private:
 
     u32  m_vertex_count    = 0;
     bool m_capacity_warned = false;
+
+    /// Internal 3D render scale; the per-batch scissor is scaled by N.
+    u32 m_render_scale = 1;
 };
 
 }  // namespace sm2::render::gl

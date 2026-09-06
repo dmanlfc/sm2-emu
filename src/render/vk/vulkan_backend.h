@@ -101,6 +101,10 @@ private:
 
     bool m_capture_requested = false;
 
+    /// Internal 3D render scale (1..kMaxRenderScale). Stored from the config;
+    /// at 1 every target is native size and nothing behaves differently.
+    u32 m_render_scale = 1;
+
     // -- ImGui's Vulkan renderer backend -------------------------------------
     VkDescriptorPool m_overlay_pool             = VK_NULL_HANDLE;
     VkFormat         m_overlay_target_format    = VK_FORMAT_UNDEFINED;

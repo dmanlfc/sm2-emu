@@ -54,6 +54,9 @@ layout(push_constant) uniform Push {
     // Reciprocal of the raster size, so the divide happens once per frame on the
     // host rather than twice per vertex here.
     vec2 invRaster;
+    // Render scale N (1 at native); read by polygon.frag, which shares this
+    // block. Unused here, but part of the same layout so both stages agree.
+    uint renderScale;
 } pc;
 
 void main()

@@ -29,6 +29,10 @@ namespace {
 
 constexpr const char* kFileName = "sm2-emu.ini";
 
+/// Mirrors render::kMaxRenderScale (backend.h). Kept local so this file need
+/// not pull in the render backend header just for a clamp bound.
+constexpr u32 kMaxRenderScale = 4;
+
 [[nodiscard]] std::string trim(std::string_view text)
 {
     const auto not_space = [](unsigned char c) { return std::isspace(c) == 0; };
@@ -274,6 +278,20 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_u32(value, &out->window_height)) {
                 bad_value();
             }
+        } else if (key == "render_scale") {
+            u32 scale = 1;
+            if (!parse_u32(value, &scale)) {
+                bad_value();
+            } else if (scale < 1 || scale > kMaxRenderScale) {
+                // A value outside 1..4 is reported but clamped rather than
+                // rejected, so a file from a future version still starts.
+                problems->push_back(path + ":" + std::to_string(number) + ": '" + key
+                                    + "' out of range 1.." + std::to_string(kMaxRenderScale)
+                                    + "; using " + std::to_string(std::clamp(scale, 1u, kMaxRenderScale)));
+                out->render_scale = std::clamp(scale, 1u, kMaxRenderScale);
+            } else {
+                out->render_scale = scale;
+            }
         } else if (key == "gpu") {
             out->gpu = value;
         } else if (key == "wheel_ffb") {
@@ -407,6 +425,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     // would divide by zero when scaling the steering).
     out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
     out->wheel_lock_degrees  = std::clamp(out->wheel_lock_degrees, 180u, 270u);
+    out->render_scale        = std::clamp(out->render_scale, 1u, kMaxRenderScale);
     return true;
 }
 
@@ -450,6 +469,12 @@ bool save_config(const std::string& path, const Config& config)
         << "sinden_border_thickness = " << config.sinden_border_thickness << "\n"
         << "window_width = " << config.window_width << "\n"
         << "window_height = " << config.window_height << "\n"
+        << "\n"
+        << "# Internal 3D render scale (1..4). 1 is native 496x384; higher\n"
+        << "# renders the 3D pass at N times that for crisper geometry. GPU\n"
+        << "# backends only (the software renderer stays native), and it takes\n"
+        << "# effect on the next launch.\n"
+        << "render_scale = " << config.render_scale << "\n"
         << "\n"
         << "# Exact device name as --list-gpus prints it. Empty picks the best one.\n"
         << "gpu = " << config.gpu << "\n"

@@ -317,6 +317,30 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 config.window_height = static_cast<u32>(std::max(384, h));
             }
 
+            // 3D render scale. Live runtime reallocation is out of scope for
+            // v1, so this only edits the config; it applies on the next launch.
+            ImGui::Separator();
+            {
+                static constexpr std::array<const char*, 4> kScaleLabels = {
+                    "1x (native)", "2x", "3x", "4x"};
+                int scale_index =
+                    std::clamp(static_cast<int>(config.render_scale), 1, 4) - 1;
+                ImGui::SetNextItemWidth(140);
+                if (ImGui::Combo("3D render scale", &scale_index, kScaleLabels.data(),
+                                 static_cast<int>(kScaleLabels.size()))) {
+                    config.render_scale = static_cast<u32>(scale_index + 1);
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "Internal 3D rendering resolution. Higher is crisper 3D\n"
+                        "(2D/HUD stays sharp). GPU backends only; the software\n"
+                        "renderer stays native. Applies on the next launch — save\n"
+                        "settings and relaunch.");
+                }
+            }
+
             ImGui::EndTabItem();
         }
 

@@ -37,9 +37,12 @@
 namespace sm2::render::vk {
 namespace {
 
-/// Push constants of the polygon pipeline.
+/// Push constants of the polygon pipeline, shared by the vertex and fragment
+/// stages: the vertex uses inv_raster, the fragment uses render_scale for the
+/// native-grid stipple (see polygon.frag). Layout matches the shaders' Push.
 struct PolygonPush {
     float inv_raster[2];
+    u32   render_scale;
 };
 
 /// Bytes of luminance RAM, which is one tone curve per 128 entries.
@@ -90,9 +93,10 @@ Poly3DPass::~Poly3DPass()
     shutdown();
 }
 
-bool Poly3DPass::init(Context& context)
+bool Poly3DPass::init(Context& context, u32 render_scale)
 {
     m_context           = &context;
+    m_render_scale      = render_scale;
     m_stencil_format    = context.stencil_format();
     m_stencil_has_depth = context.stencil_format_has_depth();
 
@@ -322,9 +326,10 @@ bool Poly3DPass::create_frames()
         view.subresourceRange.layerCount = 1;
         SM2_VK_TRY(vkCreateImageView(device, &view, nullptr, &target.tone_view));
 
-        // The fill mask never leaves the GPU and never survives a frame.
+        // The fill mask never leaves the GPU and never survives a frame. It is
+        // N*native so it covers the scaled composite scope it attaches to.
         image.format = m_stencil_format;
-        image.extent = VkExtent3D{kWidth, kHeight, 1};
+        image.extent = VkExtent3D{kWidth * m_render_scale, kHeight * m_render_scale, 1};
         image.usage  = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
         SM2_VK_TRY(vmaCreateImage(allocator, &image, &image_allocation, &target.stencil,
                                   &target.stencil_alloc, nullptr));
@@ -499,7 +504,7 @@ bool Poly3DPass::create_polygon_pipelines()
     const VkDevice device = m_context->device();
 
     VkPushConstantRange range{};
-    range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
     range.size       = sizeof(PolygonPush);
 
     VkPipelineLayoutCreateInfo layout{};
@@ -905,12 +910,14 @@ void Poly3DPass::draw_polygons()
         PolygonPush push{};
         push.inv_raster[0] = 1.0F / static_cast<float>(kWidth);
         push.inv_raster[1] = 1.0F / static_cast<float>(kHeight);
+        push.render_scale  = m_render_scale;
 
         const VkDeviceSize offset = 0;
         vkCmdBindVertexBuffers(cmd, 0, 1, &target.vertices.handle, &offset);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_polygon_layout, 0,
                                 1, &target.polygon_set, 0, nullptr);
-        vkCmdPushConstants(cmd, m_polygon_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+        vkCmdPushConstants(cmd, m_polygon_layout,
+                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                            sizeof(push), &push);
 
         VkPipeline bound = VK_NULL_HANDLE;

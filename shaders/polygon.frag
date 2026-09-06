@@ -50,6 +50,18 @@ layout(location = 1) in flat uint vPolygon;
 
 layout(location = 0) out vec4 fragColour;
 
+// Shares polygon.vert's Push block (this stage reads only renderScale). GL/GLES
+// have no push constant, so the GL compile takes a uniform block at binding 4
+// while the Vulkan compile keeps the push constant.
+#ifdef SM2_TARGET_GL
+layout(binding = 4) uniform Push {
+#else
+layout(push_constant) uniform Push {
+#endif
+    vec2 invRaster;
+    uint renderScale;  ///< N, 1 at native
+} pc;
+
 // ---------------------------------------------------------------------------
 // Machine memory
 // ---------------------------------------------------------------------------
@@ -328,11 +340,14 @@ void main()
 {
     const PolyParams p = uPolygon[vPolygon];
 
-    // Translucency by stipple: a screen-locked checkerboard, so it has to be
-    // evaluated in raster pixels. This is one of the two reasons the 3D output is
-    // rasterised at the machine's own resolution rather than the window's.
+    // Translucency by stipple: a screen-locked checkerboard on the native raster
+    // grid. When the 3D is rasterised at N*native, gl_FragCoord runs at the
+    // scaled resolution, so it is divided back to native pixels first; otherwise
+    // the checkerboard would come out N times finer than the hardware's. At N=1
+    // this is gl_FragCoord unchanged.
+    const ivec2 nativePix = ivec2(gl_FragCoord.xy) / int(pc.renderScale);
     if ((p.flags & kFlagChecker) != 0u
-        && ((int(gl_FragCoord.x) ^ int(gl_FragCoord.y)) & 1) == 0) {
+        && ((nativePix.x ^ nativePix.y) & 1) == 0) {
         discard;
     }
 
@@ -355,6 +370,15 @@ void main()
         const int mml      = -p.texLod + fastLog2(z);
         const int maxLevel = int((p.flags >> kMaxLevelShift) & 0xfu);
         const int level    = clamp(mml >> 7, 0, maxLevel);
+#ifdef SM2_LOD_DEBUG
+        // Encode the chosen mip level (R) and the raw 8.8 mml low byte (G) so a
+        // capture can be compared native-vs-scaled for any LOD drift.
+        int mmlq = clamp(mml, 0, 65535);
+        fragColour = vec4(float(level) / 15.0,
+                          float((mmlq >> 8) & 0xff) / 255.0,
+                          float(mmlq & 0xff) / 255.0, 1.0);
+        return;
+#endif
 
         const bool translucent = (p.flags & kFlagTranslucent) != 0u;
 

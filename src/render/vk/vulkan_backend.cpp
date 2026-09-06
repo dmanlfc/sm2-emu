@@ -20,6 +20,9 @@
 #include <imgui.h>
 #include <imgui_impl_vulkan.h>
 
+#include <algorithm>
+#include <cstdlib>
+
 namespace sm2::render::vk {
 
 VulkanBackend::~VulkanBackend()
@@ -34,18 +37,42 @@ bool VulkanBackend::init(osd::Window& window, const BackendConfig& config)
     context_config.vsync             = config.vsync;
     context_config.preferred_device  = config.preferred_device;
 
+    m_render_scale = std::clamp(config.render_scale, 1U, kMaxRenderScale);
+
     if (!m_context.init(window, context_config)) {
         return false;
     }
-    if (!m_tilemaps.init(m_context)) {
+
+    // Clamp to what the device can actually allocate. maxImageDimension2D bounds
+    // a 2D image's width and height; N*496 or N*384 beyond it would fail image
+    // creation, so reduce N to the largest value that fits.
+    u32 max_dimension = m_context.device_properties().limits.maxImageDimension2D;
+    if (const char* env = std::getenv("SM2_TEST_MAX_IMAGE_DIM")) {  // test-only override
+        max_dimension = static_cast<u32>(std::strtoul(env, nullptr, 10));
+    }
+    const u32 fitted = clamp_scale_to_max_dimension(m_render_scale, max_dimension);
+    if (fitted != m_render_scale) {
+        SM2_WARN("render scale %ux (%ux%u) exceeds device maxImageDimension2D %u; "
+                 "using %ux",
+                 m_render_scale, scaled_width(m_render_scale),
+                 scaled_height(m_render_scale), max_dimension, fitted);
+        m_render_scale = fitted;
+    }
+    if (m_render_scale != 1) {
+        SM2_INFO("render scale %ux: 3D and composite targets at %ux%u",
+                 m_render_scale, scaled_width(m_render_scale),
+                 scaled_height(m_render_scale));
+    }
+
+    if (!m_tilemaps.init(m_context, m_render_scale)) {
         SM2_ERROR("could not create the 2D pipeline");
         return false;
     }
-    if (!m_polygons.init(m_context)) {
+    if (!m_polygons.init(m_context, m_render_scale)) {
         SM2_ERROR("could not create the 3D pipeline");
         return false;
     }
-    if (!m_present.init(m_context)) {
+    if (!m_present.init(m_context, m_render_scale)) {
         SM2_ERROR("could not create the presentation pipeline");
         return false;
     }

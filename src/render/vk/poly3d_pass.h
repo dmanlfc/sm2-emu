@@ -75,7 +75,11 @@ public:
     static constexpr u32 kDecodedWidth  = 512;
     static constexpr u32 kDecodedHeight = 1024;
 
-    [[nodiscard]] bool init(Context& context);
+    /// `render_scale` (N) sizes the fill-mask attachment to N*native so it
+    /// covers the scaled composite scope it is attached to. The vertex path
+    /// stays in native coordinates (projection is scaled by the viewport); only
+    /// the target is larger.
+    [[nodiscard]] bool init(Context& context, u32 render_scale);
     void shutdown();
 
     /// Triangulate this frame's polygons, unpack their texture headers, and refresh
@@ -123,9 +127,13 @@ private:
     using Vertex     = render::Vertex;
     using PolyParams = render::PolyParams;
 
-    [[nodiscard]] static VkRect2D scissor_to_vk(const render::ScissorRect& scissor)
+    /// The per-window scissor is in native pixels; the target is N*native, so
+    /// the rectangle scales by N to clip the right region (identity at N=1).
+    [[nodiscard]] VkRect2D scissor_to_vk(const render::ScissorRect& scissor) const
     {
-        return VkRect2D{{scissor.x, scissor.y}, {scissor.width, scissor.height}};
+        const int32_t n = static_cast<int32_t>(m_render_scale);
+        return VkRect2D{{scissor.x * n, scissor.y * n},
+                        {scissor.width * m_render_scale, scissor.height * m_render_scale}};
     }
 
     /// A host-visible buffer the CPU writes and the GPU reads directly.
@@ -241,6 +249,9 @@ private:
 
     u32  m_vertex_count    = 0;
     bool m_capacity_warned = false;
+
+    /// Internal 3D render scale; the fill-mask attachment is N*native.
+    u32 m_render_scale = 1;
 };
 
 }  // namespace sm2::render::vk

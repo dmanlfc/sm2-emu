@@ -253,6 +253,7 @@ having no system-package form.
 ./build/bin/sm2-emu --list-games
 ./build/bin/sm2-emu --list-gpus
 ./build/bin/sm2-emu [--graphics-backend <software|vulkan|opengl>] \
+                    [--render-scale <1-4>] \
                     [--fullscreen] [--no-vsync] [--game <set>] vf2.zip
 ```
 
@@ -379,15 +380,20 @@ Separately, the Manx TT Deluxe cabinet carries a Model 1 audio board *on top
 of* the 68000/SCSP board every Model 2A has. The audio board itself works, but
 the machine has no slot for a second board yet, so those ROMs load unread.
 
-### Internal resolution upscaling
+### Internal resolution scaling
 
-Feasible for the 3D, because the geometry engine outputs floating-point
-screen-space vertices that can be scaled before rasterisation. Polygons scale
-cleanly and texture coordinates are unaffected, so filter quality improves
-without touching the colour chain. Complications: the source textures are 4-bit
-at up to 1024×1024 so the detail ceiling is low; the tilemap would need scaling
-too; and stipple transparency is raster-locked to screen pixels, so it must be
-evaluated on the upscaled grid or replaced with real alpha blending.
+The 3D can be rendered above the native 496×384. `--render-scale <1-4>` (also a
+setting, and in the Video tab of the overlay) rasterises the 3D pass at N times
+native — 2× is 992×768, 4× is 1984×1536 — for crisper polygon edges and
+textures. The 2D tilemap and HUD are fixed ROM bitmaps that cannot gain detail,
+so they are upscaled nearest-neighbour and stay pixel-sharp; the whole frame is
+composited at the scaled resolution and fitted to the window at the end. GPU
+backends only (the software renderer stays native); 1× is the default and is
+byte-identical to the pre-feature output. Stipple transparency stays locked to
+the native grid, so translucent surfaces keep their hardware look at any scale.
+The extra cost is GPU fill-rate only — the emulated machine runs identically at
+every scale. Fancier 2D upscaling filters (bilinear, xBRZ, and similar) are a
+possible later addition; only nearest-neighbour is offered today.
 
 ### Input and peripherals
 

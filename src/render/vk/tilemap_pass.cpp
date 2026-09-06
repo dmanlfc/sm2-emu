@@ -43,15 +43,6 @@ struct PushConstants {
 constexpr u32 kModeResolveOverBackground = 0;
 constexpr u32 kModeBlendOver             = 1;
 
-/// Where the two draws go. One texel per pixel, so no filtering is involved and
-/// the sampler's filter choice is irrelevant.
-constexpr VkViewport kNativeViewport{0.0F, 0.0F,
-                                    static_cast<float>(TilemapPass::kSourceWidth),
-                                    static_cast<float>(TilemapPass::kSourceHeight),
-                                    0.0F, 1.0F};
-constexpr VkRect2D kNativeScissor{{0, 0},
-                                 {TilemapPass::kSourceWidth, TilemapPass::kSourceHeight}};
-
 [[nodiscard]] bool create_shader_module(VkDevice        device,
                                         const u32*      code,
                                         u32             word_count,
@@ -101,12 +92,15 @@ TilemapPass::~TilemapPass()
     shutdown();
 }
 
-bool TilemapPass::init(Context& context)
+bool TilemapPass::init(Context& context, u32 render_scale)
 {
-    m_context = &context;
+    m_context      = &context;
+    m_render_scale = render_scale;
 
-    // NEAREST, and it never matters: these surfaces are drawn at exactly their own
-    // size. Magnification happens once, later, in PresentPass.
+    // NEAREST: at N=1 the bands draw 1:1 (filter is a no-op); at N>1 they are
+    // integer-upscaled by exactly N into the scaled composite scope, so each
+    // native texel becomes a crisp NxN block with no interpolation. The final
+    // non-integer magnification to the window is PresentPass's LINEAR, separate.
     VkSamplerCreateInfo sampler{};
     sampler.sType     = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler.magFilter = VK_FILTER_NEAREST;
@@ -804,9 +798,16 @@ void TilemapPass::record_below(VkImageView                      target,
     colour.loadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     colour.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
+    // The composite scope is N*native: the bands stretch to fill it and the 3D
+    // draws into it at the scaled size.
+    const VkExtent2D extent{kSourceWidth * m_render_scale, kSourceHeight * m_render_scale};
+    const VkViewport viewport{0.0F, 0.0F, static_cast<float>(extent.width),
+                              static_cast<float>(extent.height), 0.0F, 1.0F};
+    const VkRect2D   scissor{{0, 0}, extent};
+
     VkRenderingInfo rendering{};
     rendering.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
-    rendering.renderArea           = kNativeScissor;
+    rendering.renderArea           = scissor;
     rendering.layerCount           = 1;
     rendering.colorAttachmentCount = 1;
     rendering.pColorAttachments    = &colour;
@@ -818,8 +819,8 @@ void TilemapPass::record_below(VkImageView                      target,
     }
     vkCmdBeginRendering(cmd, &rendering);
 
-    vkCmdSetViewport(cmd, 0, 1, &kNativeViewport);
-    vkCmdSetScissor(cmd, 0, 1, &kNativeScissor);
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     PushConstants push{};
     push.background[0] = static_cast<float>(background_rgba & 0xff) / 255.0F;
@@ -841,10 +842,14 @@ void TilemapPass::record_above()
     const VkCommandBuffer cmd = m_context->cmd();
 
     // The 3D draw between record_below() and here set per-batch scissors; restore
-    // the full-native viewport and scissor so this fullscreen draw is not clipped
-    // to the last polygon batch's rectangle.
-    vkCmdSetViewport(cmd, 0, 1, &kNativeViewport);
-    vkCmdSetScissor(cmd, 0, 1, &kNativeScissor);
+    // the full composite viewport and scissor so this fullscreen draw is not
+    // clipped to the last polygon batch's rectangle.
+    const VkExtent2D extent{kSourceWidth * m_render_scale, kSourceHeight * m_render_scale};
+    const VkViewport viewport{0.0F, 0.0F, static_cast<float>(extent.width),
+                              static_cast<float>(extent.height), 0.0F, 1.0F};
+    const VkRect2D   scissor{{0, 0}, extent};
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     PushConstants push{};
     push.background[3] = 1.0F;

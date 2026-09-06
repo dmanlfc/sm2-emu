@@ -97,6 +97,32 @@ enum class NativeFormat : u32 {
 constexpr u32 kNativeWidth  = 496;
 constexpr u32 kNativeHeight = 384;
 
+/// The largest internal 3D render scale (N in 1..4). 4x is 1984x1536, within
+/// every device this project targets.
+constexpr u32 kMaxRenderScale = 4;
+
+/// The scaled raster the 3D pass and composite run at when render_scale is N.
+/// At N=1 these are the native size; the native constants keep their own
+/// meaning (stipple and LOD are locked to the native grid, not the scaled one).
+[[nodiscard]] constexpr u32 scaled_width(u32 render_scale) { return render_scale * kNativeWidth; }
+[[nodiscard]] constexpr u32 scaled_height(u32 render_scale) { return render_scale * kNativeHeight; }
+
+/// Largest scale in 1..requested whose N*native colour/depth target fits a
+/// device's max 2D image/texture dimension. 4x is 1984x1536, within every
+/// device this project targets, so this only reduces N on a device that
+/// genuinely cannot allocate the target -- a guard, not an expected path. A
+/// limit that cannot hold even native (< 496) still returns 1: native is the
+/// floor, and a device that small cannot run the renderer at all.
+[[nodiscard]] constexpr u32 clamp_scale_to_max_dimension(u32 requested, u32 max_dimension)
+{
+    u32 scale = requested;
+    while (scale > 1 && (scaled_width(scale) > max_dimension
+                         || scaled_height(scale) > max_dimension)) {
+        --scale;
+    }
+    return scale;
+}
+
 /// Aspect ratio the frame is presented at.
 ///
 /// The raster is 496x384, which is 1.29:1, but an arcade monitor stretched it
@@ -149,6 +175,11 @@ struct BackendConfig {
     /// Exact device name to prefer, matching enumerate_device_names()'s
     /// entries. Empty means "pick the best scoring device".
     std::string preferred_device;
+
+    /// Internal 3D render scale, N in 1..kMaxRenderScale. The 3D pass and
+    /// composite run at N*native; at 1 the pipeline is native and behaves
+    /// exactly as before this feature. The software renderer forces this to 1.
+    u32 render_scale = 1;
 };
 
 /// The render backend main.cpp drives, one frame at a time.

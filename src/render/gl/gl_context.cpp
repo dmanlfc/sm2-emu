@@ -82,12 +82,13 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     }
-    // No depth buffer: this renderer's fill mask is stencil-only, matching
-    // the Vulkan path's own choice (Poly3DPass's stencil attachment). Model
-    // 2's hardware itself has no depth buffer either -- see backend.h's own
-    // documentation of why draw order, not depth, decides pixel ownership.
+    // The default framebuffer needs neither depth nor stencil: the 3D pass's
+    // fill mask is a stencil renderbuffer on the composite FBO (PresentPass),
+    // and the only draw to the window is the final letterbox blit, a plain
+    // textured copy. Model 2's hardware has no depth buffer either -- see
+    // backend.h on why draw order, not depth, decides pixel ownership.
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     m_context = SDL_GL_CreateContext(m_window);

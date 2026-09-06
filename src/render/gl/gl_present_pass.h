@@ -35,8 +35,16 @@ public:
     PresentPass(const PresentPass&)            = delete;
     PresentPass& operator=(const PresentPass&) = delete;
 
-    [[nodiscard]] bool init();
+    /// `render_scale` (1..kMaxRenderScale) sizes the composite target and its
+    /// fill-mask stencil to N*native, and the viewport begin_frame() sets. The
+    /// native frame the software renderer uploads and a screenshot reads back
+    /// stay native, so N=1 is unchanged.
+    [[nodiscard]] bool init(u32 render_scale);
     void shutdown();
+
+    /// Size of the composite target, N*native.
+    [[nodiscard]] u32 width() const { return scaled_width(m_render_scale); }
+    [[nodiscard]] u32 height() const { return scaled_height(m_render_scale); }
 
     /// Claim this frame's native texture as the framebuffer other passes
     /// draw into. Binds m_fbo; the caller's own draw calls follow.
@@ -73,6 +81,9 @@ private:
     u32 m_program  = 0;
     u32 m_push_ubo = 0;
     u32 m_vao      = 0;
+
+    /// Internal 3D render scale; the composite target and stencil are N*native.
+    u32 m_render_scale = 1;
 };
 
 }  // namespace sm2::render::gl

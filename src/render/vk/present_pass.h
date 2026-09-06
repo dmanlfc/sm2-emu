@@ -51,8 +51,16 @@ public:
     PresentPass(const PresentPass&)            = delete;
     PresentPass& operator=(const PresentPass&) = delete;
 
-    [[nodiscard]] bool init(Context& context);
+    /// `render_scale` (1..kMaxRenderScale) sizes the composite target: the 3D
+    /// and the two 2D bands are drawn into an N*native image. The native frame
+    /// the software renderer uploads and a screenshot reads back are still
+    /// native (native_extent()), so N=1 is unchanged.
+    [[nodiscard]] bool init(Context& context, u32 render_scale);
     void shutdown();
+
+    /// Size of the composite target, N*native.
+    [[nodiscard]] u32 width() const { return scaled_width(m_render_scale); }
+    [[nodiscard]] u32 height() const { return scaled_height(m_render_scale); }
 
     /// Claim this frame's native image and return the view to draw into.
     ///
@@ -119,6 +127,9 @@ private:
 
     /// Which target begin_frame() handed out.
     u32 m_current = 0;
+
+    /// Internal 3D render scale; the composite target is N*native.
+    u32 m_render_scale = 1;
 };
 
 }  // namespace sm2::render::vk

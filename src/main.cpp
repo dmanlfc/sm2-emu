@@ -150,6 +150,7 @@ struct Options {
         bool gpu        = false;
         bool nvram_dir  = false;
         bool games_xml  = false;
+        bool render_scale = false;
     } given;
 
     bool        verbose    = false;
@@ -288,6 +289,8 @@ void print_usage()
         "                      on. 'opengl' means whichever GL flavour this binary\n"
         "                      was built with. 'software' is an alias for\n"
         "                      --software; --software still wins if both are given\n"
+        "      --render-scale <n>  Internal 3D render scale, 1..4 (default 1 =\n"
+        "                      native). GPU backends only; ignored under --software\n"
         "      --screenshot-interval <n>  Capture every n frames instead, numbering\n"
         "                      each file after the frame it came from\n"
         "      --screenshot-frames <list>  Capture exactly these frames, comma\n"
@@ -366,6 +369,27 @@ void print_usage()
             if (out->graphics_backend == GraphicsBackendChoice::Software) {
                 out->start_in_software_renderer = true;
             }
+        } else if (std::strcmp(arg, "--render-scale") == 0) {
+            if (index + 1 >= argc) {
+                SM2_ERROR("--render-scale requires a value (1..%u)",
+                          sm2::render::kMaxRenderScale);
+                return false;
+            }
+            const char*    text  = argv[++index];
+            char*          end   = nullptr;
+            const sm2::u32 value = static_cast<sm2::u32>(std::strtoul(text, &end, 10));
+            sm2::u32       scale = value;
+            if (end == text || *end != '\0' || value < 1) {
+                scale = 1;
+            } else if (value > sm2::render::kMaxRenderScale) {
+                scale = sm2::render::kMaxRenderScale;
+            }
+            if (scale != value || end == text || *end != '\0') {
+                SM2_WARN("--render-scale '%s' is out of range; using %u (valid: 1..%u)",
+                         text, scale, sm2::render::kMaxRenderScale);
+            }
+            out->config.render_scale = scale;
+            out->given.render_scale  = true;
         } else if (std::strcmp(arg, "--no-vsync") == 0) {
             out->config.vsync = false;
             out->given.vsync  = true;
@@ -646,6 +670,9 @@ int main(int argc, char** argv)
     }
     options.config.window_width  = from_file.window_width;
     options.config.window_height = from_file.window_height;
+    if (!options.given.render_scale) {
+        options.config.render_scale = from_file.render_scale;
+    }
 
     // Settings with no command-line flag come straight from the file, so the
     // GUI shows and round-trips what was saved. (These were being dropped, which
@@ -1280,6 +1307,10 @@ int main(int argc, char** argv)
         backend_config.enable_validation = options.config.validation;
         backend_config.vsync             = options.config.vsync;
         backend_config.preferred_device  = options.config.gpu;
+        // The software renderer is the native oracle, so scaling is ignored
+        // (treated as 1) when it drives the window.
+        backend_config.render_scale =
+            options.start_in_software_renderer ? 1U : options.config.render_scale;
 
         // Each factory is only defined when its SM2_BUILD_* option was on, so
         // the #if guards keep an absent backend from being an undefined symbol.

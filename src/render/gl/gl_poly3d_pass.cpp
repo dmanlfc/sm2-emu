@@ -38,8 +38,9 @@ Poly3DPass::~Poly3DPass()
     shutdown();
 }
 
-bool Poly3DPass::init()
+bool Poly3DPass::init(u32 render_scale)
 {
+    m_render_scale = render_scale;
     m_frame_geometry.vertices.reserve(1 << 14);
     m_frame_geometry.polygons.reserve(1 << 12);
     m_tone_curve.assign(static_cast<usize>(hw::Model2Video::kToneShades)
@@ -115,8 +116,8 @@ bool Poly3DPass::create_programs()
     UniformBlockBinding(m_polygon_program_early, polygon_block_early, 4);
     GenBuffers(1, &m_polygon_push_ubo);
     BindBuffer(GL_UNIFORM_BUFFER, m_polygon_push_ubo);
-    BufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(sizeof(float) * 2), nullptr,
-              GL_DYNAMIC_DRAW);
+    // vec2 invRaster + uint renderScale; std140 rounds the block up to 16 bytes.
+    BufferData(GL_UNIFORM_BUFFER, 16, nullptr, GL_DYNAMIC_DRAW);
 
     const std::string decode_source =
         prepare_gl_source(shaders::kTexelDecodeCompGlsl, active_version_directive());
@@ -239,11 +240,17 @@ void Poly3DPass::draw_polygons()
         return;
     }
 
+    // Matches polygon.{vert,frag}'s shared Push block under std140: invRaster at
+    // offset 0, renderScale at offset 8. The frag stage reads renderScale for the
+    // native-grid stipple.
     struct PushBlock {
         float inv_raster[2];
+        u32   render_scale;
+        u32   pad;
     } push{};
     push.inv_raster[0] = 1.0F / static_cast<float>(kWidth);
     push.inv_raster[1] = 1.0F / static_cast<float>(kHeight);
+    push.render_scale  = m_render_scale;
     BindBuffer(GL_UNIFORM_BUFFER, m_polygon_push_ubo);
     BufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<GLsizeiptr>(sizeof(push)), &push);
     BindBufferBase(GL_UNIFORM_BUFFER, 4, m_polygon_push_ubo);
@@ -301,8 +308,11 @@ void Poly3DPass::draw_polygons()
             UseProgram(wanted);
             bound = wanted;
         }
-        Scissor(batch.scissor.x, batch.scissor.y, static_cast<GLsizei>(batch.scissor.width),
-               static_cast<GLsizei>(batch.scissor.height));
+        // Native-pixel window scaled to the N*native target; identity at N=1.
+        const GLint n = static_cast<GLint>(m_render_scale);
+        Scissor(batch.scissor.x * n, batch.scissor.y * n,
+               static_cast<GLsizei>(batch.scissor.width * m_render_scale),
+               static_cast<GLsizei>(batch.scissor.height * m_render_scale));
         DrawArrays(GL_TRIANGLES, static_cast<GLint>(batch.first_vertex),
                   static_cast<GLsizei>(batch.vertex_count));
     }
