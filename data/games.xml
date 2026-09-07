@@ -346,6 +346,11 @@
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
       </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
+      </region>
     </roms>
   </game>
 
@@ -433,6 +438,11 @@
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
       </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
+      </region>
     </roms>
   </game>
 
@@ -502,6 +512,11 @@
         <file name="opr-14745.59" offset="0x000002" crc="0x4c934d96"/>
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
+      </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
       </region>
     </roms>
   </game>
@@ -597,6 +612,11 @@
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
       </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
+      </region>
     </roms>
   </game>
 
@@ -670,6 +690,11 @@
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
       </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
+      </region>
     </roms>
   </game>
 
@@ -736,6 +761,11 @@
         <file name="opr-14745.59" offset="0x000002" crc="0x4c934d96"/>
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
+      </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
       </region>
     </roms>
   </game>
@@ -827,11 +857,8 @@
       <channel index="2" control="brake" rest="0x00"/>
     </analog>
 
-    <!-- The I/O board carries its own Z80 firmware, which MAME ships as a
-         separate device set shared by every title using that board. -->
-    <devices>
-      <device name="model1io"/>
-    </devices>
+    <!-- Model 1 I/O board Z80 firmware. Bundled into this archive (the
+         ioboard region below), so no separate device set is needed. -->
     <roms>
       <region name="ioboard" size="0x10000">
         <file name="epr-14869c.25" offset="0x000000" crc="0x24b68e64"/>
@@ -894,7 +921,12 @@
         <file name="mpr-16493.4" offset="0x000000" crc="0x9990db15"/>
         <file name="mpr-16494.5" offset="0x200000" crc="0x600e1d6c"/>
       </region>
-      <region name="drivecpu" size="0x10000" required="false"/>
+      <!-- 838-10646 drive board Z80. Unused by the emulator; declared to
+           match MAME. BIOS-selectable pair, only one physically present. -->
+      <region name="drivecpu" size="0x10000" required="false">
+        <file name="epr-16488a.ic12" offset="0x000000" crc="0x546c5d1a"/>
+        <file name="epr-16488.ic12"  offset="0x000000" crc="0x4f0b8114"/>
+      </region>
       <region name="copro_tgp_tables" size="0x40000" stride="4" chunk="2">
         <file name="opr-14742a.45" offset="0x000000" crc="0x90c6b117"/>
         <file name="opr-14743a.46" offset="0x000002" crc="0xae7f446b"/>
@@ -962,7 +994,6 @@
       <region name="cpu3" size="0x20000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-16726.bin" offset="0x000000" crc="0xc179b8c7"/>
       </region>
-      <region name="drivecpu" size="0x10000" required="false"/>
       <region name="copro_tgp_tables" size="0x40000" stride="4" chunk="2">
         <file name="opr-14742a.45" offset="0x000000" crc="0x90c6b117"/>
         <file name="opr-14743a.46" offset="0x000002" crc="0xae7f446b"/>
@@ -1050,7 +1081,6 @@
       <region name="cpu3" size="0x20000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-16726.bin" offset="0x000000" crc="0xc179b8c7"/>
       </region>
-      <region name="drivecpu" size="0x10000" required="false"/>
       <region name="copro_tgp_tables" size="0x40000" stride="4" chunk="2">
         <file name="opr-14742a.45" offset="0x000000" crc="0x90c6b117"/>
         <file name="opr-14743a.46" offset="0x000002" crc="0xae7f446b"/>
@@ -1120,7 +1150,6 @@
       <region name="cpu3" size="0x20000" stride="2" chunk="2" byte_swap="true">
         <file name="epr-16726.bin" offset="0x000000" crc="0xc179b8c7"/>
       </region>
-      <region name="drivecpu" size="0x10000" required="false"/>
       <region name="copro_tgp_tables" size="0x40000" stride="4" chunk="2">
         <file name="opr-14742a.45" offset="0x000000" crc="0x90c6b117"/>
         <file name="opr-14743a.46" offset="0x000002" crc="0xae7f446b"/>
@@ -1146,11 +1175,8 @@
       <input type="buttons3"/>
     </inputs>
 
-    <!-- The I/O board carries its own Z80 firmware, which MAME ships as a
-         separate device set shared by every title using that board. -->
-    <devices>
-      <device name="model1io"/>
-    </devices>
+    <!-- Model 1 I/O board Z80 firmware. Bundled into this archive (the
+         ioboard region below), so no separate device set is needed. -->
     <roms>
       <region name="ioboard" size="0x10000">
         <file name="epr-14869c.25" offset="0x000000" crc="0x24b68e64"/>
@@ -1332,6 +1358,11 @@
         <file name="opr-14745.59" offset="0x000002" crc="0x4c934d96"/>
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
+      </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
       </region>
     </roms>
   </game>
@@ -1571,6 +1602,11 @@
         <file name="opr-14745.59" offset="0x000002" crc="0x4c934d96"/>
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
+      </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
       </region>
     </roms>
   </game>
@@ -2391,6 +2427,11 @@
       <region name="eeprom" size="0x80" required="false">
         <file name="hpyagu98_nvram" offset="0x000000" crc="0x3634c60f"/>
       </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
+      </region>
     </roms>
   </game>
 
@@ -2839,6 +2880,11 @@
       <region name="eeprom" size="0x80" required="false">
         <file name="manxtt_dx_nvran" offset="0x000000" crc="0xb22787a3"/>
       </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
+      </region>
     </roms>
   </game>
 
@@ -3083,6 +3129,11 @@
         <file name="opr-14745.59" offset="0x000002" crc="0x4c934d96"/>
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
+      </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
       </region>
     </roms>
   </game>
@@ -3435,6 +3486,11 @@
         <file name="opr-14745.59" offset="0x000002" crc="0x4c934d96"/>
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
+      </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
       </region>
     </roms>
   </game>
@@ -3994,6 +4050,11 @@
         <file name="opr-14745.59" offset="0x000002" crc="0x4c934d96"/>
         <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
         <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
+      </region>
+      <region name="video_unk" size="0x200000" stride="4" chunk="1" required="false">
+        <file name="mpr-16310.15" offset="0x000000" crc="0xc078a780"/>
+        <file name="mpr-16311.16" offset="0x000001" crc="0x452a492b"/>
+        <file name="mpr-16312.14" offset="0x000002" crc="0xa25fef5b"/>
       </region>
     </roms>
   </game>
@@ -4911,11 +4972,8 @@
       <axis name="p2x" min="0x080" max="0x273" rest="0x179"/>
     </lightgun>
 
-    <!-- The I/O board carries its own Z80 firmware, which MAME ships as a
-         separate device set shared by every title using that board. -->
-    <devices>
-      <device name="model1io2"/>
-    </devices>
+    <!-- Model 1 I/O board (type 2) Z80 firmware. Bundled into this
+         archive (the ioboard region below); no device set needed. -->
     <roms>
       <region name="ioboard" size="0x10000">
         <file name="epr-17181.6" offset="0x000000" crc="0x1add2b82"/>

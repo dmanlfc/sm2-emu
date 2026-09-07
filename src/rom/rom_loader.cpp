@@ -712,9 +712,14 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
     LoadResult result;
     result.game = *chosen;
 
+    // Collect every missing required chip across all regions before giving up,
+    // rather than failing on the first, so a single run tells the user exactly
+    // which files to find. Optional absences are reported too, but only warn.
+    u32 required_missing = 0;
+
     for (const RegionSpec& region : chosen->regions) {
         std::vector<std::vector<u8>> contents(region.files.size());
-        u32                          missing = 0;
+        u32                          optional_missing = 0;
 
         for (usize index = 0; index < region.files.size(); ++index) {
             const FileSpec& file  = region.files[index];
@@ -722,12 +727,12 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
 
             if (entry == nullptr) {
                 if (region.required) {
-                    SM2_ERROR("region '%s': '%s' (CRC32 0x%08x) was not found in %s",
-                              region.name.c_str(), file.name.c_str(), file.crc32,
-                              archive_path.c_str());
-                    return std::nullopt;
+                    SM2_ERROR("missing required ROM: '%s' (CRC32 0x%08x), region '%s'",
+                              file.name.c_str(), file.crc32, region.name.c_str());
+                    ++required_missing;
+                } else {
+                    ++optional_missing;
                 }
-                ++missing;
                 continue;
             }
             if (!archives.extract(*entry, &contents[index])) {
@@ -735,9 +740,15 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
             }
         }
 
-        if (missing != 0) {
+        if (optional_missing != 0) {
             SM2_WARN("region '%s': %u optional file(s) absent; filling with 0x%02x",
-                     region.name.c_str(), missing, region.fill);
+                     region.name.c_str(), optional_missing, region.fill);
+        }
+
+        // A region short a required chip cannot be assembled correctly, so skip
+        // assembly for it; the run will fail below once every gap is listed.
+        if (required_missing != 0) {
+            continue;
         }
 
         std::optional<std::vector<u8>> assembled = assemble_region(region, contents);
@@ -748,6 +759,13 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
         SM2_DEBUG("region '%-18s' 0x%08zx bytes from %zu file(s)",
                   region.name.c_str(), assembled->size(), region.files.size());
         result.roms.add(region.name, std::move(*assembled));
+    }
+
+    if (required_missing != 0) {
+        SM2_ERROR("'%s' cannot be loaded: %u required ROM file(s) missing from %s "
+                  "(matched by CRC32; a listed chip is either absent or corrupt)",
+                  chosen->name.c_str(), required_missing, archive_path.c_str());
+        return std::nullopt;
     }
 
     SM2_INFO("loaded '%s' (%s, %s %u) - %s, %.1f MiB across %zu region(s)",
