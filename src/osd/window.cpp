@@ -15,6 +15,7 @@
 #include "osd/window.h"
 
 #include "core/log.h"
+#include "osd/app_icon.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
@@ -82,6 +83,21 @@ bool Window::create(const WindowConfig& config)
     }
 
     m_fullscreen = config.fullscreen;
+
+    // Application icon. The pixels are a static constexpr array, so the surface
+    // may reference them without copying; SDL_SetWindowIcon takes its own copy,
+    // so the surface is freed immediately afterwards. A failure here is not
+    // fatal -- the window just keeps the default icon.
+    if (SDL_Surface* icon = SDL_CreateSurfaceFrom(
+            kAppIconWidth, kAppIconHeight, SDL_PIXELFORMAT_RGBA32,
+            const_cast<unsigned char*>(kAppIconRgba), kAppIconWidth * 4)) {
+        if (!SDL_SetWindowIcon(m_window, icon)) {
+            SM2_WARN("SDL_SetWindowIcon failed: %s", SDL_GetError());
+        }
+        SDL_DestroySurface(icon);
+    } else {
+        SM2_WARN("could not create icon surface: %s", SDL_GetError());
+    }
 
     u32 pixel_width = 0;
     u32 pixel_height = 0;

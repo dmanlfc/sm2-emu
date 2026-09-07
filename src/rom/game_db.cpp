@@ -253,6 +253,9 @@ std::optional<std::string> GameDatabase::locate(const std::string& override_path
         candidates.push_back(exe_dir / "games.xml");
         candidates.push_back(exe_dir / ".." / "share" / "sm2-emu" / "games.xml");
         candidates.push_back(exe_dir / ".." / ".." / "data" / "games.xml");
+        // macOS .app bundle: exe is Contents/MacOS/sm2-emu, data is placed in
+        // Contents/Resources.
+        candidates.push_back(exe_dir / ".." / "Resources" / "games.xml");
     }
 
     for (const std::filesystem::path& candidate : candidates) {
@@ -263,8 +266,9 @@ std::optional<std::string> GameDatabase::locate(const std::string& override_path
     }
 
     SM2_ERROR("games.xml could not be found. Looked in the current directory, "
-              "beside the executable, and in ../share/sm2-emu. Pass "
-              "--games-xml <path> to name it explicitly.");
+              "beside the executable, in ../share/sm2-emu, and in the app "
+              "bundle's Resources. Pass --games-xml <path> to name it "
+              "explicitly.");
     return std::nullopt;
 }
 

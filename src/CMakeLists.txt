@@ -283,6 +283,30 @@ target_link_libraries(sm2_osd
 add_executable(sm2-emu
     main.cpp
 )
+
+# On macOS build a proper .app bundle so the Finder/Dock show the icon and the
+# app is double-clickable. The .icns is carried inside the bundle as a resource
+# and named in Info.plist; games.xml is staged into Contents/Resources below.
+if(SM2_PLATFORM_MACOS)
+    set(SM2_MACOS_ICNS "${CMAKE_SOURCE_DIR}/data/icons/sm2-emu.icns")
+    set_target_properties(sm2-emu PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_INFO_PLIST      "${CMAKE_SOURCE_DIR}/cmake/Info.plist.in"
+        MACOSX_BUNDLE_BUNDLE_NAME     "SM2 Emulator"
+        MACOSX_BUNDLE_GUI_IDENTIFIER  "dev.dmanlfc.sm2-emu"
+        MACOSX_BUNDLE_BUNDLE_VERSION        "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING  "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_ICON_FILE       "sm2-emu.icns")
+    # Package the icns and the ROM database into Contents/Resources so the
+    # bundle is self-contained (and stays so when installed/copied).
+    target_sources(sm2-emu PRIVATE
+        "${SM2_MACOS_ICNS}"
+        "${CMAKE_SOURCE_DIR}/data/games.xml")
+    set_source_files_properties(
+        "${SM2_MACOS_ICNS}"
+        "${CMAKE_SOURCE_DIR}/data/games.xml"
+        PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+endif()
 # sm2_core is not listed: sm2_osd and sm2_hw expose it PUBLIC, and naming it
 # again makes the linker warn about a duplicate archive. sm2_hw brings in
 # sm2_cpu and sm2_rom the same way. sm2_render (backend-neutral geometry) is
@@ -310,14 +334,18 @@ target_compile_definitions(sm2-emu PRIVATE
 
 # Keep games.xml beside the binary so a freshly built tree runs without any
 # environment set up. GameDatabase::locate also looks in ../share/sm2-emu for
-# installed builds.
-add_custom_command(TARGET sm2-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_SOURCE_DIR}/data/games.xml"
-            "$<TARGET_FILE_DIR:sm2-emu>/games.xml"
-    COMMENT "Staging games.xml"
-    VERBATIM
-)
+# installed builds. On macOS games.xml is packaged into the bundle's
+# Contents/Resources instead (see the bundle setup above), so this staging is
+# only for the non-bundle layouts.
+if(NOT SM2_PLATFORM_MACOS)
+    add_custom_command(TARGET sm2-emu POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_SOURCE_DIR}/data/games.xml"
+                "$<TARGET_FILE_DIR:sm2-emu>/games.xml"
+        COMMENT "Staging games.xml"
+        VERBATIM
+    )
+endif()
 
 target_compile_definitions(sm2-emu PRIVATE
     SM2_VERSION="${PROJECT_VERSION}"
@@ -336,3 +364,55 @@ if(SM2_PLATFORM_MACOS AND SM2_BUILD_VULKAN)
             INSTALL_RPATH "${sm2_vulkan_dir}")
     endif()
 endif()
+
+# ---------------------------------------------------------------------------
+# Installation
+# ---------------------------------------------------------------------------
+# `cmake --install` lays the emulator out in a standard prefix:
+#   bin/sm2-emu                          the executable
+#   share/sm2-emu/games.xml              the ROM database (GameDatabase::locate
+#                                        searches ../share/sm2-emu for it)
+# plus the desktop-integration icons per platform (below). The in-window icon 
+# is compiled in separately (src/osd/app_icon.h) and does not depend on any of 
+# this being installed.
+
+include(GNUInstallDirs)
+
+set(SM2_ICON_DIR "${CMAKE_SOURCE_DIR}/data/icons")
+
+if(SM2_PLATFORM_MACOS)
+    # The .app is self-contained (executable + icns + games.xml inside it), so
+    # it installs to a Applications-style bundle directory and needs nothing
+    # alongside it.
+    install(TARGETS sm2-emu BUNDLE DESTINATION ".")
+else()
+    install(TARGETS sm2-emu RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    install(FILES "${CMAKE_SOURCE_DIR}/data/games.xml"
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/sm2-emu")
+endif()
+
+if(SM2_PLATFORM_LINUX)
+    # Freedesktop hicolor icon theme: one PNG per size under
+    # share/icons/hicolor/<size>x<size>/apps/, named after the .desktop's Icon
+    # key (sm2-emu). The desktop environment picks the best size automatically.
+    foreach(sz 48 128 256 512)
+        install(FILES "${SM2_ICON_DIR}/sm2-emu-${sz}.png"
+                DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${sz}x${sz}/apps"
+                RENAME "sm2-emu.png")
+    endforeach()
+    # Scalable slot: our SVG carries the exact artwork, so hand it to themes
+    # that prefer scalable icons.
+    install(FILES "${SM2_ICON_DIR}/sm2-emu.svg"
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps")
+
+    # A .desktop launcher so the icon and app show up in the applications menu.
+    configure_file(
+        "${CMAKE_SOURCE_DIR}/cmake/sm2-emu.desktop.in"
+        "${CMAKE_BINARY_DIR}/sm2-emu.desktop"
+        @ONLY)
+    install(FILES "${CMAKE_BINARY_DIR}/sm2-emu.desktop"
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
+endif()
+
+# macOS needs nothing extra here: the icon (sm2-emu.icns) and games.xml are
+# packaged inside the .app bundle above.

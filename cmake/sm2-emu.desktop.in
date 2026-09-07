@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SM2 Emulator
+GenericName=Arcade Emulator
+Comment=Sega Model 2 arcade emulator
+Exec=sm2-emu %f
+Icon=sm2-emu
+Terminal=false
+Categories=Game;Emulator;
+Keywords=sega;model2;arcade;emulator;
