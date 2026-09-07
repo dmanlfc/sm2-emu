@@ -1219,6 +1219,17 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         gather_keys(&ports[0], keys, key_count, kOperatorKeys);
         gather_keys(&ports[1], keys, key_count, kPlayerOneKeys);
         gather_keys(&ports[2], keys, key_count, kPlayerTwoKeys);
+
+        // kOperatorKeys pressed the default start1 bit (kStart1 = 0x10); some
+        // titles (Indy 500, Sky Target, Manx TT and Top Skater family) move
+        // START1 to another IN0 bit. Redirect the press to the real bit so the
+        // keyboard start key works on those sets, matching the scripted and
+        // gun/wheel paths which already honour start1_bit.
+        const u8 start1 = game.start1_bit != 0 ? game.start1_bit : kStart1;
+        if (start1 != kStart1 && (ports[0] & kStart1) == 0) {
+            ports[0] |= kStart1;                        // release the wrong bit
+            ports[0] &= static_cast<u8>(~start1);       // press the real one
+        }
     }
 
     for (const Pad& pad : m_pads) {
@@ -1242,7 +1253,8 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         // Start and coin, so a player can put themselves into the game without
         // reaching for the keyboard. Coin 2 belongs to player 2's slot.
         if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_START)) {
-            ports[0] &= static_cast<u8>(~(pad.player == 0 ? kStart1 : kStart2));
+            const u8 start1 = game.start1_bit != 0 ? game.start1_bit : kStart1;
+            ports[0] &= static_cast<u8>(~(pad.player == 0 ? start1 : kStart2));
         }
         if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_BACK)) {
             ports[0] &= static_cast<u8>(~(pad.player == 0 ? kCoin1 : kCoin2));
@@ -1298,6 +1310,59 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                                       : sample_channel(wiring);
     }
 
+    // Top Skater special-case. The game has no digital d-pad; it steers with an
+    // analog board (Curving) and navigates its menus with digital "Select
+    // Left/Right" buttons on IN0 (0x80/0x10), plus Jump Front (IN0 0x20) and
+    // Jump Tail (IN1 0x01). The generic keyboard/pad mapping puts buttons on the 
+    // player port, so neither the menu nor keyboard steering worked.
+    // Wire it directly: arrow Left/Right (and the d-pad) drive BOTH the digital
+    // Select bits (menu) and the Curving analog (in-game steer), 
+    // so one control is correct in both states.
+    if (game.name == "topskatr" || game.parent == "topskatr") {
+        constexpr u8 kSelectLeft  = 0x80;  // IN0
+        constexpr u8 kSelectRight = 0x10;  // IN0
+        constexpr u8 kJumpFront   = 0x20;  // IN0
+        constexpr u8 kJumpTailIn1 = 0x01;  // IN1
+
+        bool left = false, right = false, jump_front = false, jump_tail = false;
+        if (keys != nullptr) {
+            const auto down = [&](SDL_Scancode sc) {
+                return static_cast<int>(sc) < key_count && keys[sc];
+            };
+            left       = down(SDL_SCANCODE_LEFT);
+            right      = down(SDL_SCANCODE_RIGHT);
+            jump_front = down(SDL_SCANCODE_Z);
+            jump_tail  = down(SDL_SCANCODE_X);
+        }
+        for (const Pad& pad : m_pads) {
+            if (pad.handle == nullptr || pad.player != 0) {
+                continue;
+            }
+            left       |= SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
+            right      |= SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+            jump_front |= SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_SOUTH);
+            jump_tail  |= SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_EAST);
+        }
+
+        // Digital menu Select and jumps, active low on their real bits.
+        if (left)       inputs->in0 &= static_cast<u8>(~kSelectLeft);
+        if (right)      inputs->in0 &= static_cast<u8>(~kSelectRight);
+        if (jump_front) inputs->in0 &= static_cast<u8>(~kJumpFront);
+        if (jump_tail)  inputs->in1 &= static_cast<u8>(~kJumpTailIn1);
+
+        // Keyboard steer: nudge the Curving channel off its centre rest so the
+        // skater turns without a pad stick. The pad left stick already drives
+        // this through sample_channel; only override when a key is actually held
+        // so the stick still works when no arrow is pressed.
+        for (usize channel = 0; channel < inputs->analog.size(); ++channel) {
+            if (game.analog[channel].control != rom::AnalogControl::Curving) {
+                continue;
+            }
+            if (left != right) {  // one, not both
+                inputs->analog[channel] = left ? 0xff : 0x00;
+            }
+        }
+    }
 
     gather_lightguns(inputs, game);
 
