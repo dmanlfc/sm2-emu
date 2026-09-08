@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -24,16 +24,9 @@ namespace sm2::hw {
 
 std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game, rom::RomSet roms)
 {
-    // The switch below still enumerates every rom::Board value explicitly (no
-    // default: label), so a new enumerator without a case here remains a
-    // compile-time -Wswitch error. But each case's accept/reject decision now
-    // starts from rom::board_implemented rather than being re-decided by a
-    // second, separately-maintained list: RomLoader::load gates on that exact
-    // same function, so the two are provably in sync rather than just
-    // currently-matching by coincidence. A future wave that flips
-    // board_implemented() to true for a board still needs its own case here
-    // to actually construct that board's machine class -- this only keeps the
-    // *rejection* in sync, not the construction itself.
+    // Each case gates on rom::board_implemented, the same function RomLoader::load
+    // gates on, so the two stay in sync rather than being separately maintained.
+    // No default: label, so a new enumerator without a case is a -Wswitch error.
     switch (game.board) {
         case rom::Board::Model2A: {
             if (!rom::board_implemented(game.board)) {

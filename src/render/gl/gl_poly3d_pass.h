@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -17,10 +17,9 @@
 // to satisfy (no depth buffer, native-resolution rasterisation); the
 // algorithm is unchanged here, only the GL entry points differ.
 //
-// No frames-in-flight ring, unlike the Vulkan path: GL's driver manages
-// buffer lifetime itself, so there is exactly one copy of each resource, not
-// three -- see gl_context.h's own doc comment and design.md sec 3 for why
-// this is correct rather than a simplification made for convenience.
+// No frames-in-flight ring, unlike the Vulkan path: GL's driver manages buffer
+// lifetime itself, so there is one copy of each resource, not three (see
+// gl_context.h).
 #pragma once
 
 #include "render/gl/gl_common.h"

@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -70,7 +70,7 @@ using sm2::render::kNativeWidth;
 constexpr VkFormat kNativeColourFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
 // ---------------------------------------------------------------------------
-// GPU stage timing (phase 8 benchmark, design.md requirement 1.2)
+// GPU stage timing
 // ---------------------------------------------------------------------------
 //
 // Aliased from render::, not redeclared: neither type names a Vulkan type, so

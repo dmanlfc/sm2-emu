@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -38,19 +38,18 @@ public:
 
     [[nodiscard]] bool empty() const { return m_games.empty(); }
 
-    /// Locate games.xml, searching in order: an explicit override, the current
-    /// directory, next to the executable, then the installed data directory.
-    /// Returns nothing if no candidate exists.
-    [[nodiscard]] static std::optional<std::string> locate(const std::string& override_path);
+    /// Locate the bundled games.xml, searching in order: the current directory,
+    /// next to the executable, then the installed data directory. Returns
+    /// nothing if no candidate exists.
+    [[nodiscard]] static std::optional<std::string> locate();
 
 private:
-    /// Fold each clone's regions over its parent's, so a child set need only
-    /// list the chips that differ.
-    /// Fold each clone's parent into it.
+    /// Fold each clone's parent into it, so a child set need only list the
+    /// chips that differ.
     ///
     /// `board_inherited` names the clones that declared no board of their own, so
-    /// the merge can take the parent's. That is passed in rather than stored on
-    /// GameSpec because it is a fact about the file, not about the hardware.
+    /// the merge can take the parent's. Passed in rather than stored on GameSpec
+    /// because it is a fact about the file, not about the hardware.
     [[nodiscard]] bool merge_clones(const std::set<std::string>& board_inherited);
 
     std::vector<GameSpec> m_games;

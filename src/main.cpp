@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -49,6 +49,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <filesystem>
 #include <optional>
 #include <set>
@@ -66,9 +67,9 @@ std::vector<std::string> enumerate_render_devices() { return {}; }
 
 namespace {
 
-/// --graphics-backend's three values. Which of the two GL flavours `Opengl`
-/// resolves to is a build-time fact (SM2_BUILD_OPENGL_DESKTOP vs
-/// SM2_BUILD_OPENGL_ES), not a fourth value here -- design.md §2.
+/// --graphics-backend's three values. Which GL flavour `Opengl` resolves to is
+/// a build-time fact (SM2_BUILD_OPENGL_DESKTOP vs SM2_BUILD_OPENGL_ES), not a
+/// fourth value here.
 enum class GraphicsBackendChoice {
     Software,
     Vulkan,
@@ -76,8 +77,7 @@ enum class GraphicsBackendChoice {
 };
 
 /// Parses --graphics-backend's argument. Returns false, naming the valid
-/// choices, on anything else -- design.md §2's "reject rather than silently
-/// default".
+/// choices, on anything else rather than silently defaulting.
 [[nodiscard]] bool parse_graphics_backend(const char* value, GraphicsBackendChoice* out)
 {
     if (std::strcmp(value, "software") == 0) {
@@ -148,12 +148,12 @@ struct Options {
         bool validation = false;
         bool log_level  = false;
         bool gpu        = false;
+        bool rom_dir    = false;
         bool nvram_dir  = false;
-        bool games_xml  = false;
+        bool screenshot_dir = false;
         bool render_scale = false;
     } given;
 
-    bool        verbose    = false;
     bool        show_help  = false;
     bool        list_gpus  = false;
     bool        list_games = false;
@@ -199,13 +199,11 @@ struct Options {
     /// compared without restarting.
     bool start_in_software_renderer = false;
 
-    /// Which GPU backend is constructed underneath that toggle --
-    /// independent of start_in_software_renderer, which only decides whether
-    /// the CPU rasteriser is drawing *this frame*
-    /// (.kiro/specs/model2-gl-backends/design.md §2). `software` is a pure
-    /// alias for --software: it does not change which GPU backend is built
-    /// (Vulkan still presents underneath), it only also sets
-    /// start_in_software_renderer.
+    /// Which GPU backend is constructed underneath, independent of
+    /// start_in_software_renderer, which only decides whether the CPU rasteriser
+    /// is drawing this frame.
+    /// --graphics-backend software sets both: it presents through a GPU backend
+    /// but draws on the CPU, and also flips start_in_software_renderer.
     GraphicsBackendChoice graphics_backend = kDefaultGraphicsBackend;
 
     /// Run this many frames headless, report, and exit. Zero means run normally.
@@ -221,11 +219,8 @@ struct Options {
     /// cannot also be the stopping condition.
     sm2::u32 duration_seconds = 0;
 
-    /// Report where a frame's CPU and GPU time actually goes -- design.md
-    /// requirement 1's per-stage benchmark -- rather than only the whole-frame
-    /// rate --duration alone reports. Implies --duration's stopping behaviour if
-    /// duration_seconds is otherwise zero, since a stage breakdown needs the same
-    /// fixed window a throughput figure does.
+    /// Per-stage CPU/GPU breakdown rather than just the whole-frame rate.
+    /// Implies --duration's stopping behaviour when duration_seconds is zero.
     bool profile = false;
 
     /// Discard every profiler and frame-time sample before this presented-frame
@@ -234,9 +229,7 @@ struct Options {
     /// ~350). Zero measures from the first frame.
     sm2::u32 profile_after = 0;
 
-    /// Also write --profile's per-stage table to this CSV file, one row per
-    /// stage, so a before-and-after comparison is scriptable rather than
-    /// needing to parse the stdout table -- design.md requirement 1.4.
+    /// Also write --profile's per-stage table to this CSV file, one row per stage.
     std::string profile_csv;
 
     bool     log_unmapped = false;
@@ -256,58 +249,18 @@ void print_usage()
         "      --list-gamepads Show which gamepads were recognised and which\n"
         "                      player each would drive\n"
         "      --game <name>   Load this set specifically, for archives that\n"
-        "                      hold several revisions\n"
-        "      --games-xml <p> Use this ROM database instead of searching\n"
-        "      --dump-roms <d> Write the assembled regions to this directory\n"
-        "                      and exit, for comparison against a reference\n"
-        "      --nvram <dir>   Directory for NVRAM and EEPROM images\n"
-        "                      (default: nvram)\n"
-        "      --boot-test <n> Run n frames without a window, report where the\n"
-        "                      program got to, and exit\n"
-        "      --run-frames <n>  Quit after presenting n frames\n"
-        "      --duration <n>  Quit after n wall-clock seconds, and print the\n"
-        "                      average and p50/p95/p99 frame rate over the run.\n"
-        "                      Combine with --no-throttle for a throughput\n"
-        "                      comparison between --software and Vulkan\n"
-        "      --profile [n]   As --duration, but also break the frame down by\n"
-        "                      stage: the geometry engine, tilemap composition,\n"
-        "                      the 3D pass build, and each GPU pass via timestamp\n"
-        "                      queries. n defaults to 30 seconds if omitted\n"
-        "      --profile-csv <f>  With --profile, also write the per-stage table\n"
-        "                      to this CSV file, one row per stage\n"
-        "      --profile-after <n>  Discard profiler and fps samples before frame\n"
-        "                      n, so attract/title/select screens do not skew the\n"
-        "                      in-game average. Set past coin-at + ~350\n"
-        "      --screenshot <f>  Write the last presented frame to this PPM file\n"
-        "      --soft-render   Also render each captured frame on the CPU with a\n"
-        "                      port of MAME's own rasteriser, beside the screenshot,\n"
-        "                      so the renderer can be compared against it\n"
-        "      --software      Start with the CPU rasteriser driving the window,\n"
-        "                      instead of Vulkan. F2 switches at runtime either way\n"
+        "                      hold several revisions; with no path given, the\n"
+        "                      archive is found in --rom-dir\n"
+        "      --rom-dir <dir> Where the ROM archives live; a game named with no\n"
+        "                      path is loaded from <dir>/<name>.zip or .7z\n"
+        "      --nvram <dir>   Directory for saves: NVRAM and EEPROM images\n"
+        "      --screenshot-dir <dir>  Where F12 screenshots are written\n"
         "      --graphics-backend <software|vulkan|opengl>\n"
-        "                      Which GPU backend to build the window/present path\n"
-        "                      on. 'opengl' means whichever GL flavour this binary\n"
-        "                      was built with. 'software' is an alias for\n"
-        "                      --software; --software still wins if both are given\n"
+        "                      Which renderer to use. 'opengl' means whichever GL\n"
+        "                      flavour this binary was built with\n"
         "      --render-scale <n>  Internal 3D render scale, 1..4 (default 1 =\n"
-        "                      native). GPU backends only; ignored under --software\n"
-        "      --screenshot-interval <n>  Capture every n frames instead, numbering\n"
-        "                      each file after the frame it came from\n"
-        "      --screenshot-frames <list>  Capture exactly these frames, comma\n"
-        "                      separated, numbering each file after its frame\n"
-        "      --coin-at <n>   Insert two coins and press start around frame n, so\n"
-        "                      an unattended run reaches the game itself\n"
-        "      --dump-audio <f>  Write everything the sound board produced to this\n"
-        "                      WAV file, so it can be listened to or compared\n"
-        "      --poly-log <f>  With --boot-test, append one line per frame with\n"
-        "                      what the geometry engine produced, for comparison\n"
-        "                      against MAME's own polygon count\n"
-        "      --dump-tilemap <d>  With --boot-test, write the decoded tilemap\n"
-        "                      layers, character RAM and the composed frame to\n"
-        "                      this directory\n"
-        "      --log-unmapped  Log every access outside a mapped region\n"
+        "                      native). GPU backends only; native under software\n"
         "      --gpu <name>    Use the device with this exact name\n"
-        "      --validation    Enable Vulkan validation layers\n"
         "      --no-vsync      Present without waiting for vertical blank\n"
         "      --no-throttle   Run as fast as this computer manages instead of at\n"
         "                      the machine's own 57.52 Hz\n"
@@ -319,7 +272,6 @@ void print_usage()
         "      --write-config  Write the settings this run would use, then exit,\n"
         "                      so there is a file to edit\n"
         "      --log-level <l> trace, debug, info, warning or error\n"
-        "  -v, --verbose       Same as --log-level debug\n"
         "\n");
     sm2::osd::Input::print_bindings();
     std::printf("\nNo ROM data is distributed with this software.\n");
@@ -356,8 +308,6 @@ void print_usage()
             out->given.validation  = true;
         } else if (std::strcmp(arg, "--soft-render") == 0) {
             out->soft_render = true;
-        } else if (std::strcmp(arg, "--software") == 0) {
-            out->start_in_software_renderer = true;
         } else if (std::strcmp(arg, "--graphics-backend") == 0) {
             if (index + 1 >= argc) {
                 SM2_ERROR("--graphics-backend requires a value (software, vulkan, opengl)");
@@ -404,8 +354,6 @@ void print_usage()
             out->given.lightgun  = true;
         } else if (std::strcmp(arg, "--write-config") == 0) {
             out->write_config = true;
-        } else if (std::strcmp(arg, "-v") == 0 || std::strcmp(arg, "--verbose") == 0) {
-            out->verbose = true;
         } else if (std::strcmp(arg, "--log-unmapped") == 0) {
             out->log_unmapped = true;
         } else if (std::strcmp(arg, "--boot-test") == 0) {
@@ -518,8 +466,12 @@ void print_usage()
             }
         } else if (takes_value("--screenshot", &out->screenshot)) {
             // handled
+        } else if (takes_value("--rom-dir", &out->config.rom_dir)) {
+            out->given.rom_dir = true;
         } else if (takes_value("--nvram", &out->config.nvram_dir)) {
             out->given.nvram_dir = true;
+        } else if (takes_value("--screenshot-dir", &out->config.screenshot_dir)) {
+            out->given.screenshot_dir = true;
         } else if (takes_value("--dump-audio", &out->dump_audio)) {
             // handled
         } else if (takes_value("--poly-log", &out->poly_log)) {
@@ -527,8 +479,6 @@ void print_usage()
             // handled
         } else if (takes_value("--gpu", &out->config.gpu)) {
             out->given.gpu = true;
-        } else if (takes_value("--games-xml", &out->config.games_xml)) {
-            out->given.games_xml = true;
         } else if (takes_value("--log-level", &out->config.log_level)) {
             sm2::log::Level parsed = sm2::log::Level::Info;
             if (!sm2::parse_log_level(out->config.log_level, &parsed)) {
@@ -581,6 +531,25 @@ void print_usage()
         return path + suffix;
     }
     return path.substr(0, dot) + suffix + path.substr(dot);
+}
+
+/// <dir>/<game>-YYYYMMDD-HHMMSS.png, creating `dir` if needed.
+[[nodiscard]] std::string screenshot_path(const std::string& dir, const std::string& game)
+{
+    std::error_code error;
+    std::filesystem::create_directories(dir, error);
+
+    std::time_t now = std::time(nullptr);
+    std::tm     tm{};
+#if defined(_WIN32)
+    localtime_s(&tm, &now);
+#else
+    localtime_r(&now, &tm);
+#endif
+    char stamp[32];
+    std::strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", &tm);
+
+    return (std::filesystem::path(dir) / (game + "-" + stamp + ".png")).string();
 }
 
 }  // namespace
@@ -659,11 +628,14 @@ int main(int argc, char** argv)
     if (!options.given.gpu) {
         options.config.gpu = from_file.gpu;
     }
+    if (!options.given.rom_dir) {
+        options.config.rom_dir = from_file.rom_dir;
+    }
     if (!options.given.nvram_dir) {
         options.config.nvram_dir = from_file.nvram_dir;
     }
-    if (!options.given.games_xml) {
-        options.config.games_xml = from_file.games_xml;
+    if (!options.given.screenshot_dir) {
+        options.config.screenshot_dir = from_file.screenshot_dir;
     }
     if (!options.given.log_level) {
         options.config.log_level = from_file.log_level;
@@ -675,8 +647,7 @@ int main(int argc, char** argv)
     }
 
     // Settings with no command-line flag come straight from the file, so the
-    // GUI shows and round-trips what was saved. (These were being dropped, which
-    // made the wheel bindings and other GUI-only settings appear as defaults.)
+    // GUI shows and round-trips what was saved.
     options.config.show_fps            = from_file.show_fps;
     options.config.wheel_ffb           = from_file.wheel_ffb;
     options.config.wheel_ffb_strength  = from_file.wheel_ffb_strength;
@@ -699,13 +670,15 @@ int main(int argc, char** argv)
     options.config.sinden_border_thickness  = from_file.sinden_border_thickness;
     options.config.gun_buttons              = from_file.gun_buttons;
 
-    // --verbose is shorthand, so an explicit level beats it.
+    // Default saves/screenshots under the platform data dir; a cwd-ini dev tree
+    // keeps them relative (see resolve_default_paths / data_directory).
+    const bool config_in_cwd =
+        options.config_path.empty()
+        && config_path == std::string("sm2-emu.ini");
+    resolve_default_paths(&options.config, config_in_cwd);
+
     log::Level level = log::Level::Info;
-    if (options.given.log_level || !options.verbose) {
-        (void)parse_log_level(options.config.log_level, &level);
-    } else {
-        level = log::Level::Debug;
-    }
+    (void)parse_log_level(options.config.log_level, &level);
     log::set_level(level);
 
     SM2_INFO("sm2-emu %s", SM2_VERSION);
@@ -790,13 +763,32 @@ int main(int argc, char** argv)
         return started ? 0 : 1;
     }
 
+    // --game with no path: resolve <rom_dir>/<name>.{zip,7z}. A positional path wins.
+    if (options.rom_path.empty() && !options.game.empty()
+        && !options.config.rom_dir.empty()) {
+        const std::filesystem::path dir(options.config.rom_dir);
+        for (const char* ext : {".zip", ".7z"}) {
+            const std::filesystem::path candidate = dir / (options.game + ext);
+            std::error_code error;
+            if (std::filesystem::exists(candidate, error)) {
+                options.rom_path = candidate.string();
+                break;
+            }
+        }
+        if (options.rom_path.empty()) {
+            SM2_ERROR("no archive for '%s' in rom_dir '%s' (looked for %s.zip and "
+                      "%s.7z)", options.game.c_str(), options.config.rom_dir.c_str(),
+                      options.game.c_str(), options.game.c_str());
+            return 1;
+        }
+    }
+
     // -- ROM database ------------------------------------------------------
     // Loaded before anything graphical, so a bad ROM path fails immediately
     // instead of after a window has appeared.
     rom::GameDatabase database;
     if (options.list_games || !options.rom_path.empty()) {
-        const std::optional<std::string> database_path =
-            rom::GameDatabase::locate(options.config.games_xml);
+        const std::optional<std::string> database_path = rom::GameDatabase::locate();
         if (!database_path.has_value() || !database.load(*database_path)) {
             return 1;
         }
@@ -837,23 +829,16 @@ int main(int argc, char** argv)
     }
 
     // -- the machine -------------------------------------------------------
-    // hw::create_machine dispatches on loaded->game.board and does the
-    // construction and init() that main.cpp used to do directly against
-    // hw::Model2. All four boards are implemented, so this hands back one of
-    // four concrete classes on success; downcasting here keeps every accessor
-    // below (cpu(), copro(), sound(), uart(), and the debug/render call sites)
-    // written against the concrete class unchanged, matching
-    // hw::Model2MachineBase's own documented split between the shared interface
-    // and board-specific accessors.
+    // hw::create_machine dispatches on loaded->game.board. All four boards are
+    // implemented; downcasting here keeps every accessor below written against
+    // the concrete class.
     //
-    // The main CPU and the sound link are the same types on all four, so they
-    // are resolved once here into pointers rather than re-tested at every use.
-    // The coprocessor genuinely differs, and so does the sound board: the
-    // original Model 2 carries the Model 1 audio board (68000 + YM3438 + two
-    // MultiPCMs) rather than the 68000/SCSP one the CRX family shares. Both are
-    // emulated, and both present hw::SoundBoard, so the audio path below is
-    // written once against that interface; the two places that need a specific
-    // board's registers say so with a cast.
+    // The main CPU and sound link are the same types on all four, so they are
+    // resolved once into pointers. The coprocessor differs, and so does the
+    // sound board: the original Model 2 carries the Model 1 audio board (68000 +
+    // YM3438 + two MultiPCMs) rather than the CRX family's 68000/SCSP. Both
+    // present hw::SoundBoard, so the audio path is written once against that
+    // interface; the two places needing a specific board's registers cast.
     std::unique_ptr<hw::Model2MachineBase> machine_iface;
     hw::Model2*         machine      = nullptr;
     hw::Model2B*        machine_2b   = nullptr;
@@ -1338,10 +1323,7 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        // Name of the constructed GPU backend, for every place that used to
-        // hardcode "Vulkan" as "whichever GPU backend isn't the software
-        // one" -- true while Vulkan was the only choice, not once
-        // --graphics-backend opengl can select a real second one.
+        // Name of the constructed GPU backend, for the title bar and overlay label.
         const char* gpu_backend_name = present_with_opengl ? "OpenGL" : "Vulkan";
 
         // The settings overlay, drawn on top of the emulator's output. Owns
@@ -1391,9 +1373,8 @@ int main(int argc, char** argv)
         // surfaces over a recognisable background rather than a blank window.
         hw::Model2Video idle_video;
 
-        // The CPU rasteriser, driven live instead of only alongside a capture, so
-        // the two renderers can be A/B'd without restarting. Only used when
-        // use_software_renderer is set and a machine is loaded; see F2 below.
+        // The CPU rasteriser, used when --graphics-backend software was chosen
+        // at launch and a machine is loaded.
         hw::SoftRenderer soft_renderer;
         std::vector<u32> soft_frame(static_cast<usize>(backend->native_width())
                                         * backend->native_height(),
@@ -1411,41 +1392,33 @@ int main(int argc, char** argv)
         pacer.start(hw::Model2::kFrameNanoseconds);
 
         SM2_INFO("entering main loop; Escape quits, P pauses, Tab fast-forwards, "
-                 "F2 switches renderer");
+                 "F1 menu, F2 fullscreen, F12 screenshot");
 
         /// Everything the sound board produced, when --dump-audio was given.
         std::vector<s16> recorded_audio;
 
-        // Per-stage CPU timers for --profile (design.md requirement 1.1). Built
-        // regardless of options.profile -- maybe_scope() below makes recording
-        // into them a no-op when profiling is off, which costs one branch per
-        // stage per frame rather than needing every call site to be conditional.
+        // Per-stage CPU timers for --profile. Built regardless of
+        // options.profile -- maybe_scope() below makes recording a no-op when
+        // profiling is off, one branch per stage rather than a conditional at
+        // every call site.
         core::StageTimer stage_run_frame("run_frame");
         core::StageTimer stage_geometry("geometry_engine");
         core::StageTimer stage_compose("tilemap_compose");
-        // build() both triangulates and memcpys into the mapped host buffers, and
-        // -- when texture_generation changed -- also records the decode
-        // dispatch's vkCmdDispatch, so this one CPU scope covers design.md's
-        // "render-list build" and "host-buffer memcpys" together, plus a small,
-        // usually-once amount of command recording it was not practical to pull
-        // apart without splitting build() itself.
+        // build() triangulates, memcpys into the mapped host buffers, and (when
+        // texture_generation changed) records the decode dispatch, so this one
+        // scope covers all three.
         core::StageTimer stage_build("poly3d_build_and_memcpy");
         core::StageTimer stage_tilemap_upload("tilemap_upload_memcpy");
-        // Everything else that issues vkCmd* for this frame: the 3D pass's own
-        // draw calls, both tilemap draws, and the present blit. Named plainly as
-        // "command recording" because build()'s occasional dispatch aside, this
-        // is the whole of it.
+        // Everything else issuing vkCmd* this frame: 3D draws, both tilemap
+        // draws, the present blit.
         core::StageTimer stage_record("command_recording");
         core::StageTimer stage_submit("submit_and_present");
         core::StageTimer stage_software("software_renderer");
-        // The wait the emulation thread spends blocked on the GPU/present,
-        // inside begin_frame() (Vulkan fence+acquire, GL swap back-pressure). It
-        // was outside every stage before, which is why the idle stall was
-        // invisible in earlier profiles. design.md §1.
+        // Time blocked on the GPU/present inside begin_frame() (Vulkan
+        // fence+acquire, GL swap back-pressure) -- otherwise an invisible stall.
         core::StageTimer stage_present_wait("present_wait");
         // The three cores run_frame() interleaves, split out so a CPU-bound
-        // result can be told from one hot core. Filled inside run_frame() and
-        // read back here the way stage_geometry already is. design.md §1/§4.
+        // result can be told from one hot core.
         core::StageTimer stage_cpu_i960("cpu_i960");
         core::StageTimer stage_cpu_copro("cpu_copro");
         core::StageTimer stage_cpu_sound("cpu_sound");
@@ -1462,8 +1435,7 @@ int main(int argc, char** argv)
                 timer->reserve(expected);
             }
         }
-        // GPU stage samples, read back once per frame from the backend
-        // (design.md requirement 1.2). Indexed by render::GpuStage.
+        // GPU stage samples, read back once per frame. Indexed by render::GpuStage.
         std::array<std::vector<double>, static_cast<usize>(render::GpuStage::kCount)>
             gpu_stage_samples;
         bool gpu_timing_unavailable_warned = false;
@@ -1474,7 +1446,10 @@ int main(int argc, char** argv)
         bool audio_paused_state = false; ///< tracks effective pause to drive audio/pacer on change.
         bool fast_forward       = false;
         bool running            = true;
-        bool use_software_renderer = options.start_in_software_renderer;
+        bool screenshot_requested = false;  ///< Set by F12, serviced next frame.
+        // Fixed at launch by --graphics-backend software. There is no runtime
+        // switch: the two renderers are a launch-time choice.
+        const bool use_software_renderer = options.start_in_software_renderer;
         u64  last_title_ns      = SDL_GetTicksNS();
 
         // --duration's deadline, and the per-frame wall-clock cost recorded for
@@ -1497,10 +1472,9 @@ int main(int argc, char** argv)
         }
 
         // "sm2-emu — <game or 'no game'> [Vulkan|OpenGL|Software]", plus the
-        // rate and pause state once the loop is running. Shared by the
-        // initial title, the once-a-second refresh and the immediate
-        // refresh F2 does, so the three can never drift into different
-        // formats.
+        // rate and pause state once the loop is running. Shared by the initial
+        // title and the once-a-second refresh, so the two can never drift into
+        // different formats.
         const auto build_title = [&]() {
             std::string title = std::string("sm2-emu — ")
                               + (loaded.has_value() ? loaded->game.title : "no game")
@@ -1543,10 +1517,10 @@ int main(int argc, char** argv)
                         } else if (event.key.key == SDLK_F1 && !event.key.repeat) {
                             gui.toggle();
                         } else if (event.key.key == SDLK_F2 && !event.key.repeat) {
-                            use_software_renderer = !use_software_renderer;
-                            SM2_INFO("switched to the %s renderer",
-                                     use_software_renderer ? "software" : gpu_backend_name);
-                            window.set_title(build_title());
+                            options.config.fullscreen = !window.fullscreen();
+                            window.set_fullscreen(options.config.fullscreen);
+                        } else if (event.key.key == SDLK_F12 && !event.key.repeat) {
+                            screenshot_requested = true;
                         } else if (!gui.visible()) {
                             // Only process game keys when the overlay is hidden.
                             if (event.key.key == SDLK_P && !event.key.repeat) {
@@ -1833,7 +1807,7 @@ int main(int argc, char** argv)
                 options.run_frames != 0 && frames_presented + 1 >= options.run_frames;
             const bool numbered_series =
                 options.screenshot_interval != 0 || !options.screenshot_frames.empty();
-            const bool capture_this_frame =
+            const bool capture_diagnostic =
                 !options.screenshot.empty()
                 && (!options.screenshot_frames.empty()
                         ? options.screenshot_frames.count(frames_presented) != 0
@@ -1841,6 +1815,7 @@ int main(int argc, char** argv)
                               ? (frames_presented % options.screenshot_interval) == 0
                                     || last_frame
                               : last_frame || options.run_frames == 0);
+            const bool capture_this_frame = capture_diagnostic || screenshot_requested;
             if (capture_this_frame && !backend->request_capture()) {
                 SM2_ERROR("frame capture failed");
                 exit_code = 1;
@@ -1872,6 +1847,12 @@ int main(int argc, char** argv)
             // gui_active is unconditionally true; the return value stays a bool
             // for symmetry with draw_overlay()'s inactive path below.
             backend->begin_overlay_frame();
+            {
+                u32 fbw = 0;
+                u32 fbh = 0;
+                backend->overlay_framebuffer_size(&fbw, &fbh);
+                gui.set_framebuffer_size(fbw, fbh);
+            }
             gui.new_frame();
             const bool gui_active =
                 gui.draw(options.config, gpu_names, pacer.measured_hz(),
@@ -1900,11 +1881,26 @@ int main(int argc, char** argv)
             // complete once the submission is. Waiting for the device here stalls
             // the pipeline, which is acceptable in a diagnostic mode and is why
             // this is not the default path.
-            if (capture_this_frame && numbered_series) {
+            if (capture_diagnostic && numbered_series) {
                 backend->wait_idle();
                 if (!backend->save_capture(numbered_path(options.screenshot, frames_presented))) {
                     exit_code = 1;
                     break;
+                }
+            }
+
+            // F12: write a timestamped PNG into the screenshots directory.
+            if (screenshot_requested) {
+                screenshot_requested = false;
+                backend->wait_idle();
+                const std::string shot = screenshot_path(options.config.screenshot_dir,
+                                                          loaded.has_value()
+                                                              ? loaded->game.name
+                                                              : "sm2");
+                if (backend->save_capture(shot)) {
+                    SM2_INFO("screenshot written to %s", shot.c_str());
+                } else {
+                    SM2_WARN("could not write screenshot to %s", shot.c_str());
                 }
             }
 
@@ -1995,9 +1991,8 @@ int main(int argc, char** argv)
                      options.config.throttle ? "on" : "off");
 
             if (options.profile) {
-                // Named per design.md requirement 1.5: set, frame range, coin-at
-                // and NVRAM directory, so two reports that used different
-                // conditions cannot be mistaken for a comparable pair.
+                // Named with set, frame range, coin-at and NVRAM dir, so two
+                // reports run under different conditions cannot be confused.
                 std::printf("\n--- per-stage CPU (ms), %s, --duration %u, --coin-at %u, "
                             "--nvram %s ---\n",
                             loaded.has_value() ? loaded->game.name.c_str() : "no game",

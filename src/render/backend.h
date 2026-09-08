@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -15,14 +15,9 @@
 // The render backend seam: everything main.cpp needs from a GPU renderer,
 // stated in the hardware's own terms rather than any one graphics API's.
 //
-// Today there is exactly one implementation, render::vk::VulkanBackend, and
-// this interface exists so that main.cpp, osd::Window and osd::Gui name it
-// instead. The point is not flexibility for its own sake -- it is that phase 9
-// (a GLES 3.1 / GL 4.3 backend, per the phase 8 design doc) can be built
-// against this interface without touching the three files above a second
-// time, and that main.cpp's render-loop logic (the frame sequencing,
-// profiling scopes and capture bookkeeping) stops being Vulkan-specific by
-// construction rather than by discipline.
+// main.cpp, osd::Window and osd::Gui name this interface rather than a concrete
+// backend, so the Vulkan and OpenGL/GLES backends are interchangeable and the
+// render loop is not Vulkan-specific by construction.
 #pragma once
 
 #include "core/types.h"
@@ -45,18 +40,13 @@ class Gui;
 
 namespace sm2::render {
 
-/// What a backend can be asked to do, queried rather than assumed.
-///
-/// Exists so an optimisation added later (per phase 8 design.md §4) can ask
-/// "does this backend support X" instead of every call site needing its own
-/// `#ifdef`-shaped knowledge of which backend it is talking to. Today there is
-/// one backend and every flag is true for it; the fields exist for the
-/// backend that does not have them all.
+/// What a backend can be asked to do, queried rather than assumed, so a call
+/// site asks "does this backend support X" instead of knowing which backend it
+/// is.
 struct Capabilities {
-    /// Compute shaders and storage buffers, which the GPU tilemap pass (phase
-    /// 8 task 4) requires. True on Vulkan 1.3; would be false on a GLES 3.0 /
-    /// GL 3.3 floor, which is exactly why `TilemapPass::upload()`'s CPU path
-    /// still exists as a fallback rather than having been deleted.
+    /// Compute shaders and storage buffers, which the GPU tilemap pass
+    /// requires. True on Vulkan 1.3, false on a GLES 3.0 / GL 3.3 floor -- which
+    /// is why TilemapPass's CPU path still exists as a fallback.
     bool compute_shaders = true;
 
     /// Whether the device reports GPU timestamps at all -- see
@@ -67,10 +57,9 @@ struct Capabilities {
 
 /// A native RGBA8 pixel format identifier, backend-neutral.
 ///
-/// Exists only because `render::vk::kNativeColourFormat` is a `VkFormat`, and
-/// nothing outside `render/vk/` should need to know that. Every backend today
-/// (and every one phase 9 is likely to add) stores the native frame as
-/// packed RGBA8, so this is deliberately not a general pixel-format enum.
+/// Exists only because `render::vk::kNativeColourFormat` is a `VkFormat` and
+/// nothing outside `render/vk/` should know that. Every backend stores the
+/// native frame as packed RGBA8, so this is not a general pixel-format enum.
 enum class NativeFormat : u32 {
     Rgba8Unorm = 0,
 };
@@ -131,7 +120,7 @@ constexpr u32 kMaxRenderScale = 4;
 constexpr float kDisplayAspect = 4.0F / 3.0F;
 
 // ---------------------------------------------------------------------------
-// GPU stage timing (phase 8 benchmark, design.md requirement 1.2)
+// GPU stage timing
 // ---------------------------------------------------------------------------
 //
 // Declared here, not in render/vk/vk_common.h, because neither type below
@@ -140,13 +129,9 @@ constexpr float kDisplayAspect = 4.0F / 3.0F;
 // instead of the reverse, so this header can be included without pulling in
 // <vulkan/vulkan.h>.
 
-/// The GPU-side stages the phase 8 benchmark reports. The first four are in
-/// the order the design doc names them: the texture decode dispatch, the 3D
-/// pass, the tilemap/3D composite and the present blit. TilemapCompose is the
-/// task 4 addition -- the compute dispatch that produces the below/above
-/// tilemap surfaces themselves, which chronologically runs before all four of
-/// the others but is appended here rather than inserted, so the existing
-/// indices keep their meaning.
+/// The GPU-side stages the profiler reports: texture decode dispatch, 3D pass,
+/// tilemap/3D composite, present blit. TilemapCompose runs before the other
+/// four but is appended so the existing indices keep their meaning.
 enum class GpuStage : u32 {
     TextureDecode  = 0,
     Poly3D         = 1,
@@ -247,7 +232,7 @@ public:
 
     [[nodiscard]] virtual bool begin_frame() = 0;
 
-    /// GPU tilemap composite (phase 8 task 4): dispatches the compute shader
+    /// GPU tilemap composite: dispatches the compute shader
     /// against tile RAM, character RAM and the pen table if their generation
     /// counters changed.
     virtual void compute_tilemap(const hw::Model2MachineBase& machine,
@@ -315,7 +300,7 @@ public:
     /// to, and before save_capture() can trust a capture is complete.
     virtual void wait_idle() = 0;
 
-    // -- GPU stage timing (phase 8 benchmark) --------------------------------
+    // -- GPU stage timing ----------------------------------------------------
 
     [[nodiscard]] virtual bool          supports_gpu_timing() const = 0;
     [[nodiscard]] virtual GpuStageTimes read_stage_times()          = 0;
@@ -332,6 +317,11 @@ public:
     [[nodiscard]] virtual u32          native_width() const  = 0;
     [[nodiscard]] virtual u32          native_height() const = 0;
     [[nodiscard]] virtual NativeFormat native_format() const = 0;
+
+    /// Pixel extent of the image the overlay is drawn into (swapchain / default
+    /// framebuffer). The GUI scales ImGui to this so the overlay fills the
+    /// presented image where SDL under-reports the surface size (Wayland).
+    virtual void overlay_framebuffer_size(u32* width, u32* height) const = 0;
 };
 
 /// Names of every device a backend could be asked to prefer via
@@ -341,14 +331,9 @@ public:
 [[nodiscard]] std::vector<std::string> enumerate_render_devices();
 
 /// Construct the Vulkan backend, uninitialised (call init() before use).
-///
-/// The only factory in phase 8, matching hw::create_machine()'s shape: a
-/// caller (main.cpp) names this function and Backend, never
-/// render::vk::VulkanBackend itself.
+/// The caller (main.cpp) names this and Backend, never VulkanBackend itself.
 [[nodiscard]] std::unique_ptr<Backend> create_vulkan_backend();
 
-/// Construct the OpenGL 4.3 core desktop backend, uninitialised.
-///
 /// Construct the OpenGL backend, uninitialised. Whether this creates a
 /// desktop GL 4.3 core or a GLES 3.1 context depends on which CMake option
 /// was active at build time (SM2_BUILD_OPENGL_DESKTOP vs SM2_BUILD_OPENGL_ES;

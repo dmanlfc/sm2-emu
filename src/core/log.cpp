@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -89,8 +89,8 @@ void close_log_file()
 
 void write(Level level, const char* fmt, ...)
 {
-    // Format once into a stack buffer, then fan out. Truncation is preferable
-    // to allocating on a path that may be called from a memory handler.
+    // Stack buffer, not an allocation: this path may run from a memory handler,
+    // so truncation is preferable to allocating.
     char    buffer[2048];
     va_list args;
     va_start(args, fmt);

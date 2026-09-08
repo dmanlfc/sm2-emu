@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdio>
+#include <filesystem>
 
 namespace sm2::osd {
 
@@ -112,19 +113,32 @@ void Gui::new_frame()
 {
     if (!m_initialised) return;
     ImGui_ImplSDL3_NewFrame();
+    // DisplaySize stays the SDL logical size (mouse arrives in that space, so
+    // layout must too); correct DisplayFramebufferScale to the backend's real
+    // pixel extent instead. imgui_impl_vulkan renders at DisplaySize*scale, so
+    // this fills the presented image even where SDL under-reports the surface
+    // pixel size on Wayland.
+    if (m_framebuffer_width != 0 && m_framebuffer_height != 0) {
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.DisplaySize.x > 0.0f && io.DisplaySize.y > 0.0f) {
+            io.DisplayFramebufferScale =
+                ImVec2(static_cast<float>(m_framebuffer_width) / io.DisplaySize.x,
+                       static_cast<float>(m_framebuffer_height) / io.DisplaySize.y);
+        }
+    }
     ImGui::NewFrame();
 }
 
 void Gui::apply_scale()
 {
-    // Scale the whole overlay automatically with the render window. io.DisplaySize
-    // is what ImGui actually draws into and the SDL3 backend tracks it every frame,
-    // so it follows a resize or fullscreen switch even where SDL hides the pixel
-    // size (Wayland). The scale is the window height against the base 768, clamped
-    // so a small window keeps the base size and a huge one does not run away.
-    const ImGuiIO& io    = ImGui::GetIO();
-    float          scale = io.DisplaySize.y > 0.0f ? io.DisplaySize.y / 768.0f : 1.0f;
-    scale                = std::clamp(scale, 1.0f, 4.0f);
+    // Scale content with the window. Measured against the base 992x768 on both
+    // axes with the smaller ratio winning, so a wide-but-short window does not
+    // get oversized text; clamped so it stays legible small and sane huge.
+    const ImGuiIO& io = ImGui::GetIO();
+    const float    sx = io.DisplaySize.x > 0.0f ? io.DisplaySize.x / 992.0f : 1.0f;
+    const float    sy = io.DisplaySize.y > 0.0f ? io.DisplaySize.y / 768.0f : 1.0f;
+    float          scale = std::min(sx, sy);
+    scale                = std::clamp(scale, 0.5f, 4.0f);
 
     // Widget metrics are rescaled from a one-time base-style snapshot
     // (ScaleAllSizes is cumulative), and FontScaleMain drives ImGui 1.92's
@@ -243,16 +257,24 @@ void Gui::draw_menu_bar(Config& config)
 void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_names,
                         Input* input)
 {
-    // Size the window as a fraction of the render window and centre it, tracked
-    // every frame so it always mirrors the window (a little smaller) through any
-    // resize or fullscreen switch. No manual sizing: the layout is automatic.
-    const ImVec2 display = ImGui::GetIO().DisplaySize;
-    const ImVec2 win_size(display.x * 0.60f, display.y * 0.72f);
-    ImGui::SetNextWindowPos(ImVec2(display.x * 0.5f, display.y * 0.5f), ImGuiCond_Always,
-                            ImVec2(0.5f, 0.5f));
+    // 88% of the window, centred, re-applied every frame so it tracks a resize.
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    const ImVec2         area     = viewport->Size;
+    const ImVec2         win_size(area.x * 0.88f, area.y * 0.88f);
+    ImGui::SetNextWindowPos(
+        ImVec2(viewport->Pos.x + area.x * 0.5f, viewport->Pos.y + area.y * 0.5f),
+        ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(win_size, ImGuiCond_Always);
 
-    if (!ImGui::Begin("Settings", &m_visible)) {
+    const ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
+                                 | ImGuiWindowFlags_NoCollapse
+                                 | ImGuiWindowFlags_NoSavedSettings;
+    // Zero WindowMinSize so apply_scale()'s scaled minimum cannot override the
+    // explicit size above.
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0.0f, 0.0f));
+    const bool open = ImGui::Begin("Settings", &m_visible, flags);
+    ImGui::PopStyleVar();
+    if (!open) {
         ImGui::End();
         return;
     }
@@ -271,13 +293,11 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::Checkbox("Fullscreen", &config.fullscreen);
             ImGui::Checkbox("FPS counter", &config.show_fps);
 
-            // GPU selection.
             if (!gpu_names.empty()) {
                 ImGui::Separator();
                 ImGui::Text("GPU");
 
-                // Find current selection.
-                int current = 0;
+                int current = 0;  // 0 is "Auto"
                 for (int i = 0; i < static_cast<int>(gpu_names.size()); ++i) {
                     if (gpu_names[i] == config.gpu) {
                         current = i + 1;  // 0 is "Auto"
@@ -285,7 +305,6 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     }
                 }
 
-                // Build combo items.
                 if (ImGui::BeginCombo("##gpu", current == 0 ? "Auto (best)" : gpu_names[current - 1].c_str())) {
                     if (ImGui::Selectable("Auto (best)", current == 0)) {
                         config.gpu.clear();
@@ -336,7 +355,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     ImGui::SetTooltip(
                         "Internal 3D rendering resolution. Higher is crisper 3D\n"
                         "(2D/HUD stays sharp). GPU backends only; the software\n"
-                        "renderer stays native. Applies on the next launch — save\n"
+                        "renderer stays native. Applies on the next launch - save\n"
                         "settings and relaunch.");
                 }
             }
@@ -346,32 +365,49 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
 
         // -- Paths tab -----------------------------------------------------
         if (ImGui::BeginTabItem("Paths")) {
-            ImGui::Text("NVRAM directory");
-            char nvram_buf[256];
-            std::snprintf(nvram_buf, sizeof(nvram_buf), "%s", config.nvram_dir.c_str());
-            if (ImGui::InputText("##nvram", nvram_buf, sizeof(nvram_buf))) {
-                config.nvram_dir = nvram_buf;
-            }
-            ImGui::SameLine();
-            ImGui::TextDisabled("(?)");
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Where EEPROM and battery-backed RAM are stored.\n"
-                                  "Relative to the working directory.");
+            const auto dir_field = [](const char* label, const char* id,
+                                      std::string& value, const char* help) {
+                ImGui::Text("%s", label);
+                char buf[512];
+                std::snprintf(buf, sizeof(buf), "%s", value.c_str());
+                if (ImGui::InputText(id, buf, sizeof(buf))) {
+                    value = buf;
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", help);
+                }
+            };
+
+            // Read-only: the ini's own location is set by --config, not stored
+            // inside it.
+            {
+                const std::string ini_path =
+                    m_config_path.empty() ? default_config_path() : m_config_path;
+                const std::string dir =
+                    std::filesystem::path(ini_path).parent_path().string();
+                ImGui::Text("Config directory");
+                ImGui::TextDisabled("%s", dir.empty() ? "." : dir.c_str());
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Where sm2-emu.ini is read from and saved to.\n"
+                                      "Set with --config <dir>; cannot be changed here.");
+                }
+                ImGui::Spacing();
             }
 
+            dir_field("ROM directory", "##romdir", config.rom_dir,
+                      "Where the ROM archives live. A game launched by name is\n"
+                      "loaded from here as <name>.zip or <name>.7z.");
             ImGui::Spacing();
-            ImGui::Text("ROM database");
-            char xml_buf[256];
-            std::snprintf(xml_buf, sizeof(xml_buf), "%s", config.games_xml.c_str());
-            if (ImGui::InputText("##gamesxml", xml_buf, sizeof(xml_buf))) {
-                config.games_xml = xml_buf;
-            }
-            ImGui::SameLine();
-            ImGui::TextDisabled("(?)");
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Path to games.xml. Leave empty to search\n"
-                                  "beside the executable and in the system data directory.");
-            }
+            dir_field("Saves directory", "##saves", config.nvram_dir,
+                      "Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+                      "(.eeprom) images -- high scores and operator settings.");
+            ImGui::Spacing();
+            dir_field("Screenshots directory", "##shots", config.screenshot_dir,
+                      "Where F12 screenshots are written.");
 
             ImGui::EndTabItem();
         }
@@ -393,15 +429,28 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
         bool on_about_tab = false;
         if (ImGui::BeginTabItem("About")) {
             on_about_tab = true;
-            ImGui::Text("sm2-emu — A Sega Model 2 arcade emulator");
+            ImGui::Text("sm2-emu - A Sega Model 2 arcade emulator");
             ImGui::Spacing();
             ImGui::Text("Copyright (c) 2025+ Daniel Martin (dmanlfc)");
             ImGui::Text("BSD 3-Clause licence. See LICENSE.");
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            ImGui::Text("Emulation derived from the MAME project.");
-            ImGui::Text("See NOTICE for per-component attribution.");
+            ImGui::Text("sm2-emu stands on open source shared with the community.");
+            ImGui::Text("With thanks to the projects whose code makes it possible:");
+            ImGui::Spacing();
+            ImGui::BulletText("The MAME project - Sega Model 2 emulation guidance");
+            ImGui::BulletText("Musashi - Motorola 68000 CPU core (Karl Stenerud)");
+            ImGui::BulletText("ymfm - Yamaha FM sound cores (Aaron Giles)");
+            ImGui::BulletText("SDL - windowing, input and audio");
+            ImGui::BulletText("Dear ImGui - this user interface (Omar Cornut)");
+            ImGui::BulletText("pugixml - games.xml parsing");
+            ImGui::BulletText("miniz - ZIP archive decompression");
+            ImGui::BulletText("LZMA SDK - 7-Zip archive decompression (Igor Pavlov)");
+            ImGui::BulletText("VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)");
+            ImGui::BulletText("shaderc / glslang - shader compilation");
+            ImGui::Spacing();
+            ImGui::Text("See NOTICE for full per-component attribution.");
             ImGui::EndTabItem();
         }
 

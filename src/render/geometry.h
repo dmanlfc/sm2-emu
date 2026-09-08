@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -17,12 +17,8 @@
 // presentation math (the 4:3 letterbox) that has nothing to do with any
 // graphics API either.
 //
-// This is what phase 8's design.md originally proposed moving out of
-// render/vk/Poly3DPass and PresentPass, so a second backend would not need to
-// reimplement the triangulation and texture-header unpacking by hand. That
-// move did not happen during phase 8; this file is where it happens instead,
-// so both the Vulkan backend and the OpenGL/OpenGL ES backends this file's own
-// phase adds call one copy of this logic rather than two.
+// Lives here rather than in render/vk/ so the Vulkan and OpenGL/GLES backends
+// share one copy of the triangulation and texture-header unpacking.
 #pragma once
 
 #include "core/types.h"

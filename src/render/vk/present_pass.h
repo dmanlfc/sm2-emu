@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -85,6 +85,13 @@ public:
 
     static constexpr VkExtent2D native_extent() { return VkExtent2D{kWidth, kHeight}; }
     static constexpr VkFormat   native_format() { return kNativeColourFormat; }
+
+    /// Full size of the composite image, N*native -- what a screenshot reads so
+    /// it captures the whole render-scaled frame rather than the native corner.
+    [[nodiscard]] VkExtent2D composite_extent() const
+    {
+        return VkExtent2D{width(), height()};
+    }
 
     /// Scale the finished native frame onto the swapchain.
     ///

@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -16,8 +16,9 @@
 
 #include "core/log.h"
 #include "render/gl/gl_common.h"
+#include "render/image_write.h"
 
-#include <cstdio>
+#include <vector>
 
 namespace sm2::render::gl {
 
@@ -46,33 +47,25 @@ bool FrameCapture::save(const std::string& path) const
         return false;
     }
 
-    std::FILE* handle = std::fopen(path.c_str(), "wb");
-    if (handle == nullptr) {
-        SM2_ERROR("frame capture: could not write '%s'", path.c_str());
-        return false;
-    }
-    std::fprintf(handle, "P6\n%u %u\n255\n", m_width, m_height);
-
     // No row flip here: fullscreen_quad.vert's SM2_TARGET_GL clip-Y flip makes
     // the FBO's row 0 the top of the image, matching render::vk::FrameCapture.
-    std::vector<u8> row(static_cast<usize>(m_width) * 3);
-    bool ok = true;
-    for (u32 y = 0; y < m_height && ok; ++y) {
+    std::vector<u8> rgb(static_cast<usize>(m_width) * m_height * 3);
+    for (u32 y = 0; y < m_height; ++y) {
         const u8* line = m_pixels.data() + static_cast<usize>(y) * m_width * 4;
+        u8*       out  = rgb.data() + static_cast<usize>(y) * m_width * 3;
         for (u32 x = 0; x < m_width; ++x) {
             const u8* pixel = line + static_cast<usize>(x) * 4;
-            row[static_cast<usize>(x) * 3 + 0] = pixel[0];
-            row[static_cast<usize>(x) * 3 + 1] = pixel[1];
-            row[static_cast<usize>(x) * 3 + 2] = pixel[2];
+            out[static_cast<usize>(x) * 3 + 0] = pixel[0];
+            out[static_cast<usize>(x) * 3 + 1] = pixel[1];
+            out[static_cast<usize>(x) * 3 + 2] = pixel[2];
         }
-        ok = std::fwrite(row.data(), 1, row.size(), handle) == row.size();
     }
-    std::fclose(handle);
 
-    if (ok) {
-        SM2_INFO("captured %ux%u frame to %s", m_width, m_height, path.c_str());
+    if (!write_png_rgb(path, m_width, m_height, rgb.data())) {
+        return false;
     }
-    return ok;
+    SM2_INFO("captured %ux%u frame to %s", m_width, m_height, path.c_str());
+    return true;
 }
 
 }  // namespace sm2::render::gl

@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -41,12 +41,9 @@ enum class Board {
 
 [[nodiscard]] const char* board_name(Board board);
 
-/// True for board variants sm2-emu can currently construct a working machine
-/// for. Both `RomLoader::load` (which decides whether a game's archive may
-/// even be assembled) and `hw::create_machine` (which decides whether a
-/// machine can be built for it) consult this single function, so the two can
-/// never drift out of sync as later waves add board support -- there is
-/// exactly one place that knows "which boards are implemented".
+/// True for board variants that can construct a working machine. Both
+/// `RomLoader::load` and `hw::create_machine` consult this one function so the
+/// two cannot drift as board support is added.
 [[nodiscard]] bool board_implemented(Board board);
 
 /// Logical input groups a game uses, so the input layer can bind only what is

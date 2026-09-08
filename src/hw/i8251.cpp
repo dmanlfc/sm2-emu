@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -147,14 +147,11 @@ void I8251::write(u32 reg, u8 value)
         m_tx_holding_empty = false;
         m_tx_shift_empty   = false;
 
-        // If the shift register was idle, immediately move this byte there —
-        // the holding register is free again.
         if (m_tx_remaining == 0) {
             m_tx_shift_data    = value;
             m_tx_remaining     = m_byte_cycles;
-            m_tx_holding_empty = true;  // Holding register is free for next byte
+            m_tx_holding_empty = true;
         } else {
-            // Shift register busy — park byte in holding register
             m_tx_data = value;
         }
         update_ready();
@@ -207,12 +204,11 @@ void I8251::run(u32 host_cycles)
         m_tx_handler(m_tx_shift_data);
     }
 
-    // If the holding register has another byte waiting (was written while the
-    // shift register was busy), move it to the shift register now.
+    // A byte parked in the holding register moves to the shift register now.
     if (!m_tx_holding_empty) {
         m_tx_shift_data    = m_tx_data;
         m_tx_remaining     = m_byte_cycles;
-        m_tx_holding_empty = true;  // Holding register is now free
+        m_tx_holding_empty = true;
     } else {
         m_tx_shift_empty = true;
     }

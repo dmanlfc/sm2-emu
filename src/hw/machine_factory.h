@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -26,9 +26,7 @@ namespace sm2::hw {
 ///
 /// Dispatches on `game.board` with an exhaustive switch over every rom::Board
 /// value: a missing case is a compile error (no `default:` label, so
-/// -Wswitch fires) rather than a silently-empty machine at runtime. This is
-/// what satisfies "Property 5: Machine dispatch is exhaustive and
-/// side-effect-free on rejection" in the model2-fleet-compatibility design.
+/// -Wswitch fires) rather than a silently-empty machine at runtime.
 ///
 /// All four boards are implemented: Model2A constructs hw::Model2, Model2B
 /// hw::Model2B, Model2C hw::Model2C and Model2 hw::Model2Original. Each case

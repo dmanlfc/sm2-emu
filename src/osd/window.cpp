@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -38,7 +38,10 @@ bool Window::create(const WindowConfig& config)
     m_owns_sdl     = true;
     m_graphics_api = config.graphics_api;
 
-    SDL_WindowFlags flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    // No SDL_WINDOW_HIGH_PIXEL_DENSITY: on fractional-scale Wayland it makes SDL
+    // report a size that does not match the true surface. The game is
+    // letterbox-scaled to the window regardless, so it buys nothing here.
+    SDL_WindowFlags flags = 0;
 
     if (m_graphics_api == GraphicsApi::Vulkan) {
         // Loading the Vulkan library up front means a missing or broken loader

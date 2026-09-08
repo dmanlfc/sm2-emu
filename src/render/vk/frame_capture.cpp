@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -15,11 +15,11 @@
 #include "render/vk/frame_capture.h"
 
 #include "core/log.h"
+#include "render/image_write.h"
 #include "render/vk/context.h"
 
 #include <vk_mem_alloc.h>
 
-#include <cstdio>
 #include <vector>
 
 namespace sm2::render::vk {
@@ -180,35 +180,27 @@ bool FrameCapture::save(const std::string& path) const
         return false;
     }
 
-    std::FILE* handle = std::fopen(path.c_str(), "wb");
-    if (handle == nullptr) {
-        SM2_ERROR("frame capture: could not write '%s'", path.c_str());
-        return false;
-    }
-    std::fprintf(handle, "P6\n%u %u\n255\n", m_extent.width, m_extent.height);
+    const bool      swap   = is_bgr(m_format);
+    const auto*     source = static_cast<const u8*>(m_mapped);
+    std::vector<u8> rgb(static_cast<usize>(m_extent.width) * m_extent.height * 3);
 
-    const bool     swap   = is_bgr(m_format);
-    const auto*    source = static_cast<const u8*>(m_mapped);
-    std::vector<u8> row(static_cast<usize>(m_extent.width) * 3);
-
-    bool ok = true;
-    for (u32 y = 0; y < m_extent.height && ok; ++y) {
+    for (u32 y = 0; y < m_extent.height; ++y) {
         const u8* line = source + static_cast<usize>(y) * m_extent.width * 4;
+        u8*       out  = rgb.data() + static_cast<usize>(y) * m_extent.width * 3;
         for (u32 x = 0; x < m_extent.width; ++x) {
             const u8* pixel = line + static_cast<usize>(x) * 4;
-            row[static_cast<usize>(x) * 3 + 0] = swap ? pixel[2] : pixel[0];
-            row[static_cast<usize>(x) * 3 + 1] = pixel[1];
-            row[static_cast<usize>(x) * 3 + 2] = swap ? pixel[0] : pixel[2];
+            out[static_cast<usize>(x) * 3 + 0] = swap ? pixel[2] : pixel[0];
+            out[static_cast<usize>(x) * 3 + 1] = pixel[1];
+            out[static_cast<usize>(x) * 3 + 2] = swap ? pixel[0] : pixel[2];
         }
-        ok = std::fwrite(row.data(), 1, row.size(), handle) == row.size();
     }
-    std::fclose(handle);
 
-    if (ok) {
-        SM2_INFO("captured %ux%u frame to %s", m_extent.width, m_extent.height,
-                 path.c_str());
+    if (!write_png_rgb(path, m_extent.width, m_extent.height, rgb.data())) {
+        return false;
     }
-    return ok;
+    SM2_INFO("captured %ux%u frame to %s", m_extent.width, m_extent.height,
+             path.c_str());
+    return true;
 }
 
 }  // namespace sm2::render::vk

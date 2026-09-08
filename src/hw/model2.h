@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -44,11 +44,6 @@ namespace sm2::hw {
 /// Owns the memory map, the interrupt latch, the four count-down timers and the
 /// I/O devices, and acts as the i960's bus. The address decode follows MAME's
 /// model2a_crx_mem region for region so the two can be compared directly.
-///
-/// Not yet present: the geometry coprocessor and its FIFOs (phase 3), the
-/// tilemap chip's rendering (phase 2) and the sound board (phase 5). Their
-/// address ranges exist and behave as memory or as inert registers, which is
-/// enough for the program to boot.
 ///
 /// This is the Model 2A implementation of hw::Model2MachineBase (see
 /// hw/model2_machine_base.h for the board-agnostic interface and why the CPU
@@ -195,7 +190,7 @@ public:
 
     void log_unmapped_summary() const override;
 
-    // -- views for the renderer, used from phase 2 onwards ------------------
+    // -- views for the renderer --------------------------------------------
 
     [[nodiscard]] std::span<const u8>  tile_ram() const override { return m_tile_ram; }
     [[nodiscard]] std::span<const u8>  char_ram() const override { return m_char_ram; }
@@ -382,8 +377,7 @@ private:
     M2Comm          m_comm;
 
     /// The sound board: its own 68000, RAM and ROM, on its own clock. Stepped
-    /// from run_frame. The only link to the CPU board is a serial one, which is
-    /// not wired up yet, so for now it runs its program and nobody listens.
+    /// from run_frame; the CPU board reaches it through the serial link below.
     Model2Sound     m_sound;
 
     /// The uPD71051 that carries sound commands to the sound board. Its clock is

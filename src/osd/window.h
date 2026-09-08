@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -27,10 +27,9 @@ namespace sm2::osd {
 inline constexpr u32 kModel2Width  = 496;
 inline constexpr u32 kModel2Height = 384;
 
-/// Which graphics API the window is being created for, so create() knows
-/// which SDL window flag and loader-library call it needs. Not a handle to
-/// anything -- see the class comment below for why this is a plain selector
-/// rather than a step towards naming a graphics-API type here.
+/// Which graphics API the window is being created for, so create() knows which
+/// SDL window flag and loader-library call it needs. A plain selector, not a
+/// handle to anything.
 enum class GraphicsApi {
     Vulkan,
     OpenGl,
@@ -45,19 +44,14 @@ struct WindowConfig {
     GraphicsApi graphics_api = GraphicsApi::Vulkan;
 };
 
-/// SDL3 window. Owns no Vulkan (or other graphics API) handle itself --
-/// surface/context creation belongs to whichever render::Backend is active
-/// (see render/backend.h), which is the only thing that knows when it is
-/// safe to recreate a swapchain or GL context.
+/// SDL3 window. Owns no graphics-API handle itself: surface/context creation
+/// belongs to whichever render::Backend is active, which is the only thing that
+/// knows when it is safe to recreate a swapchain or GL context.
 ///
-/// Backend-neutral in the sense that matters: create()/destroy() branch once
-/// each on WindowConfig::graphics_api to pick the right SDL window flag
-/// (SDL_WINDOW_VULKAN vs SDL_WINDOW_OPENGL) and the matching loader-library
-/// call (SDL_Vulkan_Load/UnloadLibrary vs SDL_GL_Load/UnloadLibrary), the
-/// same one-branch-at-the-one-call-site shape Supermodel's own
-/// CreateVideoScreen uses for the equivalent decision. GraphicsApi is a
-/// two-value enum, not a graphics-API handle, so this stays a selector this
-/// class reads, not a type it exposes anything through.
+/// create()/destroy() branch once each on WindowConfig::graphics_api to pick the
+/// SDL window flag (SDL_WINDOW_VULKAN vs SDL_WINDOW_OPENGL) and matching loader
+/// call. Follows the one-branch-at-one-call-site shape of Supermodel's
+/// CreateVideoScreen.
 class Window {
 public:
     Window() = default;

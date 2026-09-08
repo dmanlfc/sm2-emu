@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -83,13 +83,11 @@ public:
     /// context, so they cannot rely on the context's own shutdown wait.
     void wait_idle();
 
-    // -- GPU stage timing (phase 8 benchmark) -------------------------------
+    // -- GPU stage timing ---------------------------------------------------
 
     /// Whether this device can report GPU timestamps at all. False makes
-    /// write_timestamp() and stage_times() both no-ops rather than crash, so a
-    /// benchmark run says "not supported" instead of reporting zeros as if they
-    /// were measured -- see design.md requirement 1 and the BRIEF's warning
-    /// against exactly that failure mode.
+    /// write_timestamp() and stage_times() both no-ops, so a benchmark run says
+    /// "not supported" rather than reporting zeros as if they were measured.
     [[nodiscard]] bool supports_gpu_timing() const { return m_timestamp_period > 0.0F; }
 
     /// Record a timestamp for `stage`'s start or end into the current frame's

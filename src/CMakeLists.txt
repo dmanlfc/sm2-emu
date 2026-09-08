@@ -4,7 +4,7 @@
 #  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 # |____/|_|  |_||_____|      |_____|_|  |_|\___/
 #
-# sm2-emu — A Sega Model 2 arcade emulator.
+# A Sega Model 2 arcade emulator.
 # Copyright (c) 2025+ Daniel Martin (dmanlfc)
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -33,6 +33,7 @@ target_link_libraries(sm2_core PRIVATE sm2_warnings)
 
 add_library(sm2_render STATIC
     render/geometry.cpp
+    render/image_write.cpp
 )
 target_link_libraries(sm2_render
     PUBLIC
@@ -40,6 +41,7 @@ target_link_libraries(sm2_render
     PRIVATE
         sm2_warnings
         sm2_hw
+        sm2_miniz
 )
 
 # ---------------------------------------------------------------------------

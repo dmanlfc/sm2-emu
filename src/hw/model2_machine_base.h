@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -184,18 +184,16 @@ public:
     /// This frame's screen-space polygons, in drawing order.
     [[nodiscard]] virtual const RenderList& render_list() const = 0;
 
-    /// Wall-clock time the geometry engine took producing render_list(), for the
-    /// phase 8 benchmark's per-stage CPU report. See Geometrizer's own
-    /// documentation of this figure for why it is measured separately from the
-    /// main CPU's instruction time.
+    /// Wall-clock time the geometry engine took producing render_list(),
+    /// measured separately from the main CPU's instruction time (see Geometrizer).
     [[nodiscard]] virtual u64 geometry_stage_nanoseconds() const = 0;
 
     // -- per-core timing, for --profile --------------------------------------
     //
     // run_frame() interleaves the i960, coprocessor and sound board, so main.cpp
     // sees one call and cannot time them apart. Each board accumulates its own
-    // wall-clock nanoseconds below, gated on profiling being armed because these
-    // sites run thousands of times a frame. Design.md §1/§4.
+    // nanoseconds below, gated on profiling being armed (these run thousands of
+    // times a frame).
 
     /// Arm or disarm the per-core accumulators. main.cpp turns it on under
     /// --profile only.

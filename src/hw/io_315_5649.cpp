@@ -32,7 +32,6 @@ u8 Io315_5649::read(u32 offset)
         case 0x05:
         case 0x06:
             if (bit(m_port_config, offset) != 0) {
-                // Configured as an input.
                 const InputHandler& handler = m_input[offset];
                 data = handler ? handler() : 0xff;
             } else {

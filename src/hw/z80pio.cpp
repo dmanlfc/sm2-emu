@@ -12,8 +12,8 @@ void Z80Pio::reset()
 {
     for (u32 index = 0; index < kPorts; ++index) {
         Port& port = m_port[index];
-        // Keep the wiring; clear the programmed state. MAME's device_reset leaves
-        // both ports in input mode with the interrupt enable clear.
+        // MAME's device_reset leaves both ports in input mode with the interrupt
+        // enable clear; the wiring callbacks survive.
         port.mode   = kModeInput;
         port.input  = 0;
         port.output = 0;

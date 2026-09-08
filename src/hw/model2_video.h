@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -90,11 +90,8 @@ public:
     /// is drawn.
     [[nodiscard]] u32 background() const { return m_pens.empty() ? 0xff000000u : m_pens[0]; }
 
-    /// Wall-clock time the last compose() call took, in nanoseconds. For the
-    /// phase 8 benchmark's per-stage CPU report (design.md requirement 1): this
-    /// is the "tilemap composition" stage, which the design's suspicion table
-    /// names as the largest CPU-to-GPU upload candidate but which was never
-    /// actually measured before that suspicion was written down.
+    /// Wall-clock time the last compose() call took, in nanoseconds -- the
+    /// "tilemap composition" profiler stage.
     [[nodiscard]] u64 last_compose_nanoseconds() const { return m_last_compose_ns; }
 
     /// The converted palette, for diagnostics and for the 3D pass later.

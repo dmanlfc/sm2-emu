@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -21,14 +21,9 @@
 #include <string>
 #include <vector>
 
-// Per-stage CPU timing for the phase 8 benchmark (design.md, requirement 1).
-//
-// Deliberately not a general-purpose profiling library: it exists to answer one
-// question, "which stage does a frame's CPU time go to", over a fixed set of
-// named stages, and to report p50/p95/p99 rather than a running mean. There is
-// no sampling or instrumentation framework here on purpose -- std::chrono around
-// a call site is the whole mechanism, because that is all a handful of named
-// stages, measured for a few thousand frames, need.
+// Per-stage CPU timing: which stage a frame's CPU time goes to, over a fixed
+// set of named stages, reporting p50/p95/p99. Not a general profiling library --
+// std::chrono around a call site is the whole mechanism.
 
 namespace sm2::core {
 
@@ -37,14 +32,9 @@ class StageTimer {
 public:
     explicit StageTimer(std::string name) : m_name(std::move(name)) {}
 
-    /// RAII scope: construct at the top of the stage, let it go out of scope at
-    /// the bottom. Matches how the call sites already read (a block per stage),
-    /// rather than a begin()/end() pair that can be mismatched.
-    ///
-    /// Default-constructible and movable, deliberately, so a call site can build
-    /// one conditionally (see maybe_scope() below) and still hold it by value
-    /// rather than needing std::optional, which would require Scope to be
-    /// movable anyway once returned from a factory function.
+    /// RAII scope over a stage. Default-constructible and movable so a call site
+    /// can build one conditionally (see maybe_scope()) and hold it by value
+    /// rather than needing std::optional.
     class Scope {
     public:
         Scope() = default;
@@ -75,10 +65,8 @@ public:
 
     [[nodiscard]] Scope scope() { return Scope(*this); }
 
-    /// Record an already-measured duration directly, for a figure computed
-    /// elsewhere (a GPU timestamp delta, or a hardware stage's own
-    /// last_run_nanoseconds()-style accessor) rather than timed around a call
-    /// made here.
+    /// Record an already-measured duration directly (e.g. a GPU timestamp delta)
+    /// rather than timing around a call made here.
     void record_ms(double milliseconds) { m_samples_ms.push_back(milliseconds); }
 
     [[nodiscard]] const std::string& name() const { return m_name; }

@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -529,9 +529,8 @@ bool Context::select_physical_device(const ContextConfig& config)
     // just VkPhysicalDeviceLimits::timestampPeriod > 0: the period can be
     // nonzero while the specific queue family reports zero valid bits, meaning
     // that family cannot report timestamps even though some other queue on the
-    // device could. The design doc's benchmark deliberately checks this rather
-    // than assuming support -- a device that cannot time itself must say so, not
-    // report zeros that look measured.
+    // device could. A device that cannot time itself must say so, not report
+    // zeros that look measured.
     {
         u32 family_count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &family_count, nullptr);

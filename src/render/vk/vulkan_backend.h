@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -86,6 +86,13 @@ public:
     [[nodiscard]] NativeFormat native_format() const override
     {
         return NativeFormat::Rgba8Unorm;
+    }
+
+    void overlay_framebuffer_size(u32* width, u32* height) const override
+    {
+        const VkExtent2D extent = m_context.swapchain_extent();
+        *width  = extent.width;
+        *height = extent.height;
     }
 
 private:

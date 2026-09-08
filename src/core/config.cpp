@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -29,8 +29,8 @@ namespace {
 
 constexpr const char* kFileName = "sm2-emu.ini";
 
-/// Mirrors render::kMaxRenderScale (backend.h). Kept local so this file need
-/// not pull in the render backend header just for a clamp bound.
+/// Mirrors render::kMaxRenderScale; kept local to avoid pulling in the render
+/// backend header just for a clamp bound.
 constexpr u32 kMaxRenderScale = 4;
 
 [[nodiscard]] std::string trim(std::string_view text)
@@ -48,8 +48,7 @@ constexpr u32 kMaxRenderScale = 4;
     return text;
 }
 
-/// Accepts every spelling a person might reasonably write, because rejecting `yes`
-/// in a hand-edited file is not a helpful thing to do.
+/// Accepts every reasonable spelling so a hand-edited file is forgiving.
 [[nodiscard]] bool parse_bool(const std::string& value, bool* out)
 {
     const std::string text = lowered(value);
@@ -110,11 +109,8 @@ constexpr std::array<const char*, Config::kGunRoleCount> kGunRoleNames = {
     return (value != nullptr && value[0] != '\0') ? value : nullptr;
 }
 
-/// The platform's directory for a program's configuration.
-///
-/// Written out rather than taken from SDL because SDL offers only its preferences
-/// path, which on Linux is the XDG *data* directory. Configuration belongs in the
-/// config directory, and a user who has moved theirs expects that to be honoured.
+/// The platform's config directory. Not SDL's preferences path, which on Linux
+/// is the XDG *data* directory; config belongs in the config directory.
 [[nodiscard]] std::filesystem::path config_directory()
 {
 #if defined(_WIN32)
@@ -134,8 +130,7 @@ constexpr std::array<const char*, Config::kGunRoleCount> kGunRoleNames = {
         return std::filesystem::path(home) / ".config" / "sm2-emu";
     }
 #endif
-    // No home directory at all. The working directory is the only place left.
-    return std::filesystem::path();
+    return std::filesystem::path();  // no home directory; caller falls back to cwd
 }
 
 }  // namespace
@@ -161,8 +156,7 @@ bool parse_log_level(const std::string& name, log::Level* out_level)
 
 std::string default_config_path()
 {
-    // A file beside the binary's working directory wins. That is what a build tree
-    // wants, and it makes a checked-out copy self-contained.
+    // A file in the working directory wins, keeping a checked-out copy self-contained.
     std::error_code error;
     if (std::filesystem::exists(kFileName, error) && !error) {
         return kFileName;
@@ -173,6 +167,47 @@ std::string default_config_path()
         return kFileName;
     }
     return (directory / kFileName).string();
+}
+
+std::string data_directory(bool config_in_cwd)
+{
+    // A dev checkout keeps its data local so the tree stays self-contained.
+    if (config_in_cwd) {
+        return ".";
+    }
+
+#if defined(_WIN32)
+    if (const char* appdata = environment("APPDATA")) {
+        return (std::filesystem::path(appdata) / "sm2-emu").string();
+    }
+#elif defined(__APPLE__)
+    if (const char* home = environment("HOME")) {
+        return (std::filesystem::path(home) / "Library" / "Application Support"
+                / "sm2-emu").string();
+    }
+#else
+    // XDG_DATA_HOME, not the config dir's XDG_CONFIG_HOME.
+    if (const char* xdg = environment("XDG_DATA_HOME")) {
+        return (std::filesystem::path(xdg) / "sm2-emu").string();
+    }
+    if (const char* home = environment("HOME")) {
+        return (std::filesystem::path(home) / ".local" / "share" / "sm2-emu").string();
+    }
+#endif
+    // No home directory: fall back to the working directory.
+    return ".";
+}
+
+void resolve_default_paths(Config* config, bool config_in_cwd)
+{
+    const std::filesystem::path base = data_directory(config_in_cwd);
+    if (config->nvram_dir.empty()) {
+        config->nvram_dir = (base / "saves").string();
+    }
+    if (config->screenshot_dir.empty()) {
+        config->screenshot_dir = (base / "screenshots").string();
+    }
+    // rom_dir intentionally left empty: no sensible default.
 }
 
 bool load_config(const std::string& path, Config* out, std::vector<std::string>* problems)
@@ -192,8 +227,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     while (std::getline(file, line)) {
         ++number;
 
-        // Section headers are accepted and ignored: there is only one group of
-        // settings, but a file that has grown one should still load.
+        // Section headers are accepted and ignored so a grouped file still loads.
         const std::string trimmed = trim(line);
         if (trimmed.empty() || trimmed[0] == '#' || trimmed[0] == ';'
             || trimmed[0] == '[') {
@@ -397,10 +431,12 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
                 problems->push_back(path + ":" + std::to_string(number)
                                     + ": unknown setting '" + key + "'");
             }
+        } else if (key == "rom_dir") {
+            out->rom_dir = value;
         } else if (key == "nvram_dir") {
             out->nvram_dir = value;
-        } else if (key == "games_xml") {
-            out->games_xml = value;
+        } else if (key == "screenshot_dir") {
+            out->screenshot_dir = value;
         } else if (key == "log_level") {
             log::Level level = log::Level::Info;
             if (parse_log_level(value, &level)) {
@@ -525,11 +561,15 @@ bool save_config(const std::string& path, const Config& config)
         }
     }
     out << "\n"
-        << "# Where operator settings and the EEPROM image are kept.\n"
+        << "# Where the ROM archives live. A game launched by name with no\n"
+        << "# explicit path is loaded from <rom_dir>/<name>.zip or .7z.\n"
+        << "rom_dir = " << config.rom_dir << "\n"
+        << "\n"
+        << "# Saves: per-game .nv and .eeprom (scores, settings).\n"
         << "nvram_dir = " << config.nvram_dir << "\n"
         << "\n"
-        << "# ROM database to use instead of searching the usual places.\n"
-        << "games_xml = " << config.games_xml << "\n"
+        << "# Where F12 screenshots are written.\n"
+        << "screenshot_dir = " << config.screenshot_dir << "\n"
         << "\n"
         << "# Vulkan validation layers. Slow, and only useful when developing.\n"
         << "validation = " << bool_text(config.validation) << "\n"

@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -84,6 +84,15 @@ public:
     /// so a saved file goes back to the same place (including a --config path).
     void set_config_path(std::string path) { m_config_path = std::move(path); }
 
+    /// Pixel extent of the backend's overlay framebuffer; new_frame() scales
+    /// ImGui to it so the overlay fills the presented image (see new_frame()).
+    /// Zero leaves ImGui's own value alone.
+    void set_framebuffer_size(u32 width, u32 height)
+    {
+        m_framebuffer_width  = width;
+        m_framebuffer_height = height;
+    }
+
 private:
     void apply_scale();
     void draw_menu_bar(Config& config);
@@ -101,6 +110,8 @@ private:
     bool        m_visible     = false;
     bool        m_initialised = false;
     float       m_ui_scale    = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.
+    u32         m_framebuffer_width  = 0;  ///< overlay target extent; 0 = use ImGui's own.
+    u32         m_framebuffer_height = 0;
 
     /// Whether the OS cursor is currently hidden for light-gun mode. Tracked so
     /// Hide/Show is only called on a change: polling SDL_CursorVisible() every

@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -40,12 +40,10 @@ struct ContextConfig {
 /// to live: which extensions this driver actually has, and the device name
 /// for diagnostics.
 ///
-/// No VMA equivalent and no frames-in-flight ring, unlike
-/// render::vk::Context: GL's driver manages buffer and texture lifetime
-/// itself, and GL_ARB_buffer_storage's persistent mapping (see gl_common.h)
-/// replaces the host-visible-buffer rotation Vulkan's lack of that guarantee
-/// requires. Phase 8's own design.md already called the Vulkan backend's x3
-/// duplication "waste" under GL before this backend existed to remove it.
+/// No VMA equivalent and no frames-in-flight ring, unlike render::vk::Context:
+/// GL's driver manages buffer and texture lifetime itself, and
+/// GL_ARB_buffer_storage's persistent mapping (see gl_common.h) replaces the
+/// host-visible-buffer rotation Vulkan requires.
 class Context {
 public:
     Context() = default;

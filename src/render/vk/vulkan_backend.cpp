@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -171,7 +171,7 @@ void VulkanBackend::submit_native_frame(std::span<const u32> pixels)
 bool VulkanBackend::request_capture()
 {
     m_capture_requested = true;
-    return m_capture.record(m_present.native_image(), m_present.native_extent(),
+    return m_capture.record(m_present.native_image(), m_present.composite_extent(),
                             m_present.native_format());
 }
 

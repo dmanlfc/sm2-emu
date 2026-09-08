@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -37,7 +37,7 @@ namespace {
 /// Parse a decimal or 0x-prefixed hexadecimal integer.
 [[nodiscard]] bool parse_integer(std::string_view text, u32* out)
 {
-    // Trim, because hand-edited XML attributes pick up stray whitespace.
+    // Hand-edited XML attributes pick up stray whitespace.
     while (!text.empty() && (text.front() == ' ' || text.front() == '\t')) {
         text.remove_prefix(1);
     }
@@ -231,19 +231,9 @@ namespace {
 // Locating the database
 // ---------------------------------------------------------------------------
 
-std::optional<std::string> GameDatabase::locate(const std::string& override_path)
+std::optional<std::string> GameDatabase::locate()
 {
     std::vector<std::filesystem::path> candidates;
-
-    if (!override_path.empty()) {
-        // An explicit path is honoured or reported, never silently replaced by a
-        // fallback that would make the failure confusing.
-        if (std::filesystem::exists(override_path)) {
-            return override_path;
-        }
-        SM2_ERROR("games.xml was not found at '%s'", override_path.c_str());
-        return std::nullopt;
-    }
 
     candidates.emplace_back("games.xml");
     candidates.emplace_back("data/games.xml");
@@ -253,8 +243,7 @@ std::optional<std::string> GameDatabase::locate(const std::string& override_path
         candidates.push_back(exe_dir / "games.xml");
         candidates.push_back(exe_dir / ".." / "share" / "sm2-emu" / "games.xml");
         candidates.push_back(exe_dir / ".." / ".." / "data" / "games.xml");
-        // macOS .app bundle: exe is Contents/MacOS/sm2-emu, data is placed in
-        // Contents/Resources.
+        // macOS .app bundle: exe is Contents/MacOS, data in Contents/Resources.
         candidates.push_back(exe_dir / ".." / "Resources" / "games.xml");
     }
 
@@ -267,8 +256,7 @@ std::optional<std::string> GameDatabase::locate(const std::string& override_path
 
     SM2_ERROR("games.xml could not be found. Looked in the current directory, "
               "beside the executable, in ../share/sm2-emu, and in the app "
-              "bundle's Resources. Pass --games-xml <path> to name it "
-              "explicitly.");
+              "bundle's Resources.");
     return std::nullopt;
 }
 
@@ -312,9 +300,7 @@ bool GameDatabase::load(const std::string& path)
 
         const pugi::xml_attribute board_attribute = game_node.attribute("board");
         if (!board_attribute) {
-            // A clone is the same hardware as its parent unless it says otherwise,
-            // which is the usual case: a revision respins the program EPROMs and
-            // nothing else.
+            // A clone is the same hardware as its parent unless it says otherwise.
             if (game.parent.empty()) {
                 SM2_ERROR("%s: no board attribute", context.c_str());
                 return false;
@@ -366,8 +352,8 @@ bool GameDatabase::load(const std::string& path)
             const pugi::xml_attribute type = input_node.attribute("type");
             InputFlags                flag = InputFlags::None;
             if (!type || !parse_input_type(type.value(), &flag)) {
-                // Refuse rather than defaulting to zero: a typo here silently
-                // unbinds a control, which is a miserable thing to debug.
+                // Refuse rather than defaulting to zero: a typo here would
+                // silently unbind a control.
                 SM2_ERROR("%s: unrecognised input type '%s'", context.c_str(), type.value());
                 return false;
             }

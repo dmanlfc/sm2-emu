@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -17,9 +17,7 @@
 //
 // Function pointers rather than a generator-based loader (glad, GLEW, epoxy):
 // SDL3 already vendors every constant and PFNGL*PROC typedef this renderer
-// needs (SDL_opengl_glext.h), and SDL_GL_GetProcAddress() resolves them --
-// see .kiro/specs/model2-gl-backends/design.md sec 1 for why a generator was
-// considered and rejected.
+// needs (SDL_opengl_glext.h), and SDL_GL_GetProcAddress() resolves them
 //
 // Every pointer below is named without its "gl" prefix (BindBuffer, not
 // glBindBuffer) and lives inside sm2::render::gl. That is not a style choice:

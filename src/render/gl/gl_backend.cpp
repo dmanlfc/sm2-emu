@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -106,12 +106,7 @@ Capabilities GlBackend::capabilities() const
 {
     Capabilities caps;
     caps.compute_shaders = true;
-    // No GPU timer queries wired up yet -- see backend.h's own
-    // GpuStage/GpuStageTime documentation of why "did not run" and "zero"
-    // must stay distinguishable, and design.md sec 3 for why this is a
-    // stated scope cut rather than an oversight (GL_TIME_ELAPSED query
-    // objects exist at this floor and could be added later, once there is a
-    // device to benchmark against).
+    // No GPU timer queries wired up yet (GL_TIME_ELAPSED could be added later).
     caps.gpu_timing = false;
     return caps;
 }
@@ -170,7 +165,9 @@ bool GlBackend::request_capture()
 {
     m_capture_requested = true;
     m_present.begin_frame();  // rebind the native FBO in case something else was bound
-    return m_capture.record(m_present.native_width(), m_present.native_height());
+    // Capture the whole composite (N*native), not the native corner, so a
+    // screenshot is at the render scale.
+    return m_capture.record(m_present.width(), m_present.height());
 }
 
 bool GlBackend::save_capture(const std::string& path) const
@@ -184,6 +181,15 @@ void GlBackend::blit_to_swapchain()
     u32 height = 0;
     m_window->drawable_size(&width, &height);
     m_present.present(width, height);
+}
+
+void GlBackend::overlay_framebuffer_size(u32* width, u32* height) const
+{
+    *width  = 0;
+    *height = 0;
+    if (m_window != nullptr) {
+        m_window->drawable_size(width, height);
+    }
 }
 
 void GlBackend::begin_overlay_frame()

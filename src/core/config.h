@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -40,8 +40,8 @@ struct Config {
     ///
     /// Off by default: the software pacer is the rate authority, and a blocking
     /// FIFO present quantises frame times to the display refresh (a frame a hair
-    /// over one vblank waits a whole extra one), which measured ~9% off Daytona
-    /// on a Pi 5 for nothing. Turn back on if a bare/uncomposited display tears.
+    /// over one vblank waits a whole extra one). Turn back on if a
+    /// bare/uncomposited display tears.
     bool vsync = false;
 
     /// Hold the machine to its own 57.5245 Hz. Turning this off runs as fast as the
@@ -176,10 +176,16 @@ struct Config {
 
     // -- paths -------------------------------------------------------------
 
-    std::string nvram_dir = "nvram";
+    /// ROM archives; a game named with no path loads <rom_dir>/<name>.{zip,7z}.
+    /// No default (ROMs are not app data): empty until the user sets it.
+    std::string rom_dir;
 
-    /// ROM database to use instead of searching the usual places.
-    std::string games_xml;
+    /// Saves: per-game .nv and .eeprom images. Empty here;
+    /// resolve_default_paths() fills it under the platform data directory.
+    std::string nvram_dir;
+
+    /// F12 screenshots. Empty here; defaulted like nvram_dir.
+    std::string screenshot_dir;
 
     // -- diagnostics -------------------------------------------------------
 
@@ -196,6 +202,16 @@ struct Config {
 /// installed copy wants. Returns the working-directory path only when that file
 /// exists, so a fresh install writes to the proper place.
 [[nodiscard]] std::string default_config_path();
+
+/// Platform data directory for saves/screenshots: Linux $XDG_DATA_HOME or
+/// ~/.local/share, macOS ~/Library/Application Support, Windows %APPDATA%, each
+/// with /sm2-emu. `config_in_cwd` returns "." instead, keeping a dev checkout
+/// self-contained like default_config_path().
+[[nodiscard]] std::string data_directory(bool config_in_cwd);
+
+/// Fill nvram_dir/screenshot_dir if empty, under data_directory(). rom_dir is
+/// left alone (no default). Call after load_config() and the CLI merge.
+void resolve_default_paths(Config* config, bool config_in_cwd);
 
 /// Read `path` into `out`, leaving fields the file does not mention alone.
 ///

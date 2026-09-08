@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// sm2-emu — A Sega Model 2 arcade emulator.
+// A Sega Model 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -217,15 +217,12 @@ u8 Input::axis_to_pedal(s16 value)
     return static_cast<u8>(std::min(scaled, 255));
 }
 
-/// Map a mouse position in the focused SDL window onto one lightgun axis.
-///
-/// The gun interface board is 10-bit and each title calibrates its own travel,
-/// so a pointer at the edge of the window has to land on that title's own
-/// minimum or maximum rather than on 0 or 0x3ff. Anything else puts the
-/// crosshair in the wrong place and makes the offscreen test fire early.
 /// Scale a 0..1 screen fraction into one lightgun axis's calibrated travel.
-/// Both the mouse pointer and an evdev gun feed through here so the two sources
-/// land on the same coordinates.
+///
+/// The gun board is 10-bit and each title calibrates its own travel, so an edge
+/// fraction must land on that title's own min/max rather than 0 or 0x3ff, or the
+/// crosshair is misplaced and the offscreen test fires early. Both the mouse
+/// pointer and an evdev gun feed through here so the two sources agree.
 [[nodiscard]] u16 fraction_to_gun(float fraction, const rom::LightgunAxis& axis)
 {
     const float clamped = std::clamp(fraction, 0.0f, 1.0f);
@@ -869,15 +866,12 @@ void Input::update_force_feedback(const rom::GameSpec& game, u8 drive_force)
             case 0x60:  // constant force left  -> push wheel left  (positive)
             {
                 const int dir = (cmd == 0x50) ? -1 : 1;
-                // A crash holds a strong one-direction force for many frames. The
-                // cabinet's heavy geared wheel barely moved under it; a free PC
-                // wheel spins to the stop. So a *sustained* one-direction push is
-                // held full for a brief kick, then decayed hard.
-                // Every directional force command (0x5x/0x6x) is a scrub/impact
-                // event the drive board would have felt as a jolt through the
-                // rim. Feed its strength to the periodic effect so it is felt as
-                // a vibration, not only as a push. A direction flip (the rapid
-                // left/right road-buzz pattern) makes it strongest.
+                // A directional command is a scrub/impact the drive board felt as
+                // a jolt through the rim, so feed its strength to the periodic
+                // effect (a vibration, not only a push); a direction flip is the
+                // sharpest. A sustained one-direction push is held full for a
+                // brief kick then decayed hard, since a free PC wheel would spin
+                // to the stop where the cabinet's heavy geared wheel barely moved.
                 rumble = mag;
                 if (dir == m_wheel.constant_dir) {
                     m_wheel.constant_hold++;
@@ -925,7 +919,6 @@ void Input::update_force_feedback(const rom::GameSpec& game, u8 drive_force)
         level = std::clamp(level, -ceiling, ceiling);
     }
 
-    // Reprogram only on a meaningful change: reuploading every frame makes the
     // Boost the impact rumble so a hit is clearly felt.
     rumble *= 2;
 
