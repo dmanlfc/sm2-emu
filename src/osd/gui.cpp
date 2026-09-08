@@ -15,10 +15,13 @@
 #include "osd/gui.h"
 #include "core/log.h"
 #include "osd/input.h"
+#include "osd/scraper.h"
 #include "render/geometry.h"
 
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
+
+#include <stb_image.h>
 
 #include <SDL3/SDL.h>
 
@@ -176,7 +179,9 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
     // itself every frame, so a bare SDL_HideCursor() is fought back the next
     // frame (which is what flickered). NoMouseCursorChange makes ImGui stop
     // touching the cursor, and then SDL_HideCursor() sticks.
-    const bool hide_cursor = config.lightgun && !m_visible;
+    // Not while the picker is up: grabbing the pointer there would confine it to
+    // the window, making the title bar and resize edges unreachable.
+    const bool hide_cursor = config.lightgun && !m_visible && !m_picker_enabled;
     if (hide_cursor != m_cursor_hidden) {
         ImGuiIO& io = ImGui::GetIO();
         if (hide_cursor) {
@@ -195,11 +200,17 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
         }
         m_cursor_hidden = hide_cursor;
     }
-    if (config.lightgun) {
+    if (config.lightgun && !m_picker_enabled) {
         draw_sinden_border(config);
         if (config.lightgun_crosshair) {
             draw_crosshairs(input);
         }
+    }
+
+    // Full-screen picker when active and Settings is closed; F1 opens Settings
+    // on top.
+    if (m_picker_enabled && !m_visible) {
+        draw_picker(config);
     }
 
     if (m_visible) {
@@ -322,6 +333,41 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 }
             }
 
+            // Renderer, from the backends this build offers; takes effect next launch.
+            if (!m_available_renderers.empty()) {
+                ImGui::Separator();
+                ImGui::Text("Renderer");
+
+                const auto label_of = [](const std::string& name) -> const char* {
+                    if (name == "software") return "Software";
+                    if (name == "vulkan")   return "Vulkan";
+                    if (name == "opengl")   return "OpenGL";
+                    return name.c_str();
+                };
+                const std::string current_choice =
+                    config.graphics_backend.empty() ? m_available_renderers.front()
+                                                     : config.graphics_backend;
+
+                if (ImGui::BeginCombo("##renderer", label_of(current_choice))) {
+                    for (const std::string& name : m_available_renderers) {
+                        const bool selected = (name == current_choice);
+                        if (ImGui::Selectable(label_of(name), selected)) {
+                            config.graphics_backend = name;
+                        }
+                        if (selected) {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Which renderer draws the game. Applies on the\n"
+                                      "next launch - save settings and relaunch.");
+                }
+            }
+
             // Window size (only meaningful in windowed mode).
             if (!config.fullscreen) {
                 ImGui::Separator();
@@ -409,6 +455,20 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             dir_field("Screenshots directory", "##shots", config.screenshot_dir,
                       "Where F12 screenshots are written.");
 
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+            ImGui::Checkbox("Scrape artwork online", &config.scrape_artwork);
+            ImGui::SameLine();
+            ImGui::TextDisabled("(?)");
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip(
+                    "Let the game picker fetch box art and descriptions from\n"
+                    "ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+                    "picker still lists and launches every game, with placeholder\n"
+                    "tiles and no descriptions.");
+            }
+
             ImGui::EndTabItem();
         }
 
@@ -429,14 +489,20 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
         bool on_about_tab = false;
         if (ImGui::BeginTabItem("About")) {
             on_about_tab = true;
-            ImGui::Text("sm2-emu - A Sega Model 2 arcade emulator");
+            ImGui::Text(" ____  __  __  ____         _____ __  __ _   _");
+            ImGui::Text("/ ___||  \\/  ||___ \\       | ____|  \\/  | | | |");
+            ImGui::Text("\\___ \\| |\\/| |  __) |_____ |  _| | |\\/| | | | |");
+            ImGui::Text(" ___) | |  | | / __/|_____|| |___| |  | | |_| |");
+            ImGui::Text("|____/|_|  |_||_____|      |_____|_|  |_|\\___/");
+            ImGui::Spacing();
+            ImGui::Text("A Sega Model 2 arcade emulator");
             ImGui::Spacing();
             ImGui::Text("Copyright (c) 2025+ Daniel Martin (dmanlfc)");
             ImGui::Text("BSD 3-Clause licence. See LICENSE.");
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            ImGui::Text("sm2-emu stands on open source shared with the community.");
+            ImGui::Text("sm2-emu exists because of open source shared with the community.");
             ImGui::Text("With thanks to the projects whose code makes it possible:");
             ImGui::Spacing();
             ImGui::BulletText("The MAME project - Sega Model 2 emulation guidance");
@@ -449,6 +515,11 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::BulletText("LZMA SDK - 7-Zip archive decompression (Igor Pavlov)");
             ImGui::BulletText("VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)");
             ImGui::BulletText("shaderc / glslang - shader compilation");
+            ImGui::BulletText("stb_image - box-art image decoding (Sean Barrett)");
+            ImGui::BulletText("libcurl - artwork scraping (optional)");
+            ImGui::Spacing();
+            ImGui::Text("Game artwork and descriptions from ArcadeDB");
+            ImGui::Text("(adb.arcadeitalia.net, by Motoschifo).");
             ImGui::Spacing();
             ImGui::Text("See NOTICE for full per-component attribution.");
             ImGui::EndTabItem();
@@ -999,6 +1070,360 @@ void Gui::draw_status_bar(float measured_hz)
         ImGui::Text("F1: toggle overlay");
     }
     ImGui::End();
+    ImGui::PopStyleVar();
+}
+
+// ---------------------------------------------------------------------------
+// Game picker
+// ---------------------------------------------------------------------------
+
+void Gui::hide_picker()
+{
+    m_picker_enabled = false;
+}
+
+void Gui::enable_picker(std::vector<PickerEntry> entries, render::Backend* backend,
+                        Scraper* scraper)
+{
+    m_picker_entries  = std::move(entries);
+    m_picker_backend  = backend;
+    m_picker_scraper  = scraper;
+    m_picker_enabled  = true;
+    m_picker_selected = 0;
+    m_picker_scroll   = 0.0f;
+
+    // Load anything already cached up front: the scraper skips a set whose cache
+    // file exists and never pushes a Ready for it, so without this a cached set
+    // would show "Fetching..." forever. Uncached sets fill in from Ready later.
+    if (m_picker_scraper != nullptr) {
+        for (PickerEntry& entry : m_picker_entries) {
+            const Scraper::Metadata meta =
+                m_picker_scraper->load_metadata(entry.name, entry.title);
+            if (!meta.found && meta.description.empty() && meta.image_paths.empty()) {
+                continue;
+            }
+            entry.title           = meta.title;
+            entry.year            = meta.year;
+            entry.manufacturer    = meta.manufacturer;
+            entry.description     = meta.description;
+            entry.metadata_loaded = true;
+        }
+    }
+}
+
+std::optional<std::string> Gui::take_pending_launch()
+{
+    std::optional<std::string> out = std::move(m_pending_launch);
+    m_pending_launch.reset();
+    return out;
+}
+
+void Gui::release_picker_textures()
+{
+    if (m_picker_backend == nullptr) {
+        return;
+    }
+    for (PickerEntry& entry : m_picker_entries) {
+        for (const PickerEntry::Art1& art : entry.art) {
+            if (art.handle != 0) {
+                m_picker_backend->destroy_texture(art.handle);
+            }
+        }
+        entry.art.clear();
+    }
+}
+
+/// Pull each newly-cached set's metadata into its entry, once per frame.
+void Gui::poll_scraper_and_load_metadata()
+{
+    if (m_picker_scraper == nullptr) {
+        return;
+    }
+    for (const std::string& name : m_picker_scraper->take_ready()) {
+        for (PickerEntry& entry : m_picker_entries) {
+            if (entry.name != name) {
+                continue;
+            }
+            const Scraper::Metadata meta =
+                m_picker_scraper->load_metadata(entry.name, entry.title);
+            entry.title           = meta.title;
+            entry.year            = meta.year;
+            entry.manufacturer    = meta.manufacturer;
+            entry.description     = meta.description;
+            entry.metadata_loaded = true;
+            if (!meta.image_paths.empty()) {
+                entry.art_state = PickerEntry::Art::Unknown;  // let the grid upload it
+            }
+            break;
+        }
+    }
+}
+
+namespace {
+
+/// Decode a cached image to RGBA8 with stb. False on any failure.
+[[nodiscard]] bool decode_image_rgba(const std::string& path, int* w, int* h,
+                                     std::vector<unsigned char>* pixels)
+{
+    int            channels = 0;
+    unsigned char* data     = stbi_load(path.c_str(), w, h, &channels, 4);
+    if (data == nullptr) {
+        return false;
+    }
+    pixels->assign(data, data + static_cast<usize>(*w) * static_cast<usize>(*h) * 4);
+    stbi_image_free(data);
+    return true;
+}
+
+}  // namespace
+
+void Gui::draw_picker(Config& config)
+{
+    static_cast<void>(config);
+    poll_scraper_and_load_metadata();
+
+    // Show the pointer in case a previous state (light-gun mode) hid it.
+    if (!SDL_CursorVisible()) {
+        SDL_ShowCursor();
+    }
+
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+
+    constexpr ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove
+        | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus
+        | ImGuiWindowFlags_NoNavFocus;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.06f, 0.07f, 0.09f, 1.0f));
+    if (!ImGui::Begin("##picker", nullptr, flags)) {
+        ImGui::End();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
+        return;
+    }
+
+    ImGui::TextUnformatted("Select a game");
+    ImGui::SameLine(ImGui::GetWindowWidth() - 300.0f);
+    ImGui::TextDisabled("Enter: launch   F1: settings   Esc: quit");
+    ImGui::Separator();
+
+    if (m_picker_entries.empty()) {
+        ImGui::Spacing();
+        ImGui::TextWrapped(
+            "No Model 2 ROM archives were found in the ROM directory. Set it in "
+            "Settings (F1) > Paths, then relaunch.");
+        ImGui::End();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
+        return;
+    }
+
+    m_picker_selected =
+        std::clamp(m_picker_selected, 0, static_cast<int>(m_picker_entries.size()) - 1);
+
+    const float pane_w = std::min(360.0f, ImGui::GetContentRegionAvail().x * 0.34f);
+    const float grid_w = ImGui::GetContentRegionAvail().x - pane_w - 8.0f;
+
+    const ImVec2 tile{132.0f, 180.0f};
+    const int    columns = std::max(1, static_cast<int>(grid_w / (tile.x + 12.0f)));
+    const int    count   = static_cast<int>(m_picker_entries.size());
+
+    // The picker drives selection itself rather than via ImGui nav focus, so
+    // the description pane and launch stay in step with the highlighted tile.
+    const ImGuiIO& io      = ImGui::GetIO();
+    const auto     pressed = [](ImGuiKey k) { return ImGui::IsKeyPressed(k, true); };
+    int            sel     = m_picker_selected;
+    if (pressed(ImGuiKey_RightArrow) || pressed(ImGuiKey_GamepadDpadRight)) ++sel;
+    if (pressed(ImGuiKey_LeftArrow) || pressed(ImGuiKey_GamepadDpadLeft)) --sel;
+    if (pressed(ImGuiKey_DownArrow) || pressed(ImGuiKey_GamepadDpadDown)) sel += columns;
+    if (pressed(ImGuiKey_UpArrow) || pressed(ImGuiKey_GamepadDpadUp)) sel -= columns;
+    sel = std::clamp(sel, 0, count - 1);
+    if (sel != m_picker_selected) {
+        m_picker_selected      = sel;
+        m_picker_scroll        = 0.0f;
+        m_picker_scroll_to_sel = true;
+        m_picker_art_timer     = 0.0f;
+        m_picker_art_index     = 0;
+    }
+
+    constexpr float kArtDwellSeconds = 2.0f;
+    m_picker_art_timer += io.DeltaTime;
+    if (m_picker_art_timer >= kArtDwellSeconds) {
+        m_picker_art_timer = 0.0f;
+        ++m_picker_art_index;
+    }
+
+    if (pressed(ImGuiKey_Enter) || pressed(ImGuiKey_KeypadEnter)
+        || pressed(ImGuiKey_GamepadFaceDown)) {
+        m_pending_launch = m_picker_entries[static_cast<usize>(m_picker_selected)].name;
+    }
+
+    ImGui::BeginChild("##grid", ImVec2(grid_w, 0.0f), false);
+    for (int i = 0; i < count; ++i) {
+        PickerEntry& entry = m_picker_entries[static_cast<usize>(i)];
+
+        // Lazy: decode + upload a tile's art the first time it is drawn; a
+        // failure marks it None so it is not retried each frame.
+        if (entry.art_state == PickerEntry::Art::Unknown && m_picker_backend != nullptr
+            && m_picker_scraper != nullptr) {
+            const Scraper::Metadata meta =
+                m_picker_scraper->load_metadata(entry.name, entry.title);
+            for (const std::string& image_path : meta.image_paths) {
+                int                        iw = 0;
+                int                        ih = 0;
+                std::vector<unsigned char> rgba;
+                if (decode_image_rgba(image_path, &iw, &ih, &rgba) && iw > 0 && ih > 0) {
+                    const render::Backend::TextureHandle handle =
+                        m_picker_backend->create_texture(static_cast<u32>(iw),
+                                                         static_cast<u32>(ih), rgba.data());
+                    if (handle != 0) {
+                        entry.art.push_back({handle, static_cast<float>(iw),
+                                             static_cast<float>(ih)});
+                    }
+                }
+            }
+            entry.art_state = entry.art.empty() ? PickerEntry::Art::None
+                                                : PickerEntry::Art::Loaded;
+        }
+
+        if (i % columns != 0) {
+            ImGui::SameLine();
+        }
+
+        ImGui::PushID(i);
+        const bool   is_sel = (i == m_picker_selected);
+        const ImVec2 p0     = ImGui::GetCursorScreenPos();
+
+        // A button under the art carries click-to-select / click-selected-to-launch.
+        if (ImGui::Button("##tile", tile)) {
+            if (m_picker_selected == i) {
+                m_pending_launch = entry.name;
+            } else {
+                m_picker_selected = i;
+                m_picker_scroll   = 0.0f;
+            }
+        }
+        if (ImGui::IsItemHovered()
+            && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+            m_pending_launch = entry.name;
+        }
+        if (is_sel && m_picker_scroll_to_sel) {
+            ImGui::SetScrollHereY(0.5f);  // follow keyboard/gamepad selection
+            m_picker_scroll_to_sel = false;
+        }
+
+        ImDrawList*  draw = ImGui::GetWindowDrawList();
+        const ImVec2 p1{p0.x + tile.x, p0.y + tile.y};
+        if (entry.art_state == PickerEntry::Art::Loaded && !entry.art.empty()
+            && m_picker_backend != nullptr) {
+            // The highlighted game cycles its images; others show the first.
+            int img = 0;
+            if (is_sel && entry.art.size() > 1) {
+                img = m_picker_art_index % static_cast<int>(entry.art.size());
+            }
+            const PickerEntry::Art1& art = entry.art[static_cast<usize>(img)];
+
+            // Letterbox to the tile so art is not stretched.
+            draw->AddRectFilled(p0, p1, IM_COL32(20, 22, 27, 255));
+            ImVec2 draw0 = p0;
+            ImVec2 draw1 = p1;
+            if (art.w > 0.0f && art.h > 0.0f) {
+                const float scale =
+                    std::min(tile.x / art.w, tile.y / art.h);
+                const float dw = art.w * scale;
+                const float dh = art.h * scale;
+                const float ox = (tile.x - dw) * 0.5f;
+                const float oy = (tile.y - dh) * 0.5f;
+                draw0 = ImVec2(p0.x + ox, p0.y + oy);
+                draw1 = ImVec2(draw0.x + dw, draw0.y + dh);
+            }
+            draw->AddImage(reinterpret_cast<ImTextureID>(
+                               m_picker_backend->texture_imgui_id(art.handle)),
+                           draw0, draw1);
+        } else {
+            draw->AddRectFilled(p0, p1, IM_COL32(28, 30, 36, 255));
+            draw->PushClipRect(p0, p1, true);
+            draw->AddText(nullptr, 0.0f, ImVec2(p0.x + 6.0f, p0.y + 6.0f),
+                          IM_COL32(200, 205, 215, 255), entry.title.c_str());
+            draw->PopClipRect();
+        }
+        draw->AddRect(p0, p1, is_sel ? IM_COL32(120, 190, 255, 255)
+                                     : IM_COL32(60, 64, 74, 255),
+                      0.0f, 0, is_sel ? 3.0f : 1.0f);
+
+        ImGui::PopID();
+    }
+    ImGui::EndChild();
+
+    // -- description pane --------------------------------------------------
+    ImGui::SameLine();
+    ImGui::BeginChild("##pane", ImVec2(pane_w, 0.0f), true);
+    const PickerEntry& cur = m_picker_entries[static_cast<usize>(m_picker_selected)];
+
+    ImGui::TextWrapped("%s", cur.title.c_str());
+    if (!cur.year.empty() || !cur.manufacturer.empty()) {
+        std::string sub = cur.manufacturer;
+        if (!cur.year.empty()) {
+            sub += sub.empty() ? cur.year : ("  " + cur.year);
+        }
+        ImGui::TextDisabled("%s", sub.c_str());
+    }
+    ImGui::TextDisabled("%s", cur.name.c_str());
+    ImGui::Separator();
+
+    // Auto-scroll: hold at the top, creep up until fully past, hold, loop.
+    // m_picker_scroll is seconds since the pick (0 on selection change), so a
+    // new pick always starts at the top. Text that fits never scrolls.
+    ImGui::BeginChild("##desc", ImVec2(0.0f, 0.0f), false,
+                      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    if (cur.description.empty()) {
+        const bool still_fetching =
+            !cur.metadata_loaded && m_picker_scraper != nullptr
+            && m_picker_scraper->scraping_available();
+        ImGui::TextDisabled(still_fetching ? "Fetching description..."
+                                           : "No description available.");
+    } else {
+        const float  avail_h = ImGui::GetContentRegionAvail().y;
+        const float  wrap_w  = ImGui::GetContentRegionAvail().x;
+        const ImVec2 size =
+            ImGui::CalcTextSize(cur.description.c_str(), nullptr, false, wrap_w);
+
+        float offset = 0.0f;
+        if (size.y > avail_h) {
+            constexpr float kHoldSeconds  = 2.5f;
+            constexpr float kPixelsPerSec = 22.0f;
+            const float     scroll_px     = (size.y - avail_h) + 24.0f;
+            const float     scroll_secs   = scroll_px / kPixelsPerSec;
+            const float     cycle         = kHoldSeconds + scroll_secs + kHoldSeconds;
+
+            m_picker_scroll += io.DeltaTime;
+            float t = m_picker_scroll;
+            if (t > cycle) {
+                t = 0.0f;
+                m_picker_scroll = 0.0f;  // loop back to the top
+            }
+            if (t <= kHoldSeconds) {
+                offset = 0.0f;                                  // hold at top
+            } else if (t <= kHoldSeconds + scroll_secs) {
+                offset = (t - kHoldSeconds) * kPixelsPerSec;    // scrolling up
+            } else {
+                offset = scroll_px;                             // hold at bottom
+            }
+        }
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offset);
+        ImGui::PushTextWrapPos(0.0f);
+        ImGui::TextUnformatted(cur.description.c_str());
+        ImGui::PopTextWrapPos();
+    }
+    ImGui::EndChild();
+
+    ImGui::EndChild();
+
+    ImGui::End();
+    ImGui::PopStyleColor();
     ImGui::PopStyleVar();
 }
 

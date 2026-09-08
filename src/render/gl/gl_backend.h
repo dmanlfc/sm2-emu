@@ -47,6 +47,10 @@ public:
 
     [[nodiscard]] Capabilities capabilities() const override;
 
+    [[nodiscard]] TextureHandle create_texture(u32 w, u32 h, const u8* rgba) override;
+    void                        destroy_texture(TextureHandle handle) override;
+    [[nodiscard]] void*         texture_imgui_id(TextureHandle handle) const override;
+
     [[nodiscard]] bool begin_frame() override;
     void compute_tilemap(const hw::Model2MachineBase& machine,
                         const hw::Model2Video&       video) override;

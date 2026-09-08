@@ -81,8 +81,11 @@ Requirements:
 - A C++20 compiler
 - `glslc` (from shaderc or the Vulkan SDK) — used at build time to compile and
   lint the shaders
-- SDL3, pugixml, miniz, the LZMA SDK, Dear ImGui (with its SDL3 backend) and —
-  for the Vulkan backend — VulkanMemoryAllocator
+- SDL3, pugixml, miniz, the LZMA SDK, stb_image, Dear ImGui (with its SDL3
+  backend) and — for the Vulkan backend — VulkanMemoryAllocator
+- libcurl, for the game picker's artwork scraping. Optional: without it the
+  picker still lists and launches every game, just with no downloaded art or
+  descriptions.
 - For the OpenGL / OpenGL ES backends (built by default): the system GL/GLES
   and EGL libraries (Mesa on Linux). No extra headers are needed — SDL3
   provides GL loading.
@@ -169,29 +172,31 @@ context); it also works under Wayland.
 sudo apt install cmake ninja-build build-essential \
                  glslc \
                  libgl-dev libgles-dev libegl-dev \
-                 libsdl3-dev libpugixml-dev
+                 libsdl3-dev libpugixml-dev libcurl4-openssl-dev
 
 # Add these only if building the Vulkan backend (-DSM2_BUILD_VULKAN=ON)
 sudo apt install libvulkan-dev vulkan-validationlayers \
                  libvulkan-memory-allocator-dev
 ```
 
-Debian/Ubuntu has no packages for miniz, the LZMA SDK or a Dear ImGui with the
-SDL3 backend; those come from `3rdparty/` automatically, so nothing extra is
-needed as long as the submodules are checked out.
+`libcurl` is optional (drop it to build without artwork scraping).
+Debian/Ubuntu has no packages for miniz, the LZMA SDK, stb_image or a Dear ImGui
+with the SDL3 backend; those come from `3rdparty/` automatically, so nothing
+extra is needed as long as the submodules are checked out.
 
 ```sh
 # Arch / Manjaro — default build (software + OpenGL)
-sudo pacman -S --needed base-devel cmake ninja shaderc mesa sdl3 pugixml miniz
+sudo pacman -S --needed base-devel cmake ninja shaderc mesa sdl3 pugixml miniz curl
 
 # Add these only if building the Vulkan backend (-DSM2_BUILD_VULKAN=ON)
 sudo pacman -S --needed vulkan-headers vulkan-icd-loader \
                         vulkan-validation-layers vulkan-memory-allocator
 ```
 
-`mesa` provides the GL, GLES and EGL libraries and `shaderc` provides `glslc`.
-Arch has no package for the LZMA SDK or a Dear ImGui with the SDL3 backend;
-those come from `3rdparty/` automatically.
+`mesa` provides the GL, GLES and EGL libraries and `shaderc` provides `glslc`;
+`curl` is optional (artwork scraping). Arch has no package for the LZMA SDK,
+stb_image or a Dear ImGui with the SDL3 backend; those come from `3rdparty/`
+automatically.
 
 ### macOS
 
@@ -238,7 +243,8 @@ The target sysroot may provide any of the dependencies below; each one CMake
 does not find there is built from the copy under `3rdparty/` instead, so a
 recursive checkout cross-compiles with no network access:
 
-- SDL3, pugixml, miniz, the LZMA SDK and Dear ImGui
+- SDL3, pugixml, miniz, the LZMA SDK, stb_image and Dear ImGui
+- libcurl, if artwork scraping is wanted (optional; omit for an offline picker)
 - the GL/GLES and EGL libraries, if a GL backend is built (the usual case)
 - Vulkan 1.3 headers (`vulkan/vulkan.h`), loader (`libvulkan.so`) and
   VulkanMemoryAllocator, only if `-DSM2_BUILD_VULKAN=ON`

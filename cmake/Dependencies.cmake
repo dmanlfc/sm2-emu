@@ -190,6 +190,45 @@ else()
 endif()
 
 # ---------------------------------------------------------------------------
+# stb_image — JPEG/PNG decode for the game picker's box art
+# ---------------------------------------------------------------------------
+# A single public-domain header, committed directly like the LZMA SDK sources.
+# Header-only with one implementation macro, so mirror the miniz trick: a tiny
+# generated .c in the build tree defines the macro and includes the header,
+# compiled into a static lib. Restricted to JPEG + PNG (what ArcadeDB serves).
+set(SM2_STB_DIR "${SM2_3RDPARTY}/stb")
+set(SM2_STB_GEN "${CMAKE_BINARY_DIR}/stb-gen")
+file(WRITE "${SM2_STB_GEN}/stb_image_impl.c"
+    "#define STB_IMAGE_IMPLEMENTATION\n"
+    "#define STBI_ONLY_JPEG\n"
+    "#define STBI_ONLY_PNG\n"
+    "#include \"stb_image.h\"\n")
+
+add_library(sm2_stb STATIC "${SM2_STB_GEN}/stb_image_impl.c")
+target_include_directories(sm2_stb SYSTEM PUBLIC "${SM2_STB_DIR}")
+set_target_properties(sm2_stb PROPERTIES C_STANDARD 11)
+if(MSVC)
+    target_compile_options(sm2_stb PRIVATE /w)
+else()
+    target_compile_options(sm2_stb PRIVATE -w)
+endif()
+
+# ---------------------------------------------------------------------------
+# libcurl — HTTP for the game picker's artwork scraper (soft dependency)
+# ---------------------------------------------------------------------------
+# System-preferred and optional: without it the scraper's networking compiles
+# out (SM2_HAVE_CURL undefined) and the picker runs offline. Hence no vendored
+# fallback and no fatal error when absent.
+find_package(CURL QUIET)
+if(CURL_FOUND)
+    set(SM2_HAVE_CURL TRUE)
+    set(SM2_CURL_ORIGIN "system (${CURL_VERSION_STRING})")
+else()
+    set(SM2_HAVE_CURL FALSE)
+    set(SM2_CURL_ORIGIN "not found — artwork scraping disabled (picker offline-only)")
+endif()
+
+# ---------------------------------------------------------------------------
 # LZMA SDK — 7z reading for the ROM loader
 # ---------------------------------------------------------------------------
 # Prefer a system LZMA SDK (find_package(lzmasdk) exports lzmasdk::lzmasdk);

@@ -260,6 +260,7 @@ add_library(sm2_osd STATIC
     osd/frame_pacer.cpp
     osd/gui.cpp
     osd/input.cpp
+    osd/scraper.cpp
     osd/window.cpp
 )
 if(SM2_HAVE_EVDEV)
@@ -275,8 +276,14 @@ target_link_libraries(sm2_osd
         SDL3::SDL3
     PRIVATE
         sm2_render
+        sm2_stb
         sm2_warnings
 )
+# libcurl for the artwork scraper; absent -> scraper compiles to a no-op.
+if(SM2_HAVE_CURL)
+    target_link_libraries(sm2_osd PRIVATE CURL::libcurl)
+    target_compile_definitions(sm2_osd PRIVATE SM2_HAVE_CURL=1)
+endif()
 
 # ---------------------------------------------------------------------------
 # sm2-emu — the executable

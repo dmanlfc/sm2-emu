@@ -21,6 +21,9 @@
 #include "render/vk/present_pass.h"
 #include "render/vk/tilemap_pass.h"
 
+#include <unordered_map>
+#include <vector>
+
 namespace sm2::render::vk {
 
 /// The Vulkan implementation of render::Backend.
@@ -52,6 +55,10 @@ public:
     void               shutdown_overlay() override;
 
     [[nodiscard]] Capabilities capabilities() const override;
+
+    [[nodiscard]] TextureHandle create_texture(u32 w, u32 h, const u8* rgba) override;
+    void                        destroy_texture(TextureHandle handle) override;
+    [[nodiscard]] void*         texture_imgui_id(TextureHandle handle) const override;
 
     [[nodiscard]] bool begin_frame() override;
     void compute_tilemap(const hw::Model2MachineBase& machine,
@@ -116,6 +123,38 @@ private:
     VkDescriptorPool m_overlay_pool             = VK_NULL_HANDLE;
     VkFormat         m_overlay_target_format    = VK_FORMAT_UNDEFINED;
     bool             m_overlay_renderer_ready    = false;
+
+    // -- overlay textures (game-picker box art) ------------------------------
+    // Neither ImGui's Vulkan backend nor this renderer has a deletion queue, so
+    // destroy_texture() retires resources here and begin_frame() reclaims them
+    // once kFramesInFlight frames have passed -- a submitted frame may still
+    // sample a just-destroyed texture.
+    struct OverlayTexture {
+        VkImage         image      = VK_NULL_HANDLE;
+        VkImageView     view       = VK_NULL_HANDLE;
+        VmaAllocation   allocation = nullptr;
+        VkDescriptorSet set        = VK_NULL_HANDLE;  ///< the ImTextureID
+    };
+    struct RetiredTexture {
+        OverlayTexture texture;
+        u32            frames_remaining = 0;
+    };
+    /// A create_texture() staging buffer, retired the same way: its copy is
+    /// recorded into the current frame, so it must outlive the frames in flight.
+    struct RetiredStaging {
+        VkBuffer      buffer           = VK_NULL_HANDLE;
+        VmaAllocation allocation       = nullptr;
+        u32           frames_remaining = 0;
+    };
+
+    VkSampler                                            m_overlay_sampler = VK_NULL_HANDLE;
+    Backend::TextureHandle                               m_next_texture_handle = 1;
+    std::unordered_map<Backend::TextureHandle, OverlayTexture> m_textures;
+    std::vector<RetiredTexture>                          m_texture_graveyard;
+    std::vector<RetiredStaging>                          m_staging_graveyard;
+
+    void reclaim_retired_textures();
+    void free_overlay_texture(OverlayTexture& texture);
 };
 
 }  // namespace sm2::render::vk

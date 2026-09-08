@@ -34,6 +34,7 @@
 #include "osd/frame_pacer.h"
 #include "osd/gui.h"
 #include "osd/input.h"
+#include "osd/scraper.h"
 #include "osd/window.h"
 #include "render/backend.h"
 #include "rom/game_db.h"
@@ -152,6 +153,7 @@ struct Options {
         bool nvram_dir  = false;
         bool screenshot_dir = false;
         bool render_scale = false;
+        bool graphics_backend = false;
     } given;
 
     bool        show_help  = false;
@@ -316,6 +318,7 @@ void print_usage()
             if (!parse_graphics_backend(argv[++index], &out->graphics_backend)) {
                 return false;
             }
+            out->given.graphics_backend = true;
             if (out->graphics_backend == GraphicsBackendChoice::Software) {
                 out->start_in_software_renderer = true;
             }
@@ -552,6 +555,81 @@ void print_usage()
     return (std::filesystem::path(dir) / (game + "-" + stamp + ".png")).string();
 }
 
+/// A loaded machine plus the pointers the loop reaches into it for. The four
+/// concrete downcasts are kept because the boot-test diagnostics and copro
+/// self-test need a specific board's registers. Audio is not opened here: the
+/// boot-test path needs a machine but no audio, so the caller opens it.
+struct LoadedMachine {
+    sm2::rom::GameSpec                          game;
+    std::unique_ptr<sm2::hw::Model2MachineBase> machine_iface;
+
+    sm2::hw::Model2*         machine      = nullptr;
+    sm2::hw::Model2B*        machine_2b   = nullptr;
+    sm2::hw::Model2C*        machine_2c   = nullptr;
+    sm2::hw::Model2Original* machine_orig = nullptr;
+
+    sm2::cpu::i960::I960* main_cpu    = nullptr;
+    sm2::hw::SoundBoard*  sound_board = nullptr;
+    const sm2::hw::I8251* sound_link  = nullptr;
+};
+
+/// Load, build, wire, point at NVRAM and reset a machine. The one path both a
+/// --game/positional launch and the picker use, so a picked game boots exactly
+/// like a directly-launched one. nullopt (logged) on failure.
+[[nodiscard]] std::optional<LoadedMachine> load_game(sm2::rom::GameDatabase& database,
+                                                     const std::string& rom_path,
+                                                     const std::string& game_name,
+                                                     const std::string& nvram_dir,
+                                                     bool               log_unmapped)
+{
+    using namespace sm2;
+    std::optional<rom::LoadResult> result = rom::RomLoader::load(database, rom_path, game_name);
+    if (!result.has_value()) {
+        return std::nullopt;
+    }
+
+    LoadedMachine out;
+    out.game          = result->game;
+    out.machine_iface = hw::create_machine(result->game, std::move(result->roms));
+    if (!out.machine_iface) {
+        return std::nullopt;
+    }
+
+    // Downcast once; accessors below stay written against the concrete class.
+    out.machine      = dynamic_cast<hw::Model2*>(out.machine_iface.get());
+    out.machine_2b   = dynamic_cast<hw::Model2B*>(out.machine_iface.get());
+    out.machine_2c   = dynamic_cast<hw::Model2C*>(out.machine_iface.get());
+    out.machine_orig = dynamic_cast<hw::Model2Original*>(out.machine_iface.get());
+    if (out.machine != nullptr) {
+        out.main_cpu    = &out.machine->cpu();
+        out.sound_board = &out.machine->sound();
+        out.sound_link  = &out.machine->uart();
+    } else if (out.machine_2b != nullptr) {
+        out.main_cpu    = &out.machine_2b->cpu();
+        out.sound_board = &out.machine_2b->sound();
+        out.sound_link  = &out.machine_2b->uart();
+    } else if (out.machine_2c != nullptr) {
+        out.main_cpu    = &out.machine_2c->cpu();
+        out.sound_board = &out.machine_2c->sound();
+        out.sound_link  = &out.machine_2c->uart();
+    } else if (out.machine_orig != nullptr) {
+        out.main_cpu    = &out.machine_orig->cpu();
+        out.sound_board = &out.machine_orig->sound();
+        out.sound_link  = &out.machine_orig->uart();
+    } else {
+        SM2_ERROR("internal error: create_machine returned an unexpected machine type");
+        return std::nullopt;
+    }
+
+    out.machine_iface->set_nvram_directory(nvram_dir);
+    out.machine_iface->set_log_unmapped(log_unmapped);
+    out.machine_iface->load_nvram();
+    // init() resets before the NVRAM is in place, so reset again to let the
+    // program read the settings it saved last time.
+    out.machine_iface->reset();
+    return out;
+}
+
 }  // namespace
 
 int main(int argc, char** argv)
@@ -637,6 +715,9 @@ int main(int argc, char** argv)
     if (!options.given.screenshot_dir) {
         options.config.screenshot_dir = from_file.screenshot_dir;
     }
+    options.config.artwork_dir    = from_file.artwork_dir;
+    // No CLI flag for scrape_artwork; the file value wins over the default.
+    options.config.scrape_artwork = from_file.scrape_artwork;
     if (!options.given.log_level) {
         options.config.log_level = from_file.log_level;
     }
@@ -644,6 +725,25 @@ int main(int argc, char** argv)
     options.config.window_height = from_file.window_height;
     if (!options.given.render_scale) {
         options.config.render_scale = from_file.render_scale;
+    }
+
+    // Renderer: --graphics-backend wins, else the saved choice selects it. The
+    // config string is kept populated either way so the GUI round-trips it.
+    if (options.given.graphics_backend) {
+        options.config.graphics_backend =
+            options.graphics_backend == GraphicsBackendChoice::Software ? "software"
+            : options.graphics_backend == GraphicsBackendChoice::Opengl ? "opengl"
+                                                                        : "vulkan";
+    } else {
+        options.config.graphics_backend = from_file.graphics_backend;
+        if (options.config.graphics_backend == "software") {
+            options.graphics_backend        = GraphicsBackendChoice::Software;
+            options.start_in_software_renderer = true;
+        } else if (options.config.graphics_backend == "opengl") {
+            options.graphics_backend = GraphicsBackendChoice::Opengl;
+        } else if (options.config.graphics_backend == "vulkan") {
+            options.graphics_backend = GraphicsBackendChoice::Vulkan;
+        }  // empty: keep kDefaultGraphicsBackend
     }
 
     // Settings with no command-line flag come straight from the file, so the
@@ -671,11 +771,14 @@ int main(int argc, char** argv)
     options.config.gun_buttons              = from_file.gun_buttons;
 
     // Default saves/screenshots under the platform data dir; a cwd-ini dev tree
-    // keeps them relative (see resolve_default_paths / data_directory).
+    // keeps them relative (see resolve_default_paths / data_directory). Artwork
+    // goes beside the ini, so pass its directory.
     const bool config_in_cwd =
         options.config_path.empty()
         && config_path == std::string("sm2-emu.ini");
-    resolve_default_paths(&options.config, config_in_cwd);
+    const std::string config_dir =
+        std::filesystem::path(config_path).parent_path().string();
+    resolve_default_paths(&options.config, config_in_cwd, config_dir);
 
     log::Level level = log::Level::Info;
     (void)parse_log_level(options.config.log_level, &level);
@@ -783,11 +886,17 @@ int main(int argc, char** argv)
         }
     }
 
+    // Show the picker when launched with no ROM but a rom_dir to browse, heading
+    // for the windowed loop. The DB is then built unconditionally below.
+    const bool will_show_picker = options.rom_path.empty() && options.game.empty()
+                                  && !options.config.rom_dir.empty()
+                                  && !options.list_games && options.boot_test == 0;
+
     // -- ROM database ------------------------------------------------------
     // Loaded before anything graphical, so a bad ROM path fails immediately
     // instead of after a window has appeared.
     rom::GameDatabase database;
-    if (options.list_games || !options.rom_path.empty()) {
+    if (options.list_games || !options.rom_path.empty() || will_show_picker) {
         const std::optional<std::string> database_path = rom::GameDatabase::locate();
         if (!database_path.has_value() || !database.load(*database_path)) {
             return 1;
@@ -815,77 +924,41 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    std::optional<rom::LoadResult> loaded;
-    if (!options.rom_path.empty()) {
-        loaded = rom::RomLoader::load(database, options.rom_path, options.game);
-        if (!loaded.has_value()) {
+    // --dump-roms is terminal and kept ahead of load_game(), which consumes the
+    // RomSet into the machine.
+    if (!options.rom_path.empty() && !options.dump_roms.empty()) {
+        std::optional<rom::LoadResult> dump =
+            rom::RomLoader::load(database, options.rom_path, options.game);
+        if (!dump.has_value()) {
             return 1;
         }
-        if (!options.dump_roms.empty()) {
-            return rom::RomLoader::dump_regions(loaded->roms, options.dump_roms) ? 0 : 1;
+        return rom::RomLoader::dump_regions(dump->roms, options.dump_roms) ? 0 : 1;
+    }
+
+    // -- the machine -------------------------------------------------------
+    // Bind the returned struct's pointers to the locals the rest of main()
+    // already uses, so nothing downstream changes.
+    std::optional<LoadedMachine> loaded;
+    if (!options.rom_path.empty()) {
+        loaded = load_game(database, options.rom_path, options.game,
+                           options.config.nvram_dir, options.log_unmapped);
+        if (!loaded.has_value()) {
+            return 1;
         }
     } else {
         SM2_INFO("no ROM given; starting with the bring-up display only");
     }
 
-    // -- the machine -------------------------------------------------------
-    // hw::create_machine dispatches on loaded->game.board. All four boards are
-    // implemented; downcasting here keeps every accessor below written against
-    // the concrete class.
-    //
-    // The main CPU and sound link are the same types on all four, so they are
-    // resolved once into pointers. The coprocessor differs, and so does the
-    // sound board: the original Model 2 carries the Model 1 audio board (68000 +
-    // YM3438 + two MultiPCMs) rather than the CRX family's 68000/SCSP. Both
-    // present hw::SoundBoard, so the audio path is written once against that
-    // interface; the two places needing a specific board's registers cast.
-    std::unique_ptr<hw::Model2MachineBase> machine_iface;
-    hw::Model2*         machine      = nullptr;
-    hw::Model2B*        machine_2b   = nullptr;
-    hw::Model2C*        machine_2c   = nullptr;
-    hw::Model2Original* machine_orig = nullptr;
+    hw::Model2MachineBase* machine_iface = loaded.has_value() ? loaded->machine_iface.get()
+                                                              : nullptr;
+    hw::Model2*         machine      = loaded.has_value() ? loaded->machine      : nullptr;
+    hw::Model2B*        machine_2b   = loaded.has_value() ? loaded->machine_2b   : nullptr;
+    hw::Model2C*        machine_2c   = loaded.has_value() ? loaded->machine_2c   : nullptr;
+    hw::Model2Original* machine_orig = loaded.has_value() ? loaded->machine_orig : nullptr;
 
-    cpu::i960::I960* main_cpu    = nullptr;
-    hw::SoundBoard*  sound_board = nullptr;
-    const hw::I8251* sound_link  = nullptr;
-
-    if (loaded.has_value()) {
-        machine_iface = hw::create_machine(loaded->game, std::move(loaded->roms));
-        if (!machine_iface) {
-            return 1;
-        }
-        machine      = dynamic_cast<hw::Model2*>(machine_iface.get());
-        machine_2b   = dynamic_cast<hw::Model2B*>(machine_iface.get());
-        machine_2c   = dynamic_cast<hw::Model2C*>(machine_iface.get());
-        machine_orig = dynamic_cast<hw::Model2Original*>(machine_iface.get());
-        if (machine != nullptr) {
-            main_cpu    = &machine->cpu();
-            sound_board = &machine->sound();
-            sound_link  = &machine->uart();
-        } else if (machine_2b != nullptr) {
-            main_cpu    = &machine_2b->cpu();
-            sound_board = &machine_2b->sound();
-            sound_link  = &machine_2b->uart();
-        } else if (machine_2c != nullptr) {
-            main_cpu    = &machine_2c->cpu();
-            sound_board = &machine_2c->sound();
-            sound_link  = &machine_2c->uart();
-        } else if (machine_orig != nullptr) {
-            main_cpu    = &machine_orig->cpu();
-            sound_board = &machine_orig->sound();
-            sound_link  = &machine_orig->uart();
-        } else {
-            SM2_ERROR("internal error: create_machine returned an unexpected "
-                      "machine type");
-            return 1;
-        }
-        machine_iface->set_nvram_directory(options.config.nvram_dir);
-        machine_iface->set_log_unmapped(options.log_unmapped);
-        machine_iface->load_nvram();
-        // init() resets before the NVRAM is in place, so reset again to let the
-        // program read the settings it saved last time.
-        machine_iface->reset();
-    }
+    cpu::i960::I960* main_cpu    = loaded.has_value() ? loaded->main_cpu    : nullptr;
+    hw::SoundBoard*  sound_board = loaded.has_value() ? loaded->sound_board : nullptr;
+    const hw::I8251* sound_link  = loaded.has_value() ? loaded->sound_link  : nullptr;
 
     // -- headless boot test ------------------------------------------------
     // No window, no Vulkan: just run the machine and report where it got to.
@@ -1331,6 +1404,21 @@ int main(int argc, char** argv)
         // above owns whichever GPU API actually draws what it builds.
         osd::Gui gui;
         gui.set_config_path(config_path);
+        // The renderers this build offers, most-preferred first. Software only
+        // presents through a GPU backend, so it needs one present.
+        {
+            std::vector<std::string> renderers;
+#if defined(SM2_HAVE_VULKAN)
+            renderers.emplace_back("vulkan");
+#endif
+#if defined(SM2_HAVE_OPENGL_DESKTOP) || defined(SM2_HAVE_OPENGL_ES)
+            renderers.emplace_back("opengl");
+#endif
+            if (!renderers.empty()) {
+                renderers.emplace_back("software");
+            }
+            gui.set_available_renderers(std::move(renderers));
+        }
         if (!gui.init(window.handle())) {
             SM2_ERROR("could not initialise the GUI overlay");
             SDL_Quit();
@@ -1344,10 +1432,51 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        // Show the overlay when launched without a ROM so there is something to
-        // interact with.
+        // Declared here so its dtor joins the thread after the loop but before
+        // the backend is torn down (the thread-safety contract needs that order).
+        osd::Scraper scraper;
+
+        // No ROM: show the picker if there is a rom_dir, else the settings
+        // overlay so a ROM directory can be set.
         if (!machine_iface) {
-            gui.show();
+            if (will_show_picker) {
+                // A set is launchable when <name>.zip / .7z is present, the same
+                // resolution the loader uses.
+                const std::filesystem::path dir(options.config.rom_dir);
+                std::vector<osd::Gui::PickerEntry> entries;
+                std::vector<osd::Scraper::Entry>   scrape_list;
+                for (const rom::GameSpec& game : database.games()) {
+                    std::error_code error;
+                    bool present = false;
+                    for (const char* ext : {".zip", ".7z"}) {
+                        if (std::filesystem::exists(dir / (game.name + ext), error)
+                            && !error) {
+                            present = true;
+                            break;
+                        }
+                    }
+                    if (!present) {
+                        continue;
+                    }
+                    osd::Gui::PickerEntry entry;
+                    entry.name  = game.name;
+                    entry.title = game.title;
+                    entries.push_back(entry);
+                    scrape_list.push_back({game.name, game.title});
+                }
+                std::sort(entries.begin(), entries.end(),
+                          [](const osd::Gui::PickerEntry& a,
+                             const osd::Gui::PickerEntry& b) { return a.title < b.title; });
+
+                SM2_INFO("game picker: %zu launchable set(s) in '%s'", entries.size(),
+                         options.config.rom_dir.c_str());
+
+                scraper.start(options.config.artwork_dir, std::move(scrape_list),
+                              options.config.scrape_artwork);
+                gui.enable_picker(std::move(entries), backend.get(), &scraper);
+            } else {
+                gui.show();
+            }
         }
 
         // GPU names for the settings dropdown.
@@ -1739,7 +1868,7 @@ int main(int argc, char** argv)
                 }
                 {
                     auto scope = core::maybe_scope(stage_build, profile_sample);
-                    backend->submit_polygons(machine_iface.get(), video);
+                    backend->submit_polygons(machine_iface, video);
                 }
             }
 
@@ -1875,6 +2004,50 @@ int main(int argc, char** argv)
                 SM2_ERROR("frame submission failed");
                 exit_code = 1;
                 break;
+            }
+
+            // The picker chose a game. Handled after the frame is submitted so
+            // there is no half-drawn frame; join the scraper and free its
+            // textures before the machine takes over.
+            if (std::optional<std::string> pick = gui.take_pending_launch()) {
+                scraper.stop();
+                gui.release_picker_textures();
+                backend->wait_idle();
+
+                std::optional<LoadedMachine> chosen =
+                    load_game(database, options.config.rom_dir + "/" + *pick + ".zip",
+                              *pick, options.config.nvram_dir, options.log_unmapped);
+                if (!chosen.has_value()) {
+                    for (const char* ext : {".7z", ".zip"}) {
+                        chosen = load_game(database,
+                                           options.config.rom_dir + "/" + *pick + ext,
+                                           *pick, options.config.nvram_dir,
+                                           options.log_unmapped);
+                        if (chosen.has_value()) break;
+                    }
+                }
+                if (!chosen.has_value()) {
+                    SM2_ERROR("picker: could not load '%s' from rom_dir", pick->c_str());
+                } else {
+                    loaded        = std::move(chosen);
+                    machine_iface = loaded->machine_iface.get();
+                    machine       = loaded->machine;
+                    machine_2b    = loaded->machine_2b;
+                    machine_2c    = loaded->machine_2c;
+                    machine_orig  = loaded->machine_orig;
+                    main_cpu      = loaded->main_cpu;
+                    sound_board   = loaded->sound_board;
+                    sound_link    = loaded->sound_link;
+
+                    if (sound_board != nullptr) {
+                        static_cast<void>(audio.init(sound_board->sample_rate()));
+                    }
+                    gui.hide_picker();
+                    window.set_title(build_title());
+                    SM2_INFO("picker: launched '%s'", loaded->game.name.c_str());
+                }
+                pacer.resync();
+                continue;
             }
 
             // A series has to be written as it goes, and the readback is only

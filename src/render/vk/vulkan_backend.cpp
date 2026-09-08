@@ -19,9 +19,11 @@
 
 #include <imgui.h>
 #include <imgui_impl_vulkan.h>
+#include <vk_mem_alloc.h>
 
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 
 namespace sm2::render::vk {
 
@@ -115,6 +117,9 @@ bool VulkanBackend::begin_frame()
     if (!m_context.begin_frame()) {
         return false;
     }
+    // begin_frame() fenced the reused slot, so anything retired long enough ago
+    // is now unreferenced.
+    reclaim_retired_textures();
     m_native_view = m_present.begin_frame();
     return true;
 }
@@ -277,19 +282,41 @@ bool VulkanBackend::init_overlay(osd::Gui& /*gui*/)
 {
     m_overlay_target_format = m_context.swapchain_format();
 
+    // ImGui's own font set plus one AddTexture set per picker tile's art. 256
+    // covers a screen of tiles with headroom.
+    constexpr u32 kOverlayDescriptorSets = 256;
     VkDescriptorPoolSize pool_sizes[] = {
-        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 16},
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, kOverlayDescriptorSets},
     };
     VkDescriptorPoolCreateInfo pool_info{};
     pool_info.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-    pool_info.maxSets       = 16;
+    pool_info.maxSets       = kOverlayDescriptorSets;
     pool_info.poolSizeCount = 1;
     pool_info.pPoolSizes    = pool_sizes;
 
     if (vkCreateDescriptorPool(m_context.device(), &pool_info, nullptr, &m_overlay_pool)
         != VK_SUCCESS) {
         SM2_ERROR("gui: failed to create descriptor pool");
+        return false;
+    }
+
+    // One LINEAR clamp sampler shared by every picker texture.
+    VkSamplerCreateInfo sampler{};
+    sampler.sType        = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    sampler.magFilter    = VK_FILTER_LINEAR;
+    sampler.minFilter    = VK_FILTER_LINEAR;
+    sampler.mipmapMode   = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    sampler.minLod       = 0.0F;
+    sampler.maxLod       = 0.0F;
+    if (vkCreateSampler(m_context.device(), &sampler, nullptr, &m_overlay_sampler)
+        != VK_SUCCESS) {
+        SM2_ERROR("gui: failed to create overlay sampler");
+        vkDestroyDescriptorPool(m_context.device(), m_overlay_pool, nullptr);
+        m_overlay_pool = VK_NULL_HANDLE;
         return false;
     }
 
@@ -333,12 +360,217 @@ void VulkanBackend::shutdown_overlay()
     if (!m_overlay_renderer_ready) {
         return;
     }
+    // Device is idle here (shutdown() waits), so free every texture outright;
+    // the ImGui descriptor sets go with the pool.
+    m_context.wait_idle();
+    for (auto& [handle, texture] : m_textures) {
+        static_cast<void>(handle);
+        vkDestroyImageView(m_context.device(), texture.view, nullptr);
+        vmaDestroyImage(m_context.allocator(), texture.image, texture.allocation);
+    }
+    m_textures.clear();
+    for (RetiredTexture& retired : m_texture_graveyard) {
+        vkDestroyImageView(m_context.device(), retired.texture.view, nullptr);
+        vmaDestroyImage(m_context.allocator(), retired.texture.image,
+                        retired.texture.allocation);
+    }
+    m_texture_graveyard.clear();
+
     ImGui_ImplVulkan_Shutdown();
+    if (m_overlay_sampler != VK_NULL_HANDLE) {
+        vkDestroySampler(m_context.device(), m_overlay_sampler, nullptr);
+        m_overlay_sampler = VK_NULL_HANDLE;
+    }
     if (m_overlay_pool != VK_NULL_HANDLE) {
         vkDestroyDescriptorPool(m_context.device(), m_overlay_pool, nullptr);
         m_overlay_pool = VK_NULL_HANDLE;
     }
     m_overlay_renderer_ready = false;
+}
+
+// ---------------------------------------------------------------------------
+// Overlay textures (game-picker box art)
+// ---------------------------------------------------------------------------
+
+Backend::TextureHandle VulkanBackend::create_texture(u32 w, u32 h, const u8* rgba)
+{
+    if (w == 0 || h == 0 || rgba == nullptr || !m_overlay_renderer_ready) {
+        return 0;
+    }
+
+    const VmaAllocator allocator = m_context.allocator();
+    const VkDevice     device    = m_context.device();
+    const VkDeviceSize bytes     = static_cast<VkDeviceSize>(w) * h * 4;
+
+    OverlayTexture texture;
+
+    VkImageCreateInfo image{};
+    image.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    image.imageType     = VK_IMAGE_TYPE_2D;
+    image.format        = VK_FORMAT_R8G8B8A8_UNORM;
+    image.extent        = VkExtent3D{w, h, 1};
+    image.mipLevels     = 1;
+    image.arrayLayers   = 1;
+    image.samples       = VK_SAMPLE_COUNT_1_BIT;
+    image.tiling        = VK_IMAGE_TILING_OPTIMAL;
+    image.usage         = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    image.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
+    image.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+    VmaAllocationCreateInfo image_alloc{};
+    image_alloc.usage = VMA_MEMORY_USAGE_AUTO;
+    if (vmaCreateImage(allocator, &image, &image_alloc, &texture.image, &texture.allocation,
+                       nullptr)
+        != VK_SUCCESS) {
+        SM2_WARN("overlay: texture image allocation failed (%ux%u)", w, h);
+        return 0;
+    }
+
+    // A throwaway host-visible staging buffer; this is not a hot path, so no
+    // persistent ring.
+    VkBufferCreateInfo staging{};
+    staging.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    staging.size        = bytes;
+    staging.usage       = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    staging.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    VmaAllocationCreateInfo staging_alloc{};
+    staging_alloc.usage = VMA_MEMORY_USAGE_AUTO;
+    staging_alloc.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+                        | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    staging_alloc.requiredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    VkBuffer          staging_buffer     = VK_NULL_HANDLE;
+    VmaAllocation     staging_allocation = nullptr;
+    VmaAllocationInfo staging_info{};
+    if (vmaCreateBuffer(allocator, &staging, &staging_alloc, &staging_buffer,
+                        &staging_allocation, &staging_info)
+        != VK_SUCCESS) {
+        vmaDestroyImage(allocator, texture.image, texture.allocation);
+        SM2_WARN("overlay: texture staging allocation failed");
+        return 0;
+    }
+    std::memcpy(staging_info.pMappedData, rgba, static_cast<usize>(bytes));
+
+    // Recorded into this frame's (open) command buffer: UNDEFINED -> TRANSFER_DST
+    // -> copy -> SHADER_READ_ONLY, the same shape the tilemap surfaces use.
+    const VkCommandBuffer cmd = m_context.cmd();
+    record_image_barrier(cmd, texture.image, VK_IMAGE_ASPECT_COLOR_BIT,
+                         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, 0,
+                         VK_PIPELINE_STAGE_2_COPY_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT);
+
+    VkBufferImageCopy region{};
+    region.bufferRowLength   = w;
+    region.bufferImageHeight = h;
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.layerCount = 1;
+    region.imageExtent = VkExtent3D{w, h, 1};
+    vkCmdCopyBufferToImage(cmd, staging_buffer, texture.image,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+    record_image_barrier(cmd, texture.image, VK_IMAGE_ASPECT_COLOR_BIT,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                         VK_PIPELINE_STAGE_2_COPY_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
+                         VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+                         VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
+
+    // The copy is only recorded, so the staging buffer must outlive the frames
+    // in flight.
+    m_staging_graveyard.push_back({staging_buffer, staging_allocation, Context::kFramesInFlight});
+
+    VkImageViewCreateInfo view{};
+    view.sType    = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    view.image    = texture.image;
+    view.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    view.format   = VK_FORMAT_R8G8B8A8_UNORM;
+    view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    view.subresourceRange.levelCount = 1;
+    view.subresourceRange.layerCount = 1;
+    if (vkCreateImageView(device, &view, nullptr, &texture.view) != VK_SUCCESS) {
+        vmaDestroyImage(allocator, texture.image, texture.allocation);
+        SM2_WARN("overlay: texture image view creation failed");
+        return 0;
+    }
+
+    texture.set = ImGui_ImplVulkan_AddTexture(m_overlay_sampler, texture.view,
+                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    if (texture.set == VK_NULL_HANDLE) {
+        vkDestroyImageView(device, texture.view, nullptr);
+        vmaDestroyImage(allocator, texture.image, texture.allocation);
+        SM2_WARN("overlay: ImGui_ImplVulkan_AddTexture failed (pool exhausted?)");
+        return 0;
+    }
+
+    const Backend::TextureHandle handle = m_next_texture_handle++;
+    m_textures.emplace(handle, texture);
+    return handle;
+}
+
+void VulkanBackend::destroy_texture(TextureHandle handle)
+{
+    if (handle == 0) {
+        return;
+    }
+    const auto it = m_textures.find(handle);
+    if (it == m_textures.end()) {
+        return;
+    }
+    // An in-flight frame may still sample it; free after the frames in flight.
+    m_texture_graveyard.push_back({it->second, Context::kFramesInFlight});
+    m_textures.erase(it);
+}
+
+void* VulkanBackend::texture_imgui_id(TextureHandle handle) const
+{
+    if (handle == 0) {
+        return nullptr;
+    }
+    const auto it = m_textures.find(handle);
+    if (it == m_textures.end()) {
+        return nullptr;
+    }
+    return reinterpret_cast<void*>(it->second.set);
+}
+
+void VulkanBackend::free_overlay_texture(OverlayTexture& texture)
+{
+    if (texture.set != VK_NULL_HANDLE) {
+        ImGui_ImplVulkan_RemoveTexture(texture.set);
+        texture.set = VK_NULL_HANDLE;
+    }
+    if (texture.view != VK_NULL_HANDLE) {
+        vkDestroyImageView(m_context.device(), texture.view, nullptr);
+        texture.view = VK_NULL_HANDLE;
+    }
+    if (texture.image != VK_NULL_HANDLE) {
+        vmaDestroyImage(m_context.allocator(), texture.image, texture.allocation);
+        texture.image      = VK_NULL_HANDLE;
+        texture.allocation = nullptr;
+    }
+}
+
+void VulkanBackend::reclaim_retired_textures()
+{
+    for (auto it = m_texture_graveyard.begin(); it != m_texture_graveyard.end();) {
+        if (it->frames_remaining > 0) {
+            --it->frames_remaining;
+            ++it;
+            continue;
+        }
+        free_overlay_texture(it->texture);
+        it = m_texture_graveyard.erase(it);
+    }
+    for (auto it = m_staging_graveyard.begin(); it != m_staging_graveyard.end();) {
+        if (it->frames_remaining > 0) {
+            --it->frames_remaining;
+            ++it;
+            continue;
+        }
+        vmaDestroyBuffer(m_context.allocator(), it->buffer, it->allocation);
+        it = m_staging_graveyard.erase(it);
+    }
 }
 
 }  // namespace sm2::render::vk

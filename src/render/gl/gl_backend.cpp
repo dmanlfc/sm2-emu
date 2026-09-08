@@ -21,6 +21,7 @@
 #include <imgui_impl_opengl3.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdlib>
 
 namespace sm2::render::gl {
@@ -109,6 +110,45 @@ Capabilities GlBackend::capabilities() const
     // No GPU timer queries wired up yet (GL_TIME_ELAPSED could be added later).
     caps.gpu_timing = false;
     return caps;
+}
+
+// GL is synchronous with no frames-in-flight ring, so the handle is just the GL
+// texture name and create/destroy are immediate.
+
+Backend::TextureHandle GlBackend::create_texture(u32 w, u32 h, const u8* rgba)
+{
+    if (w == 0 || h == 0 || rgba == nullptr) {
+        return 0;
+    }
+    GLuint texture = 0;
+    GenTextures(1, &texture);
+    if (texture == 0) {
+        return 0;
+    }
+    BindTexture(GL_TEXTURE_2D, texture);
+    TexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, static_cast<GLsizei>(w),
+                 static_cast<GLsizei>(h));
+    TexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(w),
+                  static_cast<GLsizei>(h), GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    return texture;
+}
+
+void GlBackend::destroy_texture(TextureHandle handle)
+{
+    if (handle == 0) {
+        return;
+    }
+    const GLuint texture = static_cast<GLuint>(handle);
+    DeleteTextures(1, &texture);
+}
+
+void* GlBackend::texture_imgui_id(TextureHandle handle) const
+{
+    return reinterpret_cast<void*>(static_cast<uintptr_t>(handle));  // GL name is the ID
 }
 
 bool GlBackend::begin_frame()

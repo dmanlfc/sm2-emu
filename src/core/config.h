@@ -89,6 +89,10 @@ struct Config {
     /// best-scoring device.
     std::string gpu;
 
+    /// Preferred renderer: "software", "vulkan" or "opengl" (empty = build
+    /// default). --graphics-backend overrides it; takes effect next launch.
+    std::string graphics_backend;
+
     // -- steering wheel ----------------------------------------------------
 
     /// Synthesised centring resistance on a wheel that supports it: a spring
@@ -187,6 +191,16 @@ struct Config {
     /// F12 screenshots. Empty here; defaulted like nvram_dir.
     std::string screenshot_dir;
 
+    /// Game-picker art/metadata cache. Always derived as `<config dir>/artwork` by
+    /// resolve_default_paths(). A runtime field only, for the picker to read.
+    std::string artwork_dir;
+
+    // -- library -----------------------------------------------------------
+
+    /// Let the game picker fetch art/descriptions from ArcadeDB. Off keeps
+    /// sm2-emu offline; the picker still lists and launches every game.
+    bool scrape_artwork = true;
+
     // -- diagnostics -------------------------------------------------------
 
     bool validation = false;
@@ -209,9 +223,9 @@ struct Config {
 /// self-contained like default_config_path().
 [[nodiscard]] std::string data_directory(bool config_in_cwd);
 
-/// Fill nvram_dir/screenshot_dir if empty, under data_directory(). rom_dir is
-/// left alone (no default). Call after load_config() and the CLI merge.
-void resolve_default_paths(Config* config, bool config_in_cwd);
+/// Artwork_dir goes beside the ini, in `config_dir/artwork`
+void resolve_default_paths(Config* config, bool config_in_cwd,
+                           const std::string& config_dir);
 
 /// Read `path` into `out`, leaving fields the file does not mention alone.
 ///

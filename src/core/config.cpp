@@ -198,7 +198,8 @@ std::string data_directory(bool config_in_cwd)
     return ".";
 }
 
-void resolve_default_paths(Config* config, bool config_in_cwd)
+void resolve_default_paths(Config* config, bool config_in_cwd,
+                           const std::string& config_dir)
 {
     const std::filesystem::path base = data_directory(config_in_cwd);
     if (config->nvram_dir.empty()) {
@@ -206,6 +207,13 @@ void resolve_default_paths(Config* config, bool config_in_cwd)
     }
     if (config->screenshot_dir.empty()) {
         config->screenshot_dir = (base / "screenshots").string();
+    }
+    // Artwork always sits beside the config file; not user-adjustable, so set
+    // unconditionally (never read from the ini).
+    {
+        const std::filesystem::path dir =
+            config_dir.empty() ? std::filesystem::path(".") : std::filesystem::path(config_dir);
+        config->artwork_dir = (dir / "artwork").string();
     }
     // rom_dir intentionally left empty: no sensible default.
 }
@@ -328,6 +336,14 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             }
         } else if (key == "gpu") {
             out->gpu = value;
+        } else if (key == "graphics_backend") {
+            const std::string choice = lowered(value);
+            if (choice.empty() || choice == "software" || choice == "vulkan"
+                || choice == "opengl") {
+                out->graphics_backend = choice;
+            } else {
+                bad_value();
+            }
         } else if (key == "wheel_ffb") {
             if (!parse_bool(value, &out->wheel_ffb)) {
                 bad_value();
@@ -437,6 +453,10 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             out->nvram_dir = value;
         } else if (key == "screenshot_dir") {
             out->screenshot_dir = value;
+        } else if (key == "scrape_artwork") {
+            if (!parse_bool(value, &out->scrape_artwork)) {
+                bad_value();
+            }
         } else if (key == "log_level") {
             log::Level level = log::Level::Info;
             if (parse_log_level(value, &level)) {
@@ -515,6 +535,10 @@ bool save_config(const std::string& path, const Config& config)
         << "# Exact device name as --list-gpus prints it. Empty picks the best one.\n"
         << "gpu = " << config.gpu << "\n"
         << "\n"
+        << "# Renderer: software, vulkan or opengl (whichever the build has).\n"
+        << "# Empty picks the build default. Applies on the next launch.\n"
+        << "graphics_backend = " << config.graphics_backend << "\n"
+        << "\n"
         << "# Steering-wheel force feedback: a synthesised centring spring (the\n"
         << "# drive board is not emulated, so this is a feel, not the real motor\n"
         << "# force). Strength is 0..100 percent of the wheel's maximum torque.\n"
@@ -570,6 +594,11 @@ bool save_config(const std::string& path, const Config& config)
         << "\n"
         << "# Where F12 screenshots are written.\n"
         << "screenshot_dir = " << config.screenshot_dir << "\n"
+        << "\n"
+        << "# Let the game picker fetch box art and descriptions from ArcadeDB\n"
+        << "# over the network. Off keeps the emulator offline: the picker still\n"
+        << "# lists and launches every game, with placeholder tiles and no text.\n"
+        << "scrape_artwork = " << bool_text(config.scrape_artwork) << "\n"
         << "\n"
         << "# Vulkan validation layers. Slow, and only useful when developing.\n"
         << "validation = " << bool_text(config.validation) << "\n"

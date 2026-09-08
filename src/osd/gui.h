@@ -16,14 +16,18 @@
 
 #include "core/config.h"
 #include "core/types.h"
+#include "render/backend.h"
 
 #include <array>
+#include <optional>
 #include <string>
 #include <vector>
 
 struct SDL_Window;
 
 namespace sm2::osd {
+
+class Scraper;
 
 /// ImGui overlay drawn on top of the emulator's output.
 ///
@@ -84,6 +88,12 @@ public:
     /// so a saved file goes back to the same place (including a --config path).
     void set_config_path(std::string path) { m_config_path = std::move(path); }
 
+    /// The renderer names this build offers, for the Settings dropdown.
+    void set_available_renderers(std::vector<std::string> names)
+    {
+        m_available_renderers = std::move(names);
+    }
+
     /// Pixel extent of the backend's overlay framebuffer; new_frame() scales
     /// ImGui to it so the overlay fills the presented image (see new_frame()).
     /// Zero leaves ImGui's own value alone.
@@ -93,8 +103,49 @@ public:
         m_framebuffer_height = height;
     }
 
+    // -- game picker -------------------------------------------------------
+
+    struct PickerEntry {
+        std::string name;   ///< MAME short name: launch key + cache key.
+        std::string title;
+        std::string year;
+        std::string manufacturer;
+        std::string description;
+
+        /// One uploaded image: its texture and pixel size (size kept so the
+        /// tile can letterbox rather than stretch).
+        struct Art1 {
+            render::Backend::TextureHandle handle = 0;
+            float                          w      = 0.0f;
+            float                          h      = 0.0f;
+        };
+        /// Artwork in display order; the highlighted game cycles through it.
+        std::vector<Art1> art;
+        enum class Art { Unknown, Loaded, None } art_state = Art::Unknown;
+        bool metadata_loaded = false;
+    };
+
+    /// Turn the picker on with the launchable games (sorted for display), the
+    /// backend (main-thread texture create/destroy) and the scraper (polled
+    /// each frame). A null scraper or empty list still lists/launches by title.
+    void enable_picker(std::vector<PickerEntry> entries, render::Backend* backend,
+                       Scraper* scraper);
+
+    [[nodiscard]] bool picker_active() const { return m_picker_enabled; }
+
+    /// Turn the picker off (a game launched); entries are kept for re-showing.
+    void hide_picker();
+
+    /// The game chosen since the last call, or nullopt. Polled by the main loop.
+    [[nodiscard]] std::optional<std::string> take_pending_launch();
+
+    /// Free every picker texture. Main thread, before the backend is destroyed.
+    void release_picker_textures();
+
 private:
     void apply_scale();
+    void draw_picker(Config& config);
+    void poll_scraper_and_load_metadata();
     void draw_menu_bar(Config& config);
     void draw_settings(Config& config, const std::vector<std::string>& gpu_names,
                        class Input* input);
@@ -107,6 +158,7 @@ private:
 
     SDL_Window* m_window      = nullptr;
     std::string m_config_path;  ///< where Save writes; empty -> default path.
+    std::vector<std::string> m_available_renderers;  ///< for the Settings dropdown
     bool        m_visible     = false;
     bool        m_initialised = false;
     float       m_ui_scale    = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.
@@ -130,6 +182,18 @@ private:
     // Gun-button bind capture: which (player, role) awaits a press, or -1.
     int m_gun_capture_player = -1;
     u32 m_gun_capture_role   = 0;
+
+    // -- game picker state -------------------------------------------------
+    bool                       m_picker_enabled = false;
+    std::vector<PickerEntry>   m_picker_entries;
+    render::Backend*           m_picker_backend = nullptr;
+    Scraper*                   m_picker_scraper = nullptr;
+    int                        m_picker_selected = 0;
+    std::optional<std::string> m_pending_launch;
+    float                      m_picker_scroll = 0.0f;   ///< seconds since the pick (scroll clock)
+    bool                       m_picker_scroll_to_sel = false;
+    float                      m_picker_art_timer = 0.0f;
+    int                        m_picker_art_index = 0;
 };
 
 }  // namespace sm2::osd

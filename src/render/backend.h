@@ -228,6 +228,24 @@ public:
 
     [[nodiscard]] virtual Capabilities capabilities() const = 0;
 
+    // -- overlay textures (for the game picker's box art) --------------------
+
+    /// Opaque GUI-texture handle; 0 is none. Kept API-neutral (a u64, not an
+    /// ImTextureID) so this header pulls in neither imgui.h nor any GPU type.
+    using TextureHandle = u64;
+
+    /// Upload w*h RGBA8 (row 0 = top) as an overlay texture; 0 on failure. Main
+    /// thread, between begin_frame() and end_frame() (the Vulkan path records
+    /// the upload into the current frame's command buffer). `rgba` is w*h*4 bytes.
+    [[nodiscard]] virtual TextureHandle create_texture(u32 w, u32 h, const u8* rgba) = 0;
+
+    /// Release a create_texture() handle. Safe even if a submitted frame still
+    /// samples it: the backend defers the GPU free past the frames in flight.
+    virtual void destroy_texture(TextureHandle handle) = 0;
+
+    /// The ImTextureID (as void*) for ImGui::Image(); nullptr for 0/unknown.
+    [[nodiscard]] virtual void* texture_imgui_id(TextureHandle handle) const = 0;
+
     // -- per-frame sequence, in the order documented above --------------------
 
     [[nodiscard]] virtual bool begin_frame() = 0;
