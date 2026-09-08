@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.24)
 #
 
 project(sm2-emu
-    VERSION     0.9.3
+    VERSION     0.9.4
     DESCRIPTION "Sega Model 2 arcade emulator"
     LANGUAGES   C CXX
 )
