@@ -238,6 +238,16 @@ public:
         m_crtc_yoffset = y;
     }
 
+    /// Treat polygons in [lo, hi) of the polygon ROM (word offset) as
+    /// double-sided, exempting them from backface culling. Scopes the exemption
+    /// to a single-sided model (Top Skater's character) without affecting the
+    /// rest of the scene. lo==hi disables it.
+    void set_double_sided_rom_range(u32 lo, u32 hi)
+    {
+        m_double_sided_lo = lo;
+        m_double_sided_hi = hi;
+    }
+
     /// 0x10400000. Sky Target reads this; nothing is known about why.
     [[nodiscard]] u32 polygon_count() const;
 
@@ -359,6 +369,14 @@ private:
 
     s16 m_crtc_xoffset = 0;
     s16 m_crtc_yoffset = 0;
+
+    /// Polygon-ROM word-offset range treated as double-sided. Empty by default.
+    u32 m_double_sided_lo = 0;
+    u32 m_double_sided_hi = 0;
+
+    /// Current record's object address (ROM offset), 0xffffffff for RAM. Set by
+    /// geo_object_data, tested in check_culling.
+    u32 m_current_object_addr = 0;
 
     /// Counters for the frame being built, so build_render_list can report what
     /// the earlier stages discarded.

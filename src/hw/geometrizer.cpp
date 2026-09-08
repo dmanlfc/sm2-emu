@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 
 // MAME aliases the generic parameter slots of its vertex type so the geometry
@@ -422,8 +423,16 @@ static s32 clip_polygon(PolyVertex *v, s32 num_vertices, PolyVertex *vout, ClipP
 
 inline bool Geometrizer::check_culling(RasterState *raster, u32 attr, float min_z, float max_z)
 {
+	// Objects in the double-sided ROM range skip the backface cull.
+	static const bool s_no_skater_ds = std::getenv("SM2_NO_SKATER_DOUBLESIDE") != nullptr;
+	const bool force_double_sided =
+		!s_no_skater_ds
+		&& m_double_sided_hi > m_double_sided_lo
+		&& m_current_object_addr >= m_double_sided_lo
+		&& m_current_object_addr < m_double_sided_hi;
+
 	/* if doubleside is disabled */
-	if (((attr >> 17) & 1) == 0)
+	if (((attr >> 17) & 1) == 0 && !force_double_sided)
 	{
 		/* if it's the backface, cull it */
 		if (raster->command_buffer[9] & 0x00800000)
@@ -1707,16 +1716,19 @@ u32 *Geometrizer::geo_object_data(GeoState *geo, u32 opcode, u32 *input)
 	{
 		/* Fast polygon RAM */
 		obp = &geo->polygon_ram1[oba & 0x7fff];
+		m_current_object_addr = 0xffffffffu;  // RAM: never in the ROM range
 	}
 	else if (oba & 0x00800000)
 	{
 		/* Polygon ROM */
 		obp = &geo->polygon_rom[oba & geo->polygon_rom_mask];
+		m_current_object_addr = oba & geo->polygon_rom_mask;
 	}
 	else
 	{
 		/* Slow Polygon RAM */
 		obp = &geo->polygon_ram0[oba & 0x7fff];
+		m_current_object_addr = 0xffffffffu;
 	}
 
 	// if count == 0 then rolls over to max size

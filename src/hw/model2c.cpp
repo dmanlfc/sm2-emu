@@ -388,6 +388,12 @@ bool Model2C::init(const rom::GameSpec& game, rom::RomSet roms)
     m_geometry.attach(as_words(m_rom_polygons), as_halfwords(m_rom_textures),
                       m_buffer_ram);
 
+    // Top Skater's single-sided character model (ROM word offsets ~0x0013d9..
+    // 0x01bc2d) is exempted from backface culling; the environment starts ~0x022400.
+    if (game.name == "topskatr" || game.parent == "topskatr") {
+        m_geometry.set_double_sided_rom_range(0x00000000u, 0x00020000u);
+    }
+
     // Sound board.
     m_sound.attach(m_roms.region("audiocpu"), m_roms.region("samples"));
     // The DSB music board, for the sets that ship one (Sega Touring Car and
