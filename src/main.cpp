@@ -1325,6 +1325,8 @@ int main(int argc, char** argv)
         return the_cpu.faulted() ? 1 : exit_code_boot_test;
     }
 
+    SDL_SetAppMetadata("sm2-emu", SM2_VERSION, "sm2-emu");
+
     if (!SDL_Init(0)) {
         SM2_ERROR("SDL_Init failed: %s", SDL_GetError());
         return 1;
