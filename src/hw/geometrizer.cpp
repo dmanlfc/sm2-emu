@@ -421,15 +421,18 @@ static s32 clip_polygon(PolyVertex *v, s32 num_vertices, PolyVertex *vout, ClipP
 	return outcount;
 }
 
+// True when the current object lies in the double-sided ROM range.
+inline bool Geometrizer::two_sided_lit() const
+{
+	return m_double_sided_hi > m_double_sided_lo
+		&& m_current_object_addr >= m_double_sided_lo
+		&& m_current_object_addr < m_double_sided_hi;
+}
+
 inline bool Geometrizer::check_culling(RasterState *raster, u32 attr, float min_z, float max_z)
 {
 	// Objects in the double-sided ROM range skip the backface cull.
-	static const bool s_no_skater_ds = std::getenv("SM2_NO_SKATER_DOUBLESIDE") != nullptr;
-	const bool force_double_sided =
-		!s_no_skater_ds
-		&& m_double_sided_hi > m_double_sided_lo
-		&& m_current_object_addr >= m_double_sided_lo
-		&& m_current_object_addr < m_double_sided_hi;
+	const bool force_double_sided = two_sided_lit();
 
 	/* if doubleside is disabled */
 	if (((attr >> 17) & 1) == 0 && !force_double_sided)
@@ -1067,7 +1070,7 @@ void Geometrizer::geo_parse_np_ns(GeoState *geo, u32 *input, u32 count)
 			texparam = &geo->texture_parameters[(attr>>18) & 0x1f];
 
 			/* calculate luminance */
-			if ((dotl * dotp) < 0) luminance = 0;
+			if ((dotl * dotp) < 0 && !two_sided_lit()) luminance = 0;
 			else luminance = fabs(dotl);
 
 			luminance = (luminance * texparam->diffuse) + texparam->ambient;
@@ -1214,7 +1217,7 @@ void Geometrizer::geo_parse_np_s(GeoState *geo, u32 *input, u32 count)
 			texparam = &geo->texture_parameters[(attr>>18) & 0x1f];
 
 			/* calculate luminance and specular */
-			if ((dotl * dotp) < 0) luminance = 0;
+			if ((dotl * dotp) < 0 && !two_sided_lit()) luminance = 0;
 			else luminance = fabs(dotl);
 
 			specular = ((2*dotl) * normal.pz) - geo->light.pz;
@@ -1381,7 +1384,7 @@ void Geometrizer::geo_parse_nn_ns(GeoState *geo, u32 *input, u32 count, bool com
 			texparam = &geo->texture_parameters[(attr>>18) & 0x1f];
 
 			/* calculate luminance */
-			if ((dotl * dotp) < 0) luminance = 0;
+			if ((dotl * dotp) < 0 && !two_sided_lit()) luminance = 0;
 			else luminance = fabs(dotl);
 
 			luminance = (luminance * texparam->diffuse) + texparam->ambient;
@@ -1573,7 +1576,7 @@ void Geometrizer::geo_parse_nn_s(GeoState *geo, u32 *input, u32 count, bool comp
 			texparam = &geo->texture_parameters[(attr>>18) & 0x1f];
 
 			/* calculate luminance and specular */
-			if ((dotl * dotp) < 0) luminance = 0;
+			if ((dotl * dotp) < 0 && !two_sided_lit()) luminance = 0;
 			else luminance = fabs(dotl);
 
 			specular = ((2*dotl) * normal.pz) - geo->light.pz;

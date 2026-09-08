@@ -312,6 +312,9 @@ private:
     [[nodiscard]] u16 float_to_zval(float floatval, s32 z_adjust);
     [[nodiscard]] bool check_culling(RasterState* raster, u32 attr, float min_z, float max_z);
 
+    /// True when the current object is in the double-sided ROM range.
+    [[nodiscard]] bool two_sided_lit() const;
+
     template <unsigned NumVerts>
     void model2_3d_process_polygon(RasterState* raster, u32 attr);
 
