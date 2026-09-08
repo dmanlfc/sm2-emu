@@ -76,6 +76,12 @@ if(SM2_BUILD_VULKAN)
             sm2_imgui_vk
             SDL3::SDL3
     )
+    # GCC 12-14 emit a spurious -Wfree-nonheap-object inside std::vector when it
+    # over-inlines allocate/deallocate at -O2+ (seen in context.cpp's instance
+    # setup on the aarch64 toolchain); the code is correct, so silence it here.
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_compile_options(sm2_render_vk PRIVATE -Wno-free-nonheap-object)
+    endif()
 endif()
 
 # ---------------------------------------------------------------------------
