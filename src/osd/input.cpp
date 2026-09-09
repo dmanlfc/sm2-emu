@@ -1225,8 +1225,12 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         }
     }
 
+    // Virtual On is a single-cabinet twin-stick title: both 8-way sticks and all
+    // four buttons are player one's, split across IN1 and IN2.
+    const bool is_von = game.name == "von" || game.parent == "von";
+
     for (const Pad& pad : m_pads) {
-        if (pad.handle == nullptr || pad.player >= kPlayers) {
+        if (pad.handle == nullptr || pad.player >= kPlayers || is_von) {
             continue;
         }
         u8& port = ports[1 + pad.player];
@@ -1355,6 +1359,67 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                 inputs->analog[channel] = left ? 0xff : 0x00;
             }
         }
+    }
+
+    // Virtual On twin-stick layout. port map puts the whole cabinet on player one,
+    // split across two ports:
+    //   IN1: 0x01 Left Shot, 0x02 Left Dash, and the LEFT stick's four directions
+    //   IN2: 0x01 Right Shot, 0x02 Right Dash, and the RIGHT stick's directions
+    // One pad drives both levers: the analog sticks are the two levers, 
+    // the d-pad and face buttons double the left and right levers respectively 
+    // for the custom twin-stick feel, the bumpers are the dash (boost) buttons
+    // and the triggers are the shot buttons.
+    if (is_von) {
+        u8 in1 = 0;  // bits to press (active high here; folded in active-low below)
+        u8 in2 = 0;
+
+        for (const Pad& pad : m_pads) {
+            if (pad.handle == nullptr || pad.player != 0) {
+                continue;
+            }
+
+            // Left lever: left analog stick, doubled by the d-pad.
+            in1 |= stick_bits(SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTX),
+                              SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTY));
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_UP))    in1 |= kUp;
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_DOWN))  in1 |= kDown;
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_LEFT))  in1 |= kLeft;
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_RIGHT)) in1 |= kRight;
+
+            // Right lever: right analog stick, doubled by the face buttons
+            // (Y/A up/down, X/B left/right) to account for the custom twin-stick.
+            in2 |= stick_bits(SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_RIGHTX),
+                              SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_RIGHTY));
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_NORTH)) in2 |= kUp;
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_SOUTH)) in2 |= kDown;
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_WEST))  in2 |= kLeft;
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_EAST))  in2 |= kRight;
+
+            // Shots on the triggers, dashes (boost) on the bumpers.
+            if (SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > kPedalFloor) {
+                in1 |= kButton1;  // Left Shot
+            }
+            if (SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > kPedalFloor) {
+                in2 |= kButton1;  // Right Shot (IN2 0x01)
+            }
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER)) {
+                in1 |= kButton2;  // Left Dash
+            }
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)) {
+                in2 |= kButton2;  // Right Dash (IN2 0x02)
+            }
+
+            // Start and coin, as for any other pad.
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_START)) {
+                inputs->in0 &= static_cast<u8>(~kStart1);
+            }
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_BACK)) {
+                inputs->in0 &= static_cast<u8>(~kCoin1);
+            }
+        }
+
+        inputs->in1 &= static_cast<u8>(~in1);
+        inputs->in2 &= static_cast<u8>(~in2);
     }
 
     gather_lightguns(inputs, game);
