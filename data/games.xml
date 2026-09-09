@@ -4956,7 +4956,9 @@
     <title>Virtua Cop</title>
     <manufacturer>Sega</manufacturer>
     <year>1994</year>
-
+    <devices>
+      <device name="model1io2"/>
+    </devices>
     <inputs>
       <input type="common"/>
       <input type="gun1"/>
