@@ -762,6 +762,9 @@ int main(int argc, char** argv)
     options.config.wheel_accel_invert  = from_file.wheel_accel_invert;
     options.config.wheel_brake_invert  = from_file.wheel_brake_invert;
 
+    options.config.pad_rumble          = from_file.pad_rumble;
+    options.config.pad_rumble_strength = from_file.pad_rumble_strength;
+
     options.config.lightgun_crosshair       = from_file.lightgun_crosshair;
     options.config.lightgun_recoil          = from_file.lightgun_recoil;
     options.config.lightgun_recoil_strength = from_file.lightgun_recoil_strength;
@@ -1730,7 +1733,11 @@ int main(int argc, char** argv)
                 input.set_recoil(options.config.lightgun_recoil,
                                  options.config.lightgun_recoil_strength);
                 input.set_gun_buttons(options.config.gun_buttons);
-                input.update_force_feedback(loaded->game, machine_iface->drive_board_force());
+                input.set_pad_rumble(options.config.pad_rumble,
+                                     options.config.pad_rumble_strength);
+                const u8 drive_force = machine_iface->drive_board_force();
+                input.update_force_feedback(loaded->game, drive_force);
+                input.update_pad_rumble(loaded->game, drive_force);
                 if (options.coin_at != 0) {
                     // Scripted coin, start and character confirmation, so an
                     // unattended capture can reach the game itself rather than

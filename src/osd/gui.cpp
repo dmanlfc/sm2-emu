@@ -478,6 +478,11 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::EndTabItem();
         }
 
+        if (ImGui::BeginTabItem("Gamepad")) {
+            draw_gamepad_tab(config, input);
+            ImGui::EndTabItem();
+        }
+
         if (ImGui::BeginTabItem("Light Gun")) {
             draw_lightgun_tab(config, input);
             ImGui::EndTabItem();
@@ -765,6 +770,37 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
 // ---------------------------------------------------------------------------
 // Light Gun tab
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Gamepad tab
+// ---------------------------------------------------------------------------
+
+void Gui::draw_gamepad_tab(Config& config, Input* input)
+{
+    const int pads = input != nullptr ? static_cast<int>(input->pad_count()) : 0;
+    if (pads > 0) {
+        ImGui::TextDisabled("%d gamepad%s connected.", pads, pads == 1 ? "" : "s");
+    } else {
+        ImGui::TextDisabled("No gamepad connected. Settings still apply once one is.");
+    }
+    ImGui::Spacing();
+
+    ImGui::Checkbox("Rumble", &config.pad_rumble);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Vibration on driving games: the jolt of an impact, and a\n"
+                          "buzz that rises with steering angle. Other games stay quiet.");
+    }
+
+    ImGui::BeginDisabled(!config.pad_rumble);
+    int strength = static_cast<int>(config.pad_rumble_strength);
+    if (ImGui::SliderInt("Rumble strength", &strength, 0, 100, "%d%%")) {
+        strength = ((strength + 5) / 10) * 10;  // snap to 10 % steps
+        config.pad_rumble_strength = static_cast<u32>(std::clamp(strength, 0, 100));
+    }
+    ImGui::EndDisabled();
+}
 
 void Gui::draw_lightgun_tab(Config& config, Input* input)
 {
