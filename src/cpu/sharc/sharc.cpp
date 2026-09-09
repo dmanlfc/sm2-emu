@@ -2101,6 +2101,34 @@ void SHARC::COMPUTE(u32 opcode)
                 REG(rn) = s32(UIREG(rn) | r);
                 break;
             }
+            case 0x10: { // FEXT Rx BY Ry
+                int bit = REG(ry) & 0x3f;
+                int len = (REG(ry) >> 6) & 0x3f;
+                if (len == 0 || bit >= 32) REG(rn) = 0;
+                else REG(rn) = s32((UIREG(rx) >> bit) & ((1u << std::min(len, 32)) - 1u));
+                SET_FLAG_SZ(UIREG(rn));
+                if (bit + len > 32) m_astat |= SV;
+                break;
+            }
+            case 0x12: { // FEXT Rx BY Ry (Sign Extended)
+                int bit = REG(ry) & 0x3f;
+                int len = (REG(ry) >> 6) & 0x3f;
+                if (len == 0 || bit >= 32) REG(rn) = 0;
+                else if (bit + len > 32) REG(rn) = s32(UIREG(rx) >> bit);
+                else REG(rn) = sext(UIREG(rx) >> bit, std::min(len, 32));
+                SET_FLAG_SZ(UIREG(rn));
+                if (bit + len > 32) m_astat |= SV;
+                break;
+            }
+            case 0x19: { // Rn = Rn OR FDEP Rx BY Ry
+                int bit = REG(ry) & 0x3f;
+                int len = (REG(ry) >> 6) & 0x3f;
+                if (len != 0 && bit < 32)
+                    REG(rn) = s32(UIREG(rn) | ((UIREG(rx) & ((1u << std::min(len, 32)) - 1u)) << bit));
+                SET_FLAG_SZ(UIREG(rn));
+                if (bit + len > 32) m_astat |= SV;
+                break;
+            }
             case 0x30: { // BSET Rx BY Ry
                 u32 sh = UIREG(ry);
                 REG(rn) = REG(rx);
