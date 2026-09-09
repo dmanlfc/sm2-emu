@@ -149,6 +149,9 @@ public:
     /// True when a wheel is connected, for the settings UI to show its controls.
     [[nodiscard]] bool wheel_connected() const { return m_wheel.handle != nullptr; }
 
+    /// How many gamepads are open, for the settings UI to report.
+    [[nodiscard]] usize pad_count() const { return m_pads.size(); }
+
     /// The lowest-numbered wheel button currently held, or -1 if none. The
     /// button-binding UI polls this to capture "press the button for X".
     [[nodiscard]] s32 pressed_wheel_button() const;
@@ -175,6 +178,9 @@ public:
     /// Call once per frame after poll(). Does nothing without a wheel, without
     /// force feedback, or for a title that is not a driving game (`drive_board`).
     void update_force_feedback(const rom::GameSpec& game, u8 drive_force);
+
+    /// Drive gamepad rumble from the drive-board byte; call once per frame.
+    void update_pad_rumble(const rom::GameSpec& game, u8 drive_force);
 
     /// Names of the gamepads currently open, in player order. An empty string means
     /// that player has no pad.
@@ -207,6 +213,13 @@ public:
     {
         m_recoil_enabled  = enabled;
         m_recoil_strength = strength;
+    }
+
+    /// Gamepad rumble settings, pushed from the GUI/config each frame.
+    void set_pad_rumble(bool enabled, u32 strength)
+    {
+        m_pad_rumble_enabled  = enabled;
+        m_pad_rumble_strength = strength;
     }
 
     /// Per-player gun button bindings: the evdev key code for each GunRole,
@@ -244,6 +257,10 @@ private:
         SDL_Gamepad*   handle = nullptr;
         SDL_JoystickID id     = 0;
         u32            player = 0;
+        /// Last magnitudes sent, and frames since, so a lapsing effect is re-armed.
+        u16            rumble_low  = 0;
+        u16            rumble_high = 0;
+        int            rumble_age  = 0;
     };
 
     /// A steering wheel, opened through the joystick API because a wheel has no
@@ -335,6 +352,13 @@ private:
     static constexpr usize kMaxGuns = 8;
     bool                             m_recoil_enabled  = true;
     u32                              m_recoil_strength = 60;
+
+    /// The burst currently playing, shared by every pad: one drive board, one car.
+    int                              m_pad_rumble_level    = 0;
+    int                              m_pad_rumble_dir      = 0;  ///< last jolt direction
+    int                              m_pad_rumble_hold     = 0;  ///< frames left in the burst
+    bool                             m_pad_rumble_enabled  = true;
+    u32                              m_pad_rumble_strength = 60;
     mutable std::array<bool, kMaxGuns> m_trigger_was_down{};
 
     /// Gun role -> evdev key code, per player; Sinden defaults until the config

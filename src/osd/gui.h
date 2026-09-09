@@ -150,6 +150,7 @@ private:
     void draw_settings(Config& config, const std::vector<std::string>& gpu_names,
                        class Input* input);
     void draw_wheel_tab(Config& config, class Input* input);
+    void draw_gamepad_tab(Config& config, class Input* input);
     void draw_lightgun_tab(Config& config, class Input* input);
     void draw_status_bar(float measured_hz);
     void draw_fps_overlay(float measured_hz, const char* renderer_label);

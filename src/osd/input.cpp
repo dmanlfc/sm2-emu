@@ -339,6 +339,8 @@ void Input::shutdown()
 {
     for (Pad& pad : m_pads) {
         if (pad.handle != nullptr) {
+            // Silence the motors, or a pad left mid-effect keeps buzzing after exit.
+            SDL_RumbleGamepad(pad.handle, 0, 0, 0);
             SDL_CloseGamepad(pad.handle);
             pad.handle = nullptr;
         }
@@ -431,6 +433,7 @@ void Input::remove_gamepad(SDL_JoystickID id)
 
     SM2_INFO("player %u's gamepad was disconnected", found->player + 1);
     if (found->handle != nullptr) {
+        SDL_RumbleGamepad(found->handle, 0, 0, 0);
         SDL_CloseGamepad(found->handle);
     }
     // The remaining pads keep their positions. Compacting would move a player
@@ -980,6 +983,91 @@ void Input::update_force_feedback(const rom::GameSpec& game, u8 drive_force)
     }
 
     SM2_DEBUG("ffb: cmd=0x%02x level=%d rumble=%d", drive_force, level, rumble_now);
+}
+
+namespace {
+/// Directional drive-board levels: 0 is a release, and the board never commands above 7.
+constexpr int kMinSteps  = 1;
+constexpr int kFullSteps = 7;
+}  // namespace
+
+void Input::update_pad_rumble(const rom::GameSpec& game, u8 drive_force)
+{
+    if (m_pads.empty()) {
+        return;
+    }
+
+    const int ceiling = static_cast<int>(
+        std::clamp(m_pad_rumble_strength, 0u, 100u) * 65535 / 100);
+    const bool active = m_pad_rumble_enabled && game.has_steering();
+
+    // Jolts: the drive board's directional codes, which are short bursts, not a held force.
+    int impact = 0;
+    if (active) {
+        const int cmd   = drive_force & 0xf0;
+        const int steps = drive_force & 0x0f;
+        if ((cmd == 0x50 || cmd == 0x60) && steps >= kMinSteps) {
+            // Start at a floor; a pad motor cannot render the smallest levels.
+            const int min_felt = ceiling / 4;
+            const int reach    = std::min(steps, kFullSteps) - kMinSteps;
+            impact = min_felt
+                   + (ceiling - min_felt) * reach / (kFullSteps - kMinSteps);
+
+            const int dir = (cmd == 0x50) ? -1 : 1;
+            if (dir != m_pad_rumble_dir) {
+                impact = std::min(impact * 3 / 2, 65535);  // a flip is the sharper hit
+                m_pad_rumble_dir = dir;
+            }
+        }
+    }
+
+    // Cornering load: the board's answer is a centring spring, so synthesise a buzz instead.
+    int cornering = 0;
+    if (active) {
+        if (SDL_Gamepad* pad = pad_for(0)) {
+            const int deflection =
+                std::abs(SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX));
+            constexpr int kDeadzone = 7000;
+            if (deflection > kDeadzone) {
+                constexpr int kSpan = 32767 - kDeadzone;
+                const int over = std::min(deflection - kDeadzone, kSpan);
+                cornering = (ceiling * 2 / 5) * over / kSpan;  // kept under the jolts
+            }
+        }
+    }
+
+    const int target = std::max(impact, cornering);
+    SM2_DEBUG("pad rumble: cmd=0x%02x impact=%d cornering=%d", drive_force, impact, cornering);
+
+    // Hold the level for a burst rather than tracking frame by frame, so a pad does not drone.
+    constexpr int kHoldFrames = 12;   // ~200 ms at 57.5 Hz
+    if (target > 0) {
+        m_pad_rumble_level = target;
+        m_pad_rumble_hold  = kHoldFrames;
+    } else if (m_pad_rumble_hold > 0 && --m_pad_rumble_hold == 0) {
+        m_pad_rumble_level = 0;
+        m_pad_rumble_dir   = 0;
+    }
+
+    // The big motor carries the body, the small one a lighter edge.
+    const auto low  = static_cast<u16>(std::clamp(m_pad_rumble_level, 0, 65535));
+    const auto high = static_cast<u16>(std::clamp(m_pad_rumble_level / 2, 0, 65535));
+
+    for (Pad& pad : m_pads) {
+        if (pad.handle == nullptr) {
+            continue;
+        }
+        // A rumble effect lapses, so re-arm on a change or every few frames.
+        const bool changed = low != pad.rumble_low || high != pad.rumble_high;
+        const bool stale   = (low != 0 || high != 0) && ++pad.rumble_age >= 4;
+        if (!changed && !stale) {
+            continue;
+        }
+        SDL_RumbleGamepad(pad.handle, low, high, 250);
+        pad.rumble_low  = low;
+        pad.rumble_high = high;
+        pad.rumble_age  = 0;
+    }
 }
 
 void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) const

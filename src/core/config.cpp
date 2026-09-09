@@ -360,6 +360,14 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_u32(value, &out->wheel_rumble_strength)) {
                 bad_value();
             }
+        } else if (key == "pad_rumble") {
+            if (!parse_bool(value, &out->pad_rumble)) {
+                bad_value();
+            }
+        } else if (key == "pad_rumble_strength") {
+            if (!parse_u32(value, &out->pad_rumble_strength)) {
+                bad_value();
+            }
         } else if (key == "wheel_lock_degrees") {
             if (!parse_u32(value, &out->wheel_lock_degrees)) {
                 bad_value();
@@ -477,6 +485,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     out->window_height = std::max(out->window_height, 192u);
     out->wheel_ffb_strength    = std::min(out->wheel_ffb_strength, 100u);
     out->wheel_rumble_strength = std::min(out->wheel_rumble_strength, 100u);
+    out->pad_rumble_strength = std::min(out->pad_rumble_strength, 100u);
     // A sane rotation range: tight enough to be usable, and never zero (which
     // would divide by zero when scaling the steering).
     out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
@@ -544,6 +553,11 @@ bool save_config(const std::string& path, const Config& config)
         << "# force). Strength is 0..100 percent of the wheel's maximum torque.\n"
         << "wheel_ffb = " << bool_text(config.wheel_ffb) << "\n"
         << "wheel_ffb_strength = " << config.wheel_ffb_strength << "\n"
+        << "\n"
+        << "# Gamepad rumble on driving games: the game's own impacts, plus a\n"
+        << "# buzz that rises with steering angle. 0..100 percent.\n"
+        << "pad_rumble = " << bool_text(config.pad_rumble) << "\n"
+        << "pad_rumble_strength = " << config.pad_rumble_strength << "\n"
         << "# Your wheel's own physical rotation range (a G-series PC wheel is\n"
         << "# ~900). The cabinet's ~240 of lock is mapped onto it, so matching\n"
         << "# your wheel gives arcade-like response.\n"

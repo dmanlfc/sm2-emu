@@ -160,6 +160,14 @@ struct Config {
     bool wheel_accel_invert = false;
     bool wheel_brake_invert = false;
 
+    // -- gamepad -----------------------------------------------------------
+
+    /// Gamepad rumble: the game's jolts plus a buzz rising with steering. Driving games only.
+    bool pad_rumble = true;
+
+    /// Rumble strength, 0..100 percent of the pad's motor range.
+    u32 pad_rumble_strength = 60;
+
     // -- light-gun buttons -------------------------------------------------
 
     /// Actions a gun's buttons can drive. Reload doubles as Missile on titles
