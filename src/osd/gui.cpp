@@ -522,6 +522,21 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::Text("(adb.arcadeitalia.net, by Motoschifo).");
             ImGui::Spacing();
             ImGui::Text("See NOTICE for full per-component attribution.");
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+            ImGui::Text("If you'd like to support development:");
+            ImGui::Spacing();
+            ImGui::Bullet();
+            ImGui::SameLine();
+            ImGui::Text("PayPal:");
+            ImGui::SameLine();
+            ImGui::TextLinkOpenURL("paypal.me/dmanlfc", "https://www.paypal.com/paypalme/dmanlfc");
+            ImGui::Bullet();
+            ImGui::SameLine();
+            ImGui::Text("Ko-fi:");
+            ImGui::SameLine();
+            ImGui::TextLinkOpenURL("ko-fi.com/dmanlfc", "https://ko-fi.com/dmanlfc");
             ImGui::EndTabItem();
         }
 
