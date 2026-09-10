@@ -633,13 +633,9 @@ struct LoadedMachine {
     return out;
 }
 
-/// Give the machine's link board a LAN transport when cabinet linking is on,
-/// or restore the in-process loopback when it is off. Called after every load
-/// so a game picked at runtime links exactly like a directly-launched one.
-///
-/// A socket that fails to bind is not fatal: UdpTransport reports not-connected
-/// and the board simply never links, which is the right degradation for an
-/// arcade floor where one cabinet is misconfigured.
+/// Attach a LAN transport to the link board when linking is on, else restore
+/// the loopback. Called after every load. A socket that fails to bind is not
+/// fatal: the board reports not-connected and simply never links.
 void configure_cabinet_link(sm2::hw::Model2MachineBase& machine,
                             const sm2::Config&          config)
 {
@@ -833,9 +829,8 @@ int main(int argc, char** argv)
 
     SM2_INFO("sm2-emu %s", SM2_VERSION);
 
-    // Bring up the platform sockets once (a no-op except on Windows). The
-    // process reclaims them at exit, so there is no matching shutdown on the
-    // many early-return paths below.
+    // Platform sockets, once (a no-op except on Windows). The process reclaims
+    // them at exit, so the early-return paths below need no matching shutdown.
     net::startup();
 
     if (!readable) {
@@ -2043,7 +2038,7 @@ int main(int argc, char** argv)
                 gui.set_framebuffer_size(fbw, fbh);
             }
             gui.new_frame();
-            // Feed the Network tab this frame's live link state from the board.
+            // Live link state for the Network tab.
             if (machine_iface != nullptr) {
                 const hw::M2Comm& comm = machine_iface->comm();
                 gui.set_link_status(osd::Gui::LinkStatus{

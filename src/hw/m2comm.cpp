@@ -121,11 +121,8 @@ void M2Comm::send_frame(int data_size)
     const int count = std::clamp(data_size, 0, kMaxFrame);
     m_transport->send(std::span<const u8>(m_buffer.data(), std::size_t(count)));
 
-    // A transport whose buffer has filled, or whose peer has gone, reports the
-    // send failed by dropping connected(). MAME treats that as the transmit side
-    // going away and lets the link die. On the loopback this is only reachable
-    // if the host reconfigures itself as a relay after the link came up, which
-    // makes it forward everything it receives back to itself.
+    // A dropped connected() is the transmit side going away; let the link die,
+    // as MAME does.
     if (!m_transport->connected() && m_linkalive == 0x01) {
         SM2_DEBUG("m2comm: transmit backed up, dropping the link");
         m_linkalive = 0x02;

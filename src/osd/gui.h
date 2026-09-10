@@ -94,9 +94,8 @@ public:
         m_available_renderers = std::move(names);
     }
 
-    /// Live cabinet-link state, for the Network tab's status line. Fed each
-    /// frame from the running machine's link board so the GUI need not depend on
-    /// the hw:: types. All zero/false when no machine is loaded or linking is off.
+    /// Live cabinet-link state for the Network tab, fed each frame so the GUI
+    /// need not depend on the hw:: types. All zero/false when unloaded or off.
     struct LinkStatus {
         bool active  = false;  ///< a LAN transport is attached (link enabled)
         bool enabled = false;  ///< the game has switched the board on

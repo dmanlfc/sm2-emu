@@ -1,18 +1,22 @@
+//  ____  __  __  ____         _____ __  __ _   _
+// / ___||  \/  ||___ \       | ____|  \/  | | | |
+// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
+//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
+// |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// A CommTransport that carries link-board frames over the LAN by UDP.
+// A Sega Model 2 arcade emulator.
+// Copyright (c) 2025+ Daniel Martin (dmanlfc)
+// SPDX-License-Identifier: BSD-3-Clause
 //
-// The Model 2 comms board is a ring: each cabinet receives from the one before
-// it and sends to the one after. This transport binds a local UDP port to
-// receive on and sends each outgoing frame to the next cabinet's address. A
-// frame is small (~0xe00 bytes) and maps one-to-one onto a datagram, so no
-// stream framing is needed; the ring protocol in M2Comm already re-sends state
-// every frame and tolerates the odd lost datagram, which is why UDP suits it
-// better than a TCP ring that would head-of-line block when a cabinet booted
-// late.
+// This header must not be removed. The source files in this project may not be
+// used to contribute to commercial projects or for monetary gain without the
+// express written permission of the author.
 //
-// Sending and receiving are driven from the board's per-frame vblank() tick, so
-// this never blocks: recv() drains whatever datagrams have arrived and hands
-// them over one at a time.
+// A CommTransport carrying link-board frames over a LAN by UDP. The board is a
+// ring: receive from the previous cabinet, send to the next. A frame maps
+// one-to-one onto a datagram; the ring protocol re-sends state every frame and
+// tolerates a lost datagram, so UDP fits and avoids a TCP ring's head-of-line
+// stall when a cabinet boots late. Driven from vblank(), so it never blocks.
 #pragma once
 
 #include "core/net.h"
@@ -30,17 +34,13 @@ namespace sm2::hw {
 
 class UdpTransport final : public CommTransport {
 public:
-    /// Received datagrams held before the oldest is dropped. The ring's steady
-    /// state is a couple of frames in flight; a deeper backlog means the far end
-    /// is racing ahead and the stale frames are worthless, so dropping them is
-    /// correct rather than merely tolerable.
+    /// Received datagrams held before the oldest is dropped; a deeper backlog is
+    /// the far end racing ahead, and the stale frames are worthless.
     static constexpr std::size_t kBacklog = 64;
 
-    /// Bind local_ip:local_port to receive on, and remember where to send. An
-    /// empty local_ip listens on every interface; an empty next_ip means this
-    /// node does not forward (the tail of a chain). Call ok() afterwards; on
-    /// failure the transport reports not-connected and behaves inertly, so the
-    /// board simply never links rather than crashing.
+    /// Bind local_ip:local_port to receive on and remember where to send. Empty
+    /// local_ip listens on every interface; empty next_ip means no forwarding
+    /// (tail of a chain). On failure ok() is false and the transport is inert.
     UdpTransport(const std::string& local_ip, u16 local_port,
                  std::string next_ip, u16 next_port);
 

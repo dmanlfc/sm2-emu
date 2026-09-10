@@ -513,9 +513,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
     out->wheel_lock_degrees  = std::clamp(out->wheel_lock_degrees, 180u, 270u);
     out->render_scale        = std::clamp(out->render_scale, 1u, kMaxRenderScale);
-    // A UDP port must fit a 16-bit field. Clamp rather than reject so a stray
-    // value still starts; 0 would bind an ephemeral port, useless for a fixed
-    // ring, so the floor is 1.
+    // A UDP port is 16-bit; floor at 1 since 0 binds an ephemeral port.
     out->link_port      = std::clamp(out->link_port, 1u, 65535u);
     out->link_next_port = std::clamp(out->link_next_port, 1u, 65535u);
     return true;

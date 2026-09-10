@@ -188,35 +188,25 @@ struct Config {
 
     // -- cabinet link (networking) -----------------------------------------
 
-    /// Link this instance to other cabinets over the LAN, so a set of machines
-    /// running the same linked title (Sega Rally, Daytona, Super GT 24h, Indy
-    /// 500, ...) race together. Off keeps the historical in-process loopback, so
-    /// a lone cabinet still boots its network check and settles as node 1 of 1.
-    ///
-    /// The comms board is a ring: each cabinet receives from the previous one and
-    /// sends to the next. So each instance needs its own listen address and the
-    /// address of the next cabinet in the ring; for two machines they simply
-    /// point at each other. The master/slave role within the link is still chosen
-    /// in the game's own test menu (via the Test/Service buttons), not here.
+    /// Link this cabinet to others over the LAN for linked titles (Sega Rally,
+    /// Daytona, ...). Off keeps the in-process loopback, so a lone cabinet boots
+    /// its network check and settles as node 1 of 1. The comms board is a ring:
+    /// each cabinet listens on its own address and sends to the next. The
+    /// master/slave role is still chosen in the game's own test menu.
     bool link_enabled = false;
 
-    /// This cabinet's own IPv4 address and the port it listens on. The IP is
-    /// prepopulated from the machine's primary network interface on first run
-    /// (see net::primary_interface); a blank IP binds every interface. Port
-    /// 15112 is MAME's own default.
+    /// This cabinet's own listen address; blank IP binds every interface. The IP
+    /// is prefilled from the primary NIC on first run. Port 15112 is MAME's default.
     std::string link_local_ip;
     std::string link_subnet_mask;  ///< Informational; prefilled from the NIC.
     u32         link_port = 15112;
 
-    /// The next cabinet in the ring: where this instance sends its frames. For a
-    /// two-cabinet link this is simply the other machine. Empty disables sending
-    /// (useful for the tail of a chain that is wired to loop back elsewhere).
+    /// The next cabinet in the ring (where frames are sent). Empty disables sending.
     std::string link_next_ip;
     u32         link_next_port = 15112;
 
-    /// Where this cabinet sits in the ring, 0-based. 0 is the head of the chain.
-    /// Purely for the operator's own bookkeeping and the status display; the
-    /// board still negotiates the actual link id/count from the ring frames.
+    /// This cabinet's 0-based position in the ring, for the operator's bookkeeping
+    /// and the status display; the board negotiates the real link id from frames.
     u32 link_cabinet_index = 0;
 
     // -- paths -------------------------------------------------------------

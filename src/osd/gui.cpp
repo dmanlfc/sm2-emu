@@ -966,7 +966,6 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
 
 void Gui::draw_network_tab(Config& config)
 {
-    // One editable text line into a std::string, with a fixed staging buffer.
     const auto text_field = [](const char* label, std::string& value, float width) {
         char buf[64];
         std::snprintf(buf, sizeof(buf), "%s", value.c_str());
@@ -1057,7 +1056,7 @@ void Gui::draw_network_tab(Config& config)
 
     ImGui::EndDisabled();
 
-    // -- live status, straight from the running link board -----------------
+    // Live status from the running link board.
     ImGui::SeparatorText("Status");
     if (!m_link_status.active) {
         ImGui::TextDisabled(config.link_enabled
@@ -1074,7 +1073,7 @@ void Gui::draw_network_tab(Config& config)
                            "Establishing the ring...");
     }
 
-    // Available interfaces, so the operator can see what to type.
+    // Available interfaces, so the operator sees what to type.
     ImGui::Spacing();
     ImGui::TextDisabled("This machine's interfaces:");
     for (const net::Interface& iface : net::interfaces()) {

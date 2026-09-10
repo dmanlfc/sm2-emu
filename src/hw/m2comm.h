@@ -61,10 +61,8 @@ public:
     void attach_shared(std::span<u8> shared) { m_shared = shared; }
     void set_frame_offset(u16 offset) { m_frame_offset = offset; }
 
-    /// Swap the frame transport. Passing nullptr restores the default in-process
-    /// loopback, so a lone cabinet keeps working with no network. A real LAN
-    /// transport (comm_udp.h) is injected here when cabinet linking is enabled.
-    /// The board takes ownership.
+    /// Swap the frame transport (takes ownership); nullptr restores the default
+    /// loopback. A LAN transport (comm_udp.h) is injected when linking is on.
     void set_transport(std::unique_ptr<CommTransport> transport);
 
     /// `comm_framesync`. MAME defaults it off, so the board does not make the

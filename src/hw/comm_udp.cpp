@@ -1,3 +1,16 @@
+//  ____  __  __  ____         _____ __  __ _   _
+// / ___||  \/  ||___ \       | ____|  \/  | | | |
+// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
+//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
+// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+//
+// A Sega Model 2 arcade emulator.
+// Copyright (c) 2025+ Daniel Martin (dmanlfc)
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// This header must not be removed. The source files in this project may not be
+// used to contribute to commercial projects or for monetary gain without the
+// express written permission of the author.
 //
 // See comm_udp.h.
 
@@ -25,15 +38,10 @@ UdpTransport::UdpTransport(const std::string& local_ip, u16 local_port,
 void UdpTransport::send(std::span<const u8> frame)
 {
     if (!m_socket.valid() || m_next_ip.empty()) {
-        // Nothing to send to is not a failure: the tail of a chain that loops
-        // back elsewhere legitimately has no next hop.
-        return;
+        return;  // no next hop (tail of a chain) is not a failure
     }
     if (!m_socket.send_to(frame, m_next_ip, m_next_port)) {
-        // A send that fails is the far side gone or the buffer wedged. Report it
-        // through connected() so the board drops the link, matching how the
-        // loopback signals a backed-up transmit.
-        m_send_failed = true;
+        m_send_failed = true;  // far side gone or buffer wedged; drops the link
     }
 }
 

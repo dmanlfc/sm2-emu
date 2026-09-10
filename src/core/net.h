@@ -1,10 +1,19 @@
+//  ____  __  __  ____         _____ __  __ _   _
+// / ___||  \/  ||___ \       | ____|  \/  | | | |
+// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
+//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
+// |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// Small cross-platform networking helpers.
+// A Sega Model 2 arcade emulator.
+// Copyright (c) 2025+ Daniel Martin (dmanlfc)
+// SPDX-License-Identifier: BSD-3-Clause
 //
-// Two things live here: enumerating the machine's network interfaces (so the
-// cabinet-link settings can prefill this host's own IPv4 address and subnet
-// mask), and a thin non-blocking UDP socket the link transport is built on.
-// Neither pulls in the machine or the OSD, so both sit in sm2_core.
+// This header must not be removed. The source files in this project may not be
+// used to contribute to commercial projects or for monetary gain without the
+// express written permission of the author.
+//
+// Cross-platform networking helpers: host interface enumeration (to prefill the
+// cabinet-link settings) and a non-blocking UDP socket for the link transport.
 #pragma once
 
 #include "core/types.h"
@@ -26,23 +35,16 @@ struct Interface {
     bool        loopback = false;
 };
 
-/// Every up, address-carrying IPv4 interface on this machine. Loopback is
-/// included but flagged, so a caller can prefer a real LAN address.
+/// Every up, address-carrying IPv4 interface; loopback is included but flagged.
 [[nodiscard]] std::vector<Interface> interfaces();
 
-/// The interface most likely to be the one on the cabinet LAN: the first
-/// non-loopback IPv4 interface, or nullopt if the machine has only loopback.
-/// Used to prefill the link settings on first run.
+/// First non-loopback IPv4 interface, or nullopt if only loopback exists.
 [[nodiscard]] std::optional<Interface> primary_interface();
 
 // -- non-blocking UDP socket ------------------------------------------------
 
-/// A datagram socket, bound to a local address, that never blocks. Thin wrapper
-/// over the platform sockets so the link transport carries no #ifdefs.
-///
-/// Errors are reported through valid()/last_error() rather than exceptions: a
-/// cabinet link that cannot bind should degrade to "not linked", not crash the
-/// emulator mid-session.
+/// A non-blocking datagram socket. Errors surface through valid()/last_error()
+/// so a link that cannot bind degrades to "not linked" rather than throwing.
 class UdpSocket {
 public:
     UdpSocket() = default;
@@ -53,30 +55,25 @@ public:
     UdpSocket(UdpSocket&& other) noexcept;
     UdpSocket& operator=(UdpSocket&& other) noexcept;
 
-    /// Bind to bind_ip:port for receiving. An empty bind_ip binds every
-    /// interface (INADDR_ANY). Returns false and sets last_error() on failure.
+    /// Bind to bind_ip:port; an empty bind_ip is INADDR_ANY. False on failure.
     bool open(const std::string& bind_ip, u16 port);
 
     void close();
 
     [[nodiscard]] bool valid() const { return m_fd != kInvalid; }
 
-    /// Send one datagram to dest_ip:port. Returns false on error (including a
-    /// full send buffer, which the caller treats as back-pressure). The
-    /// destination is resolved once and cached per (ip,port).
+    /// Send one datagram to dest_ip:port. False on error, including a full send
+    /// buffer, which the caller treats as back-pressure.
     bool send_to(std::span<const u8> data, const std::string& dest_ip, u16 port);
 
-    /// Receive one datagram into out, resized to the payload. Returns false when
-    /// nothing is waiting (the common non-blocking case) or on error; check
-    /// valid() to tell them apart.
+    /// Receive one datagram into out. False when nothing is waiting or on error.
     bool recv_from(std::vector<u8>& out);
 
     [[nodiscard]] const std::string& last_error() const { return m_last_error; }
 
 private:
 #if defined(_WIN32)
-    // A SOCKET is an unsigned pointer-sized handle on Windows; store it wide and
-    // compare against the platform's INVALID_SOCKET in the .cpp.
+    // Windows SOCKET is a pointer-sized unsigned handle.
     using Fd                       = std::uintptr_t;
     static constexpr Fd kInvalid   = static_cast<Fd>(~0ull);
 #else
@@ -88,9 +85,8 @@ private:
     std::string m_last_error;
 };
 
-/// Process-wide network startup/teardown. A no-op everywhere except Windows,
-/// where it drives WSAStartup/WSACleanup. Safe to call more than once; the
-/// last matching shutdown does the real teardown. main() calls startup() once.
+/// Process-wide network startup/teardown (WSAStartup/WSACleanup on Windows, a
+/// no-op elsewhere). Refcounted, so safe to call in matched pairs.
 bool startup();
 void shutdown();
 

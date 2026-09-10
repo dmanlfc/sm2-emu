@@ -1,15 +1,21 @@
+//  ____  __  __  ____         _____ __  __ _   _
+// / ___||  \/  ||___ \       | ____|  \/  | | | |
+// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
+//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
+// |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// Transport seam for the Model 2 communication board (see m2comm.h).
+// A Sega Model 2 arcade emulator.
+// Copyright (c) 2025+ Daniel Martin (dmanlfc)
+// SPDX-License-Identifier: BSD-3-Clause
 //
-// The ring protocol in M2Comm does not care how a frame reaches the next
-// cabinet; it only needs to hand one off and pick one up. Every send goes
-// through send() and every receive through recv(), so a single interface
-// abstracts the two socket ends MAME opens.
+// This header must not be removed. The source files in this project may not be
+// used to contribute to commercial projects or for monetary gain without the
+// express written permission of the author.
 //
-// LoopbackTransport is the default and reproduces the historical behaviour: a
-// frame sent goes straight onto a queue the same board reads back, so a lone
-// cabinet settles as node 1 of 1 exactly as an unconfigured MAME does. A real
-// LAN transport (see comm_udp.h) implements the same interface over sockets.
+// Transport seam for the Model 2 communication board (see m2comm.h): M2Comm
+// hands whole frames to send()/recv() and does not care how they travel.
+// LoopbackTransport (default) reads a sent frame straight back, so a lone
+// cabinet settles as node 1 of 1; comm_udp.h carries frames over a LAN instead.
 #pragma once
 
 #include "core/types.h"
@@ -28,44 +34,34 @@ class CommTransport {
 public:
     virtual ~CommTransport() = default;
 
-    /// Hand a frame to the next node in the ring. A copy is taken; the caller's
-    /// buffer is free to change afterwards. An implementation that cannot accept
-    /// it (a full send buffer) reports so through connected() going false, which
-    /// is how the board learns the link has dropped.
+    /// Hand a frame (copied) to the next node. A transport that cannot accept it
+    /// drops connected() to false, which is how the board learns the link died.
     virtual void send(std::span<const u8> frame) = 0;
 
-    /// Take the next frame from the previous node, or nullopt when none is
-    /// waiting. Never blocks.
+    /// Next frame from the previous node, or nullopt when none waits. Never blocks.
     virtual std::optional<std::vector<u8>> recv() = 0;
 
-    /// Whether the transport still believes it can carry frames. The loopback is
-    /// always connected; a socket transport drops this when a peer goes away or
-    /// its send buffer backs up, mirroring MAME treating a failed socket write as
-    /// the link dying.
+    /// Whether the transport can still carry frames. Loopback is always true; a
+    /// socket transport drops it when a peer goes away or its buffer backs up.
     [[nodiscard]] virtual bool connected() const = 0;
 
-    /// Drop every queued frame and return to the just-constructed state. Called
-    /// when the board is enabled or disabled, since the host cycles CN rather
-    /// than resetting the machine.
+    /// Drop queued frames and return to the constructed state. Called when the
+    /// board is enabled/disabled (the host cycles CN, it does not reset).
     virtual void reset() = 0;
 };
 
-/// The historical in-process behaviour: frames sent are read straight back by
-/// the same board. Talks to no network. This is what keeps a single-cabinet
-/// game working with no configuration, and what the m2comm tests pin.
+/// In-process loopback: a sent frame is read straight back by the same board,
+/// which keeps a single-cabinet game working with no configuration.
 class LoopbackTransport final : public CommTransport {
 public:
-    /// Frames the queue holds before a send is refused, standing in for the
-    /// socket buffer MAME relies on. Steady state is two.
+    /// Queue depth before a send is refused, standing in for the socket buffer.
     static constexpr std::size_t kDepth = 64;
 
     void send(std::span<const u8> frame) override
     {
         if (m_queue.size() >= kDepth) {
-            // A socket whose buffer has filled fails the write, which MAME reads
-            // as the transmit side going away. The board polls connected() and
-            // drops the link. Reachable only if the host reconfigures itself as
-            // a relay after the link came up, forwarding its own frames back.
+            // A full buffer fails the write, which the board reads as the link
+            // dying. Only reachable if the host relays its own frames back.
             m_overflowed = true;
             return;
         }

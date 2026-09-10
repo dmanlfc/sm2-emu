@@ -1,6 +1,19 @@
+//  ____  __  __  ____         _____ __  __ _   _
+// / ___||  \/  ||___ \       | ____|  \/  | | | |
+// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
+//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
+// |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// See net.h. Platform sockets and interface enumeration, kept behind one set of
-// #ifdefs so the rest of the tree stays portable.
+// A Sega Model 2 arcade emulator.
+// Copyright (c) 2025+ Daniel Martin (dmanlfc)
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// This header must not be removed. The source files in this project may not be
+// used to contribute to commercial projects or for monetary gain without the
+// express written permission of the author.
+//
+// See net.h. Platform sockets and interface enumeration behind one set of
+// #ifdefs.
 
 #include "core/net.h"
 
@@ -223,7 +236,7 @@ bool UdpSocket::open(const std::string& bind_ip, u16 port)
         return false;
     }
 
-    // Non-blocking, so recv_from() returns immediately when nothing is waiting.
+    // Non-blocking.
 #if defined(_WIN32)
     u_long nonblock = 1;
     ioctlsocket(static_cast<SOCKET>(fd), FIONBIO, &nonblock);
@@ -280,8 +293,7 @@ bool UdpSocket::recv_from(std::vector<u8>& out)
 {
     if (m_fd == kInvalid) return false;
 
-    // Model 2 comm frames top out at 0x1000+1 bytes; a page is ample headroom
-    // and lets us take the datagram in one call.
+    // Model 2 comm frames top out at 0x1000+1 bytes; a page is ample headroom.
     u8 buffer[0x1200];
     const auto n = ::recvfrom(
 #if defined(_WIN32)
@@ -292,8 +304,7 @@ bool UdpSocket::recv_from(std::vector<u8>& out)
         0, nullptr, nullptr);
 
     if (n <= 0) {
-        // n==0 is an empty datagram; treat as nothing useful. n<0 with
-        // would-block is the normal "no data" path and is not an error.
+        // n==0 empty datagram, or n<0 would-block (the normal no-data path).
         return false;
     }
     out.assign(buffer, buffer + n);
