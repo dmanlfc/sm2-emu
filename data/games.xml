@@ -259,7 +259,7 @@
        data region (collision/height map). Most likely next game to run
        after VF2.
        =================================================================== -->
-  <game name="skytargt" board="model2a" start1="0x40">
+  <game name="skytargt" board="model2a" start1="0x40" vr_buttons="in0:0x20">
     <title>Sky Target</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -2444,7 +2444,7 @@
   </game>
 
 
-  <game name="indy500" drive_board="true" shift_buttons="true" board="model2b" start1="0x40">
+  <game name="indy500" drive_board="true" shift_buttons="true" board="model2b" start1="0x40" vr_buttons="in1:0x01,in1:0x02">
     <title>INDY 500 Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -3228,7 +3228,7 @@
   </game>
 
 
-  <game name="overrev" board="model2c" start1="0x40" shift_buttons="true">
+  <game name="overrev" board="model2c" start1="0x40" shift_buttons="true" vr_buttons="in1:0x01,in1:0x02">
     <title>Over Rev</title>
     <manufacturer>Jaleco</manufacturer>
     <year>1997</year>
@@ -3885,7 +3885,7 @@
   </game>
 
 
-  <game name="sgt24h" drive_board="true" shift_buttons="true" board="model2b" start1="0x40">
+  <game name="sgt24h" drive_board="true" shift_buttons="true" board="model2b" start1="0x40" vr_buttons="in1:0x01">
     <title>Super GT 24h</title>
     <manufacturer>Jaleco</manufacturer>
     <year>1996</year>
@@ -3935,7 +3935,7 @@
   </game>
 
 
-  <game name="skisuprg" board="model2c">
+  <game name="skisuprg" board="model2c" vr_buttons="in0:0x20,in1:0x01">
     <title>Sega Ski Super G</title>
     <manufacturer>Sega</manufacturer>
     <year>1996</year>
@@ -3990,7 +3990,7 @@
   </game>
 
 
-  <game name="srallyc" gearbox="true" drive_board="true" vr_buttons="in0:0x20,in1:0x02,in1:0x04,in1:0x08" board="model2a" start1="0x40">
+  <game name="srallyc" gearbox="true" drive_board="true" vr_buttons="in0:0x20" board="model2a" start1="0x40">
     <title>Sega Rally Championship - Twin/DX</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -5416,7 +5416,7 @@
   </game>
 
 
-  <game name="waverunr" board="model2c" start1="0x40" preliminary="true">
+  <game name="waverunr" board="model2c" start1="0x40" preliminary="true" vr_buttons="in1:0x01">
     <title>Wave Runner</title>
     <manufacturer>Sega</manufacturer>
     <year>1996</year>
