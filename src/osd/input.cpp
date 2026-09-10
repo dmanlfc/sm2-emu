@@ -1317,8 +1317,12 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     // four buttons are player one's, split across IN1 and IN2.
     const bool is_von = game.name == "von" || game.parent == "von";
 
+    // Desert Tank is a single-cabinet vehicle title whose buttons do not follow
+    // the generic per-player layout.
+    const bool is_desert = game.name == "desert" || game.parent == "desert";
+
     for (const Pad& pad : m_pads) {
-        if (pad.handle == nullptr || pad.player >= kPlayers || is_von) {
+        if (pad.handle == nullptr || pad.player >= kPlayers || is_von || is_desert) {
             continue;
         }
         u8& port = ports[1 + pad.player];
@@ -1508,6 +1512,90 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
 
         inputs->in1 &= static_cast<u8>(~in1);
         inputs->in2 &= static_cast<u8>(~in2);
+    }
+
+    // Desert Tank layout. MAME's `desert` port map (see model2o_state::desert):
+    //   analog: ch0 STEER (paddle), ch1 ACCEL (pedal), ch2 turret elevation
+    //           (IPT_AD_STICK_Y);
+    //   IN0: 0x20 VR1, 0x40 VR2, 0x80 VR3 (the three coloured view buttons);
+    //   IN1: 0x01 Shift (PORT_TOGGLE, forward/reverse), 0x10 Machine Gun,
+    //        0x20 Cannon.
+    // Steer (ch0 -> left stick X), turret elevation (ch2 sticky -> left stick Y)
+    // and accel (ch1 -> right trigger) all come through the generic analog
+    // sampler; this block owns the digital buttons and the shift toggle. The
+    // d-pad doubles the two left-stick axes and the three views sit on the face
+    // buttons (B/Y/X = VR1/VR2/VR3). One pad drives the whole cabinet.
+    if (is_desert) {
+        // Steer (ch0) and turret elevation (ch2, sticky) by control, not index.
+        int steer_ch  = -1;
+        int turret_ch = -1;
+        for (usize ch = 0; ch < game.analog.size(); ++ch) {
+            if (game.analog[ch].control == rom::AnalogControl::Steer)  steer_ch  = static_cast<int>(ch);
+            if (game.analog[ch].control == rom::AnalogControl::StickY) turret_ch = static_cast<int>(ch);
+        }
+
+        // Drive an analog channel to one end of its declared travel, honouring
+        // PORT_REVERSE. `high` picks the maximum end (before reverse).
+        const auto slam = [&](int ch, bool high) {
+            if (ch < 0) {
+                return;
+            }
+            const rom::AnalogChannel& c = game.analog[static_cast<usize>(ch)];
+            const bool at_max = c.reverse ? !high : high;
+            inputs->analog[static_cast<usize>(ch)] = at_max ? c.maximum : c.minimum;
+        };
+
+        bool shift_now  = false;
+        bool mg         = false;
+        bool cannon     = false;
+        u8   in0_clear  = 0;
+
+        for (const Pad& pad : m_pads) {
+            if (pad.handle == nullptr || pad.player != 0) {
+                continue;
+            }
+
+            // Steer and turret elevation are both on the left stick (X and Y)
+
+            // The d-pad doubles the two analog axes, slamming them to an extreme
+            // while held (SDL's stick Y grows downward, so Up is the minimum end
+            // and raises the turret the same way pushing the stick up does).
+            const bool dl = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
+            const bool dr = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+            const bool du = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_UP);
+            const bool dd = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+            if (dl != dr) slam(steer_ch, dr);
+            if (du != dd) slam(turret_ch, dd);
+
+            mg     |= SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
+            cannon |= SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+
+            // Shift on A or the left trigger; either flips forward/reverse.
+            shift_now |= SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_SOUTH)
+                      || SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > kPedalFloor;
+
+            // Views on the face buttons: B=VR1, Y=VR2, X=VR3.
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_EAST))  in0_clear |= 0x20;
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_NORTH)) in0_clear |= 0x40;
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_WEST))  in0_clear |= 0x80;
+
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_START)) {
+                inputs->in0 &= static_cast<u8>(~kStart1);
+            }
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_BACK)) {
+                inputs->in0 &= static_cast<u8>(~kCoin1);
+            }
+        }
+
+        if (shift_now && !m_desert_shift_held) {
+            m_desert_shift = !m_desert_shift;
+        }
+        m_desert_shift_held = shift_now;
+
+        if (m_desert_shift) inputs->in1 &= static_cast<u8>(~0x01);  // Shift (reverse)
+        if (mg)             inputs->in1 &= static_cast<u8>(~0x10);  // Machine Gun
+        if (cannon)         inputs->in1 &= static_cast<u8>(~0x20);  // Cannon
+        inputs->in0 &= static_cast<u8>(~in0_clear);                 // VR1/VR2/VR3
     }
 
     gather_lightguns(inputs, game);

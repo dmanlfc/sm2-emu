@@ -334,6 +334,10 @@ private:
     mutable bool m_gear_down_held  = false;
     bool         m_menu_held       = false;  ///< edge state for the Menu-bound wheel button.
 
+    /// Desert Tank's forward/reverse shift.
+    mutable bool m_desert_shift      = false;  ///< latched forward(false)/reverse(true).
+    mutable bool m_desert_shift_held = false;  ///< edge state of the shift button.
+
     /// Per-device light guns from evdev, when built and present. Held by pointer
     /// so the evdev/libudev detail stays out of this header; null when no guns
     /// were opened, in which case the single-mouse pointer path is used.

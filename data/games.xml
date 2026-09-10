@@ -1175,6 +1175,14 @@
       <input type="buttons3"/>
     </inputs>
 
+    <!-- Analogue mux wiring, from MAME's model2o_state::desert: an_callback<0>
+         STEER (paddle), <1> ACCEL (pedal), <2> the turret-elevation axis. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="sticky" rest="0x80"/>
+    </analog>
+
     <!-- Model 1 I/O board Z80 firmware. Bundled into this archive (the
          ioboard region below), so no separate device set is needed. -->
     <roms>
