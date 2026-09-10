@@ -47,6 +47,70 @@ machine is paced to its own 57.5245 Hz rather than to the display. The frame is
 composited at the hardware's 496x384 and magnified once at the end, so it runs
 on the hardware's pixels rather than on colours a filter has already blurred.
 
+## System requirements
+
+The honest short version: **this is CPU-bound, on a single fast core.** The
+emulated machine is an i960 main CPU plus a geometry coprocessor, and both run
+as interpreters on one thread. What decides whether a game holds full speed is
+almost entirely how fast *one* core can run that pair — not the GPU, not the
+core count, and not the clock rate on its own. The heaviest load is the Model
+2B (SHARC) and 2C (MB86235) sets; the original and 2A (MB86234 TGP) sets are
+noticeably lighter.
+
+### What the processor needs
+
+Single-thread performance provides the best outcome. I tried multi-threading
+the coprocessor work out, but that actually hindered performance.
+
+Concretely, a core wants:
+
+- **Out-of-order execution.** This matters more than raw clock. The
+  interpreters are branchy, memory-dependent inner loops, and an out-of-order
+  core hides that latency where an in-order one stalls on it. An in-order core
+  (older ARM "little" cores such as Cortex-A53/A55, in-order Atom) is not
+  enough even at a similar clock — the same work takes several times longer.
+- **A high single-core clock and a modern architecture is better.** Roughly,
+  sustained full speed on the heavy 2B/2C ROM sets wants the per-core
+  throughput of a **Cortex-A76-class ARM core at ~2.4 GHz, or any post-2015
+  x86-64 desktop/laptop core (Intel i5 / AMD Ryzen class), or Apple Silicon.**
+- **64-bit.** aarch64 (ARMv8-A) or x86-64 with SSE2. There is currently no
+  32-bit target.
+- **NEON / SSE2** for the vectorised paths (present but not the main lever).
+
+As per above, cores beyond the first buy little improvement: the emulation is
+single-threaded by design, and while the software renderer splits its
+rasteriser across a few cores, the frame's cost is dominated by the one core
+running the two CPUs. A faster single core beats more cores every time here.
+
+### Renderer / GPU
+
+The hardware has no depth buffer — visibility is an order-based fill mask, so a
+GPU has to shade every hidden pixel — which means the built-in **software
+renderer is provided**, and it is the right default on machines without a
+strong GPU. GPU backends (Vulkan / OpenGL) pull ahead only on desktop-class
+GPUs. Dropping the window resolution does almost nothing, because the limit is
+the CPU rather than fill rate. The software renderer needs no GPU at all; the
+GPU backends need OpenGL 4.3 core (desktop), OpenGL ES 3.1 (ARM), or Vulkan 1.3
+(opt-in), the floor set by the renderer's compute/SSBO passes.
+
+### By platform
+
+| Platform | Notes |
+|----------|-------|
+| **x86-64 (Linux)** | The primary target. Any modern desktop or laptop core clears every set with headroom on any backend. |
+| **macOS** | Apple Silicon (recommended; runs everything far above full speed) or a 2015+ Intel Mac. The GPU path runs through MoltenVK (install the Vulkan SDK); the software path needs neither. |
+| **ARM (aarch64 SBC / handheld)** | Needs an out-of-order core. A **Raspberry Pi 5 (Cortex-A76 @ 2.4 GHz)** is the realistic entry point: it holds full speed on the lighter sets but **only sits around — or just below — full speed on the heavier SHARC/MB86235 games**, so it is not comfortable across the whole library. Anything with weaker or in-order cores is below playable on the demanding sets. |
+
+Measured on a Raspberry Pi 5 (Cortex-A76), software backend, in-game: the light
+sets run comfortably above 57.5 Hz (Virtua Fighter 2, Daytona, Sega Rally, Manx
+TT), while the heavy coprocessor sets land near or under it (House of the Dead,
+Fighting Vipers, Dead or Alive, Last Bronx). So the Pi 5 is the sensible floor
+for ARM, with the caveat that the most CPU-heavy titles do not yet hold a locked
+57.5 Hz there.
+
+**RAM** is undemanding: a loaded set is ~90–110 MiB of ROM regions plus working
+buffers, so a couple of hundred MB of headroom is plenty.
+
 ## What Model 2 is, and why the renderer looks unusual
 
 Model 2 is an i960KB paired with a geometry coprocessor (a Fujitsu MB86234
