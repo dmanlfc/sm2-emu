@@ -1526,7 +1526,7 @@ int main(int argc, char** argv)
         pacer.start(hw::Model2::kFrameNanoseconds);
 
         SM2_INFO("entering main loop; Escape quits, P pauses, Tab fast-forwards, "
-                 "F1 menu, F2 fullscreen, F12 screenshot");
+                 "F10 menu, F11 fullscreen, F12 screenshot");
 
         /// Everything the sound board produced, when --dump-audio was given.
         std::vector<s16> recorded_audio;
@@ -1648,9 +1648,9 @@ int main(int argc, char** argv)
                     case SDL_EVENT_KEY_DOWN:
                         if (event.key.key == SDLK_ESCAPE) {
                             running = false;
-                        } else if (event.key.key == SDLK_F1 && !event.key.repeat) {
+                        } else if (event.key.key == SDLK_F10 && !event.key.repeat) {
                             gui.toggle();
-                        } else if (event.key.key == SDLK_F2 && !event.key.repeat) {
+                        } else if (event.key.key == SDLK_F11 && !event.key.repeat) {
                             options.config.fullscreen = !window.fullscreen();
                             window.set_fullscreen(options.config.fullscreen);
                         } else if (event.key.key == SDLK_F12 && !event.key.repeat) {

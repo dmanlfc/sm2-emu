@@ -442,10 +442,13 @@ the operator controls stay reachable without a pad:
 | `9` `0` | Service, test |
 | Arrows, `Z` `X` `C` `V` | Player 1 stick and buttons |
 | `W` `A` `S` `D`, `G` `H` `J` `K` | Player 2 stick and buttons |
+| `F1`–`F4`, `F5` | Gears 1 to 4, neutral (on titles with a gearbox) |
+| `B` `N` `M` `,` | VR / view buttons 1 to 4 (on titles that have them) |
+| `Space` | Desert Tank forward/reverse shift |
 | `Escape` | Quit |
 | `P` | Pause |
-| `F1` | Toggle the settings menu |
-| `F2` | Toggle fullscreen |
+| `F10` | Toggle the settings menu |
+| `F11` | Toggle fullscreen |
 | `F12` | Save a screenshot |
 | `Tab` (held) | Fast-forward |
 

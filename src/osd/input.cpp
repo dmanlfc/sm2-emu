@@ -1311,6 +1311,22 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             ports[0] |= kStart1;                        // release the wrong bit
             ports[0] &= static_cast<u8>(~start1);       // press the real one
         }
+
+        // VR/view buttons on the keyboard: B N M , = VR1..VR4
+        if (game.vr_buttons_declared) {
+            static constexpr SDL_Scancode kVrKeys[4] = {
+                SDL_SCANCODE_B, SDL_SCANCODE_N, SDL_SCANCODE_M, SDL_SCANCODE_COMMA,
+            };
+            for (u8 i = 0; i < game.vr_button_count && i < 4; ++i) {
+                const SDL_Scancode sc = kVrKeys[i];
+                if (static_cast<int>(sc) < key_count && keys[sc]) {
+                    const auto [port, bit] = game.wheel_button_bits[i];
+                    if (port < 3) {
+                        ports[port] &= static_cast<u8>(~bit);
+                    }
+                }
+            }
+        }
     }
 
     // Virtual On is a single-cabinet twin-stick title: both 8-way sticks and all
@@ -1525,6 +1541,9 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     // sampler; this block owns the digital buttons and the shift toggle. The
     // d-pad doubles the two left-stick axes and the three views sit on the face
     // buttons (B/Y/X = VR1/VR2/VR3). One pad drives the whole cabinet.
+    //
+    // Keyboard: arrows steer (L/R) and elevate the turret (up/down), Left Shift
+    // is gas, Z/X are the guns, B/N/M are the views and Space taps the shift.
     if (is_desert) {
         // Steer (ch0) and turret elevation (ch2, sticky) by control, not index.
         int steer_ch  = -1;
@@ -1549,6 +1568,11 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         bool mg         = false;
         bool cannon     = false;
         u8   in0_clear  = 0;
+
+        // Keyboard: Space taps the forward/reverse shift.
+        if (keys != nullptr && static_cast<int>(SDL_SCANCODE_SPACE) < key_count) {
+            shift_now |= keys[SDL_SCANCODE_SPACE];
+        }
 
         for (const Pad& pad : m_pads) {
             if (pad.handle == nullptr || pad.player != 0) {
@@ -1587,6 +1611,41 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             }
         }
 
+        // The generic player-one keyboard put arrows and Z/X/C/V on IN1's
+        // direction and low-nibble bits, none of which are desert's layout (its
+        // IN1 is Shift 0x01, Machine Gun 0x10, Cannon 0x20). Release the whole
+        // port and drive only the real bits from here.
+        inputs->in1 = 0xff;
+
+        // Keyboard guns: Z = Machine Gun, X = Cannon.
+        if (keys != nullptr) {
+            const auto down = [&](SDL_Scancode sc) {
+                return static_cast<int>(sc) < key_count && keys[sc];
+            };
+            mg     |= down(SDL_SCANCODE_Z);
+            cannon |= down(SDL_SCANCODE_X);
+
+            // Keyboard analog: arrows steer (L/R) and elevate the turret (up/down),
+            // Left Shift is the gas. Each drives its channel to an extreme while
+            // held and leaves it at rest otherwise, so the pad axes still work
+            // when no key is down. Up is the turret's minimum end, matching the
+            // pad (SDL stick Y grows downward, so pushing up is the low value).
+            const bool kb_left  = down(SDL_SCANCODE_LEFT);
+            const bool kb_right = down(SDL_SCANCODE_RIGHT);
+            const bool kb_up    = down(SDL_SCANCODE_UP);
+            const bool kb_down  = down(SDL_SCANCODE_DOWN);
+            if (kb_left != kb_right) slam(steer_ch, kb_right);
+            if (kb_up != kb_down)    slam(turret_ch, kb_down);
+            if (down(SDL_SCANCODE_LSHIFT)) {
+                for (usize ch = 0; ch < game.analog.size(); ++ch) {
+                    if (game.analog[ch].control == rom::AnalogControl::Accel) {
+                        const rom::AnalogChannel& c = game.analog[ch];
+                        inputs->analog[ch] = c.reverse ? c.minimum : c.maximum;
+                    }
+                }
+            }
+        }
+
         if (shift_now && !m_desert_shift_held) {
             m_desert_shift = !m_desert_shift;
         }
@@ -1604,19 +1663,20 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     // machine turns them into the code its program expects. Nothing held means
     // "hold the last gear", which is what the real gate does between positions.
     //
-    // F1 to F5 rather than the number row, which the operator controls already
-    // own.
+    // F1 to F4 select gears 1 to 4 (GEARS bits 1..4) and F5 is neutral (bit 0).
     if (game.gearbox) {
         u8 gears = 0;
         if (keys != nullptr) {
-            static constexpr SDL_Scancode kGearKeys[5] = {
-                SDL_SCANCODE_F1, SDL_SCANCODE_F2, SDL_SCANCODE_F3,
-                SDL_SCANCODE_F4, SDL_SCANCODE_F5,
+            static constexpr SDL_Scancode kGearKeys[4] = {
+                SDL_SCANCODE_F1, SDL_SCANCODE_F2, SDL_SCANCODE_F3, SDL_SCANCODE_F4,
             };
-            for (u32 gear = 0; gear < 5; ++gear) {
+            for (u32 gear = 0; gear < 4; ++gear) {
                 if (static_cast<int>(kGearKeys[gear]) < key_count && keys[kGearKeys[gear]]) {
-                    gears |= static_cast<u8>(1u << gear);
+                    gears |= static_cast<u8>(1u << (gear + 1));  // bit 1..4 = gear 1..4
                 }
+            }
+            if (static_cast<int>(SDL_SCANCODE_F5) < key_count && keys[SDL_SCANCODE_F5]) {
+                gears |= 0x01;  // bit 0 = neutral
             }
         }
 
@@ -1737,7 +1797,13 @@ void Input::print_bindings()
     std::printf("  9 0                  service, test\n");
     std::printf("  arrows Z X C V       player 1 stick and buttons\n");
     std::printf("  W A S D  G H J K     player 2 stick and buttons\n");
+    std::printf("  F1-F4  F5            gears 1 to 4, neutral (titles with a gearbox)\n");
+    std::printf("  B N M ,              VR / view buttons 1 to 4 (titles that have them)\n");
+    std::printf("  Space                Desert Tank forward/reverse shift\n");
     std::printf("  Escape               quit\n");
+    std::printf("  P                    pause\n");
+    std::printf("  Tab (held)           fast-forward\n");
+    std::printf("  F10 F11 F12          settings menu, fullscreen, screenshot\n");
     std::printf("\nThe first gamepad to connect is player 1. Gamepads and the keyboard\n");
     std::printf("are both live, so a second player can join on the keyboard.\n");
 }

@@ -264,6 +264,10 @@ struct GameSpec {
         {1, 0x01}, {1, 0x02}, {1, 0x04}, {1, 0x08},
     }};
 
+    /// True when the title declared `vr_buttons`
+    bool vr_buttons_declared = false;
+    u8   vr_button_count      = 0;  ///< How many VR entries were declared (1..4).
+
     /// How this title's machine config wires the analogue mux. Index is the
     /// channel number; an entry with control None is an unconnected channel.
     std::array<AnalogChannel, 8> analog{};

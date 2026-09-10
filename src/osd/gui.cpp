@@ -161,7 +161,7 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
 {
     apply_scale();
 
-    // Shown regardless of F1 when enabled, so the counter is visible whether or
+    // Shown regardless of F10 when enabled, so the counter is visible whether or
     // not the settings overlay is open.
     if (config.show_fps) {
         draw_fps_overlay(measured_hz, renderer_label);
@@ -207,7 +207,7 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
         }
     }
 
-    // Full-screen picker when active and Settings is closed; F1 opens Settings
+    // Full-screen picker when active and Settings is closed; F10 opens Settings
     // on top.
     if (m_picker_enabled && !m_visible) {
         draw_picker(config);
@@ -1118,7 +1118,7 @@ void Gui::draw_status_bar(float measured_hz)
     if (ImGui::Begin("##StatusBar", nullptr, flags)) {
         ImGui::Text("%.1f Hz", static_cast<double>(measured_hz));
         ImGui::SameLine(ImGui::GetWindowWidth() - 120);
-        ImGui::Text("F1: toggle overlay");
+        ImGui::Text("F10: toggle overlay");
     }
     ImGui::End();
     ImGui::PopStyleVar();
@@ -1258,7 +1258,7 @@ void Gui::draw_picker(Config& config)
 
     ImGui::TextUnformatted("Select a game");
     ImGui::SameLine(ImGui::GetWindowWidth() - 300.0f);
-    ImGui::TextDisabled("Enter: launch   F1: settings   Esc: quit");
+    ImGui::TextDisabled("Enter: launch   F10: settings   Esc: quit");
     ImGui::Separator();
 
     if (m_picker_entries.empty()) {

@@ -401,6 +401,8 @@ bool GameDatabase::load(const std::string& path)
                 if (comma == std::string::npos) break;
                 pos = comma + 1;
             }
+            game.vr_buttons_declared = index > 0;
+            game.vr_button_count     = static_cast<u8>(index);
         }
 
         // Device ROM sets: <devices><device name="model1io2"/></devices>. These
@@ -701,6 +703,10 @@ bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
             }};
             if (game.wheel_button_bits == kDefault) {
                 game.wheel_button_bits = parent.wheel_button_bits;
+                if (!game.vr_buttons_declared) {
+                    game.vr_buttons_declared = parent.vr_buttons_declared;
+                    game.vr_button_count     = parent.vr_button_count;
+                }
             }
         }
 
