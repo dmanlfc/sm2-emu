@@ -94,6 +94,18 @@ public:
         m_available_renderers = std::move(names);
     }
 
+    /// Live cabinet-link state, for the Network tab's status line. Fed each
+    /// frame from the running machine's link board so the GUI need not depend on
+    /// the hw:: types. All zero/false when no machine is loaded or linking is off.
+    struct LinkStatus {
+        bool active  = false;  ///< a LAN transport is attached (link enabled)
+        bool enabled = false;  ///< the game has switched the board on
+        bool alive   = false;  ///< the ring has settled and frames flow
+        u32  node    = 0;      ///< this cabinet's negotiated link id
+        u32  count   = 0;      ///< cabinets the ring settled on
+    };
+    void set_link_status(const LinkStatus& status) { m_link_status = status; }
+
     /// Pixel extent of the backend's overlay framebuffer; new_frame() scales
     /// ImGui to it so the overlay fills the presented image (see new_frame()).
     /// Zero leaves ImGui's own value alone.
@@ -152,6 +164,7 @@ private:
     void draw_wheel_tab(Config& config, class Input* input);
     void draw_gamepad_tab(Config& config, class Input* input);
     void draw_lightgun_tab(Config& config, class Input* input);
+    void draw_network_tab(Config& config);
     void draw_status_bar(float measured_hz);
     void draw_fps_overlay(float measured_hz, const char* renderer_label);
     void draw_crosshairs(const class Input* input);
@@ -183,6 +196,9 @@ private:
     // Gun-button bind capture: which (player, role) awaits a press, or -1.
     int m_gun_capture_player = -1;
     u32 m_gun_capture_role   = 0;
+
+    // -- cabinet link status -----------------------------------------------
+    LinkStatus m_link_status;
 
     // -- game picker state -------------------------------------------------
     bool                       m_picker_enabled = false;

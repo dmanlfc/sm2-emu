@@ -19,9 +19,12 @@
 
 #include "core/config.h"
 #include "core/log.h"
+#include "core/net.h"
 #include "core/profiler.h"
 #include "core/types.h"
+#include "hw/comm_udp.h"
 #include "hw/m1audio.h"
+#include "hw/m2comm.h"
 #include "hw/machine_factory.h"
 #include "hw/model2.h"
 #include "hw/model2_original.h"
@@ -630,6 +633,39 @@ struct LoadedMachine {
     return out;
 }
 
+/// Give the machine's link board a LAN transport when cabinet linking is on,
+/// or restore the in-process loopback when it is off. Called after every load
+/// so a game picked at runtime links exactly like a directly-launched one.
+///
+/// A socket that fails to bind is not fatal: UdpTransport reports not-connected
+/// and the board simply never links, which is the right degradation for an
+/// arcade floor where one cabinet is misconfigured.
+void configure_cabinet_link(sm2::hw::Model2MachineBase& machine,
+                            const sm2::Config&          config)
+{
+    using namespace sm2;
+    if (!config.link_enabled) {
+        machine.comm().set_transport(nullptr);  // back to the loopback
+        return;
+    }
+
+    auto transport = std::make_unique<hw::UdpTransport>(
+        config.link_local_ip, static_cast<u16>(config.link_port),
+        config.link_next_ip, static_cast<u16>(config.link_next_port));
+    if (!transport->ok()) {
+        SM2_WARN("cabinet link disabled: %s", transport->error().c_str());
+        machine.comm().set_transport(nullptr);
+        return;
+    }
+    machine.comm().set_transport(std::move(transport));
+    SM2_INFO("cabinet link enabled (cabinet %u): listening %s:%u, next %s:%u",
+             config.link_cabinet_index,
+             config.link_local_ip.empty() ? "*" : config.link_local_ip.c_str(),
+             config.link_port,
+             config.link_next_ip.empty() ? "(none)" : config.link_next_ip.c_str(),
+             config.link_next_port);
+}
+
 }  // namespace
 
 int main(int argc, char** argv)
@@ -765,6 +801,14 @@ int main(int argc, char** argv)
     options.config.pad_rumble          = from_file.pad_rumble;
     options.config.pad_rumble_strength = from_file.pad_rumble_strength;
 
+    options.config.link_enabled        = from_file.link_enabled;
+    options.config.link_local_ip       = from_file.link_local_ip;
+    options.config.link_subnet_mask    = from_file.link_subnet_mask;
+    options.config.link_port           = from_file.link_port;
+    options.config.link_next_ip        = from_file.link_next_ip;
+    options.config.link_next_port      = from_file.link_next_port;
+    options.config.link_cabinet_index  = from_file.link_cabinet_index;
+
     options.config.lightgun_crosshair       = from_file.lightgun_crosshair;
     options.config.lightgun_recoil          = from_file.lightgun_recoil;
     options.config.lightgun_recoil_strength = from_file.lightgun_recoil_strength;
@@ -788,6 +832,12 @@ int main(int argc, char** argv)
     log::set_level(level);
 
     SM2_INFO("sm2-emu %s", SM2_VERSION);
+
+    // Bring up the platform sockets once (a no-op except on Windows). The
+    // process reclaims them at exit, so there is no matching shutdown on the
+    // many early-return paths below.
+    net::startup();
+
     if (!readable) {
         SM2_WARN("could not read '%s'; using defaults", config_path.c_str());
     }
@@ -948,6 +998,7 @@ int main(int argc, char** argv)
         if (!loaded.has_value()) {
             return 1;
         }
+        configure_cabinet_link(*loaded->machine_iface, options.config);
     } else {
         SM2_INFO("no ROM given; starting with the bring-up display only");
     }
@@ -1992,6 +2043,13 @@ int main(int argc, char** argv)
                 gui.set_framebuffer_size(fbw, fbh);
             }
             gui.new_frame();
+            // Feed the Network tab this frame's live link state from the board.
+            if (machine_iface != nullptr) {
+                const hw::M2Comm& comm = machine_iface->comm();
+                gui.set_link_status(osd::Gui::LinkStatus{
+                    options.config.link_enabled, comm.enabled(), comm.link_alive(),
+                    comm.link_id(), comm.link_count()});
+            }
             const bool gui_active =
                 gui.draw(options.config, gpu_names, pacer.measured_hz(),
                         use_software_renderer ? "Software" : gpu_backend_name, &input);
@@ -2051,6 +2109,7 @@ int main(int argc, char** argv)
                     if (sound_board != nullptr) {
                         static_cast<void>(audio.init(sound_board->sample_rate()));
                     }
+                    configure_cabinet_link(*machine_iface, options.config);
                     gui.hide_picker();
                     window.set_title(build_title());
                     SM2_INFO("picker: launched '%s'", loaded->game.name.c_str());

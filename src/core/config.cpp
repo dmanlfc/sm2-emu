@@ -344,6 +344,28 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             } else {
                 bad_value();
             }
+        } else if (key == "link_enabled") {
+            if (!parse_bool(value, &out->link_enabled)) {
+                bad_value();
+            }
+        } else if (key == "link_local_ip") {
+            out->link_local_ip = value;
+        } else if (key == "link_subnet_mask") {
+            out->link_subnet_mask = value;
+        } else if (key == "link_port") {
+            if (!parse_u32(value, &out->link_port)) {
+                bad_value();
+            }
+        } else if (key == "link_next_ip") {
+            out->link_next_ip = value;
+        } else if (key == "link_next_port") {
+            if (!parse_u32(value, &out->link_next_port)) {
+                bad_value();
+            }
+        } else if (key == "link_cabinet_index") {
+            if (!parse_u32(value, &out->link_cabinet_index)) {
+                bad_value();
+            }
         } else if (key == "wheel_ffb") {
             if (!parse_bool(value, &out->wheel_ffb)) {
                 bad_value();
@@ -491,6 +513,11 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
     out->wheel_lock_degrees  = std::clamp(out->wheel_lock_degrees, 180u, 270u);
     out->render_scale        = std::clamp(out->render_scale, 1u, kMaxRenderScale);
+    // A UDP port must fit a 16-bit field. Clamp rather than reject so a stray
+    // value still starts; 0 would bind an ephemeral port, useless for a fixed
+    // ring, so the floor is 1.
+    out->link_port      = std::clamp(out->link_port, 1u, 65535u);
+    out->link_next_port = std::clamp(out->link_next_port, 1u, 65535u);
     return true;
 }
 
@@ -547,6 +574,26 @@ bool save_config(const std::string& path, const Config& config)
         << "# Renderer: software, vulkan or opengl (whichever the build has).\n"
         << "# Empty picks the build default. Applies on the next launch.\n"
         << "graphics_backend = " << config.graphics_backend << "\n"
+        << "\n"
+        << "# Cabinet link (networking). Links this instance to other cabinets on\n"
+        << "# the LAN running the same linked title (Sega Rally, Daytona, Super GT\n"
+        << "# 24h, Indy 500, ...). Off keeps the single-cabinet loopback. The comms\n"
+        << "# board is a ring: each cabinet receives on its own address and sends\n"
+        << "# to the next one; for two machines they point at each other. The\n"
+        << "# master/slave role is still set in the game's own test menu.\n"
+        << "link_enabled = " << bool_text(config.link_enabled) << "\n"
+        << "# This cabinet's own address. link_local_ip empty binds every\n"
+        << "# interface; it is prefilled from the primary NIC on first run.\n"
+        << "# link_subnet_mask is informational (shown in the GUI).\n"
+        << "link_local_ip = " << config.link_local_ip << "\n"
+        << "link_subnet_mask = " << config.link_subnet_mask << "\n"
+        << "link_port = " << config.link_port << "\n"
+        << "# The next cabinet in the ring: where this instance sends. Empty\n"
+        << "# link_next_ip disables sending.\n"
+        << "link_next_ip = " << config.link_next_ip << "\n"
+        << "link_next_port = " << config.link_next_port << "\n"
+        << "# Where this cabinet sits in the ring, 0-based (bookkeeping only).\n"
+        << "link_cabinet_index = " << config.link_cabinet_index << "\n"
         << "\n"
         << "# Steering-wheel force feedback: a synthesised centring spring (the\n"
         << "# drive board is not emulated, so this is a feel, not the real motor\n"

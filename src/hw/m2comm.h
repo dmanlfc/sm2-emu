@@ -35,11 +35,11 @@
 #pragma once
 
 #include "core/types.h"
+#include "hw/comm_transport.h"
 
 #include <array>
-#include <deque>
+#include <memory>
 #include <span>
-#include <vector>
 
 namespace sm2::hw {
 
@@ -54,10 +54,18 @@ public:
     /// title MAME configures except Power Sled, which uses 0x180.
     static constexpr u16 kDefaultFrameOffset = 0x1c0;
 
+    M2Comm();
+
     void reset();
 
     void attach_shared(std::span<u8> shared) { m_shared = shared; }
     void set_frame_offset(u16 offset) { m_frame_offset = offset; }
+
+    /// Swap the frame transport. Passing nullptr restores the default in-process
+    /// loopback, so a lone cabinet keeps working with no network. A real LAN
+    /// transport (comm_udp.h) is injected here when cabinet linking is enabled.
+    /// The board takes ownership.
+    void set_transport(std::unique_ptr<CommTransport> transport);
 
     /// `comm_framesync`. MAME defaults it off, so the board does not make the
     /// host wait for the ring before finishing a frame.
@@ -87,18 +95,21 @@ public:
     [[nodiscard]] u8   link_count() const { return m_linkcount; }
     [[nodiscard]] bool enabled() const { return m_linkenable != 0; }
 
+    /// Whether the underlying transport still believes it can carry frames.
+    /// Always true for the loopback; a socket transport reports the peer state.
+    [[nodiscard]] bool transport_connected() const;
+
 private:
     void tick();
     void read_fg();
 
-    /// Pops one frame from the loopback. Returns the byte count, which is zero
-    /// when there is nothing queued.
+    /// Pops one frame from the transport. Returns the byte count, which is zero
+    /// when there is nothing waiting.
     ///
     /// MAME reads a byte stream and reassembles a partial frame across calls.
-    /// Here every frame arrives whole because it was queued whole, so that path
-    /// cannot be reached. Neither can its connection-lost branch: a real socket
-    /// reports end-of-file by returning zero bytes with no error, while an empty
-    /// receive queue reports would-block, and the loopback never closes.
+    /// The loopback delivers each frame whole because it was queued whole; the
+    /// UDP transport does the reassembly itself and also hands over whole
+    /// frames, so this side always sees a complete one.
     int  read_frame(int data_size);
     void send_frame(int data_size);
     void send_data(u8 frame_type, int frame_start, int frame_size, int data_size);
@@ -131,9 +142,10 @@ private:
     /// MAME's m_buffer0, the frame being assembled or examined.
     std::array<u8, 0x1000> m_buffer{};
 
-    /// Stands in for the pair of sockets. Frames written go on the back and are
-    /// read from the front, which is what MAME's own defaults arrange.
-    std::deque<std::vector<u8>> m_loopback;
+    /// The pair of sockets MAME opens, abstracted. Defaults to an in-process
+    /// loopback so a lone cabinet needs no configuration; a UDP transport is
+    /// injected here for real LAN play.
+    std::unique_ptr<CommTransport> m_transport;
 };
 
 }  // namespace sm2::hw

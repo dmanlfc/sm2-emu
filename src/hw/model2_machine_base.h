@@ -69,6 +69,7 @@
 namespace sm2::hw {
 
 class Model2Video;
+class M2Comm;
 
 /// Copy a set's shipped power-on image over battery-backed storage.
 ///
@@ -180,6 +181,14 @@ public:
 
     [[nodiscard]] virtual Inputs&       inputs()       = 0;
     [[nodiscard]] virtual const Inputs& inputs() const = 0;
+
+    /// The communication (link) board. Unlike the coprocessor and sound board
+    /// (see the file comment), this is the same M2Comm type on every board
+    /// variant, so it generalises cleanly. main.cpp injects a LAN transport here
+    /// when cabinet linking is enabled, and the OSD reads its link state for the
+    /// Network settings display.
+    [[nodiscard]] virtual M2Comm&       comm()       = 0;
+    [[nodiscard]] virtual const M2Comm& comm() const = 0;
 
     /// This frame's screen-space polygons, in drawing order.
     [[nodiscard]] virtual const RenderList& render_list() const = 0;

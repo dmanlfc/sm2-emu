@@ -20,6 +20,7 @@
 add_library(sm2_core STATIC
     core/config.cpp
     core/log.cpp
+    core/net.cpp
 )
 target_include_directories(sm2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(sm2_core PRIVATE sm2_warnings)
@@ -213,6 +214,7 @@ target_link_libraries(sm2_hw_ported
 # ---------------------------------------------------------------------------
 
 add_library(sm2_hw STATIC
+    hw/comm_udp.cpp
     hw/copro_fifo.cpp
     hw/copro_tgp.cpp
     hw/dsb2.cpp

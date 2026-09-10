@@ -186,6 +186,39 @@ struct Config {
         {0x110u,   0x111u,  0x101u,  0x102u,  0x105u,  0x106u,  0x107u,  0x108u},
     }};
 
+    // -- cabinet link (networking) -----------------------------------------
+
+    /// Link this instance to other cabinets over the LAN, so a set of machines
+    /// running the same linked title (Sega Rally, Daytona, Super GT 24h, Indy
+    /// 500, ...) race together. Off keeps the historical in-process loopback, so
+    /// a lone cabinet still boots its network check and settles as node 1 of 1.
+    ///
+    /// The comms board is a ring: each cabinet receives from the previous one and
+    /// sends to the next. So each instance needs its own listen address and the
+    /// address of the next cabinet in the ring; for two machines they simply
+    /// point at each other. The master/slave role within the link is still chosen
+    /// in the game's own test menu (via the Test/Service buttons), not here.
+    bool link_enabled = false;
+
+    /// This cabinet's own IPv4 address and the port it listens on. The IP is
+    /// prepopulated from the machine's primary network interface on first run
+    /// (see net::primary_interface); a blank IP binds every interface. Port
+    /// 15112 is MAME's own default.
+    std::string link_local_ip;
+    std::string link_subnet_mask;  ///< Informational; prefilled from the NIC.
+    u32         link_port = 15112;
+
+    /// The next cabinet in the ring: where this instance sends its frames. For a
+    /// two-cabinet link this is simply the other machine. Empty disables sending
+    /// (useful for the tail of a chain that is wired to loop back elsewhere).
+    std::string link_next_ip;
+    u32         link_next_port = 15112;
+
+    /// Where this cabinet sits in the ring, 0-based. 0 is the head of the chain.
+    /// Purely for the operator's own bookkeeping and the status display; the
+    /// board still negotiates the actual link id/count from the ring frames.
+    u32 link_cabinet_index = 0;
+
     // -- paths -------------------------------------------------------------
 
     /// ROM archives; a game named with no path loads <rom_dir>/<name>.{zip,7z}.

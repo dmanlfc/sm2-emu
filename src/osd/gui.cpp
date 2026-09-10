@@ -14,6 +14,7 @@
 //
 #include "osd/gui.h"
 #include "core/log.h"
+#include "core/net.h"
 #include "osd/input.h"
 #include "osd/scraper.h"
 #include "render/geometry.h"
@@ -488,6 +489,11 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::EndTabItem();
         }
 
+        if (ImGui::BeginTabItem("Network")) {
+            draw_network_tab(config);
+            ImGui::EndTabItem();
+        }
+
         // -- About tab -----------------------------------------------------
         // The Save button below is suppressed on this tab: it carries no
         // settings, so a save control there is meaningless.
@@ -952,6 +958,130 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
         config.sinden_border_thickness = static_cast<u32>(std::max(1, thickness));
     }
     ImGui::EndDisabled();
+}
+
+// ---------------------------------------------------------------------------
+// Network tab
+// ---------------------------------------------------------------------------
+
+void Gui::draw_network_tab(Config& config)
+{
+    // One editable text line into a std::string, with a fixed staging buffer.
+    const auto text_field = [](const char* label, std::string& value, float width) {
+        char buf[64];
+        std::snprintf(buf, sizeof(buf), "%s", value.c_str());
+        ImGui::SetNextItemWidth(width);
+        if (ImGui::InputText(label, buf, sizeof(buf))) {
+            value = buf;
+        }
+    };
+
+    ImGui::Checkbox("Link cabinets over the network", &config.link_enabled);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            "Race linked with other machines on the same LAN running the same\n"
+            "title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+            "this cabinet standalone. Takes effect on the next game launch.");
+    }
+
+    ImGui::TextWrapped(
+        "The comms board is a ring: each cabinet listens on its own address and "
+        "sends to the next cabinet. For two machines, point each at the other. "
+        "The master/slave role is chosen in the game's own test menu, not here.");
+
+    ImGui::BeginDisabled(!config.link_enabled);
+
+    ImGui::SeparatorText("This cabinet");
+
+    text_field("Local IP", config.link_local_ip, 180.0f);
+    ImGui::SameLine();
+    if (ImGui::Button("Detect")) {
+        if (auto iface = net::primary_interface()) {
+            config.link_local_ip    = iface->ipv4;
+            config.link_subnet_mask = iface->subnet_mask;
+        }
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("This machine's address on the cabinet LAN. Blank\n"
+                          "listens on every interface. Detect fills it from the\n"
+                          "primary network adapter.");
+    }
+
+    text_field("Subnet mask", config.link_subnet_mask, 180.0f);
+
+    {
+        int port = static_cast<int>(config.link_port);
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::InputInt("Listen port", &port)) {
+            config.link_port = static_cast<u32>(std::clamp(port, 1, 65535));
+        }
+    }
+
+    {
+        int idx = static_cast<int>(config.link_cabinet_index);
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::InputInt("Cabinet number", &idx)) {
+            config.link_cabinet_index = static_cast<u32>(std::max(0, idx));
+        }
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Where this cabinet sits in the ring (0-based).\n"
+                              "For your own bookkeeping; the game negotiates the\n"
+                              "actual link id from the ring.");
+        }
+    }
+
+    ImGui::SeparatorText("Next cabinet in the ring");
+
+    text_field("Next IP", config.link_next_ip, 180.0f);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("The cabinet this one sends to. For two machines, the\n"
+                          "other machine's IP. Blank means this cabinet does not\n"
+                          "forward (tail of a chain).");
+    }
+
+    {
+        int port = static_cast<int>(config.link_next_port);
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::InputInt("Next port", &port)) {
+            config.link_next_port = static_cast<u32>(std::clamp(port, 1, 65535));
+        }
+    }
+
+    ImGui::EndDisabled();
+
+    // -- live status, straight from the running link board -----------------
+    ImGui::SeparatorText("Status");
+    if (!m_link_status.active) {
+        ImGui::TextDisabled(config.link_enabled
+                                ? "Link configured; starts at the next game launch."
+                                : "Standalone (no cabinet link).");
+    } else if (!m_link_status.enabled) {
+        ImGui::TextDisabled("Waiting for the game to switch the link board on...");
+    } else if (m_link_status.alive) {
+        ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f),
+                           "Linked: cabinet %u of %u.", m_link_status.node,
+                           m_link_status.count);
+    } else {
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f),
+                           "Establishing the ring...");
+    }
+
+    // Available interfaces, so the operator can see what to type.
+    ImGui::Spacing();
+    ImGui::TextDisabled("This machine's interfaces:");
+    for (const net::Interface& iface : net::interfaces()) {
+        if (iface.loopback) continue;
+        ImGui::BulletText("%s  %s / %s", iface.name.c_str(), iface.ipv4.c_str(),
+                          iface.subnet_mask.c_str());
+    }
 }
 
 // ---------------------------------------------------------------------------

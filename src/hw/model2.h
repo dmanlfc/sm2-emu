@@ -109,6 +109,9 @@ public:
     [[nodiscard]] Inputs& inputs() override { return m_inputs; }
     [[nodiscard]] const Inputs& inputs() const override { return m_inputs; }
 
+    [[nodiscard]] M2Comm&       comm() override { return m_comm; }
+    [[nodiscard]] const M2Comm& comm() const override { return m_comm; }
+
     [[nodiscard]] cpu::i960::I960& cpu() { return m_cpu; }
     [[nodiscard]] const cpu::i960::I960& cpu() const { return m_cpu; }
 
