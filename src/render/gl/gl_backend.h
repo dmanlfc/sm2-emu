@@ -62,6 +62,8 @@ public:
     void submit_native_frame(std::span<const u32> pixels) override;
     [[nodiscard]] bool request_capture() override;
     [[nodiscard]] bool save_capture(const std::string& path) const override;
+    void set_present_options(const PresentOptions& options) override;
+    void set_enhancement_options(const EnhancementOptions& options) override;
     void blit_to_swapchain() override;
     void begin_overlay_frame() override;
     void draw_overlay(bool active) override;
@@ -89,6 +91,10 @@ public:
     void overlay_framebuffer_size(u32* width, u32* height) const override;
 
 private:
+    /// Shader texture-quality value for the current enhancement options, clamped
+    /// to the device's anisotropy limit. 0 = faithful single-tap.
+    [[nodiscard]] u32 effective_texture_quality() const;
+
     osd::Window* m_window = nullptr;
 
     Context      m_context;
@@ -103,6 +109,13 @@ private:
     /// Internal 3D render scale (1..kMaxRenderScale). Stored from the config;
     /// at 1 every target is native size and nothing behaves differently.
     u32 m_render_scale = 1;
+
+    PresentOptions     m_present_options;
+    EnhancementOptions m_enhancement_options;
+
+    /// Device max anisotropy from GL_MAX_TEXTURE_MAX_ANISOTROPY, 1.0 if the
+    /// extension/limit is absent. Read once at init.
+    float m_max_anisotropy = 1.0F;
 };
 
 }  // namespace sm2::render::gl

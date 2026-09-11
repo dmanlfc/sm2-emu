@@ -1107,7 +1107,8 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
     float ptr_fy = 0.5f;
     if (pointer.width > 1 && pointer.height > 1) {
         const render::Letterbox box = render::compute_letterbox(
-            static_cast<u32>(pointer.width), static_cast<u32>(pointer.height));
+            static_cast<u32>(pointer.width), static_cast<u32>(pointer.height),
+            m_present_aspect, m_present_method);
         if (box.width > 0.0f && box.height > 0.0f) {
             ptr_fx = std::clamp((pointer.x - box.x) / box.width, 0.0f, 1.0f);
             ptr_fy = std::clamp((pointer.y - box.y) / box.height, 0.0f, 1.0f);
@@ -1205,12 +1206,67 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
     }
 #endif
 
+    // Keyboard/pad aiming fallback (mouse and dedicated guns stay preferred): a
+    // per-player cursor nudged by the pad right stick or keyboard arrows, fired
+    // with pad South / Left Ctrl, reload-or-missile on pad East / Right Alt. It
+    // overrides the mouse aim only while actually driven, so the mouse is
+    // untouched when the pad/keys are idle.
+    {
+        const auto aim_from = [&](usize player, GunInput& gi) {
+            bool active = false;
+            float dx = 0.0f;
+            float dy = 0.0f;
+
+            if (SDL_Gamepad* pad = pad_for(static_cast<u32>(player)); pad != nullptr) {
+                const int sx = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHTX);
+                const int sy = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHTY);
+                if (std::abs(sx) > kStickThreshold / 2 || std::abs(sy) > kStickThreshold / 2) {
+                    dx += static_cast<float>(sx) / 32767.0f;
+                    dy += static_cast<float>(sy) / 32767.0f;
+                    active = true;
+                }
+                if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_SOUTH)) { gi.trigger = true; active = true; }
+                const bool rl = SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_EAST);
+                if (rl) { active = true; if (has_missile) gi.missile = true; else { gi.trigger = true; gi.reload = true; } }
+            }
+            // Keyboard aim only for player one (arrows), so it does not fight P2.
+            int         key_count = 0;
+            const bool* keys      = SDL_GetKeyboardState(&key_count);
+            if (player == 0 && keys != nullptr) {
+                const auto kd = [&](SDL_Scancode sc) {
+                    return static_cast<int>(sc) < key_count && keys[sc];
+                };
+                if (kd(SDL_SCANCODE_LEFT))  { dx -= 1.0f; active = true; }
+                if (kd(SDL_SCANCODE_RIGHT)) { dx += 1.0f; active = true; }
+                if (kd(SDL_SCANCODE_UP))    { dy -= 1.0f; active = true; }
+                if (kd(SDL_SCANCODE_DOWN))  { dy += 1.0f; active = true; }
+                if (kd(SDL_SCANCODE_LCTRL)) { gi.trigger = true; active = true; }
+                if (kd(SDL_SCANCODE_RALT)) {
+                    active = true;
+                    if (has_missile) gi.missile = true; else { gi.trigger = true; gi.reload = true; }
+                }
+            }
+
+            if (!active) {
+                return;  // idle: leave the mouse/gun aim untouched.
+            }
+            // ~1.5%/frame at full deflection is a controllable sweep at 57.5 Hz.
+            constexpr float kSpeed = 0.015f;
+            m_gun_cursor_x[player] = std::clamp(m_gun_cursor_x[player] + dx * kSpeed, 0.0f, 1.0f);
+            m_gun_cursor_y[player] = std::clamp(m_gun_cursor_y[player] + dy * kSpeed, 0.0f, 1.0f);
+            gi.x = m_gun_cursor_x[player];
+            gi.y = m_gun_cursor_y[player];
+        };
+        aim_from(0, p1);
+        aim_from(1, p2);
+    }
+
     // Record the aim (before the reload snap) for the crosshair overlay. Player
     // 2's crosshair only shows when a second gun is actually aiming it, so a
     // single-mouse session does not paint two overlapping crosshairs.
-    bool p2_active = false;
+    bool p2_active = pad_for(1) != nullptr;  // a 2nd pad aims player 2
 #ifdef SM2_HAVE_EVDEV
-    p2_active = m_guns && m_guns->count() >= 2;
+    p2_active = p2_active || (m_guns && m_guns->count() >= 2);
 #endif
     // Positional-gun titles draw their own in-game crosshair, so suppress ours
     // to avoid two overlapping reticles; the RS-422 lightgun titles do not.
@@ -1349,20 +1405,47 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             }
         }
 
+        // Pad VR buttons: A/B/X/Y -> VR1-4 through the declared port/bit, for
+        // titles that wire them off the default IN1 nibble (Daytona) where the
+        // generic face-button mapping above cannot reach them. Player one only.
+        if (game.vr_buttons_declared && pad.player == 0) {
+            static constexpr SDL_GamepadButton kVrPadButtons[4] = {
+                SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST,
+                SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH,
+            };
+            for (u8 i = 0; i < game.vr_button_count && i < 4; ++i) {
+                if (SDL_GetGamepadButton(pad.handle, kVrPadButtons[i])) {
+                    const auto [vport, vbit] = game.wheel_button_bits[i];
+                    if (vport < 3) {
+                        ports[vport] &= static_cast<u8>(~vbit);
+                    }
+                }
+            }
+        }
+
         // The left stick drives the same four switches as the d-pad, so either works
         // and holding both is harmless.
         port &= static_cast<u8>(
             ~stick_bits(SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTX),
                         SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTY)));
 
-        // Start and coin, so a player can put themselves into the game without
-        // reaching for the keyboard. Coin 2 belongs to player 2's slot.
-        if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_START)) {
-            const u8 start1 = game.start1_bit != 0 ? game.start1_bit : kStart1;
-            ports[0] &= static_cast<u8>(~(pad.player == 0 ? start1 : kStart2));
-        }
-        if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_BACK)) {
-            ports[0] &= static_cast<u8>(~(pad.player == 0 ? kCoin1 : kCoin2));
+        // Start/coin; coin 2 is player 2's slot. Guide is the operator modifier:
+        // Guide+Start = Service, Guide+Back = Test, and while Guide is held the
+        // plain coin/start are suppressed so the chord does not also coin.
+        const bool guide = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_GUIDE);
+        const bool start = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_START);
+        const bool back  = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_BACK);
+        if (guide) {
+            if (start) ports[0] &= static_cast<u8>(~kService);
+            if (back)  ports[0] &= static_cast<u8>(~kTest);
+        } else {
+            if (start) {
+                const u8 start1 = game.start1_bit != 0 ? game.start1_bit : kStart1;
+                ports[0] &= static_cast<u8>(~(pad.player == 0 ? start1 : kStart2));
+            }
+            if (back) {
+                ports[0] &= static_cast<u8>(~(pad.player == 0 ? kCoin1 : kCoin2));
+            }
         }
     }
 
@@ -1413,6 +1496,60 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         inputs->analog[channel] = wiring.control == rom::AnalogControl::None
                                       ? 0x00
                                       : sample_channel(wiring);
+    }
+
+    // Keyboard analog driver, so any analog title is playable without a pad:
+    // Left/Right drive the centring X axes, Up/Down the centring Y axes, Left
+    // Ctrl the gas and Left Alt the brake. Only overrides a channel while a key
+    // is held, so the pad axis still works otherwise; the game-specific blocks
+    // below run after and win for their own channels.
+    if (keys != nullptr) {
+        const auto down = [&](SDL_Scancode sc) {
+            return static_cast<int>(sc) < key_count && keys[sc];
+        };
+        const bool kleft  = down(SDL_SCANCODE_LEFT);
+        const bool kright = down(SDL_SCANCODE_RIGHT);
+        const bool kup    = down(SDL_SCANCODE_UP);
+        const bool kdown  = down(SDL_SCANCODE_DOWN);
+        const bool kgas   = down(SDL_SCANCODE_LCTRL);
+        const bool kbrake = down(SDL_SCANCODE_LALT);
+
+        const auto drive = [&](usize ch, bool high) {
+            const rom::AnalogChannel& c = game.analog[ch];
+            const bool at_max = c.reverse ? !high : high;
+            inputs->analog[ch] = at_max ? c.maximum : c.minimum;
+        };
+
+        for (usize ch = 0; ch < game.analog.size(); ++ch) {
+            switch (game.analog[ch].control) {
+                case rom::AnalogControl::Steer:
+                case rom::AnalogControl::Bank:
+                case rom::AnalogControl::Handle:
+                case rom::AnalogControl::StickX:
+                case rom::AnalogControl::Roll:
+                case rom::AnalogControl::Slide:
+                case rom::AnalogControl::Inclining:
+                case rom::AnalogControl::Curving:
+                    if (kleft != kright) drive(ch, kright);
+                    break;
+                case rom::AnalogControl::StickY:
+                case rom::AnalogControl::Pitch:
+                case rom::AnalogControl::Swing:
+                    if (kup != kdown) drive(ch, kdown);
+                    break;
+                case rom::AnalogControl::Accel:
+                case rom::AnalogControl::Throttle:
+                case rom::AnalogControl::Bat1:
+                    if (kgas) drive(ch, true);
+                    break;
+                case rom::AnalogControl::Brake:
+                case rom::AnalogControl::Bat2:
+                    if (kbrake) drive(ch, true);
+                    break;
+                default:
+                    break;  // Gun1/2 X/Y: gather_lightguns.
+            }
+        }
     }
 
     // Top Skater special-case. The game has no digital d-pad; it steers with an
@@ -1526,8 +1663,31 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             }
         }
 
-        inputs->in1 &= static_cast<u8>(~in1);
-        inputs->in2 &= static_cast<u8>(~in2);
+        // Keyboard twin-stick (one-player cabinet, so WASD is free for the left
+        // lever): WASD left lever, Q/E left shot/dash; arrows right lever,
+        // Right Shift/Right Ctrl right shot/dash.
+        if (keys != nullptr) {
+            const auto kd = [&](SDL_Scancode sc) {
+                return static_cast<int>(sc) < key_count && keys[sc];
+            };
+            if (kd(SDL_SCANCODE_W)) in1 |= kUp;
+            if (kd(SDL_SCANCODE_S)) in1 |= kDown;
+            if (kd(SDL_SCANCODE_A)) in1 |= kLeft;
+            if (kd(SDL_SCANCODE_D)) in1 |= kRight;
+            if (kd(SDL_SCANCODE_Q)) in1 |= kButton1;  // Left Shot
+            if (kd(SDL_SCANCODE_E)) in1 |= kButton2;  // Left Dash
+            if (kd(SDL_SCANCODE_UP))    in2 |= kUp;
+            if (kd(SDL_SCANCODE_DOWN))  in2 |= kDown;
+            if (kd(SDL_SCANCODE_LEFT))  in2 |= kLeft;
+            if (kd(SDL_SCANCODE_RIGHT)) in2 |= kRight;
+            if (kd(SDL_SCANCODE_RSHIFT)) in2 |= kButton1;  // Right Shot
+            if (kd(SDL_SCANCODE_RCTRL))  in2 |= kButton2;  // Right Dash
+        }
+
+        // Rebuild both ports from the twin-stick state, dropping the stray bits
+        // the generic keyboard/pad pass wrote (they do not match this layout).
+        inputs->in1 = static_cast<u8>(~in1);
+        inputs->in2 = static_cast<u8>(~in2);
     }
 
     // Desert Tank layout. MAME's `desert` port map (see model2o_state::desert):
@@ -1715,25 +1875,57 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             }
         }
 
+        // Gamepad shifter: RB up, LB down, edge-detected, sharing m_wheel_gear.
+        if (SDL_Gamepad* pad = pad_for(0); pad != nullptr) {
+            const bool up   = SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+            const bool down = SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
+            bool shifted = false;
+            if (up && !m_pad_gear_up_held && m_wheel_gear < 4) {
+                ++m_wheel_gear;
+                shifted = true;
+            }
+            if (down && !m_pad_gear_down_held && m_wheel_gear > 0) {
+                --m_wheel_gear;
+                shifted = true;
+            }
+            m_pad_gear_up_held   = up;
+            m_pad_gear_down_held = down;
+            if (shifted || gears == 0) {
+                gears = static_cast<u8>(1u << m_wheel_gear);
+            }
+        }
+
         inputs->gears = gears;
     }
 
-    // Games that shift with two momentary buttons rather than a gate (Indy 500,
-    // Manx TT and family) put Shift Up on IN1 0x10 and Shift Down on IN1 0x20.
-    // The GearUp/GearDown wheel roles press those bits directly; no gear state.
-    if (game.shift_buttons && m_wheel.handle != nullptr) {
-        const int count = SDL_GetNumJoystickButtons(m_wheel.handle);
-        const auto role_held = [&](Config::WheelRole role) {
-            const s32 button = m_wheel_settings.buttons[static_cast<usize>(role)];
-            return button >= 0 && button < count
-                && SDL_GetJoystickButton(m_wheel.handle, button);
-        };
-        if (role_held(Config::WheelRole::GearUp)) {
-            inputs->in1 &= static_cast<u8>(~0x10);
+    // Two-button shifters (Indy 500, Manx TT family): Shift Up on IN1 0x10, Down
+    // on 0x20. Held bits, no gear state, from keyboard (F1/F2), pad (RB/LB) or
+    // the wheel's GearUp/GearDown roles.
+    if (game.shift_buttons) {
+        bool up   = false;
+        bool down = false;
+
+        if (keys != nullptr) {
+            up   |= static_cast<int>(SDL_SCANCODE_F1) < key_count && keys[SDL_SCANCODE_F1];
+            down |= static_cast<int>(SDL_SCANCODE_F2) < key_count && keys[SDL_SCANCODE_F2];
         }
-        if (role_held(Config::WheelRole::GearDown)) {
-            inputs->in1 &= static_cast<u8>(~0x20);
+        if (SDL_Gamepad* pad = pad_for(0); pad != nullptr) {
+            up   |= SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+            down |= SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
         }
+        if (m_wheel.handle != nullptr) {
+            const int count = SDL_GetNumJoystickButtons(m_wheel.handle);
+            const auto role_held = [&](Config::WheelRole role) {
+                const s32 button = m_wheel_settings.buttons[static_cast<usize>(role)];
+                return button >= 0 && button < count
+                    && SDL_GetJoystickButton(m_wheel.handle, button);
+            };
+            up   |= role_held(Config::WheelRole::GearUp);
+            down |= role_held(Config::WheelRole::GearDown);
+        }
+
+        if (up)   inputs->in1 &= static_cast<u8>(~0x10);
+        if (down) inputs->in1 &= static_cast<u8>(~0x20);
     }
 }
 
@@ -1786,26 +1978,35 @@ u16 Input::gun_take_last_pressed(usize index) const
 void Input::print_bindings()
 {
     std::printf("Gamepad, per player:\n");
-    std::printf("  d-pad or left stick  stick\n");
-    std::printf("  A B X Y              buttons 1 to 4\n");
-    std::printf("  L / R shoulder       buttons 3 and 4\n");
-    std::printf("  Start                start\n");
-    std::printf("  Back                 insert coin\n");
+    std::printf("  d-pad or left stick  stick / steering, and other centred axes\n");
+    std::printf("  A B X Y              buttons 1 to 4 (also VR 1-4 on view titles)\n");
+    std::printf("  L / R shoulder       buttons 3/4; also gear/shift down/up on racers\n");
+    std::printf("  L / R trigger        brake / accelerate on driving titles\n");
+    std::printf("  right stick          aim on gun titles (no mouse needed)\n");
+    std::printf("  Start / Back         start / insert coin\n");
+    std::printf("  Guide + Start/Back   service / test (operator menus)\n");
     std::printf("\nKeyboard:\n");
     std::printf("  5 6                  coin 1, coin 2\n");
     std::printf("  1 2                  start 1, start 2\n");
     std::printf("  9 0                  service, test\n");
     std::printf("  arrows Z X C V       player 1 stick and buttons\n");
     std::printf("  W A S D  G H J K     player 2 stick and buttons\n");
-    std::printf("  F1-F4  F5            gears 1 to 4, neutral (titles with a gearbox)\n");
+    std::printf("  arrows               steering and centred analog axes\n");
+    std::printf("  Left Ctrl / Left Alt accelerate / brake (driving titles)\n");
+    std::printf("  F1 F2                shift up / down (Indy 500, Manx TT family)\n");
+    std::printf("  F1-F4  F5            gears 1 to 4, neutral (gate gearbox titles)\n");
     std::printf("  B N M ,              VR / view buttons 1 to 4 (titles that have them)\n");
     std::printf("  Space                Desert Tank forward/reverse shift\n");
+    std::printf("  arrows + Left Ctrl   aim + fire on gun titles (no mouse needed)\n");
     std::printf("  Escape               quit\n");
     std::printf("  P                    pause\n");
     std::printf("  Tab (held)           fast-forward\n");
     std::printf("  F10 F11 F12          settings menu, fullscreen, screenshot\n");
+    std::printf("\nVirtual On (keyboard): WASD left lever, arrows right lever,\n");
+    std::printf("Q/E left shot/dash, Right Shift/Right Ctrl right shot/dash.\n");
     std::printf("\nThe first gamepad to connect is player 1. Gamepads and the keyboard\n");
-    std::printf("are both live, so a second player can join on the keyboard.\n");
+    std::printf("are both live, so a second player can join on the keyboard. A mouse or\n");
+    std::printf("a wheel, where present, is the preferred device for gun/driving titles.\n");
 }
 
 Input::ScriptedPress Input::scripted_press(u32 frame, u32 coin_frame, u8 start1_bit)

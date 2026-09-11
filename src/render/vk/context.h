@@ -140,6 +140,10 @@ public:
         return m_device_properties;
     }
 
+    /// Whether anisotropic sampling was requested and enabled on the device.
+    /// The max ratio, when true, is device_properties().limits.maxSamplerAnisotropy.
+    [[nodiscard]] bool supports_anisotropy() const { return m_anisotropy_enabled; }
+
     /// Names of every device that could be selected, for configuration UI.
     [[nodiscard]] static std::vector<std::string> enumerate_device_names();
 
@@ -168,6 +172,10 @@ private:
     VmaAllocator             m_allocator       = nullptr;
 
     VkPhysicalDeviceProperties m_device_properties{};
+
+    /// Set in create_device() when the device offered samplerAnisotropy and it
+    /// was enabled. Optional feature, so a device without it still runs.
+    bool m_anisotropy_enabled = false;
 
     u32     m_graphics_family = VK_QUEUE_FAMILY_IGNORED;
     u32     m_present_family  = VK_QUEUE_FAMILY_IGNORED;

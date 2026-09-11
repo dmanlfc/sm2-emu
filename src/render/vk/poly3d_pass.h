@@ -82,6 +82,10 @@ public:
     [[nodiscard]] bool init(Context& context, u32 render_scale);
     void shutdown();
 
+    /// Anisotropic texture-filter quality (0 = faithful single-tap, else the
+    /// tap ceiling). Pushed to the shader each draw; live, no reallocation.
+    void set_texture_quality(u32 quality) { m_texture_quality = quality; }
+
     /// Triangulate this frame's polygons, unpack their texture headers, and refresh
     /// whatever machine memory has changed since this frame last ran.
     ///
@@ -252,6 +256,8 @@ private:
 
     /// Internal 3D render scale; the fill-mask attachment is N*native.
     u32 m_render_scale = 1;
+
+    u32 m_texture_quality = 0;  ///< 0 = faithful single-tap, else tap ceiling
 };
 
 }  // namespace sm2::render::vk

@@ -57,6 +57,9 @@ layout(push_constant) uniform Push {
     // Render scale N (1 at native); read by polygon.frag, which shares this
     // block. Unused here, but part of the same layout so both stages agree.
     uint renderScale;
+    // Anisotropic texture-filter quality; read by polygon.frag. Unused here,
+    // part of the same layout so both stages agree on the block.
+    uint textureQuality;
 } pc;
 
 void main()

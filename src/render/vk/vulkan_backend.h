@@ -71,6 +71,8 @@ public:
     void submit_native_frame(std::span<const u32> pixels) override;
     [[nodiscard]] bool request_capture() override;
     [[nodiscard]] bool save_capture(const std::string& path) const override;
+    void set_present_options(const PresentOptions& options) override;
+    void set_enhancement_options(const EnhancementOptions& options) override;
     void blit_to_swapchain() override;
     void begin_overlay_frame() override;
     void draw_overlay(bool active) override;
@@ -103,6 +105,10 @@ public:
     }
 
 private:
+    /// The shader texture-quality value for the current enhancement options,
+    /// clamped to the device's anisotropy limit. 0 = faithful single-tap.
+    [[nodiscard]] u32 effective_texture_quality() const;
+
     Context      m_context;
     TilemapPass  m_tilemaps;
     Poly3DPass   m_polygons;
@@ -118,6 +124,9 @@ private:
     /// Internal 3D render scale (1..kMaxRenderScale). Stored from the config;
     /// at 1 every target is native size and nothing behaves differently.
     u32 m_render_scale = 1;
+
+    PresentOptions     m_present_options;
+    EnhancementOptions m_enhancement_options;
 
     // -- ImGui's Vulkan renderer backend -------------------------------------
     VkDescriptorPool m_overlay_pool             = VK_NULL_HANDLE;

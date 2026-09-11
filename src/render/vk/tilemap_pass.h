@@ -115,6 +115,10 @@ public:
     /// Draw the above layers over whatever is in the frame, and end rendering.
     void record_above();
 
+    /// 2D upscale: 0 faithful, 1 xBR, 2 ScaleFX. Applied in the composite
+    /// fragment shader; live, no reallocation.
+    void set_upscale_2d(u32 mode) { m_upscale_2d = mode; }
+
 private:
     struct Surface {
         VkBuffer        staging    = VK_NULL_HANDLE;
@@ -212,6 +216,8 @@ private:
 
     /// Internal 3D render scale; the composite scope is N*native.
     u32 m_render_scale = 1;
+
+    u32 m_upscale_2d = 0;  ///< 0 faithful, 1 xBR, 2 ScaleFX
 };
 
 }  // namespace sm2::render::vk

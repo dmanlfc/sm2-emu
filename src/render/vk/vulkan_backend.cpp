@@ -40,6 +40,8 @@ bool VulkanBackend::init(osd::Window& window, const BackendConfig& config)
     context_config.preferred_device  = config.preferred_device;
 
     m_render_scale = std::clamp(config.render_scale, 1U, kMaxRenderScale);
+    m_present_options = config.present;
+    m_enhancement_options = config.enhancement;
 
     if (!m_context.init(window, context_config)) {
         return false;
@@ -78,6 +80,9 @@ bool VulkanBackend::init(osd::Window& window, const BackendConfig& config)
         SM2_ERROR("could not create the presentation pipeline");
         return false;
     }
+    m_present.set_options(m_present_options);
+    m_polygons.set_texture_quality(effective_texture_quality());
+    m_tilemaps.set_upscale_2d(static_cast<u32>(m_enhancement_options.upscale_2d));
     if (!m_capture.init(m_context)) {
         SM2_ERROR("could not set up frame capture");
         return false;
@@ -104,6 +109,10 @@ Capabilities VulkanBackend::capabilities() const
     Capabilities caps;
     caps.compute_shaders = true;
     caps.gpu_timing      = m_context.supports_gpu_timing();
+    caps.anisotropy      = m_context.supports_anisotropy();
+    caps.max_anisotropy  = caps.anisotropy
+                               ? m_context.device_properties().limits.maxSamplerAnisotropy
+                               : 1.0F;
     return caps;
 }
 
@@ -194,6 +203,35 @@ void VulkanBackend::blit_to_swapchain()
                          VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
                          VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
     m_present.record();
+}
+
+void VulkanBackend::set_present_options(const PresentOptions& options)
+{
+    // Present-only state; PresentPass reads it at record() time. No target is
+    // reallocated, so this is safe to call between frames.
+    m_present_options = options;
+    m_present.set_options(options);
+}
+
+void VulkanBackend::set_enhancement_options(const EnhancementOptions& options)
+{
+    m_enhancement_options = options;
+    m_polygons.set_texture_quality(effective_texture_quality());
+    m_tilemaps.set_upscale_2d(static_cast<u32>(options.upscale_2d));
+}
+
+u32 VulkanBackend::effective_texture_quality() const
+{
+    // Faithful is a single tap (0); anisotropic clamps the requested ceiling to
+    // what the device reports, so a config value beyond the GPU max is honoured
+    // as "as much as this GPU allows" rather than refused.
+    if (m_enhancement_options.texture_filter != TextureFilter::Anisotropic) {
+        return 0;
+    }
+    const u32 device_max = static_cast<u32>(m_context.device_properties()
+                                                .limits.maxSamplerAnisotropy);
+    const u32 ceiling = std::max(device_max, 1U);
+    return std::min(m_enhancement_options.anisotropy, ceiling);
 }
 
 void VulkanBackend::begin_overlay_frame()

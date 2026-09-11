@@ -75,6 +75,96 @@ constexpr u32 kMaxRenderScale = 4;
     return true;
 }
 
+/// Present-stage scaling method <-> ini token. Returns false on an unknown
+/// spelling so the caller can report it and keep the default.
+[[nodiscard]] bool parse_scaling_method(const std::string& value, ScalingMethod* out)
+{
+    const std::string text = lowered(value);
+    if (text == "nearest") { *out = ScalingMethod::Nearest; return true; }
+    if (text == "bilinear") { *out = ScalingMethod::Bilinear; return true; }
+    if (text == "sharp" || text == "sharp-bilinear" || text == "sharp_bilinear") {
+        *out = ScalingMethod::SharpBilinear;
+        return true;
+    }
+    if (text == "integer") { *out = ScalingMethod::Integer; return true; }
+    return false;
+}
+
+[[nodiscard]] const char* scaling_method_name(ScalingMethod method)
+{
+    switch (method) {
+        case ScalingMethod::Nearest:       return "nearest";
+        case ScalingMethod::Bilinear:      return "bilinear";
+        case ScalingMethod::SharpBilinear: return "sharp";
+        case ScalingMethod::Integer:       return "integer";
+    }
+    return "sharp";
+}
+
+[[nodiscard]] bool parse_aspect_mode(const std::string& value, AspectMode* out)
+{
+    const std::string text = lowered(value);
+    if (text == "4:3" || text == "4-3" || text == "fourthree") {
+        *out = AspectMode::FourThree;
+        return true;
+    }
+    if (text == "square" || text == "square-pixel" || text == "squarepixel") {
+        *out = AspectMode::SquarePixel;
+        return true;
+    }
+    if (text == "stretch" || text == "fill") { *out = AspectMode::Stretch; return true; }
+    return false;
+}
+
+[[nodiscard]] const char* aspect_mode_name(AspectMode mode)
+{
+    switch (mode) {
+        case AspectMode::FourThree:   return "4:3";
+        case AspectMode::SquarePixel: return "square";
+        case AspectMode::Stretch:     return "stretch";
+    }
+    return "4:3";
+}
+
+[[nodiscard]] bool parse_texture_filter(const std::string& value, TextureFilter* out)
+{
+    const std::string text = lowered(value);
+    if (text == "faithful") { *out = TextureFilter::Faithful; return true; }
+    if (text == "anisotropic" || text == "aniso") {
+        *out = TextureFilter::Anisotropic;
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] const char* texture_filter_name(TextureFilter filter)
+{
+    switch (filter) {
+        case TextureFilter::Faithful:    return "faithful";
+        case TextureFilter::Anisotropic: return "anisotropic";
+    }
+    return "faithful";
+}
+
+[[nodiscard]] bool parse_upscale_2d(const std::string& value, Upscale2D* out)
+{
+    const std::string text = lowered(value);
+    if (text == "faithful") { *out = Upscale2D::Faithful; return true; }
+    if (text == "xbr")      { *out = Upscale2D::Xbr;      return true; }
+    if (text == "scalefx" || text == "scale-fx") { *out = Upscale2D::ScaleFx; return true; }
+    return false;
+}
+
+[[nodiscard]] const char* upscale_2d_name(Upscale2D mode)
+{
+    switch (mode) {
+        case Upscale2D::Faithful: return "faithful";
+        case Upscale2D::Xbr:      return "xbr";
+        case Upscale2D::ScaleFx:  return "scalefx";
+    }
+    return "faithful";
+}
+
 [[nodiscard]] constexpr usize cfg_role(Config::WheelRole role)
 {
     return static_cast<usize>(role);
@@ -334,6 +424,46 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             } else {
                 out->render_scale = scale;
             }
+        } else if (key == "scaling_method") {
+            if (!parse_scaling_method(value, &out->scaling_method)) {
+                bad_value();
+            }
+        } else if (key == "aspect_mode") {
+            if (!parse_aspect_mode(value, &out->aspect_mode)) {
+                bad_value();
+            }
+        } else if (key == "crt_enabled") {
+            if (!parse_bool(value, &out->crt_enabled)) {
+                bad_value();
+            }
+        } else if (key == "crt_scanline_strength") {
+            if (!parse_u32(value, &out->crt_scanline_strength)) {
+                bad_value();
+            }
+        } else if (key == "crt_mask_strength") {
+            if (!parse_u32(value, &out->crt_mask_strength)) {
+                bad_value();
+            }
+        } else if (key == "crt_glow_strength") {
+            if (!parse_u32(value, &out->crt_glow_strength)) {
+                bad_value();
+            }
+        } else if (key == "crt_curvature") {
+            if (!parse_u32(value, &out->crt_curvature)) {
+                bad_value();
+            }
+        } else if (key == "texture_filter") {
+            if (!parse_texture_filter(value, &out->texture_filter)) {
+                bad_value();
+            }
+        } else if (key == "anisotropy") {
+            if (!parse_u32(value, &out->anisotropy)) {
+                bad_value();
+            }
+        } else if (key == "upscale_2d") {
+            if (!parse_upscale_2d(value, &out->upscale_2d)) {
+                bad_value();
+            }
         } else if (key == "gpu") {
             out->gpu = value;
         } else if (key == "graphics_backend") {
@@ -513,6 +643,13 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
     out->wheel_lock_degrees  = std::clamp(out->wheel_lock_degrees, 180u, 270u);
     out->render_scale        = std::clamp(out->render_scale, 1u, kMaxRenderScale);
+    out->crt_scanline_strength = std::min(out->crt_scanline_strength, 100u);
+    out->crt_mask_strength     = std::min(out->crt_mask_strength, 100u);
+    out->crt_glow_strength     = std::min(out->crt_glow_strength, 100u);
+    out->crt_curvature         = std::min(out->crt_curvature, 100u);
+    // Anisotropy is a tap ceiling; clamp to a sane 1..16 here, and the backend
+    // further clamps to the device's maxSamplerAnisotropy at use time.
+    out->anisotropy            = std::clamp(out->anisotropy, 1u, 16u);
     // A UDP port is 16-bit; floor at 1 since 0 binds an ephemeral port.
     out->link_port      = std::clamp(out->link_port, 1u, 65535u);
     out->link_next_port = std::clamp(out->link_next_port, 1u, 65535u);
@@ -565,6 +702,33 @@ bool save_config(const std::string& path, const Config& config)
         << "# backends only (the software renderer stays native), and it takes\n"
         << "# effect on the next launch.\n"
         << "render_scale = " << config.render_scale << "\n"
+        << "\n"
+        << "# How the finished frame is scaled to the window. One of: nearest,\n"
+        << "# bilinear, sharp (sharp-bilinear), integer. Sharp keeps 2D text crisp\n"
+        << "# without the shimmer nearest gives at non-integer window sizes.\n"
+        << "# Present-stage only, so it takes effect live.\n"
+        << "scaling_method = " << scaling_method_name(config.scaling_method) << "\n"
+        << "\n"
+        << "# Aspect the frame is presented at. One of: 4:3 (arcade monitor),\n"
+        << "# square (raw 496x384 square pixels), stretch (fill the window).\n"
+        << "aspect_mode = " << aspect_mode_name(config.aspect_mode) << "\n"
+        << "\n"
+        << "# Optional CRT cosmetic filter over the finished frame. Strengths are\n"
+        << "# 0..100; curvature 0 is flat. Live-switchable.\n"
+        << "crt_enabled = " << bool_text(config.crt_enabled) << "\n"
+        << "crt_scanline_strength = " << config.crt_scanline_strength << "\n"
+        << "crt_mask_strength = " << config.crt_mask_strength << "\n"
+        << "crt_glow_strength = " << config.crt_glow_strength << "\n"
+        << "crt_curvature = " << config.crt_curvature << "\n"
+        << "\n"
+        << "# Opt-in graphics enhancement beyond the original hardware. Defaults\n"
+        << "# match the arcade; each is GPU-gated and falls back to faithful.\n"
+        << "# texture_filter: faithful or anisotropic (sharper 3D at grazing\n"
+        << "# angles); anisotropy is the 2..16 tap ceiling, clamped to the GPU.\n"
+        << "# upscale_2d: faithful, xbr or scalefx (edge-smooth the 2D layers).\n"
+        << "texture_filter = " << texture_filter_name(config.texture_filter) << "\n"
+        << "anisotropy = " << config.anisotropy << "\n"
+        << "upscale_2d = " << upscale_2d_name(config.upscale_2d) << "\n"
         << "\n"
         << "# Exact device name as --list-gpus prints it. Empty picks the best one.\n"
         << "gpu = " << config.gpu << "\n"

@@ -20,6 +20,7 @@ sm2_declare_shader_library(sm2_shaders)
 
 sm2_add_shader(sm2_shaders SOURCE fullscreen_quad.vert    SYMBOL kFullscreenQuadVert)
 sm2_add_shader(sm2_shaders SOURCE tilemap_composite.frag SYMBOL kTilemapCompositeFrag)
+sm2_add_shader(sm2_shaders SOURCE present.frag           SYMBOL kPresentFrag)
 sm2_add_shader(sm2_shaders SOURCE polygon.vert           SYMBOL kPolygonVert)
 sm2_add_shader(sm2_shaders SOURCE polygon.frag           SYMBOL kPolygonFrag)
 # early-fragment-tests variant of polygon.frag; see the SM2_EARLY_FRAGMENT_TESTS

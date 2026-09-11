@@ -17,16 +17,28 @@
 #include "core/log.h"
 
 #include "shaders/fullscreen_quad_vert_glsl.h"
-#include "shaders/tilemap_composite_frag_glsl.h"
+#include "shaders/present_frag_glsl.h"
 
 #include <cstring>
 
 namespace sm2::render::gl {
 namespace {
 
-/// Mode 2: copy an already-finished opaque frame, matching
-/// render::vk::PresentPass::record()'s own kModeCopy.
-constexpr u32 kModeCopy = 2;
+/// GL magnification filter a scaling method needs: point for Nearest/Integer
+/// (Integer is an exact multiple), linear for Bilinear/SharpBilinear. Matches
+/// render::vk::PresentPass's sampler_for().
+[[nodiscard]] GLint gl_filter_for(ScalingMethod method)
+{
+    switch (method) {
+        case ScalingMethod::Nearest:
+        case ScalingMethod::Integer:
+            return GL_NEAREST;
+        case ScalingMethod::Bilinear:
+        case ScalingMethod::SharpBilinear:
+            return GL_LINEAR;
+    }
+    return GL_LINEAR;
+}
 
 }  // namespace
 
@@ -114,18 +126,21 @@ bool PresentPass::create_program()
     const std::string vertex_source =
         prepare_gl_source(shaders::kFullscreenQuadVertGlsl, active_version_directive());
     const std::string fragment_source =
-        prepare_gl_source(shaders::kTilemapCompositeFragGlsl, active_version_directive());
+        prepare_gl_source(shaders::kPresentFragGlsl, active_version_directive());
     m_program = compile_program(vertex_source.c_str(), fragment_source.c_str());
     if (m_program == 0) {
         return false;
     }
 
-    const u32 block = GetUniformBlockIndex(m_program, "Push");
+    const u32 block = GetUniformBlockIndex(m_program, "Present");
     UniformBlockBinding(m_program, block, 1);
     GenBuffers(1, &m_push_ubo);
     BindBuffer(GL_UNIFORM_BUFFER, m_push_ubo);
-    BufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(sizeof(float) * 4 + sizeof(u32)),
-              nullptr, GL_DYNAMIC_DRAW);
+    // std140 Present block: vec2 source_size (0), vec2 target_size (8),
+    // uint method (16), uint crt_enabled (20), then four floats (24..36) = 40
+    // bytes, rounded up to a 16-byte multiple. Sized to the struct present()
+    // writes (48 bytes with its trailing pad).
+    BufferData(GL_UNIFORM_BUFFER, 48, nullptr, GL_DYNAMIC_DRAW);
     return true;
 }
 
@@ -162,16 +177,34 @@ void PresentPass::present(u32 window_width, u32 window_height)
     // No glEnable(GL_SCISSOR_TEST) needed: the viewport alone already
     // constrains the fullscreen triangle to the letterbox rectangle, and the
     // clear above already covers the full window for the bars outside it.
-    const render::Letterbox box = render::compute_letterbox(window_width, window_height);
+    const render::Letterbox box = render::compute_letterbox(
+        window_width, window_height, m_options.aspect_mode, m_options.scaling_method);
     Viewport(static_cast<GLint>(box.x), static_cast<GLint>(box.y),
             static_cast<GLsizei>(box.width), static_cast<GLsizei>(box.height));
 
+    // std140 layout of present.frag's Present block (see create_program()):
+    // two vec2s, method, crt_enabled, four floats, padded to 48 bytes.
     struct PushBlock {
-        float background[4];
-        u32   mode;
+        float source_size[2];
+        float target_size[2];
+        u32   method;
+        u32   crt_enabled;
+        float crt_scanline;
+        float crt_mask;
+        float crt_glow;
+        float crt_curvature;
+        u32   pad[2];
     } push{};
-    push.background[3] = 1.0F;
-    push.mode           = kModeCopy;
+    push.source_size[0] = static_cast<float>(kWidth);
+    push.source_size[1] = static_cast<float>(kHeight);
+    push.target_size[0] = box.width;
+    push.target_size[1] = box.height;
+    push.method         = static_cast<u32>(m_options.scaling_method);
+    push.crt_enabled    = m_options.crt_enabled ? 1u : 0u;
+    push.crt_scanline   = static_cast<float>(m_options.crt_scanline_strength) / 100.0F;
+    push.crt_mask       = static_cast<float>(m_options.crt_mask_strength) / 100.0F;
+    push.crt_glow       = static_cast<float>(m_options.crt_glow_strength) / 100.0F;
+    push.crt_curvature  = static_cast<float>(m_options.crt_curvature) / 100.0F;
 
     UseProgram(m_program);
     BindBuffer(GL_UNIFORM_BUFFER, m_push_ubo);
@@ -181,6 +214,11 @@ void PresentPass::present(u32 window_width, u32 window_height)
     Disable(GL_BLEND);
     ActiveTexture(GL_TEXTURE0);
     BindTexture(GL_TEXTURE_2D, m_native_texture);
+    // The scaling method chooses the magnification filter live; SharpBilinear
+    // uses linear and snaps in the shader.
+    const GLint filter = gl_filter_for(m_options.scaling_method);
+    TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+    TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 
     BindVertexArray(m_vao);
     DrawArrays(GL_TRIANGLES, 0, 3);

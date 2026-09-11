@@ -62,6 +62,10 @@ public:
     /// Draw the above layers over whatever is in the target.
     void draw_above();
 
+    /// 2D upscale: 0 faithful, 1 xBR, 2 ScaleFX. Applied in the composite
+    /// fragment shader; live, no reallocation.
+    void set_upscale_2d(u32 mode) { m_upscale_2d = mode; }
+
 private:
     [[nodiscard]] bool create_textures();
     [[nodiscard]] bool create_programs();
@@ -86,6 +90,8 @@ private:
 
     u32 m_vao      = 0;  ///< empty VAO; fullscreen_quad.vert reads no vertex data
     u32 m_push_ubo = 0;  ///< backing buffer for the composite shader's Push block
+
+    u32 m_upscale_2d = 0;  ///< 0 faithful, 1 xBR, 2 ScaleFX
 
     // -- the compute path -----------------------------------------------------
 

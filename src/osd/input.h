@@ -230,6 +230,15 @@ public:
         m_gun_buttons = b;
     }
 
+    /// Present-stage placement, pushed from the config each frame, so the gun /
+    /// mouse pointer maps onto the same letterbox rectangle the backend draws
+    /// the image into. A mismatch would offset every shot from the cursor.
+    void set_present_placement(AspectMode aspect, ScalingMethod method)
+    {
+        m_present_aspect = aspect;
+        m_present_method = method;
+    }
+
     /// Bits to pull low on each port at a given frame, for unattended testing.
     struct ScriptedPress {
         u8 in0 = 0;  ///< Coins, start, service, test.
@@ -332,11 +341,21 @@ private:
     mutable u32  m_wheel_gear      = 0;      ///< 0..4 = gears 1..4, reverse.
     mutable bool m_gear_up_held    = false;
     mutable bool m_gear_down_held  = false;
+
+    /// Gamepad shoulder-button shifter edge state, shared with the wheel gate.
+    mutable bool m_pad_gear_up_held   = false;
+    mutable bool m_pad_gear_down_held = false;
     bool         m_menu_held       = false;  ///< edge state for the Menu-bound wheel button.
 
     /// Desert Tank's forward/reverse shift.
     mutable bool m_desert_shift      = false;  ///< latched forward(false)/reverse(true).
     mutable bool m_desert_shift_held = false;  ///< edge state of the shift button.
+
+    /// Gun-cursor position per player, 0..1 in game-image space, for the
+    /// keyboard/pad aiming fallback on gun titles (mouse/dedicated gun preferred).
+    /// Nudged by the pad right stick and keyboard arrows; starts centred.
+    mutable std::array<float, kPlayers> m_gun_cursor_x = {0.5f, 0.5f};
+    mutable std::array<float, kPlayers> m_gun_cursor_y = {0.5f, 0.5f};
 
     /// Per-device light guns from evdev, when built and present. Held by pointer
     /// so the evdev/libudev detail stays out of this header; null when no guns
@@ -373,6 +392,10 @@ private:
     }};
     enum GunRoleIdx { GrTrigger, GrReload, GrCoin, GrStart,
                       GrHatUp, GrHatDown, GrHatLeft, GrHatRight };
+
+    /// Present placement in effect, for the gun/pointer letterbox mapping.
+    AspectMode    m_present_aspect = AspectMode::FourThree;
+    ScalingMethod m_present_method = ScalingMethod::SharpBilinear;
 
     bool             m_started = false;
 };

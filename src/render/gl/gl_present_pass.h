@@ -61,10 +61,15 @@ public:
     /// texels. Call after begin_frame().
     void upload_from_host(std::span<const u32> pixels);
 
+    /// Adopt new present-stage options (scaling method, aspect mode, CRT).
+    /// Pure present state, so this reallocates nothing.
+    void set_options(const PresentOptions& options) { m_options = options; }
+
     /// Scale the finished native frame onto the currently bound framebuffer
-    /// (the window, via framebuffer 0), letterboxed to 4:3 within
-    /// `window_width` by `window_height`. Clears the whole target first so
-    /// the letterbox bars are defined.
+    /// (the window, via framebuffer 0), into the rectangle the current aspect
+    /// mode and scaling method select within `window_width` by
+    /// `window_height`. Clears the whole target first so the letterbox bars
+    /// are defined.
     void present(u32 window_width, u32 window_height);
 
 private:
@@ -84,6 +89,9 @@ private:
 
     /// Internal 3D render scale; the composite target and stencil are N*native.
     u32 m_render_scale = 1;
+
+    /// Live present-stage options; present() reads these each frame.
+    PresentOptions m_options;
 };
 
 }  // namespace sm2::render::gl

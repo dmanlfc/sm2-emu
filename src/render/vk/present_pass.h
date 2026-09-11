@@ -93,15 +93,21 @@ public:
         return VkExtent2D{width(), height()};
     }
 
+    /// Adopt new present-stage options (scaling method, aspect mode, CRT). Pure
+    /// present state -- sampler selection, shader push data and the letterbox
+    /// rectangle -- so this reallocates nothing and is safe between frames.
+    void set_options(const PresentOptions& options) { m_options = options; }
+
     /// Scale the finished native frame onto the swapchain.
     ///
     /// Clears the whole swapchain image first so the letterbox bars are defined,
-    /// then draws into the largest 4:3 rectangle that fits. Opens and closes its
-    /// own rendering scope; the swapchain image must already be in
-    /// COLOR_ATTACHMENT_OPTIMAL.
+    /// then draws into the rectangle the current aspect mode and scaling method
+    /// select. Opens and closes its own rendering scope; the swapchain image
+    /// must already be in COLOR_ATTACHMENT_OPTIMAL.
     void record();
 
-    /// Largest 4:3 rectangle centred in the swapchain.
+    /// The rectangle the frame is drawn into for the current aspect mode and
+    /// scaling method, centred in the swapchain.
     [[nodiscard]] VkViewport letterbox() const;
 
 private:
@@ -109,7 +115,10 @@ private:
         VkImage         image      = VK_NULL_HANDLE;
         VmaAllocation   allocation = nullptr;
         VkImageView     view       = VK_NULL_HANDLE;
-        VkDescriptorSet set        = VK_NULL_HANDLE;
+        /// One set per sampler filter: [0] nearest, [1] linear. record() binds
+        /// whichever the current scaling method needs, so switching the filter
+        /// live is a bind, not a descriptor rewrite or a sampler recreation.
+        std::array<VkDescriptorSet, 2> set{VK_NULL_HANDLE, VK_NULL_HANDLE};
 
         /// Staging for upload_from_host(), one per frame in flight like every
         /// other per-frame resource here.
@@ -124,7 +133,10 @@ private:
 
     Context* m_context = nullptr;
 
-    VkSampler             m_sampler         = VK_NULL_HANDLE;
+    /// [0] nearest, [1] linear, created up front. Live method switching picks
+    /// one via the matching descriptor set; a VkSampler filter is fixed at
+    /// creation, so the two are held rather than recreated.
+    std::array<VkSampler, 2> m_samplers{VK_NULL_HANDLE, VK_NULL_HANDLE};
     VkDescriptorPool      m_pool            = VK_NULL_HANDLE;
     VkDescriptorSetLayout m_set_layout      = VK_NULL_HANDLE;
     VkPipelineLayout      m_pipeline_layout = VK_NULL_HANDLE;
@@ -137,6 +149,9 @@ private:
 
     /// Internal 3D render scale; the composite target is N*native.
     u32 m_render_scale = 1;
+
+    /// Live present-stage options; record()/letterbox() read these each frame.
+    PresentOptions m_options;
 };
 
 }  // namespace sm2::render::vk

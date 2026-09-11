@@ -106,8 +106,9 @@ bool TilemapPass::create_programs()
     GenVertexArrays(1, &m_vao);
     GenBuffers(1, &m_push_ubo);
     BindBuffer(GL_UNIFORM_BUFFER, m_push_ubo);
-    BufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(sizeof(float) * 4 + sizeof(u32)),
-              nullptr, GL_DYNAMIC_DRAW);
+    // std140 Push: vec4 background(0), uint mode(16), uint upscale(20),
+    // vec2 source_size(24), padded to 32.
+    BufferData(GL_UNIFORM_BUFFER, 32, nullptr, GL_DYNAMIC_DRAW);
 
     const std::string vertex_source =
         prepare_gl_source(shaders::kFullscreenQuadVertGlsl, active_version_directive());
@@ -259,12 +260,17 @@ void TilemapPass::draw_fullscreen(u32 texture, u32 mode, bool blend, u32 backgro
     struct PushBlock {
         float background[4];
         u32   mode;
+        u32   upscale;
+        float source_size[2];
     } push{};
     push.background[0] = static_cast<float>(background_rgba & 0xff) / 255.0F;
     push.background[1] = static_cast<float>((background_rgba >> 8) & 0xff) / 255.0F;
     push.background[2] = static_cast<float>((background_rgba >> 16) & 0xff) / 255.0F;
     push.background[3] = 1.0F;
     push.mode           = mode;
+    push.upscale        = m_upscale_2d;
+    push.source_size[0] = static_cast<float>(kSourceWidth);
+    push.source_size[1] = static_cast<float>(kSourceHeight);
 
     UseProgram(m_program);
 

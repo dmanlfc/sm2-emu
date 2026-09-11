@@ -173,7 +173,22 @@ struct Letterbox {
     float height = 0.0F;
 };
 
-/// Largest 4:3 rectangle centred in a `window_width` by `window_height` target.
-[[nodiscard]] Letterbox compute_letterbox(u32 window_width, u32 window_height);
+/// The rectangle the native frame is drawn into, centred in a `window_width` by
+/// `window_height` target, for the given aspect mode and scaling method.
+///
+///   FourThree   -- largest 4:3 rectangle (the default; the arcade look).
+///   SquarePixel -- largest 1.29:1 rectangle (the raw 496x384).
+///   Stretch     -- the whole window, no bars.
+///
+/// When `method` is Integer the height is snapped to a whole multiple of native
+/// (384) so the scanlines are pixel-perfect, and the width follows the aspect
+/// (Stretch snaps both axes instead, since it has no aspect to preserve); floor
+/// of 1x so a small window still shows a frame. For the other methods the fit
+/// rectangle is returned as-is. Defaults reproduce the pre-feature behaviour
+/// (4:3, no integer snap) for callers that do not care.
+[[nodiscard]] Letterbox compute_letterbox(u32           window_width,
+                                          u32           window_height,
+                                          AspectMode    aspect = AspectMode::FourThree,
+                                          ScalingMethod method = ScalingMethod::Bilinear);
 
 }  // namespace sm2::render

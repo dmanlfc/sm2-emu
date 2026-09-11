@@ -36,6 +36,8 @@ bool GlBackend::init(osd::Window& window, const BackendConfig& config)
     m_window = &window;
 
     m_render_scale = std::clamp(config.render_scale, 1U, kMaxRenderScale);
+    m_present_options = config.present;
+    m_enhancement_options = config.enhancement;
 
     ContextConfig context_config;
     context_config.vsync = config.vsync;
@@ -79,6 +81,18 @@ bool GlBackend::init(osd::Window& window, const BackendConfig& config)
                  scaled_height(m_render_scale));
     }
 
+    // Anisotropy ceiling for the opt-in enhanced 3D texture filter, gated on the
+    // filter-anisotropic extension. GL_MAX_TEXTURE_MAX_ANISOTROPY (0x84FF) is a
+    // float limit; reading it as an integer truncates, which is fine for a tap
+    // ceiling. 1.0 (the default) means "unavailable" to the capability check.
+    constexpr GLenum kMaxTextureMaxAnisotropy = 0x84FF;
+    if (has_gl_extension("GL_ARB_texture_filter_anisotropic")
+        || has_gl_extension("GL_EXT_texture_filter_anisotropic")) {
+        s32 aniso = 1;
+        GetIntegerv(kMaxTextureMaxAnisotropy, &aniso);
+        m_max_anisotropy = std::max(1.0F, static_cast<float>(aniso));
+    }
+
     if (!m_tilemaps.init()) {
         SM2_ERROR("gl: could not create the 2D pipeline");
         return false;
@@ -91,6 +105,9 @@ bool GlBackend::init(osd::Window& window, const BackendConfig& config)
         SM2_ERROR("gl: could not create the presentation pipeline");
         return false;
     }
+    m_present.set_options(m_present_options);
+    m_polygons.set_texture_quality(effective_texture_quality());
+    m_tilemaps.set_upscale_2d(static_cast<u32>(m_enhancement_options.upscale_2d));
     return true;
 }
 
@@ -109,6 +126,8 @@ Capabilities GlBackend::capabilities() const
     caps.compute_shaders = true;
     // No GPU timer queries wired up yet (GL_TIME_ELAPSED could be added later).
     caps.gpu_timing = false;
+    caps.anisotropy      = m_max_anisotropy > 1.0F;
+    caps.max_anisotropy  = m_max_anisotropy;
     return caps;
 }
 
@@ -221,6 +240,30 @@ void GlBackend::blit_to_swapchain()
     u32 height = 0;
     m_window->drawable_size(&width, &height);
     m_present.present(width, height);
+}
+
+void GlBackend::set_present_options(const PresentOptions& options)
+{
+    // Present-only state; present() reads it. No target reallocation.
+    m_present_options = options;
+    m_present.set_options(options);
+}
+
+void GlBackend::set_enhancement_options(const EnhancementOptions& options)
+{
+    m_enhancement_options = options;
+    m_polygons.set_texture_quality(effective_texture_quality());
+    m_tilemaps.set_upscale_2d(static_cast<u32>(options.upscale_2d));
+}
+
+u32 GlBackend::effective_texture_quality() const
+{
+    // Faithful is a single tap (0); anisotropic clamps to the device's max.
+    if (m_enhancement_options.texture_filter != TextureFilter::Anisotropic) {
+        return 0;
+    }
+    const u32 ceiling = std::max(static_cast<u32>(m_max_anisotropy), 1U);
+    return std::min(m_enhancement_options.anisotropy, ceiling);
 }
 
 void GlBackend::overlay_framebuffer_size(u32* width, u32* height) const

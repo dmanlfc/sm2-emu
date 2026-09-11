@@ -628,9 +628,19 @@ bool Context::create_device()
 
     // Nothing exotic: the geometry pipeline runs on the CPU exactly as the
     // hardware's did, so no geometry or tessellation stages are requested.
+    // samplerAnisotropy is optional -- enabled only when the device offers it,
+    // for the opt-in enhanced 3D texture filtering (a device without it still
+    // runs, just without that option). The decoded texture is an integer format
+    // filtered in-shader, so this is used to gate/scale the feature and derive
+    // its tap ceiling, not to bind a hardware anisotropic sampler.
+    VkPhysicalDeviceFeatures supported{};
+    vkGetPhysicalDeviceFeatures(m_physical_device, &supported);
+    m_anisotropy_enabled = supported.samplerAnisotropy == VK_TRUE;
+
     VkPhysicalDeviceFeatures2 features2{};
     features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features2.pNext = &features13;
+    features2.features.samplerAnisotropy = m_anisotropy_enabled ? VK_TRUE : VK_FALSE;
 
     VkDeviceCreateInfo create_info{};
     create_info.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -990,6 +1000,23 @@ bool Context::begin_frame()
     if (m_window == nullptr || m_window->minimised()) {
         return false;
     }
+
+    // Detect a drawable-size change directly rather than relying on the present
+    // result. MoltenVK does not reliably report VK_ERROR_OUT_OF_DATE_KHR /
+    // VK_SUBOPTIMAL_KHR when the window resizes (a fullscreen toggle on macOS is
+    // the case that bit us): the swapchain would keep its old extent and the
+    // frame present into the wrong size. Comparing the live drawable size to the
+    // swapchain extent catches it on every platform.
+    {
+        u32 dw = 0;
+        u32 dh = 0;
+        m_window->drawable_size(&dw, &dh);
+        if (dw != 0 && dh != 0
+            && (dw != m_swapchain_extent.width || dh != m_swapchain_extent.height)) {
+            m_needs_recreation = true;
+        }
+    }
+
     if (m_needs_recreation && !recreate_swapchain()) {
         return false;
     }

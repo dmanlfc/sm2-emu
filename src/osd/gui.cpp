@@ -162,6 +162,11 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
 {
     apply_scale();
 
+    // Cache this frame's present placement so the crosshair and Sinden-border
+    // helpers frame the same rectangle the backend presents into.
+    m_present_aspect = config.aspect_mode;
+    m_present_method = config.scaling_method;
+
     // Shown regardless of F10 when enabled, so the counter is visible whether or
     // not the settings overlay is open.
     if (config.show_fps) {
@@ -240,11 +245,11 @@ void Gui::draw_menu_bar(Config& config)
 {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Hide overlay", "F1")) {
+            if (ImGui::MenuItem("Hide overlay", "F10")) {
                 m_visible = false;
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("Quit", "Esc")) {
+            if (ImGui::MenuItem("Quit", "F9")) {
                 SDL_Event quit_event{};
                 quit_event.type = SDL_EVENT_QUIT;
                 SDL_PushEvent(&quit_event);
@@ -407,6 +412,157 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 }
             }
 
+            // Present-stage scaling: how the finished frame is put on screen.
+            // Unlike the 3D render scale these are present-only, so they apply
+            // live (main.cpp pushes them to the backend every frame).
+            ImGui::Separator();
+            {
+                static constexpr std::array<const char*, 4> kMethodLabels = {
+                    "Nearest", "Bilinear", "Sharp-bilinear", "Integer"};
+                int method_index =
+                    std::clamp(static_cast<int>(config.scaling_method), 0, 3);
+                ImGui::SetNextItemWidth(160);
+                if (ImGui::Combo("2D scaling", &method_index, kMethodLabels.data(),
+                                 static_cast<int>(kMethodLabels.size()))) {
+                    config.scaling_method = static_cast<ScalingMethod>(method_index);
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "How the frame is magnified to the window.\n"
+                        "Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+                        "nearest shows at non-integer window sizes. Integer snaps\n"
+                        "to a whole multiple (pixel-perfect, with black bars).\n"
+                        "Applies live.");
+                }
+
+                static constexpr std::array<const char*, 3> kAspectLabels = {
+                    "4:3 (arcade)", "Square pixels", "Stretch"};
+                int aspect_index =
+                    std::clamp(static_cast<int>(config.aspect_mode), 0, 2);
+                ImGui::SetNextItemWidth(160);
+                if (ImGui::Combo("Aspect", &aspect_index, kAspectLabels.data(),
+                                 static_cast<int>(kAspectLabels.size()))) {
+                    config.aspect_mode = static_cast<AspectMode>(aspect_index);
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "4:3 is the arcade monitor's shape (the default).\n"
+                        "Square pixels shows the raw 496x384 (slightly narrow).\n"
+                        "Stretch fills the whole window. Applies live.");
+                }
+            }
+
+            // CRT cosmetic filter. Off by default; all present-stage, live.
+            ImGui::Separator();
+            {
+                ImGui::Checkbox("CRT filter", &config.crt_enabled);
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "A cosmetic arcade-monitor look over the finished frame:\n"
+                        "scanlines, an RGB shadow mask, glow and optional screen\n"
+                        "curvature. Purely visual; applies live.");
+                }
+                if (config.crt_enabled) {
+                    const auto pct_slider = [](const char* label, u32& value) {
+                        int v = static_cast<int>(value);
+                        ImGui::SetNextItemWidth(160);
+                        if (ImGui::SliderInt(label, &v, 0, 100)) {
+                            value = static_cast<u32>(std::clamp(v, 0, 100));
+                        }
+                    };
+                    pct_slider("Scanlines", config.crt_scanline_strength);
+                    pct_slider("Mask", config.crt_mask_strength);
+                    pct_slider("Glow", config.crt_glow_strength);
+                    pct_slider("Curvature", config.crt_curvature);
+                }
+            }
+
+            // Enhancement: opt-in quality beyond the original hardware, GPU-gated
+            // and off by default. Applies live (main.cpp pushes it each frame).
+            ImGui::Separator();
+            ImGui::TextDisabled(
+                "Enhancement (cosmetic, beyond the original hardware)");
+            {
+                // 3D texture filter. Anisotropic needs GPU support; grey it out
+                // and force Faithful where the device reports none.
+                static constexpr std::array<const char*, 2> kTexLabels = {
+                    "Faithful", "Anisotropic"};
+                int tex_index = std::clamp(static_cast<int>(config.texture_filter), 0, 1);
+                if (!m_caps_anisotropy) {
+                    config.texture_filter = TextureFilter::Faithful;
+                    tex_index             = 0;
+                    ImGui::BeginDisabled();
+                }
+                ImGui::SetNextItemWidth(160);
+                if (ImGui::Combo("3D texture filter", &tex_index, kTexLabels.data(),
+                                 static_cast<int>(kTexLabels.size()))) {
+                    config.texture_filter = static_cast<TextureFilter>(tex_index);
+                }
+                if (!m_caps_anisotropy) {
+                    ImGui::EndDisabled();
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("(unsupported)");
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip(
+                            "This GPU does not report anisotropic filtering.");
+                    }
+                }
+
+                // Anisotropy quality, only when Anisotropic and supported. The
+                // 2/4/8/16 list is trimmed to the GPU's reported maximum.
+                if (m_caps_anisotropy
+                    && config.texture_filter == TextureFilter::Anisotropic) {
+                    static constexpr std::array<int, 4>         kLevels = {2, 4, 8, 16};
+                    static constexpr std::array<const char*, 4> kLevelLabels = {
+                        "2x", "4x", "8x", "16x"};
+                    const int cap = static_cast<int>(m_caps_max_anisotropy);
+                    int count = 0;
+                    for (int level : kLevels) {
+                        if (level <= cap) {
+                            ++count;
+                        }
+                    }
+                    count = std::max(count, 1);
+                    int sel = 0;
+                    for (int i = 0; i < count; ++i) {
+                        if (kLevels[static_cast<usize>(i)]
+                            <= static_cast<int>(config.anisotropy)) {
+                            sel = i;
+                        }
+                    }
+                    ImGui::SetNextItemWidth(160);
+                    if (ImGui::Combo("Anisotropy", &sel, kLevelLabels.data(), count)) {
+                        config.anisotropy =
+                            static_cast<u32>(kLevels[static_cast<usize>(sel)]);
+                    }
+                }
+
+                // 2D upscale. xBR/ScaleFX need the GPU compute path the tilemap
+                // composite already relies on, so they are always available here.
+                static constexpr std::array<const char*, 3> kUpscaleLabels = {
+                    "Faithful", "xBR", "ScaleFX"};
+                int up_index = std::clamp(static_cast<int>(config.upscale_2d), 0, 2);
+                ImGui::SetNextItemWidth(160);
+                if (ImGui::Combo("2D upscale", &up_index, kUpscaleLabels.data(),
+                                 static_cast<int>(kUpscaleLabels.size()))) {
+                    config.upscale_2d = static_cast<Upscale2D>(up_index);
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(
+                        "Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+                        "ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+                        "Applies live.");
+                }
+            }
+
             ImGui::EndTabItem();
         }
 
@@ -473,30 +629,31 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::EndTabItem();
         }
 
+        // -- Gamepad tab ---------------------------------------------------
+        if (ImGui::BeginTabItem("Gamepad")) {
+            draw_gamepad_tab(config, input);
+            ImGui::EndTabItem();
+        }
+
         // -- Wheel tab -----------------------------------------------------
         if (ImGui::BeginTabItem("Wheel")) {
             draw_wheel_tab(config, input);
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Gamepad")) {
-            draw_gamepad_tab(config, input);
-            ImGui::EndTabItem();
-        }
-
+        // -- Light Gun tab -----------------------------------------------------
         if (ImGui::BeginTabItem("Light Gun")) {
             draw_lightgun_tab(config, input);
             ImGui::EndTabItem();
         }
 
+        // -- Network tab -----------------------------------------------------
         if (ImGui::BeginTabItem("Network")) {
             draw_network_tab(config);
             ImGui::EndTabItem();
         }
 
         // -- About tab -----------------------------------------------------
-        // The Save button below is suppressed on this tab: it carries no
-        // settings, so a save control there is meaningless.
         bool on_about_tab = false;
         if (ImGui::BeginTabItem("About")) {
             on_about_tab = true;
@@ -789,10 +946,6 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
 }
 
 // ---------------------------------------------------------------------------
-// Light Gun tab
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
 // Gamepad tab
 // ---------------------------------------------------------------------------
 
@@ -822,6 +975,10 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
     }
     ImGui::EndDisabled();
 }
+
+// ---------------------------------------------------------------------------
+// Light Gun tab
+// ---------------------------------------------------------------------------
 
 void Gui::draw_lightgun_tab(Config& config, Input* input)
 {
@@ -1137,7 +1294,8 @@ void Gui::draw_crosshairs(const Input* input)
         return;
     }
     const render::Letterbox box = render::compute_letterbox(
-        static_cast<u32>(io.DisplaySize.x), static_cast<u32>(io.DisplaySize.y));
+        static_cast<u32>(io.DisplaySize.x), static_cast<u32>(io.DisplaySize.y),
+        m_present_aspect, m_present_method);
 
     // Distinct per player: green for 1, cyan for 2.
     static const std::array<ImU32, 2> colours = {
@@ -1205,7 +1363,8 @@ void Gui::draw_sinden_border(const Config& config)
     // Frame the letterboxed game image, not the raw window, so the border sits
     // on the picture the gun's camera actually sees.
     const render::Letterbox box = render::compute_letterbox(
-        static_cast<u32>(io.DisplaySize.x), static_cast<u32>(io.DisplaySize.y));
+        static_cast<u32>(io.DisplaySize.x), static_cast<u32>(io.DisplaySize.y),
+        m_present_aspect, m_present_method);
 
     const u32   rgb = config.sinden_border_colour & 0xffffff;
     const ImU32 colour = IM_COL32((rgb >> 16) & 0xff, (rgb >> 8) & 0xff, rgb & 0xff, 255);
@@ -1246,8 +1405,12 @@ void Gui::draw_status_bar(float measured_hz)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 2));
     if (ImGui::Begin("##StatusBar", nullptr, flags)) {
         ImGui::Text("%.1f Hz", static_cast<double>(measured_hz));
-        ImGui::SameLine(ImGui::GetWindowWidth() - 120);
-        ImGui::Text("F10: toggle overlay");
+        // Right-align by measured width so the hint never clips off the edge.
+        const char*  hint      = "F10: toggle overlay";
+        const float  hint_w    = ImGui::CalcTextSize(hint).x;
+        const float  right_pad = ImGui::GetStyle().WindowPadding.x;
+        ImGui::SameLine(ImGui::GetWindowWidth() - hint_w - right_pad);
+        ImGui::TextUnformatted(hint);
     }
     ImGui::End();
     ImGui::PopStyleVar();
@@ -1386,8 +1549,12 @@ void Gui::draw_picker(Config& config)
     }
 
     ImGui::TextUnformatted("Select a game");
-    ImGui::SameLine(ImGui::GetWindowWidth() - 300.0f);
-    ImGui::TextDisabled("Enter: launch   F10: settings   Esc: quit");
+    // Right-align by measured width so the hint never clips off the edge
+    const char* hint      = "Enter: launch   F10: settings   F9: quit";
+    const float hint_w    = ImGui::CalcTextSize(hint).x;
+    const float right_pad = ImGui::GetStyle().WindowPadding.x;
+    ImGui::SameLine(ImGui::GetWindowWidth() - hint_w - right_pad);
+    ImGui::TextDisabled("%s", hint);
     ImGui::Separator();
 
     if (m_picker_entries.empty()) {

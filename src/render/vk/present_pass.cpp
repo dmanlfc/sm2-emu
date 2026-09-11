@@ -19,7 +19,7 @@
 #include <vk_mem_alloc.h>
 
 #include "shaders/fullscreen_quad_vert.h"
-#include "shaders/tilemap_composite_frag.h"
+#include "shaders/present_frag.h"
 
 #include <algorithm>
 #include <cstring>
@@ -27,21 +27,39 @@
 namespace sm2::render::vk {
 namespace {
 
-/// Magnification filter.
-///
-/// Linear because the raster is scaled by a non-integer factor at almost every
-/// window size, where nearest sampling makes glyph stems alternate between one
-/// and two pixels wide. Switch to NEAREST for a blockier presentation.
-constexpr VkFilter kMagnifyFilter = VK_FILTER_LINEAR;
+/// Sampler slots: [0] nearest, [1] linear. Both created up front so the scaling
+/// method can pick between them live without recreating a sampler.
+constexpr usize kSamplerNearest = 0;
+constexpr usize kSamplerLinear  = 1;
 
-/// Matches the push constants in tilemap_composite.frag.
+/// Matches the Present push block in present.frag.
 struct PushConstants {
-    float background[4];
-    u32   mode;
+    float source_size[2];
+    float target_size[2];
+    u32   method;
+    u32   crt_enabled;
+    float crt_scanline;
+    float crt_mask;
+    float crt_glow;
+    float crt_curvature;
 };
 
-/// Mode 2: copy an already-finished opaque frame.
-constexpr u32 kModeCopy = 2;
+/// The sampler slot a scaling method needs. Nearest and Integer sample point
+/// (Integer is an exact multiple, so there is no fractional step); Bilinear and
+/// SharpBilinear sample linear (SharpBilinear does its own texel snap in the
+/// shader and relies on the linear filter for the sub-texel remainder).
+[[nodiscard]] usize sampler_for(ScalingMethod method)
+{
+    switch (method) {
+        case ScalingMethod::Nearest:
+        case ScalingMethod::Integer:
+            return kSamplerNearest;
+        case ScalingMethod::Bilinear:
+        case ScalingMethod::SharpBilinear:
+            return kSamplerLinear;
+    }
+    return kSamplerLinear;
+}
 
 [[nodiscard]] bool create_shader_module(VkDevice        device,
                                         const u32*      code,
@@ -68,18 +86,21 @@ bool PresentPass::init(Context& context, u32 render_scale)
     m_context      = &context;
     m_render_scale = render_scale;
 
-    VkSamplerCreateInfo sampler{};
-    sampler.sType      = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    sampler.magFilter  = kMagnifyFilter;
-    sampler.minFilter  = kMagnifyFilter;
-    sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-    // Clamping matters: the fullscreen triangle's texture coordinates reach
-    // exactly 1.0 at the right and bottom edges, and repeating would wrap the
-    // filter kernel round to the opposite side.
-    sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    SM2_VK_TRY(vkCreateSampler(context.device(), &sampler, nullptr, &m_sampler));
+    const VkFilter filters[2] = {VK_FILTER_NEAREST, VK_FILTER_LINEAR};
+    for (usize i = 0; i < m_samplers.size(); ++i) {
+        VkSamplerCreateInfo sampler{};
+        sampler.sType      = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        sampler.magFilter  = filters[i];
+        sampler.minFilter  = filters[i];
+        sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+        // Clamping matters: the fullscreen triangle's texture coordinates reach
+        // exactly 1.0 at the right and bottom edges, and repeating would wrap
+        // the filter kernel round to the opposite side.
+        sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        SM2_VK_TRY(vkCreateSampler(context.device(), &sampler, nullptr, &m_samplers[i]));
+    }
 
     return create_targets() && create_descriptors() && create_pipeline();
 }
@@ -108,7 +129,7 @@ void PresentPass::shutdown()
             target.host_allocation = nullptr;
             target.host_mapped     = nullptr;
         }
-        target.set = VK_NULL_HANDLE;
+        target.set = {VK_NULL_HANDLE, VK_NULL_HANDLE};
     }
 
     if (m_pipeline != VK_NULL_HANDLE) {
@@ -127,9 +148,11 @@ void PresentPass::shutdown()
         vkDestroyDescriptorSetLayout(device, m_set_layout, nullptr);
         m_set_layout = VK_NULL_HANDLE;
     }
-    if (m_sampler != VK_NULL_HANDLE) {
-        vkDestroySampler(device, m_sampler, nullptr);
-        m_sampler = VK_NULL_HANDLE;
+    for (VkSampler& sampler : m_samplers) {
+        if (sampler != VK_NULL_HANDLE) {
+            vkDestroySampler(device, sampler, nullptr);
+            sampler = VK_NULL_HANDLE;
+        }
     }
     m_context = nullptr;
 }
@@ -227,40 +250,46 @@ bool PresentPass::create_descriptors()
     layout.pBindings    = &binding;
     SM2_VK_TRY(vkCreateDescriptorSetLayout(device, &layout, nullptr, &m_set_layout));
 
+    // Two sets per target: one per sampler filter. Doubles the pool.
+    const u32 set_count = count * 2;
+
     VkDescriptorPoolSize size{};
     size.type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    size.descriptorCount = count;
+    size.descriptorCount = set_count;
 
     VkDescriptorPoolCreateInfo pool{};
     pool.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pool.maxSets       = count;
+    pool.maxSets       = set_count;
     pool.poolSizeCount = 1;
     pool.pPoolSizes    = &size;
     SM2_VK_TRY(vkCreateDescriptorPool(device, &pool, nullptr, &m_pool));
 
-    // One set per target, each naming a fixed image, so nothing is rewritten
-    // during a frame.
+    // Two sets per target, each naming a fixed image and one of the two
+    // samplers, so nothing is rewritten during a frame; the scaling method
+    // only chooses which pre-built set record() binds.
     for (Target& target : m_targets) {
-        VkDescriptorSetAllocateInfo allocate{};
-        allocate.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocate.descriptorPool     = m_pool;
-        allocate.descriptorSetCount = 1;
-        allocate.pSetLayouts        = &m_set_layout;
-        SM2_VK_TRY(vkAllocateDescriptorSets(device, &allocate, &target.set));
+        for (usize slot = 0; slot < m_samplers.size(); ++slot) {
+            VkDescriptorSetAllocateInfo allocate{};
+            allocate.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            allocate.descriptorPool     = m_pool;
+            allocate.descriptorSetCount = 1;
+            allocate.pSetLayouts        = &m_set_layout;
+            SM2_VK_TRY(vkAllocateDescriptorSets(device, &allocate, &target.set[slot]));
 
-        VkDescriptorImageInfo image{};
-        image.sampler     = m_sampler;
-        image.imageView   = target.view;
-        image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            VkDescriptorImageInfo image{};
+            image.sampler     = m_samplers[slot];
+            image.imageView   = target.view;
+            image.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-        VkWriteDescriptorSet write{};
-        write.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        write.dstSet          = target.set;
-        write.dstBinding      = 0;
-        write.descriptorCount = 1;
-        write.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        write.pImageInfo      = &image;
-        vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+            VkWriteDescriptorSet write{};
+            write.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write.dstSet          = target.set[slot];
+            write.dstBinding      = 0;
+            write.descriptorCount = 1;
+            write.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            write.pImageInfo      = &image;
+            vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+        }
     }
     return true;
 }
@@ -288,8 +317,8 @@ bool PresentPass::create_pipeline()
                               shaders::kFullscreenQuadVertWordCount, &vertex_module)) {
         return false;
     }
-    if (!create_shader_module(device, shaders::kTilemapCompositeFrag,
-                              shaders::kTilemapCompositeFragWordCount, &fragment_module)) {
+    if (!create_shader_module(device, shaders::kPresentFrag,
+                              shaders::kPresentFragWordCount, &fragment_module)) {
         vkDestroyShaderModule(device, vertex_module, nullptr);
         return false;
     }
@@ -452,7 +481,8 @@ void PresentPass::upload_from_host(std::span<const u32> pixels)
 VkViewport PresentPass::letterbox() const
 {
     const VkExtent2D          extent = m_context->swapchain_extent();
-    const render::Letterbox   box    = render::compute_letterbox(extent.width, extent.height);
+    const render::Letterbox   box    = render::compute_letterbox(
+        extent.width, extent.height, m_options.aspect_mode, m_options.scaling_method);
 
     VkViewport viewport{};
     viewport.x        = box.x;
@@ -505,12 +535,22 @@ void PresentPass::record()
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     PushConstants push{};
-    push.background[3] = 1.0F;
-    push.mode          = kModeCopy;
+    push.source_size[0] = static_cast<float>(kWidth);
+    push.source_size[1] = static_cast<float>(kHeight);
+    push.target_size[0] = viewport.width;
+    push.target_size[1] = viewport.height;
+    push.method         = static_cast<u32>(m_options.scaling_method);
+    push.crt_enabled    = m_options.crt_enabled ? 1U : 0U;
+    push.crt_scanline   = static_cast<float>(m_options.crt_scanline_strength) / 100.0F;
+    push.crt_mask       = static_cast<float>(m_options.crt_mask_strength) / 100.0F;
+    push.crt_glow       = static_cast<float>(m_options.crt_glow_strength) / 100.0F;
+    push.crt_curvature  = static_cast<float>(m_options.crt_curvature) / 100.0F;
+
+    const usize slot = sampler_for(m_options.scaling_method);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1,
-                            &target.set, 0, nullptr);
+                            &target.set[slot], 0, nullptr);
     vkCmdPushConstants(cmd, m_pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                        sizeof(push), &push);
     vkCmdDraw(cmd, 3, 1, 0, 0);

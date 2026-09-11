@@ -43,6 +43,7 @@ namespace {
 struct PolygonPush {
     float inv_raster[2];
     u32   render_scale;
+    u32   texture_quality;  ///< 0 = faithful; else anisotropic tap ceiling
 };
 
 /// Bytes of luminance RAM, which is one tone curve per 128 entries.
@@ -908,9 +909,10 @@ void Poly3DPass::draw_polygons()
 
     if (m_vertex_count != 0) {
         PolygonPush push{};
-        push.inv_raster[0] = 1.0F / static_cast<float>(kWidth);
-        push.inv_raster[1] = 1.0F / static_cast<float>(kHeight);
-        push.render_scale  = m_render_scale;
+        push.inv_raster[0]    = 1.0F / static_cast<float>(kWidth);
+        push.inv_raster[1]    = 1.0F / static_cast<float>(kHeight);
+        push.render_scale     = m_render_scale;
+        push.texture_quality  = m_texture_quality;
 
         const VkDeviceSize offset = 0;
         vkCmdBindVertexBuffers(cmd, 0, 1, &target.vertices.handle, &offset);

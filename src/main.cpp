@@ -163,7 +163,6 @@ struct Options {
     bool        list_gpus  = false;
     bool        list_games = false;
     bool        list_gamepads = false;
-    bool        write_config  = false;
     std::string config_path;
     std::string game;
     std::string dump_roms;
@@ -249,34 +248,30 @@ void print_usage()
         "\n"
         "Options:\n"
         "  -h, --help          Show this message\n"
-        "      --list-games    List the games in the ROM database\n"
-        "      --list-gpus     List the Vulkan devices that could be used\n"
-        "      --list-gamepads Show which gamepads were recognised and which\n"
-        "                      player each would drive\n"
+        "      --config <dir>  Directory holding sm2-emu.ini, used for both\n"
+        "                      reading and saving settings\n"
+        "      --fullscreen    Start filling the screen\n"
         "      --game <name>   Load this set specifically, for archives that\n"
         "                      hold several revisions; with no path given, the\n"
         "                      archive is found in --rom-dir\n"
-        "      --rom-dir <dir> Where the ROM archives live; a game named with no\n"
-        "                      path is loaded from <dir>/<name>.zip or .7z\n"
-        "      --nvram <dir>   Directory for saves: NVRAM and EEPROM images\n"
-        "      --screenshot-dir <dir>  Where F12 screenshots are written\n"
+        "      --gpu <name>    Use the device with this exact name\n"
         "      --graphics-backend <software|vulkan|opengl>\n"
         "                      Which renderer to use. 'opengl' means whichever GL\n"
         "                      flavour this binary was built with\n"
-        "      --render-scale <n>  Internal 3D render scale, 1..4 (default 1 =\n"
-        "                      native). GPU backends only; native under software\n"
-        "      --gpu <name>    Use the device with this exact name\n"
-        "      --no-vsync      Present without waiting for vertical blank\n"
-        "      --no-throttle   Run as fast as this computer manages instead of at\n"
-        "                      the machine's own 57.52 Hz\n"
-        "      --fullscreen    Start filling the screen\n"
         "      --lightgun      Light-gun mode: show the aiming crosshair and\n"
         "                      hide the mouse cursor (for the gun titles)\n"
-        "      --config <dir>  Directory holding sm2-emu.ini, used for both\n"
-        "                      reading and saving settings\n"
-        "      --write-config  Write the settings this run would use, then exit,\n"
-        "                      so there is a file to edit\n"
+        "      --list-gamepads Show which gamepads were recognised and which\n"
+        "                      player each would drive\n"
+        "      --list-games    List the games in the ROM database\n"
+        "      --list-gpus     List the Vulkan devices that could be used\n"
         "      --log-level <l> trace, debug, info, warning or error\n"
+        "      --no-vsync      Present without waiting for vertical blank\n"
+        "      --nvram <dir>   Directory for saves: NVRAM and EEPROM images\n"
+        "      --render-scale <n>  Internal 3D render scale, 1..4 (default 1 =\n"
+        "                      native). GPU backends only; native under software\n"
+        "      --rom-dir <dir> Where the ROM archives live; a game named with no\n"
+        "                      path is loaded from <dir>/<name>.zip or .7z\n"
+        "      --screenshot-dir <dir>  Where F12 screenshots are written\n"
         "\n");
     sm2::osd::Input::print_bindings();
     std::printf("\nNo ROM data is distributed with this software.\n");
@@ -358,8 +353,6 @@ void print_usage()
         } else if (std::strcmp(arg, "--lightgun") == 0) {
             out->config.lightgun = true;
             out->given.lightgun  = true;
-        } else if (std::strcmp(arg, "--write-config") == 0) {
-            out->write_config = true;
         } else if (std::strcmp(arg, "--log-unmapped") == 0) {
             out->log_unmapped = true;
         } else if (std::strcmp(arg, "--boot-test") == 0) {
@@ -758,6 +751,19 @@ int main(int argc, char** argv)
     if (!options.given.render_scale) {
         options.config.render_scale = from_file.render_scale;
     }
+    // Present-stage and enhancement options are GUI/config-only (no CLI flags),
+    // so the file value wins over the default, like window size above.
+    options.config.scaling_method        = from_file.scaling_method;
+    options.config.aspect_mode           = from_file.aspect_mode;
+    options.config.crt_enabled           = from_file.crt_enabled;
+    options.config.crt_scanline_strength = from_file.crt_scanline_strength;
+    options.config.crt_mask_strength     = from_file.crt_mask_strength;
+    options.config.crt_glow_strength     = from_file.crt_glow_strength;
+    options.config.crt_curvature         = from_file.crt_curvature;
+
+    options.config.texture_filter = from_file.texture_filter;
+    options.config.anisotropy     = from_file.anisotropy;
+    options.config.upscale_2d     = from_file.upscale_2d;
 
     // Renderer: --graphics-backend wins, else the saved choice selects it. The
     // config string is kept populated either way so the GUI round-trips it.
@@ -838,15 +844,6 @@ int main(int argc, char** argv)
     }
     for (const std::string& problem : problems) {
         SM2_WARN("%s", problem.c_str());
-    }
-
-    if (options.write_config) {
-        if (!save_config(config_path, options.config)) {
-            SM2_ERROR("could not write '%s'", config_path.c_str());
-            return 1;
-        }
-        std::printf("Wrote %s\n", config_path.c_str());
-        return 0;
     }
 
     // Make sure the settings and NVRAM locations exist. If there is no ini yet,
@@ -1421,6 +1418,21 @@ int main(int argc, char** argv)
         backend_config.render_scale =
             options.start_in_software_renderer ? 1U : options.config.render_scale;
 
+        // Present-stage options apply to every backend, including the software
+        // renderer's uploaded frame -- no software special case.
+        backend_config.present.scaling_method        = options.config.scaling_method;
+        backend_config.present.aspect_mode           = options.config.aspect_mode;
+        backend_config.present.crt_enabled           = options.config.crt_enabled;
+        backend_config.present.crt_scanline_strength = options.config.crt_scanline_strength;
+        backend_config.present.crt_mask_strength     = options.config.crt_mask_strength;
+        backend_config.present.crt_glow_strength     = options.config.crt_glow_strength;
+        backend_config.present.crt_curvature         = options.config.crt_curvature;
+
+        // Enhancement options, faithful by default; GPU-gated inside the backend.
+        backend_config.enhancement.texture_filter = options.config.texture_filter;
+        backend_config.enhancement.anisotropy     = options.config.anisotropy;
+        backend_config.enhancement.upscale_2d     = options.config.upscale_2d;
+
         // Each factory is only defined when its SM2_BUILD_* option was on, so
         // the #if guards keep an absent backend from being an undefined symbol.
         // The mismatched --graphics-backend cases already errored out above.
@@ -1487,44 +1499,53 @@ int main(int argc, char** argv)
         // the backend is torn down (the thread-safety contract needs that order).
         osd::Scraper scraper;
 
+        // Build the picker's entry list from the launchable sets and turn it on.
+        // Used at startup and when Esc unloads a game to return here.
+        const auto show_picker = [&]() {
+            // A set is launchable when <name>.zip / .7z is present, the same
+            // resolution the loader uses.
+            const std::filesystem::path dir(options.config.rom_dir);
+            std::vector<osd::Gui::PickerEntry> entries;
+            std::vector<osd::Scraper::Entry>   scrape_list;
+            for (const rom::GameSpec& game : database.games()) {
+                std::error_code error;
+                bool present = false;
+                for (const char* ext : {".zip", ".7z"}) {
+                    if (std::filesystem::exists(dir / (game.name + ext), error)
+                        && !error) {
+                        present = true;
+                        break;
+                    }
+                }
+                if (!present) {
+                    continue;
+                }
+                osd::Gui::PickerEntry entry;
+                entry.name  = game.name;
+                entry.title = game.title;
+                entries.push_back(entry);
+                scrape_list.push_back({game.name, game.title});
+            }
+            std::sort(entries.begin(), entries.end(),
+                      [](const osd::Gui::PickerEntry& a,
+                         const osd::Gui::PickerEntry& b) { return a.title < b.title; });
+
+            SM2_INFO("game picker: %zu launchable set(s) in '%s'", entries.size(),
+                     options.config.rom_dir.c_str());
+
+            // stop() first so a second start() (return-to-picker) never
+            // move-assigns over a still-joinable worker thread.
+            scraper.stop();
+            scraper.start(options.config.artwork_dir, std::move(scrape_list),
+                          options.config.scrape_artwork);
+            gui.enable_picker(std::move(entries), backend.get(), &scraper);
+        };
+
         // No ROM: show the picker if there is a rom_dir, else the settings
         // overlay so a ROM directory can be set.
         if (!machine_iface) {
             if (will_show_picker) {
-                // A set is launchable when <name>.zip / .7z is present, the same
-                // resolution the loader uses.
-                const std::filesystem::path dir(options.config.rom_dir);
-                std::vector<osd::Gui::PickerEntry> entries;
-                std::vector<osd::Scraper::Entry>   scrape_list;
-                for (const rom::GameSpec& game : database.games()) {
-                    std::error_code error;
-                    bool present = false;
-                    for (const char* ext : {".zip", ".7z"}) {
-                        if (std::filesystem::exists(dir / (game.name + ext), error)
-                            && !error) {
-                            present = true;
-                            break;
-                        }
-                    }
-                    if (!present) {
-                        continue;
-                    }
-                    osd::Gui::PickerEntry entry;
-                    entry.name  = game.name;
-                    entry.title = game.title;
-                    entries.push_back(entry);
-                    scrape_list.push_back({game.name, game.title});
-                }
-                std::sort(entries.begin(), entries.end(),
-                          [](const osd::Gui::PickerEntry& a,
-                             const osd::Gui::PickerEntry& b) { return a.title < b.title; });
-
-                SM2_INFO("game picker: %zu launchable set(s) in '%s'", entries.size(),
-                         options.config.rom_dir.c_str());
-
-                scraper.start(options.config.artwork_dir, std::move(scrape_list),
-                              options.config.scrape_artwork);
-                gui.enable_picker(std::move(entries), backend.get(), &scraper);
+                show_picker();
             } else {
                 gui.show();
             }
@@ -1571,8 +1592,16 @@ int main(int argc, char** argv)
         pacer.set_throttled(options.config.throttle);
         pacer.start(hw::Model2::kFrameNanoseconds);
 
-        SM2_INFO("entering main loop; Escape quits, P pauses, Tab fast-forwards, "
-                 "F10 menu, F11 fullscreen, F12 screenshot");
+#if defined(__APPLE__)
+        // F11 is the cross-platform fullscreen key, but macOS binds it to Show
+        // Desktop by default and consumes it before the app sees it, so Cmd+F is
+        // offered as the reliable alternative there.
+        const char* fullscreen_key = "F11/Cmd+F fullscreen";
+#else
+        const char* fullscreen_key = "F11 fullscreen";
+#endif
+        SM2_INFO("entering main loop; Esc back to games, F9 quits, P pauses, "
+                 "Tab fast-forwards, F10 menu, %s, F12 screenshot", fullscreen_key);
 
         /// Everything the sound board produced, when --dump-audio was given.
         std::vector<s16> recorded_audio;
@@ -1627,6 +1656,7 @@ int main(int argc, char** argv)
         bool fast_forward       = false;
         bool running            = true;
         bool screenshot_requested = false;  ///< Set by F12, serviced next frame.
+        bool return_to_picker_requested = false;  ///< Set by Esc; unload + picker.
         // Fixed at launch by --graphics-backend software. There is no runtime
         // switch: the two renderers are a launch-time choice.
         const bool use_software_renderer = options.start_in_software_renderer;
@@ -1693,10 +1723,26 @@ int main(int argc, char** argv)
                         break;
                     case SDL_EVENT_KEY_DOWN:
                         if (event.key.key == SDLK_ESCAPE) {
+                            // Esc returns to the game picker (unloading the
+                            // current game) when there is a picker to return to;
+                            // otherwise -- a single ROM launched by path with no
+                            // rom_dir to browse -- it quits. Serviced after the
+                            // event loop, so the teardown runs outside it.
+                            if (will_show_picker && machine_iface != nullptr) {
+                                return_to_picker_requested = true;
+                            } else {
+                                running = false;
+                            }
+                        } else if (event.key.key == SDLK_F9 && !event.key.repeat) {
                             running = false;
                         } else if (event.key.key == SDLK_F10 && !event.key.repeat) {
                             gui.toggle();
-                        } else if (event.key.key == SDLK_F11 && !event.key.repeat) {
+                        } else if ((event.key.key == SDLK_F11
+                                    || (event.key.key == SDLK_F
+                                        && (event.key.mod & SDL_KMOD_GUI) != 0))
+                                   && !event.key.repeat) {
+                            // F11 everywhere, plus Cmd+F on macOS: the OS there
+                            // reserves F11 (Show Desktop), so it never reaches us.
                             options.config.fullscreen = !window.fullscreen();
                             window.set_fullscreen(options.config.fullscreen);
                         } else if (event.key.key == SDLK_F12 && !event.key.repeat) {
@@ -1781,6 +1827,8 @@ int main(int argc, char** argv)
                 input.set_gun_buttons(options.config.gun_buttons);
                 input.set_pad_rumble(options.config.pad_rumble,
                                      options.config.pad_rumble_strength);
+                input.set_present_placement(options.config.aspect_mode,
+                                            options.config.scaling_method);
                 const u8 drive_force = machine_iface->drive_board_force();
                 input.update_force_feedback(loaded->game, drive_force);
                 input.update_pad_rumble(loaded->game, drive_force);
@@ -2018,6 +2066,27 @@ int main(int argc, char** argv)
                                             : -1);
             }
 
+            // Push present and enhancement options each frame so a GUI change
+            // takes effect immediately; both are shader/pass state, never a
+            // reallocation.
+            {
+                render::PresentOptions present;
+                present.scaling_method        = options.config.scaling_method;
+                present.aspect_mode           = options.config.aspect_mode;
+                present.crt_enabled           = options.config.crt_enabled;
+                present.crt_scanline_strength = options.config.crt_scanline_strength;
+                present.crt_mask_strength     = options.config.crt_mask_strength;
+                present.crt_glow_strength     = options.config.crt_glow_strength;
+                present.crt_curvature         = options.config.crt_curvature;
+                backend->set_present_options(present);
+
+                render::EnhancementOptions enhancement;
+                enhancement.texture_filter = options.config.texture_filter;
+                enhancement.anisotropy     = options.config.anisotropy;
+                enhancement.upscale_2d     = options.config.upscale_2d;
+                backend->set_enhancement_options(enhancement);
+            }
+
             // Then the one magnification, into the swapchain.
             backend->blit_to_swapchain();
             // Command recording, as this figure means it, ends here: the GUI
@@ -2045,6 +2114,11 @@ int main(int argc, char** argv)
                     options.config.link_enabled, comm.enabled(), comm.link_alive(),
                     comm.link_id(), comm.link_count()});
             }
+            // GPU capabilities gate the enhancement options in the GUI.
+            {
+                const render::Capabilities caps = backend->capabilities();
+                gui.set_enhancement_caps(caps.anisotropy, caps.max_anisotropy);
+            }
             const bool gui_active =
                 gui.draw(options.config, gpu_names, pacer.measured_hz(),
                         use_software_renderer ? "Software" : gpu_backend_name, &input);
@@ -2066,6 +2140,34 @@ int main(int argc, char** argv)
                 SM2_ERROR("frame submission failed");
                 exit_code = 1;
                 break;
+            }
+
+            // Esc asked to unload the game and return to the picker. Handled
+            // after the frame is submitted, mirroring the launch path below in
+            // reverse: save the game's NVRAM, wait for the GPU to finish with
+            // it, drop the machine, then bring the picker back up.
+            if (return_to_picker_requested) {
+                return_to_picker_requested = false;
+                if (machine_iface != nullptr) {
+                    machine_iface->save_nvram();
+                }
+                backend->wait_idle();
+
+                loaded.reset();
+                machine_iface = nullptr;
+                machine       = nullptr;
+                machine_2b    = nullptr;
+                machine_2c    = nullptr;
+                machine_orig  = nullptr;
+                main_cpu      = nullptr;
+                sound_board   = nullptr;
+                sound_link    = nullptr;
+
+                audio.set_paused(true);
+                show_picker();
+                window.set_title(build_title());
+                pacer.resync();
+                continue;
             }
 
             // The picker chose a game. Handled after the frame is submitted so

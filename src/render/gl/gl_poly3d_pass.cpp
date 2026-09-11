@@ -116,7 +116,7 @@ bool Poly3DPass::create_programs()
     UniformBlockBinding(m_polygon_program_early, polygon_block_early, 4);
     GenBuffers(1, &m_polygon_push_ubo);
     BindBuffer(GL_UNIFORM_BUFFER, m_polygon_push_ubo);
-    // vec2 invRaster + uint renderScale; std140 rounds the block up to 16 bytes.
+    // vec2 invRaster + uint renderScale + uint textureQuality = 16 bytes (std140).
     BufferData(GL_UNIFORM_BUFFER, 16, nullptr, GL_DYNAMIC_DRAW);
 
     const std::string decode_source =
@@ -246,11 +246,12 @@ void Poly3DPass::draw_polygons()
     struct PushBlock {
         float inv_raster[2];
         u32   render_scale;
-        u32   pad;
+        u32   texture_quality;  ///< 0 = faithful; else anisotropic tap ceiling
     } push{};
-    push.inv_raster[0] = 1.0F / static_cast<float>(kWidth);
-    push.inv_raster[1] = 1.0F / static_cast<float>(kHeight);
-    push.render_scale  = m_render_scale;
+    push.inv_raster[0]   = 1.0F / static_cast<float>(kWidth);
+    push.inv_raster[1]   = 1.0F / static_cast<float>(kHeight);
+    push.render_scale    = m_render_scale;
+    push.texture_quality = m_texture_quality;
     BindBuffer(GL_UNIFORM_BUFFER, m_polygon_push_ubo);
     BufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<GLsizeiptr>(sizeof(push)), &push);
     BindBufferBase(GL_UNIFORM_BUFFER, 4, m_polygon_push_ubo);

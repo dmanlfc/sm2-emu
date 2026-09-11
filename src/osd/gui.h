@@ -105,6 +105,15 @@ public:
     };
     void set_link_status(const LinkStatus& status) { m_link_status = status; }
 
+    /// GPU capabilities for gating the enhancement options, fed each frame so
+    /// the GUI need not include the render backend header. Defaults leave the
+    /// opt-in enhancements unavailable until a backend reports otherwise.
+    void set_enhancement_caps(bool anisotropy, float max_anisotropy)
+    {
+        m_caps_anisotropy     = anisotropy;
+        m_caps_max_anisotropy = max_anisotropy;
+    }
+
     /// Pixel extent of the backend's overlay framebuffer; new_frame() scales
     /// ImGui to it so the overlay fills the presented image (see new_frame()).
     /// Zero leaves ImGui's own value alone.
@@ -182,6 +191,18 @@ private:
     /// Hide/Show is only called on a change: polling SDL_CursorVisible() every
     /// frame races the compositor re-showing the cursor on motion, which flickers.
     bool        m_cursor_hidden = false;
+
+    /// The present-stage placement in effect this frame, cached from draw()'s
+    /// config so the crosshair and Sinden-border helpers frame the same
+    /// rectangle the backend draws the image into (see draw_crosshairs /
+    /// draw_sinden_border). Kept in step with the one config value; a mismatch
+    /// would drift the aim from the picture.
+    AspectMode    m_present_aspect = AspectMode::FourThree;
+    ScalingMethod m_present_method = ScalingMethod::SharpBilinear;
+
+    /// GPU capabilities for gating the enhancement options (set each frame).
+    bool  m_caps_anisotropy     = false;
+    float m_caps_max_anisotropy = 1.0F;
 
     // -- wheel calibration capture state -----------------------------------
     // Which control (if any) is currently waiting for the user to operate it,

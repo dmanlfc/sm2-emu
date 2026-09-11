@@ -182,20 +182,23 @@ documented at the top of that file.
 
 ## Controls
 
-Gamepads are read through SDL's gamepad layer, so anything with a mapping works
-without configuration. The first pad to connect is player 1, pads can come and
-go while the game runs, and `--list-gamepads` shows what was recognised. Face
-buttons are read by position rather than by label. Driving games take a wheel
-and pedals from the pad's stick and triggers; the gun games take aim from the
-mouse.
+Every game is playable with either a standard gamepad or keyboard.
+Wheels, light guns and a mouse are supported as the preferred devices for the
+driving and gun titles, but none is required. Gamepads are read through SDL's
+gamepad layer, so anything with a mapping works without configuration. The
+first pad to connect is player 1, pads can come and go while the game runs, and
+`--list-gamepads` shows what was recognised. Face buttons are read by position
+rather than by label.
 
 | Gamepad | Function |
 |---------|----------|
-| D-pad or left stick | Stick |
-| A B X Y | Buttons 1 to 4 |
-| Left / right shoulder | Buttons 3 and 4 again |
-| Start | Start |
-| Back | Insert a coin |
+| D-pad or left stick | Stick, steering and other centred analog axes |
+| A B X Y | Buttons 1 to 4 (also VR 1-4 on titles with view buttons) |
+| Left / right shoulder | Buttons 3/4; also gear/shift down/up on racers |
+| Left / right trigger | Brake / accelerate on driving titles |
+| Right stick | Aim on gun titles (no mouse needed) |
+| Start / Back | Start / insert a coin |
+| Guide + Start / Back | Service / Test (operator menus) |
 
 The keyboard is live at the same time, so a second player can join on it and
 the operator controls stay reachable without a pad:
@@ -207,29 +210,79 @@ the operator controls stay reachable without a pad:
 | `9` `0` | Service, test |
 | Arrows, `Z` `X` `C` `V` | Player 1 stick and buttons |
 | `W` `A` `S` `D`, `G` `H` `J` `K` | Player 2 stick and buttons |
-| `F1`–`F4`, `F5` | Gears 1 to 4, neutral (on titles with a gearbox) |
+| Arrows | Steering and other centred analog axes |
+| `Left Ctrl` / `Left Alt` | Accelerate / brake (driving titles) |
+| `F1` / `F2` | Shift up / down (Indy 500, Manx TT family) |
+| `F1`–`F4`, `F5` | Gears 1 to 4, neutral (on gate-gearbox titles) |
 | `B` `N` `M` `,` | VR / view buttons 1 to 4 (on titles that have them) |
 | `Space` | Desert Tank forward/reverse shift |
-| `Escape` | Quit |
+| Arrows + `Left Ctrl` | Aim + fire on gun titles (no mouse needed) |
+| `Escape` | Return to the game picker (quits if launched with no picker) |
 | `P` | Pause |
+| `F9` | Quit |
 | `F10` | Toggle the settings menu |
-| `F11` | Toggle fullscreen |
+| `F11` | Toggle fullscreen (`Cmd+F` on macOS, where the OS reserves F11) |
 | `F12` | Save a screenshot |
 | `Tab` (held) | Fast-forward |
+
+**Virtual On** (a twin-stick cabinet) on the keyboard: `W`/`A`/`S`/`D` are the
+left lever, the arrow keys the right lever, `Q`/`E` the left shot/dash and
+`Right Shift`/`Right Ctrl` the right shot/dash. On a pad the two analog sticks
+are the levers, the triggers the shots and the bumpers the dashes.
 
 The renderer (GPU or software) is chosen at launch with `--graphics-backend`
 and cannot be switched at runtime.
 
+### Wheels and light guns
+
+Beyond the pad and keyboard, dedicated peripherals are supported and configured
+in the settings overlay (`F10`):
+
+- **Wheels and pedals** with their own axis layout, calibrated in the **Wheel**
+  tab (steering range, pedal axes, button mapping). Synthesised centring
+  resistance and road/engine rumble are provided for wheels with a motor, since
+  the drive board's real force is not replayed.
+- **Light guns** over evdev on Linux (any `ID_INPUT_GUN` device),
+  including on-screen recoil for guns with a motor and an optional Sinden border if necessary;
+  the mouse remains the fallback aiming device on every platform.
+- **Gamepad rumble** on the driving games, driven from the emulated drive board.
+
 ## Settings
 
-`--write-config` creates a `sm2-emu.ini` with every setting at its default and
-a comment explaining each, which is the quickest way to see what can be set. It
-is looked for in the working directory first and otherwise in the platform's
-config directory (`$XDG_CONFIG_HOME/sm2-emu` on Linux, `~/Library/Application
-Support/sm2-emu` on macOS); `--config <path>` overrides both, and whichever
-file was used is named in the log. A command-line flag always beats the file,
-and an unparseable line is reported and skipped rather than refused, so a file
-from a later version cannot stop an earlier binary from starting.
+Most settings live in the **settings overlay** (`F10`) and in `sm2-emu.ini`,
+which is created automatically on first run with every setting at its default
+and a comment explaining each. It is searched
+for in the working directory first or otherwise in the platform's config
+directory (`$XDG_CONFIG_HOME/sm2-emu` on Linux, `~/Library/Application
+Support/sm2-emu` on macOS); `--config <dir>` overrides both, and whichever file
+was used is named in the log. Changes made in the overlay are saved on exit. A
+command-line flag always beats the file, and an unparseable line is reported and
+skipped rather than refused.
+
+### Video: scaling, aspect and CRT
+
+The Video tab (and the config file) control how the finished frame is presented,
+all applied live:
+
+- **2D scaling** — how the frame is magnified to the window: nearest, bilinear,
+  sharp-bilinear (the default; crisp 2D text without the shimmer nearest shows
+  at non-integer window sizes), or integer (whole-multiple, pixel-perfect).
+- **Aspect** — 4:3 (the arcade monitor), square pixels (the raw 496×384), or
+  stretch (fill the window).
+- **CRT filter** — an optional cosmetic arcade-monitor look (scanlines, shadow
+  mask, glow, curvature), off by default.
+
+### Enhancement (optional, GPU-gated)
+
+Beyond the hardware-faithful default, the Video tab offers opt-in quality
+enhancements for capable GPUs — off by default, so a fresh install looks exactly
+like the arcade:
+
+- **3D texture filter** — anisotropic filtering sharpens obliquely-viewed
+  surfaces (road, track, walls) that the hardware's isotropic filter leaves
+  blurry in the distance. The quality is clamped to what the GPU reports.
+- **2D upscale** — xBR or ScaleFX edge-smooth the 2D layers (HUD, text, menus)
+  so diagonals read as clean slopes rather than stairsteps.
 
 ## Networking (cabinet link)
 
@@ -297,8 +350,8 @@ without inventing frames.
 
 Vsync and pacing compose rather than conflict — whichever wants the longer
 frame wins. On a display slower than 57.5 Hz vsync would win and the game would
-run slow, which is what `--no-vsync` is for. `--no-throttle`, or holding `Tab`,
-runs as fast as the machine manages.
+run slow, which is what `--no-vsync` is for. Holding `Tab` runs as fast as the
+machine manages.
 
 ## Roadmap
 
@@ -314,7 +367,7 @@ runs as fast as the machine manages.
 | 7 | Expand compatibility to load and run more games; Model 1 audio board **(done)** |
 | 8 | Accelerate performance with Vulkan, offloading to the GPU **(done)** |
 | 9 | OpenGL 4.3 desktop and OpenGL ES 3.1 backends **(done)** |
-| 10 | Tidy everything up for a release with an associated GUI and options |
+| 10 | Release polish: settings GUI, game picker, present-stage scaling / aspect / CRT, opt-in 3D and 2D enhancement, wheels and light guns, controller config **(WIP)** |
 
 ## Known gaps
 
@@ -360,31 +413,14 @@ backends only (the software renderer stays native); 1× is the default and is
 byte-identical to the pre-feature output. Stipple transparency stays locked to
 the native grid, so translucent surfaces keep their hardware look at any scale.
 The extra cost is GPU fill-rate only — the emulated machine runs identically at
-every scale. Fancier 2D upscaling filters (bilinear, xBRZ, and similar) are a
-possible later addition; only nearest-neighbour is offered today.
-
-### Input and peripherals
-
-Gamepad axes already drive the analog channels the driving games read, and the
-mouse already drives the lightgun channels. What is missing:
-
-- **Dedicated wheel and pedal devices**, with their own axis layout rather than
-  being mapped from a pad's stick and triggers.
-- **USB lightguns**, as opposed to the mouse.
-- **Force feedback and rumble.** The drive board's commands are already on the
-  serial link; translating them to SDL haptic events is not done.
+every scale. This is separate from the present-stage 2D scaling and the optional
+xBR/ScaleFX 2D upscaling described under **Settings** above.
 
 ### GUI and usability
 
-- **Expand the settings GUI** with input binding, per-game overrides, a ROM
-  path browser and volume control.
-- **Game launcher.** A ROM directory scanner, so the command line is optional.
+- **Expand the settings GUI** with input binding, per-game overrides and volume
+  control. (Wheel and gun buttons/axes already bind in the GUI.)
 - **Save states**, with multiple slots. Arcade games have no native save.
-
-### Additional features (WIP)
-
-- **Shader post-processing.** User-loadable GLSL/SPIR-V for CRT simulation,
-  scanlines and colour grading, after the native frame is composed.
 
 ## Licence and credits
 

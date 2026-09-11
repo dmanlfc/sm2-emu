@@ -23,6 +23,33 @@
 
 namespace sm2 {
 
+/// How the finished native frame is magnified to the window at the present
+/// stage. Present-stage state only (sampler/shader), so it switches live.
+///
+///   Nearest       -- point sampling; sharp but shimmers at non-integer scale.
+///   Bilinear      -- smooth; soft on 2D text.
+///   SharpBilinear -- nearest to the integer multiple, bilinear for the
+///                    fractional remainder; sharp text without the shimmer.
+///   Integer       -- snap to a whole native multiple (see AspectMode), nearest.
+enum class ScalingMethod : u32 { Nearest, Bilinear, SharpBilinear, Integer };
+
+/// Which rectangle the frame is fit into at the present stage.
+///
+///   FourThree   -- the arcade monitor's 4:3 (the raster was stretched to it).
+///   SquarePixel -- the raw 496x384 (1.29:1); square pixels, slightly narrow.
+///   Stretch     -- fill the whole window, ignore aspect (no bars).
+enum class AspectMode : u32 { FourThree, SquarePixel, Stretch };
+
+/// 3D texture filtering. Faithful is the hardware-accurate in-shader filtering;
+/// Anisotropic sharpens obliquely-viewed surfaces. GPU-gated; falls back to
+/// Faithful where unsupported.
+enum class TextureFilter : u32 { Faithful, Anisotropic };
+
+/// 2D layer upscaling. Faithful is the crisp nearest enlargement; Xbr/ScaleFx
+/// are edge-directed pixel-art filters over the 2D tilemap layers. GPU-gated;
+/// falls back to Faithful where unsupported.
+enum class Upscale2D : u32 { Faithful, Xbr, ScaleFx };
+
 /// Settings worth keeping between runs.
 ///
 /// Deliberately only the persistent ones. Anything that describes a single run,
@@ -84,6 +111,28 @@ struct Config {
     /// GPU backends only; the software renderer ignores it. Takes effect on the
     /// next launch. Read clamps into range.
     u32 render_scale = 1;
+
+    /// Present-stage magnification and shape; both take effect live (unlike
+    /// render_scale). SharpBilinear is the default for crisp 2D text at the
+    /// non-integer window scales that occur at almost every window size.
+    ScalingMethod scaling_method = ScalingMethod::SharpBilinear;
+    AspectMode    aspect_mode    = AspectMode::FourThree;
+
+    /// Optional CRT cosmetic filter over the finished frame (scanlines, mask,
+    /// glow, curvature), off by default. Strengths are 0..100 percent;
+    /// curvature 0 is flat. Live-switchable.
+    bool crt_enabled          = false;
+    u32  crt_scanline_strength = 40;
+    u32  crt_mask_strength     = 30;
+    u32  crt_glow_strength     = 20;
+    u32  crt_curvature         = 0;
+
+    /// Optional graphics enhancement beyond the original hardware, faithful by
+    /// default and GPU-gated. anisotropy is the 2..16 tap ceiling, clamped to
+    /// the GPU max. Live-switchable where the GPU supports them.
+    TextureFilter texture_filter = TextureFilter::Faithful;
+    u32           anisotropy     = 4;
+    Upscale2D     upscale_2d     = Upscale2D::Faithful;
 
     /// Exact device name to prefer, as `--list-gpus` prints it. Empty picks the
     /// best-scoring device.

@@ -37,6 +37,8 @@ constexpr usize kSurfaceBytes =
 struct PushConstants {
     float background[4];
     u32   mode;
+    u32   upscale;        ///< 0 faithful, 1 xBR, 2 ScaleFX
+    float source_size[2];
 };
 
 /// mode values understood by the fragment shader.
@@ -828,6 +830,9 @@ void TilemapPass::record_below(VkImageView                      target,
     push.background[2] = static_cast<float>((background_rgba >> 16) & 0xff) / 255.0F;
     push.background[3] = 1.0F;
     push.mode          = kModeResolveOverBackground;
+    push.upscale       = m_upscale_2d;
+    push.source_size[0] = static_cast<float>(kSourceWidth);
+    push.source_size[1] = static_cast<float>(kSourceHeight);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_opaque);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1,
@@ -854,6 +859,9 @@ void TilemapPass::record_above()
     PushConstants push{};
     push.background[3] = 1.0F;
     push.mode          = kModeBlendOver;
+    push.upscale       = m_upscale_2d;
+    push.source_size[0] = static_cast<float>(kSourceWidth);
+    push.source_size[1] = static_cast<float>(kSourceHeight);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_blend);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1,

@@ -59,7 +59,8 @@ layout(binding = 4) uniform Push {
 layout(push_constant) uniform Push {
 #endif
     vec2 invRaster;
-    uint renderScale;  ///< N, 1 at native
+    uint renderScale;    ///< N, 1 at native
+    uint textureQuality; ///< 0 = faithful single-tap; else anisotropic tap ceiling
 } pc;
 
 // ---------------------------------------------------------------------------
@@ -336,6 +337,26 @@ uint fetchLuma(uint index)
     return (word >> ((index & 3u) * 8u)) & 0xffu;
 }
 
+/// The base level plus its trilinear blend with the next level (or the
+/// microtexture when nearer than level zero), for texel coordinates u,v. This
+/// is exactly the hardware's per-fragment texture result; the anisotropic path
+/// calls it several times at offset coordinates and averages.
+ivec2 sampleMipChain(PolyParams p, int u, int v, int mml, int level, int maxLevel,
+                     bool translucent)
+{
+    ivec2 texel = filterLevel(p, level, u, v, translucent);
+    if (mml > 0 && level < maxLevel) {
+        texel = lerp2(texel, filterLevel(p, level + 1, u, v, translucent),
+                      (mml & 127) << 1);
+    } else if ((p.flags & kFlagMicro) != 0u && mml < 0) {
+        // Blended in to just short of half, so the microtexture adds detail
+        // without replacing the surface.
+        texel = lerp2(texel, filterLevel(p, -1, u, v, translucent),
+                      min(-mml >> int(p.microMinLod), 127));
+    }
+    return texel;
+}
+
 void main()
 {
     const PolyParams p = uPolygon[vPolygon];
@@ -382,15 +403,38 @@ void main()
 
         const bool translucent = (p.flags & kFlagTranslucent) != 0u;
 
-        ivec2 texel = filterLevel(p, level, u, v, translucent);
-        if (mml > 0 && level < maxLevel) {
-            texel = lerp2(texel, filterLevel(p, level + 1, u, v, translucent),
-                          (mml & 127) << 1);
-        } else if ((p.flags & kFlagMicro) != 0u && mml < 0) {
-            // Blended in to just short of half, so the microtexture adds detail
-            // without replacing the surface.
-            texel = lerp2(texel, filterLevel(p, -1, u, v, translucent),
-                          min(-mml >> int(p.microMinLod), 127));
+        ivec2 texel = sampleMipChain(p, u, v, mml, level, maxLevel, translucent);
+
+        // Opt-in anisotropic filtering: sample the same mip chain at a few extra
+        // points spread along the direction the texture is most stretched in
+        // screen space, and average. Faithful (textureQuality == 0) keeps the
+        // single tap above exactly, so it is bit-exact. Only the sample
+        // positions change; LOD selection and the stipple are untouched.
+        if (pc.textureQuality > 1u) {
+            // The longer screen-space gradient axis is the direction of maximum
+            // stretch; step the extra taps along it.
+            const vec2 du = dFdx(vTexel) * 32.0;
+            const vec2 dv = dFdy(vTexel) * 32.0;
+            const float lenx = dot(du, du);
+            const float leny = dot(dv, dv);
+            const vec2  major = (lenx > leny) ? du : dv;
+
+            // Tap count from the stretch ratio, capped by the requested quality.
+            const float ratio = sqrt(max(lenx, leny) / max(min(lenx, leny), 1.0));
+            const int   taps  = clamp(int(ratio), 2, int(pc.textureQuality));
+            if (taps > 1) {
+                ivec2 sum = texel;
+                int   n   = 1;
+                for (int t = 1; t < taps; ++t) {
+                    // Spread the taps symmetrically across one texel of stretch.
+                    const float off = (float(t) / float(taps - 1) - 0.5);
+                    const int   ou  = u + int(major.x * off);
+                    const int   ov  = v + int(major.y * off);
+                    sum += sampleMipChain(p, ou, ov, mml, level, maxLevel, translucent);
+                    ++n;
+                }
+                texel = sum / n;
+            }
         }
 
         // Translucency is an alpha test, not a blend: this hardware cannot mix two

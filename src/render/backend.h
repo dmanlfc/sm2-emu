@@ -20,6 +20,7 @@
 // render loop is not Vulkan-specific by construction.
 #pragma once
 
+#include "core/config.h"
 #include "core/types.h"
 
 #include <array>
@@ -53,6 +54,12 @@ struct Capabilities {
     /// Context::supports_gpu_timing()'s own documentation of why this must
     /// stay distinguishable from "zero", not collapsed into it.
     bool gpu_timing = true;
+
+    /// Whether the device supports anisotropic sampling, and the maximum ratio
+    /// it allows. Gates and clamps the enhanced 3D texture filter; false / 1.0
+    /// means the anisotropic option is unavailable.
+    bool  anisotropy     = false;
+    float max_anisotropy = 1.0F;
 };
 
 /// A native RGBA8 pixel format identifier, backend-neutral.
@@ -153,6 +160,30 @@ struct GpuStageTime {
 
 using GpuStageTimes = std::array<GpuStageTime, static_cast<usize>(GpuStage::kCount)>;
 
+/// The present-stage magnification settings, grouped so the live setter and
+/// BackendConfig carry the same shape. All present-only: changing any of these
+/// touches sampler/shader/letterbox state, never a render target, so it applies
+/// live without a device or swapchain rebuild.
+struct PresentOptions {
+    ScalingMethod scaling_method = ScalingMethod::SharpBilinear;
+    AspectMode    aspect_mode    = AspectMode::FourThree;
+
+    bool crt_enabled           = false;
+    u32  crt_scanline_strength = 40;
+    u32  crt_mask_strength     = 30;
+    u32  crt_glow_strength     = 20;
+    u32  crt_curvature         = 0;
+};
+
+/// Graphics enhancement settings, grouped like PresentOptions. All default to
+/// faithful, so a backend that ignores them behaves exactly as before.
+/// GPU-gated at the point of use against Capabilities.
+struct EnhancementOptions {
+    TextureFilter texture_filter = TextureFilter::Faithful;
+    u32           anisotropy     = 4;  // tap ceiling, clamped to the GPU max
+    Upscale2D     upscale_2d     = Upscale2D::Faithful;
+};
+
 /// What the backend is asked to draw into and present onto.
 struct BackendConfig {
     bool        enable_validation = false;
@@ -165,6 +196,9 @@ struct BackendConfig {
     /// composite run at N*native; at 1 the pipeline is native and behaves
     /// exactly as before this feature. The software renderer forces this to 1.
     u32 render_scale = 1;
+
+    PresentOptions     present;
+    EnhancementOptions enhancement;
 };
 
 /// The render backend main.cpp drives, one frame at a time.
@@ -294,7 +328,17 @@ public:
     /// the device to go idle first.
     [[nodiscard]] virtual bool save_capture(const std::string& path) const = 0;
 
-    /// Scale the finished native frame onto the window, letterboxed to 4:3.
+    /// Adopt new present-stage magnification options live, before the next
+    /// blit_to_swapchain(). Present-only state (sampler/shader/letterbox), so
+    /// this never reallocates a target and is safe to call between frames.
+    virtual void set_present_options(const PresentOptions& options) = 0;
+
+    /// Adopt new enhancement options before the next frame. Shader/pass state,
+    /// so this reallocates nothing and is safe to call between frames.
+    virtual void set_enhancement_options(const EnhancementOptions& options) = 0;
+
+    /// Scale the finished native frame onto the window, letterboxed to the
+    /// current aspect mode.
     virtual void blit_to_swapchain() = 0;
 
     /// Begin this frame's ImGui build on whichever GPU renderer backend ImGui

@@ -192,16 +192,46 @@ TriangulatedFrame triangulate(const hw::Model2MachineBase* machine,
     return frame;
 }
 
-Letterbox compute_letterbox(u32 window_width, u32 window_height)
+Letterbox compute_letterbox(u32           window_width,
+                            u32           window_height,
+                            AspectMode    aspect,
+                            ScalingMethod method)
 {
     const float width  = static_cast<float>(window_width);
     const float height = static_cast<float>(window_height);
 
     float target_width  = width;
-    float target_height = width / kDisplayAspect;
-    if (target_height > height) {
-        target_height = height;
-        target_width  = height * kDisplayAspect;
+    float target_height = height;
+
+    if (aspect != AspectMode::Stretch) {
+        // Fit the largest rectangle of the chosen aspect inside the window.
+        const float ratio = aspect == AspectMode::SquarePixel
+                                ? static_cast<float>(kNativeWidth)
+                                      / static_cast<float>(kNativeHeight)
+                                : kDisplayAspect;
+        target_width  = width;
+        target_height = width / ratio;
+        if (target_height > height) {
+            target_height = height;
+            target_width  = height * ratio;
+        }
+    }
+
+    // Integer snapping applies to the shaped fits only. Stretch means "fill the
+    // window", so it is left at the full window size regardless of method --
+    // snapping it would defeat the point and leave bars.
+    if (method == ScalingMethod::Integer && aspect != AspectMode::Stretch) {
+        // Aspect-aware: snap the height to a whole native multiple so the
+        // scanlines are pixel-perfect, then set the width from the aspect
+        // rectangle already fitted above. A non-integer horizontal scale is
+        // accepted so the chosen shape (4:3 or square) is honoured -- the
+        // vertical is what the eye reads as "clean scanlines".
+        const float fh     = static_cast<float>(kNativeHeight);
+        u32         factor = static_cast<u32>(target_height / fh);
+        factor             = std::max(factor, 1u);
+        const float scanline_height = fh * static_cast<float>(factor);
+        target_width  *= scanline_height / target_height;
+        target_height  = scanline_height;
     }
 
     Letterbox box{};
