@@ -1356,11 +1356,16 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     // and is excluded from the generic ones so those bits are not driven twice.
     const bool is_ski = game.name == "skisuprg" || game.parent == "skisuprg";
 
+    // Sega Water Ski: six buttons on their own IN0/IN1 bits (two Pitch/trick,
+    // Select Up/Down, Set), not the generic nibble. Own map below, excluded
+    // from the generic ones.
+    const bool is_wski = game.name == "segawski" || game.parent == "segawski";
+
     int         key_count = 0;
     const bool* keys      = SDL_GetKeyboardState(&key_count);
     if (keys != nullptr) {
         gather_keys(&ports[0], keys, key_count, kOperatorKeys);
-        if (!is_ski) {
+        if (!is_ski && !is_wski) {
             gather_keys(&ports[1], keys, key_count, kPlayerOneKeys);
         }
         gather_keys(&ports[2], keys, key_count, kPlayerTwoKeys);
@@ -1403,7 +1408,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
 
     for (const Pad& pad : m_pads) {
         if (pad.handle == nullptr || pad.player >= kPlayers || is_von || is_desert
-            || is_ski) {
+            || is_ski || is_wski) {
             continue;
         }
         u8& port = ports[1 + pad.player];
@@ -1504,6 +1509,56 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                 if (back)  ports[0] &= static_cast<u8>(~kTest);
             } else {
                 if (start) ports[0] &= static_cast<u8>(~kTest);   // no start button; Test advances
+                if (back)  ports[0] &= static_cast<u8>(~kCoin1);
+            }
+        }
+    }
+
+    // Sega Water Ski: Pitch Left/Right (the jump/trick buttons) on the shoulders
+    // so they work while steering; Select Up/Down on the d-pad; Set on A. Start
+    // and coin keep their defaults. Keyboard -- Pitch L/R = Z/X, Select Up/Down =
+    // Up/Down, Set = C.
+    if (is_wski) {
+        struct WsBit { u8 port; u8 bit; };
+        constexpr WsBit kPitchLeft {1, 0x04};
+        constexpr WsBit kPitchRight{1, 0x08};
+        constexpr WsBit kSelectUp  {1, 0x02};
+        constexpr WsBit kSelectDown{0, 0x40};
+        constexpr WsBit kSet       {1, 0x01};
+        const auto press = [&](WsBit b) { ports[b.port] &= static_cast<u8>(~b.bit); };
+
+        if (keys != nullptr) {
+            const auto kdown = [&](SDL_Scancode sc) {
+                return static_cast<int>(sc) < key_count && keys[sc];
+            };
+            if (kdown(SDL_SCANCODE_Z))    press(kPitchLeft);
+            if (kdown(SDL_SCANCODE_X))    press(kPitchRight);
+            if (kdown(SDL_SCANCODE_UP))   press(kSelectUp);
+            if (kdown(SDL_SCANCODE_DOWN)) press(kSelectDown);
+            if (kdown(SDL_SCANCODE_C))    press(kSet);
+        }
+
+        for (const Pad& pad : m_pads) {
+            if (pad.handle == nullptr || pad.player != 0) {
+                continue;
+            }
+            const auto held = [&](SDL_GamepadButton b) {
+                return SDL_GetGamepadButton(pad.handle, b);
+            };
+            if (held(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER))  press(kPitchLeft);
+            if (held(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)) press(kPitchRight);
+            if (held(SDL_GAMEPAD_BUTTON_DPAD_UP))        press(kSelectUp);
+            if (held(SDL_GAMEPAD_BUTTON_DPAD_DOWN))      press(kSelectDown);
+            if (held(SDL_GAMEPAD_BUTTON_SOUTH))          press(kSet);
+
+            const bool guide = held(SDL_GAMEPAD_BUTTON_GUIDE);
+            const bool start = held(SDL_GAMEPAD_BUTTON_START);
+            const bool back  = held(SDL_GAMEPAD_BUTTON_BACK);
+            if (guide) {
+                if (start) ports[0] &= static_cast<u8>(~kService);
+                if (back)  ports[0] &= static_cast<u8>(~kTest);
+            } else {
+                if (start) ports[0] &= static_cast<u8>(~kStart1);
                 if (back)  ports[0] &= static_cast<u8>(~kCoin1);
             }
         }

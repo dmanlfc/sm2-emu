@@ -3826,9 +3826,13 @@
       <input type="vehicle"/>
     </inputs>
 
-    <!-- Analogue mux wiring, from MAME's model2c_state::segawski. -->
+    <!--
+      Analogue mux wiring, from MAME's model2c_state::segawski (ch0 slide).
+      Reversed so the left stick slides the natural way on a gamepad; MAME
+      leaves it un-reversed for the real foot-platform pot.
+    -->
     <analog>
-      <channel index="0" control="slide" rest="0x80"/>
+      <channel index="0" control="slide" rest="0x80" reverse="true"/>
     </analog>
 
     <roms>
