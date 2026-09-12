@@ -461,8 +461,15 @@ void Model2B::reset()
     m_io.set_input(3, [this] { return m_inputs.in2; });
     m_io.set_output(5, [this](u8 value) { lamp_output_w(value); });
     m_io.set_input(6, [this] { return m_inputs.dipswitches; });
+    // Bind only the channels the game declares, matching MAME's machine config,
+    // which sets an_port_callback only for its own controls. An undeclared
+    // channel then stays unbound and reads as an open input (0xff), the value
+    // MAME's default an_port_cb returns, rather than 0x00 -- a game that samples
+    // an unconnected channel would otherwise read a false zero.
     for (u32 channel = 0; channel < Io315_5649::kAnalogCount; ++channel) {
-        m_io.set_analog(channel, [this, channel] { return m_inputs.analog[channel]; });
+        if (m_game.analog[channel].control != rom::AnalogControl::None) {
+            m_io.set_analog(channel, [this, channel] { return m_inputs.analog[channel]; });
+        }
     }
 
     if (m_game.drive_board) {

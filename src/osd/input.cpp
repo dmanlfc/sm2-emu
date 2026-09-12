@@ -708,19 +708,27 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel) const
         return static_cast<u8>(value + 0.5f);
     };
 
+    // Snap a centred (self-centring) stick axis to exact centre within a small
+    // deadzone, so a resting stick reads the channel's true centre (0x80) rather
+    // than a count or two off it -- a half-LSB of the 16-bit-to-fraction map plus
+    // the pad's own noise -- which a steering-cycled menu would read as drift.
+    const auto centred_fraction = [](s16 raw) {
+        constexpr int kCentreDead = 3000;
+        if (std::abs(static_cast<int>(raw)) < kCentreDead) {
+            return 0.5f;
+        }
+        return static_cast<float>(static_cast<int>(raw) + 32768) / 65535.0f;
+    };
+
     float fraction = 0.0f;
     switch (axis) {
         case HostAxis::PadLeftX:
         case HostAxis::Pad2LeftX:
-            fraction = static_cast<float>(
-                           SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX) + 32768)
-                     / 65535.0f;
+            fraction = centred_fraction(SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX));
             break;
         case HostAxis::PadLeftY:
         case HostAxis::Pad2LeftY:
-            fraction = static_cast<float>(
-                           SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTY) + 32768)
-                     / 65535.0f;
+            fraction = centred_fraction(SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTY));
             break;
         case HostAxis::RightTrigger:
         case HostAxis::LeftTrigger: {
@@ -1218,16 +1226,27 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
             float dy = 0.0f;
 
             if (SDL_Gamepad* pad = pad_for(static_cast<u32>(player)); pad != nullptr) {
-                const int sx = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHTX);
-                const int sy = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHTY);
+                // Aim on the left stick, fire on the right trigger; the left
+                // trigger is the missile (on titles that have one) or the
+                // off-screen reload otherwise. A shooter's pad layout: aiming
+                // thumb and index-finger fire.
+                const int sx = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX);
+                const int sy = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTY);
                 if (std::abs(sx) > kStickThreshold / 2 || std::abs(sy) > kStickThreshold / 2) {
                     dx += static_cast<float>(sx) / 32767.0f;
                     dy += static_cast<float>(sy) / 32767.0f;
                     active = true;
                 }
-                if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_SOUTH)) { gi.trigger = true; active = true; }
-                const bool rl = SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_EAST);
-                if (rl) { active = true; if (has_missile) gi.missile = true; else { gi.trigger = true; gi.reload = true; } }
+                constexpr int kTriggerPress = 8000;
+                if (SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > kTriggerPress) {
+                    gi.trigger = true;
+                    active     = true;
+                }
+                if (SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > kTriggerPress) {
+                    active = true;
+                    if (has_missile) gi.missile = true;
+                    else { gi.trigger = true; gi.reload = true; }
+                }
             }
             // Keyboard aim only for player one (arrows), so it does not fight P2.
             int         key_count = 0;

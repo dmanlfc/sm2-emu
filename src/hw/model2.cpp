@@ -325,8 +325,12 @@ void Model2::reset()
     m_io.set_input(3, [this] { return m_inputs.in2; });
     m_io.set_output(5, [this](u8 value) { lamp_output_w(value); });
     m_io.set_input(6, [this] { return m_inputs.dipswitches; });
+    // Bind only declared channels; undeclared ones read as open inputs (0xff),
+    // as MAME's unbound an_port_callback does. See model2b for the detail.
     for (u32 channel = 0; channel < Io315_5649::kAnalogCount; ++channel) {
-        m_io.set_analog(channel, [this, channel] { return m_inputs.analog[channel]; });
+        if (m_game.analog[channel].control != rom::AnalogControl::None) {
+            m_io.set_analog(channel, [this, channel] { return m_inputs.analog[channel]; });
+        }
     }
 
     // Port E latches force-feedback commands. MAME binds it for Sega Rally,
