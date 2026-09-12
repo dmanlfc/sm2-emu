@@ -3946,10 +3946,14 @@
       <input type="buttons3"/>
     </inputs>
 
-    <!-- Analogue mux wiring, from MAME's model2c_state::skisuprg. -->
+    <!--
+      Analogue mux wiring, from MAME's model2c_state::skisuprg (ch0 swing,
+      ch1 inclining). Both reversed so the left stick reads the natural way on a
+      gamepad.
+    -->
     <analog>
-      <channel index="0" control="swing" rest="0x80"/>
-      <channel index="1" control="inclining" rest="0x80"/>
+      <channel index="0" control="swing" rest="0x80" reverse="true"/>
+      <channel index="1" control="inclining" rest="0x80" reverse="true"/>
     </analog>
 
     <roms>

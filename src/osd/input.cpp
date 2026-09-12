@@ -1350,11 +1350,19 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
 
     u8 ports[1 + kPlayers] = {0xff, 0xff, 0xff};
 
+    // Sega Ski Super G drives itself entirely from three Select buttons and two
+    // Zoom buttons, spread across IN0 (0x10/0x20/0x40/0x80) and IN1 (0x01) --
+    // not the generic IN1 button nibble. It gets its own key and pad map below
+    // and is excluded from the generic ones so those bits are not driven twice.
+    const bool is_ski = game.name == "skisuprg" || game.parent == "skisuprg";
+
     int         key_count = 0;
     const bool* keys      = SDL_GetKeyboardState(&key_count);
     if (keys != nullptr) {
         gather_keys(&ports[0], keys, key_count, kOperatorKeys);
-        gather_keys(&ports[1], keys, key_count, kPlayerOneKeys);
+        if (!is_ski) {
+            gather_keys(&ports[1], keys, key_count, kPlayerOneKeys);
+        }
         gather_keys(&ports[2], keys, key_count, kPlayerTwoKeys);
 
         // kOperatorKeys pressed the default start1 bit (kStart1 = 0x10); some
@@ -1394,7 +1402,8 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     const bool is_desert = game.name == "desert" || game.parent == "desert";
 
     for (const Pad& pad : m_pads) {
-        if (pad.handle == nullptr || pad.player >= kPlayers || is_von || is_desert) {
+        if (pad.handle == nullptr || pad.player >= kPlayers || is_von || is_desert
+            || is_ski) {
             continue;
         }
         u8& port = ports[1 + pad.player];
@@ -1445,6 +1454,57 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             }
             if (back) {
                 ports[0] &= static_cast<u8>(~(pad.player == 0 ? kCoin1 : kCoin2));
+            }
+        }
+    }
+
+    // Sega Ski Super G: three Selects and two Zooms on their own IN0/IN1 bits,
+    // not the generic button nibble. It has no start button -- Test is what
+    // advances the game -- so plain Start presses Test.
+    if (is_ski) {
+        struct SkiBit { u8 port; u8 bit; };
+        constexpr SkiBit kSelect1{0, 0x40};
+        constexpr SkiBit kSelect2{0, 0x80};
+        constexpr SkiBit kSelect3{0, 0x10};
+        constexpr SkiBit kZoomIn {0, 0x20};
+        constexpr SkiBit kZoomOut{1, 0x01};
+        const auto press = [&](SkiBit b) { ports[b.port] &= static_cast<u8>(~b.bit); };
+
+        // Keyboard: Select 1/2/3 = Z/X/C, Zoom In/Out = V/B (off the arrows,
+        // which nudge the analog).
+        if (keys != nullptr) {
+            const auto kdown = [&](SDL_Scancode sc) {
+                return static_cast<int>(sc) < key_count && keys[sc];
+            };
+            if (kdown(SDL_SCANCODE_Z)) press(kSelect1);
+            if (kdown(SDL_SCANCODE_X)) press(kSelect2);
+            if (kdown(SDL_SCANCODE_C)) press(kSelect3);
+            if (kdown(SDL_SCANCODE_V)) press(kZoomIn);
+            if (kdown(SDL_SCANCODE_B)) press(kZoomOut);
+        }
+
+        for (const Pad& pad : m_pads) {
+            if (pad.handle == nullptr || pad.player != 0) {
+                continue;
+            }
+            const auto held = [&](SDL_GamepadButton b) {
+                return SDL_GetGamepadButton(pad.handle, b);
+            };
+            if (held(SDL_GAMEPAD_BUTTON_WEST))      press(kSelect1);
+            if (held(SDL_GAMEPAD_BUTTON_NORTH))     press(kSelect2);
+            if (held(SDL_GAMEPAD_BUTTON_EAST))      press(kSelect3);
+            if (held(SDL_GAMEPAD_BUTTON_DPAD_UP))   press(kZoomIn);
+            if (held(SDL_GAMEPAD_BUTTON_DPAD_DOWN)) press(kZoomOut);
+
+            const bool guide = held(SDL_GAMEPAD_BUTTON_GUIDE);
+            const bool start = held(SDL_GAMEPAD_BUTTON_START);
+            const bool back  = held(SDL_GAMEPAD_BUTTON_BACK);
+            if (guide) {
+                if (start) ports[0] &= static_cast<u8>(~kService);
+                if (back)  ports[0] &= static_cast<u8>(~kTest);
+            } else {
+                if (start) ports[0] &= static_cast<u8>(~kTest);   // no start button; Test advances
+                if (back)  ports[0] &= static_cast<u8>(~kCoin1);
             }
         }
     }
@@ -1549,6 +1609,48 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                 default:
                     break;  // Gun1/2 X/Y: gather_lightguns.
             }
+        }
+    }
+
+    // Sega Ski Super G steers off inclining alone; the edge (swing) is held
+    // flat. Coupling the edge to the steer, as the real platform does, was tried
+    // and made turning worse on a pad.
+    if (is_ski) {
+        usize incline_ch = inputs->analog.size();
+        usize swing_ch   = inputs->analog.size();
+        for (usize ch = 0; ch < game.analog.size(); ++ch) {
+            if (game.analog[ch].control == rom::AnalogControl::Inclining) incline_ch = ch;
+            if (game.analog[ch].control == rom::AnalogControl::Swing)     swing_ch   = ch;
+        }
+        if (incline_ch < inputs->analog.size() && swing_ch < inputs->analog.size()) {
+            // D-pad / arrow left-right snaps the steer to full lock instantly
+            // for quick right-to-left flicks a stick cannot make; reverse means
+            // full lock left is the channel maximum. The stick still steers
+            // proportionally when the d-pad is idle.
+            const rom::AnalogChannel& inc = game.analog[incline_ch];
+            bool snap_left  = false;
+            bool snap_right = false;
+            if (keys != nullptr) {
+                const auto kdown = [&](SDL_Scancode sc) {
+                    return static_cast<int>(sc) < key_count && keys[sc];
+                };
+                snap_left  = kdown(SDL_SCANCODE_LEFT);
+                snap_right = kdown(SDL_SCANCODE_RIGHT);
+            }
+            for (const Pad& pad : m_pads) {
+                if (pad.handle == nullptr || pad.player != 0) continue;
+                if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_LEFT))
+                    snap_left = true;
+                if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_DPAD_RIGHT))
+                    snap_right = true;
+            }
+            if (snap_left != snap_right) {
+                const bool left_is_max = inc.reverse;
+                inputs->analog[incline_ch] =
+                    (snap_left == left_is_max) ? inc.maximum : inc.minimum;
+            }
+
+            inputs->analog[swing_ch] = 0x80;
         }
     }
 
