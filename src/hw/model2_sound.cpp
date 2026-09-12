@@ -206,6 +206,8 @@ void Model2Sound::generate_audio(u32 host_cycles)
         return;
     }
 
+    update_balance_gains();
+
     // Nothing draining the buffer means a headless run. The SCSP still has to be
     // stepped, because that is where its timers and envelopes advance, so the
     // samples are generated and then the oldest are dropped.
@@ -340,6 +342,66 @@ u16 Model2Sound::read16(u32 address)
     ++m_counters.unmapped_reads;
     SM2_TRACE("sound: unmapped read16 at %06x", address);
     return 0;
+}
+
+void Model2Sound::configure_balance(const std::string& game_name)
+{
+    // The VF2 family shares one byte-identical sound driver, so one profile fits
+    // all four. Gains settled by ear: music well back, hit SFX unchanged,
+    // announcer and character speech forward.
+    m_balance_active = game_name == "vf2" || game_name == "vf2a"
+                    || game_name == "vf2b" || game_name == "vf2o";
+    m_music_gain     = 39;   // 15%
+    m_sfx_gain       = 256;  // 100%
+    m_announcer_gain = 333;  // 130%
+    m_voice_gain     = 460;  // 180%, character speech
+}
+
+void Model2Sound::update_balance_gains()
+{
+    if (!m_balance_active) {
+        return;
+    }
+
+    // VF2's voice-allocation table: RAM 0x2800, 32 entries of 0x10 bytes, with
+    // the SCSP slot register offset (slot*0x20) at +0, alloc flags (0 == free)
+    // at +2, and the sound number at +6. The sound number sorts the content
+    // classes (found by RE and the sound-test menu): hit SFX 0x100..0x13f,
+    // announcer 0x140..0x161, character speech 0x200..0x26f, music otherwise.
+    // The speech band covers both the in-fight quotes (0x200..0x25f) and the
+    // results-screen dialogue (0x260..0x26f). Speech is layered onto more than
+    // one channel, so it is classified by sound number alone -- gating on a
+    // single channel would boost one layer and leave the others at music level.
+    constexpr u32 kTable   = 0x2800;
+    constexpr u16 kSfxLo   = 0x100, kSfxHi = 0x13f;
+    constexpr u16 kAnnLo   = 0x140, kAnnHi = 0x161;
+    constexpr u16 kVoiceLo = 0x200, kVoiceHi = 0x26f;
+
+    u16 gains[32];
+    for (u16& g : gains) {
+        g = 256;
+    }
+    for (int e = 0; e < 32; ++e) {
+        const u32 base = kTable + u32(e) * 0x10;
+        if (base + 8 > m_ram.size() || m_ram[base + 2] == 0) {
+            continue;
+        }
+        const u32 slot = (u16(m_ram[base + 0] << 8) | m_ram[base + 1]) / 0x20;
+        if (slot >= 32) {
+            continue;
+        }
+        const u16 snd = u16(m_ram[base + 6] << 8) | m_ram[base + 7];
+        if (snd >= kAnnLo && snd <= kAnnHi) {
+            gains[slot] = m_announcer_gain;
+        } else if (snd >= kSfxLo && snd <= kSfxHi) {
+            gains[slot] = m_sfx_gain;
+        } else if (snd >= kVoiceLo && snd <= kVoiceHi) {
+            gains[slot] = m_voice_gain;
+        } else {
+            gains[slot] = m_music_gain;
+        }
+    }
+    m_scsp.set_slot_gains(gains);
 }
 
 void Model2Sound::write16(u32 address, u16 value)

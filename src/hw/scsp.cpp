@@ -198,6 +198,7 @@ Scsp::Scsp(ScspMemory& memory, u32 clock)
 	std::memset(&m_Slots, 0, sizeof(m_Slots));
 	std::memset(&m_udata.data, 0, sizeof(m_udata.data));
 	std::memset(&m_dma, 0, sizeof(m_dma));
+	std::fill(std::begin(m_slot_gain), std::end(m_slot_gain), u16{256});
 	m_TimCnt[0] = 0;
 	m_TimCnt[1] = 0;
 	m_TimCnt[2] = 0;
@@ -1349,6 +1350,11 @@ void Scsp::DoMasterSamples(s16 *output, u32 frames)
 
 				s32 sample = UpdateSlot(slot);
 
+				// Balancer gain, applied once so it scales both the DSP-effect
+				// feed and the direct-out mix. Bypassed (bit-exact) at unity.
+				if (m_slot_gain_active && m_slot_gain[sl] != 256)
+					sample = (sample * m_slot_gain[sl]) >> 8;
+
 				// SDIR ("sound direct") sends the raw sample straight to the output,
 				// bypassing the envelope generator AND the TL attenuator (the EG/ALFO
 				// bypass is handled in UpdateSlot). BOTH downstream mixes -- the DSP
@@ -1529,6 +1535,18 @@ void Scsp::exec_dma()
 // access. Here the owner generates samples immediately before running the sound
 // CPU for the same interval, which puts the register access at most a scanline
 // ahead of the audio instead of exactly at it. See Model2Sound::run.
+
+void Scsp::set_slot_gains(const u16 gains[32])
+{
+	bool any = false;
+	for (int i = 0; i < 32; ++i)
+	{
+		m_slot_gain[i] = gains[i];
+		if (gains[i] != 256)
+			any = true;
+	}
+	m_slot_gain_active = any;
+}
 
 u16 Scsp::read(u32 offset)
 {

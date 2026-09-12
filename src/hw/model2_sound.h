@@ -36,6 +36,7 @@
 #include "hw/sound_board.h"
 
 #include <span>
+#include <string>
 #include <vector>
 
 namespace sm2::hw {
@@ -66,6 +67,13 @@ public:
     void attach_dsb2(std::span<const u8> dsb_program, std::span<const u8> dsb_mpeg);
 
     void reset();
+
+    /// Apply a per-game audio-balance profile, selected by set name. Only the
+    /// VF2 family (vf2/vf2a/vf2b/vf2o) has one: their shared sound driver's voice
+    /// table lets music, hit SFX, the announcer and the character voices be
+    /// gained separately. Every other set leaves the balancer inactive (audio
+    /// untouched).
+    void configure_balance(const std::string& game_name);
 
     /// Advance the board by the sound-clock equivalent of `host_cycles` of the
     /// host i960's 25 MHz clock.
@@ -152,6 +160,18 @@ private:
 
     /// Generate the SCSP's share of `host_cycles` worth of samples.
     void generate_audio(u32 host_cycles);
+
+    /// Reclassify each SCSP slot from the driver's voice table and push per-slot
+    /// gains into the SCSP. Runs before each generate() to track live voice
+    /// allocation; a no-op unless a profile is active.
+    void update_balance_gains();
+
+    /// Balance gains, 1/256 units (256 == unity); see configure_balance.
+    bool m_balance_active   = false;
+    u16  m_music_gain       = 256;
+    u16  m_sfx_gain         = 256;
+    u16  m_announcer_gain   = 256;
+    u16  m_voice_gain       = 256;
 
     cpu::m68000::M68000 m_cpu;
 

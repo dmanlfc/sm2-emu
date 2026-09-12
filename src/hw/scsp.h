@@ -74,6 +74,11 @@ public:
 
     [[nodiscard]] u32 sample_rate() const { return m_clock / kClockDivider; }
 
+    /// Per-slot output gain in 1/256 units (256 == unity), applied before both
+    /// the direct-out and effect-send mixes so it scales the whole voice. All
+    /// unity leaves the mixer bit-exact. The hook for the music/SFX balancer.
+    void set_slot_gains(const u16 gains[32]);
+
     /// A byte arrived from the host's UART.
     void midi_in(u8 value);
 
@@ -260,6 +265,12 @@ private:
     /// MVOL, as a multiplier. MAME sets it as a stream output gain; here it is
     /// applied where the mixer writes its result.
     float m_master_gain = 1.0f;
+
+    /// Per-slot output gain, 1/256 units (256 == unity); see set_slot_gains.
+    /// m_slot_gain_active is false when every entry is unity, bypassing the
+    /// gain path so the faithful case stays bit-exact.
+    u16  m_slot_gain[32]     = {};
+    bool m_slot_gain_active  = false;
 
     /// Samples produced since reset. The timers and the MIDI transmitter are
     /// scheduled against this.
