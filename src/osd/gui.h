@@ -227,6 +227,7 @@ private:
     Scraper*                   m_picker_scraper = nullptr;
     int                        m_picker_selected = 0;
     std::optional<std::string> m_pending_launch;
+    std::string                m_picker_last_launched;  ///< reselect on return
     float                      m_picker_scroll = 0.0f;   ///< seconds since the pick (scroll clock)
     bool                       m_picker_scroll_to_sel = false;
     float                      m_picker_art_timer = 0.0f;

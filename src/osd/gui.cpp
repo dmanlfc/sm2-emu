@@ -1435,6 +1435,17 @@ void Gui::enable_picker(std::vector<PickerEntry> entries, render::Backend* backe
     m_picker_selected = 0;
     m_picker_scroll   = 0.0f;
 
+    // Return to the last-played game rather than the top of the list.
+    if (!m_picker_last_launched.empty()) {
+        for (usize i = 0; i < m_picker_entries.size(); ++i) {
+            if (m_picker_entries[i].name == m_picker_last_launched) {
+                m_picker_selected      = static_cast<int>(i);
+                m_picker_scroll_to_sel = true;
+                break;
+            }
+        }
+    }
+
     // Load anything already cached up front: the scraper skips a set whose cache
     // file exists and never pushes a Ready for it, so without this a cached set
     // would show "Fetching..." forever. Uncached sets fill in from Ready later.
@@ -1458,6 +1469,9 @@ std::optional<std::string> Gui::take_pending_launch()
 {
     std::optional<std::string> out = std::move(m_pending_launch);
     m_pending_launch.reset();
+    if (out.has_value()) {
+        m_picker_last_launched = *out;
+    }
     return out;
 }
 
