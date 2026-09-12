@@ -1361,11 +1361,15 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     // from the generic ones.
     const bool is_wski = game.name == "segawski" || game.parent == "segawski";
 
+    // Sky Target: fire buttons are Machine Gun (IN1 0x10) and Missile (IN1
+    // 0x20), not the generic button nibble, so a pad never fired. Own map below.
+    const bool is_skytgt = game.name == "skytargt" || game.parent == "skytargt";
+
     int         key_count = 0;
     const bool* keys      = SDL_GetKeyboardState(&key_count);
     if (keys != nullptr) {
         gather_keys(&ports[0], keys, key_count, kOperatorKeys);
-        if (!is_ski && !is_wski) {
+        if (!is_ski && !is_wski && !is_skytgt) {
             gather_keys(&ports[1], keys, key_count, kPlayerOneKeys);
         }
         gather_keys(&ports[2], keys, key_count, kPlayerTwoKeys);
@@ -1408,7 +1412,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
 
     for (const Pad& pad : m_pads) {
         if (pad.handle == nullptr || pad.player >= kPlayers || is_von || is_desert
-            || is_ski || is_wski) {
+            || is_ski || is_wski || is_skytgt) {
             continue;
         }
         u8& port = ports[1 + pad.player];
@@ -1559,6 +1563,43 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                 if (back)  ports[0] &= static_cast<u8>(~kTest);
             } else {
                 if (start) ports[0] &= static_cast<u8>(~kStart1);
+                if (back)  ports[0] &= static_cast<u8>(~kCoin1);
+            }
+        }
+    }
+
+    // Sky Target: a flight-stick shooter. Machine Gun (IN1 0x10) on the right
+    // trigger and Missile (IN1 0x20) on the left, View Change (IN0 0x20) on Y;
+    // the left stick is the flight stick. Keyboard -- gun = Left Ctrl, missile =
+    // X, view = keep the VR key. Start (IN0 0x40) and coin keep their defaults.
+    if (is_skytgt) {
+        constexpr int kTriggerPress = 8000;  // half pull counts as a press
+        if (keys != nullptr) {
+            const auto kdown = [&](SDL_Scancode sc) {
+                return static_cast<int>(sc) < key_count && keys[sc];
+            };
+            if (kdown(SDL_SCANCODE_LCTRL)) ports[1] &= static_cast<u8>(~0x10);
+            if (kdown(SDL_SCANCODE_X))     ports[1] &= static_cast<u8>(~0x20);
+        }
+        for (const Pad& pad : m_pads) {
+            if (pad.handle == nullptr || pad.player != 0) {
+                continue;
+            }
+            if (SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > kTriggerPress)
+                ports[1] &= static_cast<u8>(~0x10);   // Machine Gun
+            if (SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > kTriggerPress)
+                ports[1] &= static_cast<u8>(~0x20);   // Missile
+            if (SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_NORTH))
+                ports[0] &= static_cast<u8>(~0x20);   // View Change
+
+            const bool guide = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_GUIDE);
+            const bool start = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_START);
+            const bool back  = SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_BACK);
+            if (guide) {
+                if (start) ports[0] &= static_cast<u8>(~kService);
+                if (back)  ports[0] &= static_cast<u8>(~kTest);
+            } else {
+                if (start) ports[0] &= static_cast<u8>(~0x40);  // Start1
                 if (back)  ports[0] &= static_cast<u8>(~kCoin1);
             }
         }
