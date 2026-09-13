@@ -115,7 +115,7 @@ struct Config {
     /// Present-stage magnification and shape; both take effect live (unlike
     /// render_scale). SharpBilinear is the default for crisp 2D text at the
     /// non-integer window scales that occur at almost every window size.
-    ScalingMethod scaling_method = ScalingMethod::SharpBilinear;
+    ScalingMethod scaling_method = ScalingMethod::Nearest;
     AspectMode    aspect_mode    = AspectMode::FourThree;
 
     /// Optional CRT cosmetic filter over the finished frame (scanlines, mask,
