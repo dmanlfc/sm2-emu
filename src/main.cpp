@@ -2175,6 +2175,7 @@ int main(int argc, char** argv)
                 sound_link    = nullptr;
 
                 audio.set_paused(true);
+                audio_paused_state = true;
                 show_picker();
                 window.set_title(build_title());
                 pacer.resync();
