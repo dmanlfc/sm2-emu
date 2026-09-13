@@ -1,9 +1,9 @@
 name: Build
 
 # Builds sm2-emu on every push/PR to main (catches build breaks early) and
-# packages release artifacts (Linux x86_64 + aarch64 AppImages, a macOS dmg)
-# on every run. Pushing a `v*` tag additionally publishes those artifacts to
-# a GitHub Release.
+# packages release artifacts on every run: a Linux x86_64 AppImage + tarball,
+# a Linux aarch64 AppImage + tarball, and a macOS dmg. Pushing a `v*` tag
+# additionally publishes those five artifacts to a GitHub Release.
 on:
   push:
     branches: [ main ]
@@ -28,8 +28,10 @@ jobs:
   # AppImage.
   # ---------------------------------------------------------------------
   linux-x86_64:
-    name: Linux x86_64 (AppImage)
+    name: Linux x86_64 (AppImage + tarball)
     runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,6 +50,10 @@ jobs:
             libgl-dev libgles-dev libegl-dev \
             libpugixml-dev libcurl4-openssl-dev \
             libvulkan-dev vulkan-validationlayers \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxi-dev libxfixes-dev libxss-dev libxrender-dev libxtst-dev \
+            libasound2-dev libpulse-dev libudev-dev \
+            libwayland-dev libwayland-bin libxkbcommon-dev libdecor-0-dev \
             ccache patchelf file desktop-file-utils
 
       - name: Cache ccache
@@ -55,26 +61,27 @@ jobs:
         with:
           key: linux-x86_64
 
+      # SM2_BUILD_TESTS is forced OFF: tests/ is listed in .gitignore and was
+      # never committed, so add_subdirectory(tests) has nothing to build on a
+      # fresh clone (this affects every clone, not just CI). ctest is
+      # therefore skipped here too. Drop this override once tests/ is tracked.
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DSM2_BUILD_VULKAN=ON
+            -DSM2_BUILD_VULKAN=ON \
+            -DSM2_BUILD_TESTS=OFF \
+            -DSM2_LTO=ON
 
       - name: Build
         run: cmake --build build
-
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
 
       - name: Install into AppDir
         run: cmake --install build --prefix AppDir/usr
 
       - name: Build AppImage
-        env:
-          VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
         run: |
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           chmod +x linuxdeploy-x86_64.AppImage
@@ -92,14 +99,33 @@ jobs:
           name: sm2-emu-linux-x86_64-appimage
           path: out/sm2-emu-x86_64.AppImage
 
+      # A plain, non-AppImage package for anyone who'd rather just untar and
+      # run against their own system libraries — a second, independent
+      # `cmake --install` into its own directory, from the same build tree
+      # already compiled above (no rebuild).
+      - name: Install for tarball
+        run: cmake --install build --prefix "sm2-emu-${VERSION}-linux-x86_64"
+
+      - name: Build tarball
+        run: |
+          mkdir -p out
+          tar czf "out/sm2-emu-${VERSION}-linux-x86_64.tar.gz" "sm2-emu-${VERSION}-linux-x86_64"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sm2-emu-linux-x86_64-tarball
+          path: out/sm2-emu-${{ env.VERSION }}-linux-x86_64.tar.gz
+
   # ---------------------------------------------------------------------
   # Linux aarch64 — software + OpenGL ES 3.1 + Vulkan, packaged as an
   # AppImage. Runs on a native arm64 hosted runner, so this is a normal
   # build rather than a cross-compile.
   # ---------------------------------------------------------------------
   linux-aarch64:
-    name: Linux aarch64 (AppImage)
+    name: Linux aarch64 (AppImage + tarball)
     runs-on: ubuntu-24.04-arm
+    env:
+      VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -113,6 +139,10 @@ jobs:
             libgles-dev libegl-dev \
             libpugixml-dev libcurl4-openssl-dev \
             libvulkan-dev vulkan-validationlayers \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxi-dev libxfixes-dev libxss-dev libxrender-dev libxtst-dev \
+            libasound2-dev libpulse-dev libudev-dev \
+            libwayland-dev libwayland-bin libxkbcommon-dev libdecor-0-dev \
             ccache patchelf file desktop-file-utils
 
       - name: Cache ccache
@@ -120,6 +150,10 @@ jobs:
         with:
           key: linux-aarch64
 
+      # SM2_BUILD_TESTS is forced OFF: tests/ is listed in .gitignore and was
+      # never committed, so add_subdirectory(tests) has nothing to build on a
+      # fresh clone (this affects every clone, not just CI). ctest is
+      # therefore skipped here too. Drop this override once tests/ is tracked.
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
@@ -127,20 +161,17 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DSM2_BUILD_OPENGL_DESKTOP=OFF -DSM2_BUILD_OPENGL_ES=ON \
-            -DSM2_BUILD_VULKAN=ON
+            -DSM2_BUILD_VULKAN=ON \
+            -DSM2_BUILD_TESTS=OFF \
+            -DSM2_LTO=ON
 
       - name: Build
         run: cmake --build build
-
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
 
       - name: Install into AppDir
         run: cmake --install build --prefix AppDir/usr
 
       - name: Build AppImage
-        env:
-          VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
         run: |
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-aarch64.AppImage
           chmod +x linuxdeploy-aarch64.AppImage
@@ -157,6 +188,23 @@ jobs:
         with:
           name: sm2-emu-linux-aarch64-appimage
           path: out/sm2-emu-aarch64.AppImage
+
+      # A plain, non-AppImage package for anyone who'd rather just untar and
+      # run against their own system libraries — a second, independent
+      # `cmake --install` into its own directory, from the same build tree
+      # already compiled above (no rebuild).
+      - name: Install for tarball
+        run: cmake --install build --prefix "sm2-emu-${VERSION}-linux-aarch64"
+
+      - name: Build tarball
+        run: |
+          mkdir -p out
+          tar czf "out/sm2-emu-${VERSION}-linux-aarch64.tar.gz" "sm2-emu-${VERSION}-linux-aarch64"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sm2-emu-linux-aarch64-tarball
+          path: out/sm2-emu-${{ env.VERSION }}-linux-aarch64.tar.gz
 
   # ---------------------------------------------------------------------
   # macOS (Apple Silicon) — Vulkan backend via MoltenVK, packaged as a dmg.
@@ -180,19 +228,22 @@ jobs:
         with:
           key: macos-arm64
 
+      # SM2_BUILD_TESTS is forced OFF: tests/ is listed in .gitignore and was
+      # never committed, so add_subdirectory(tests) has nothing to build on a
+      # fresh clone (this affects every clone, not just CI). ctest is
+      # therefore skipped here too. Drop this override once tests/ is tracked.
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DSM2_BUILD_VULKAN=ON
+            -DSM2_BUILD_VULKAN=ON \
+            -DSM2_BUILD_TESTS=OFF \
+            -DSM2_LTO=ON
 
       - name: Build
         run: cmake --build build
-
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
 
       - name: Install app bundle
         run: cmake --install build --prefix install
@@ -231,5 +282,7 @@ jobs:
           generate_release_notes: true
           files: |
             artifacts/sm2-emu-linux-x86_64-appimage/*
+            artifacts/sm2-emu-linux-x86_64-tarball/*
             artifacts/sm2-emu-linux-aarch64-appimage/*
+            artifacts/sm2-emu-linux-aarch64-tarball/*
             artifacts/sm2-emu-macos-dmg/*
