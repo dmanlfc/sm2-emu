@@ -92,7 +92,7 @@ jobs:
             --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/sm2-emu.png \
             --output appimage
           mkdir -p out
-          mv sm2-emu*.AppImage out/sm2-emu-x86_64.AppImage
+          mv "$(find . -maxdepth 1 -name '*.AppImage' ! -name 'linuxdeploy-*.AppImage')" out/sm2-emu-x86_64.AppImage
 
       - uses: actions/upload-artifact@v4
         with:
@@ -182,7 +182,7 @@ jobs:
             --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/sm2-emu.png \
             --output appimage
           mkdir -p out
-          mv sm2-emu*.AppImage out/sm2-emu-aarch64.AppImage
+          mv "$(find . -maxdepth 1 -name '*.AppImage' ! -name 'linuxdeploy-*.AppImage')" out/sm2-emu-aarch64.AppImage
 
       - uses: actions/upload-artifact@v4
         with:
