@@ -360,6 +360,9 @@ private:
     std::vector<u8>  m_cpu_control;
     std::vector<u8>  m_comm_ram;      ///< 16 KB link board shared RAM
 
+    /// daytonam's simulated protection state (Protection::DaytonaMaxxPic).
+    u8 m_maxx_state = 0;
+
     // -- interrupt latch ---------------------------------------------------
     u32 m_intreq = 0;
     u32 m_intena = 0;

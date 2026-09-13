@@ -84,6 +84,7 @@ inline void store32(u8* p, u32 v) { std::memcpy(p, &v, sizeof(v)); }
 constexpr u32 kRomMainCpu      = 0x00000000;  // 2 MB
 constexpr u32 kScratchRam      = 0x00200000;  // 128 KB, half of Model 2A's
 constexpr u32 kRomMirror       = 0x00220000;  // 128 KB view of maincpu at 0x20000
+constexpr u32 kMaxxProtection  = 0x00240000;  // 64 KB, daytonam only: MAME's maxx_r
 constexpr u32 kWorkRam         = 0x00500000;  // 1 MB
 constexpr u32 kGeoPort         = 0x00800000;  // 16 KB, Geometrizer function ports
 constexpr u32 kGeoProgram      = 0x00804000;  // 16 KB, Geometrizer upload
@@ -845,6 +846,28 @@ u32 Model2Original::register_read(u32 address, u32 width)
     if (address >= kLumaRam && address < kLumaRam + 0x20000) {
         const u32 index = (address - kLumaRam) / 4;
         return index < m_luma_ram.size() ? m_luma_ram[index] : 0;
+    }
+
+    // daytonam's fan-hack protection sim (MAME's maxx_r): cycles a counter on
+    // 16-bit reads in the first 32 bytes, mirrors maincpu ROM from 0x40000
+    // otherwise.
+    if (m_game.protection == rom::Protection::DaytonaMaxxPic
+        && address >= kMaxxProtection && address < kMaxxProtection + 0x10000) {
+        const u32 rel = address - kMaxxProtection;
+        if (rel < 0x20 && width == 2 && (rel & 3) == 2) {
+            m_maxx_state = (m_maxx_state + 1) & 0x0f;
+            if (m_maxx_state == 0)     return 0x0007;
+            if (m_maxx_state & 0x02)   return 0x0000;
+            return 0x0004;
+        }
+        u32 value = 0;
+        for (u32 byte = 0; byte < width; ++byte) {
+            const u32 src = 0x040000 + rel + byte;
+            if (src < m_rom_maincpu.size()) {
+                value |= static_cast<u32>(m_rom_maincpu[src]) << (byte * 8);
+            }
+        }
+        return value;
     }
 
     note_unmapped_read(address, width);

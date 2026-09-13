@@ -149,6 +149,7 @@ enum class Protection {
     None,
     Sega315_5838_Doa,  ///< 315-5838/317-0229 compression chip, DOA hack mode.
     Sega315_5881,      ///< 315-5881 stream cipher. Needs `protection_key`.
+    DaytonaMaxxPic,    ///< Fan-hack's PIC simulation, MAME's model2o_maxx_state::maxx_r.
 };
 
 /// One ROM chip's contribution to a region.

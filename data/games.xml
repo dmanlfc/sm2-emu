@@ -1163,6 +1163,100 @@
     </roms>
   </game>
 
+  <game name="daytonam" gearbox="true" drive_board="true" parent="daytona" board="model2" vr_buttons="in0:0x20,in0:0x40,in0:0x80,in1:0x01" protection="daytona-maxx" preliminary="true">
+    <title>Daytona USA (To The MAXX)</title>
+    <manufacturer>hack (Kyle Hodgetts)</manufacturer>
+    <year>2001</year>
+
+    <inputs>
+      <input type="common"/>
+      <input type="vehicle"/>
+    </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model2o_state::daytona. -->
+    <analog>
+      <channel index="0" control="steer" rest="0x80"/>
+      <channel index="1" control="accel" rest="0x00"/>
+      <channel index="2" control="brake" rest="0x00"/>
+    </analog>
+
+    <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-14869c.25" offset="0x000000" crc="0x24b68e64"/>
+      </region>
+      <region name="maincpu" size="0x200000" stride="4" chunk="2">
+        <file name="maxx.12" offset="0x000000" crc="0x604ef2d9"/>
+        <file name="maxx.13" offset="0x000002" crc="0x7d319970"/>
+        <file name="maxx.14" offset="0x040000" crc="0x2debfce0"/>
+      </region>
+      <region name="main_data" size="0x2000000" stride="4" chunk="2">
+        <file name="mpr-16528.10" offset="0x000000" crc="0x9ce591f6"/>
+        <file name="mpr-16529.11" offset="0x000002" crc="0xf7095eaf"/>
+        <file name="mpr-16808.8" offset="0x400000" crc="0x44f1f5a0"/>
+        <file name="mpr-16809.9" offset="0x400002" crc="0x37a2dd12"/>
+        <file name="epr-16724a.6" offset="0x800000" crc="0x469f10fd"/>
+        <file name="epr-16725a.7" offset="0x800002" crc="0xba0df8db"/>
+        <!-- ROM_COPY: the board aliases this bank across the rest of the window. -->
+        <copy from="0x800000" to="0x900000" size="0x100000"/>
+        <copy from="0x800000" to="0xa00000" size="0x100000"/>
+        <copy from="0x800000" to="0xb00000" size="0x100000"/>
+        <copy from="0x800000" to="0xc00000" size="0x100000"/>
+        <copy from="0x800000" to="0xd00000" size="0x100000"/>
+        <copy from="0x800000" to="0xe00000" size="0x100000"/>
+        <copy from="0x800000" to="0xf00000" size="0x100000"/>
+      </region>
+      <region name="copro_data" size="0x800000" stride="4" chunk="2">
+        <file name="mpr-16537.ic28" offset="0x000000" crc="0x36b7c35a"/>
+        <file name="mpr-16536.ic29" offset="0x000002" crc="0x6d6afed9"/>
+      </region>
+      <region name="polygons" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-16523.ic16" offset="0x000000" crc="0x2f484d42"/>
+        <file name="mpr-16518.ic20" offset="0x000002" crc="0xdf683bf7"/>
+        <file name="mpr-16524.ic17" offset="0x400000" crc="0x34658bd7"/>
+        <file name="mpr-16519.ic21" offset="0x400002" crc="0xfacd1c81"/>
+        <file name="mpr-16525.ic18" offset="0x800000" crc="0xfb517521"/>
+        <file name="mpr-16520.ic22" offset="0x800002" crc="0xd66bd9bd"/>
+        <file name="mpr-16772.ic19" offset="0xc00000" crc="0x770ed912"/>
+        <file name="mpr-16771.ic23" offset="0xc00002" crc="0xa2205124"/>
+      </region>
+      <region name="textures" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-16522.25" offset="0x000000" crc="0x55d39a57"/>
+        <file name="mpr-16521.24" offset="0x000002" crc="0xaf1934fb"/>
+        <file name="mpr-16770.27" offset="0x800000" crc="0xf9fa7bfb"/>
+        <file name="mpr-16769.26" offset="0x800002" crc="0xe57429e9"/>
+      </region>
+      <region name="cpu3" size="0x20000">
+        <file name="epr-16726.bin" offset="0x000000" crc="0xc179b8c7"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-16720.7" offset="0x000000" crc="0x8e73cffd"/>
+        <file name="epr-16721.8" offset="0x020000" crc="0x1bb3b7b7"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-16491.32" offset="0x000000" crc="0x89920903"/>
+        <file name="mpr-16492.33" offset="0x200000" crc="0x459e701b"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-16493.4" offset="0x000000" crc="0x9990db15"/>
+        <file name="mpr-16494.5" offset="0x200000" crc="0x600e1d6c"/>
+      </region>
+      <region name="drivecpu" size="0x10000" required="false">
+        <file name="epr-16488a.ic12" offset="0x000000" crc="0x546c5d1a"/>
+        <file name="epr-16488.ic12"  offset="0x000000" crc="0x4f0b8114"/>
+      </region>
+      <region name="copro_tgp_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr-14742a.45" offset="0x000000" crc="0x90c6b117"/>
+        <file name="opr-14743a.46" offset="0x000002" crc="0xae7f446b"/>
+      </region>
+      <region name="other_data" size="0x80000" stride="4" chunk="2">
+        <file name="opr-14744.58" offset="0x000000" crc="0x730ea9e0"/>
+        <file name="opr-14745.59" offset="0x000002" crc="0x4c934d96"/>
+        <file name="opr-14746.62" offset="0x040000" crc="0x2a266cbd"/>
+        <file name="opr-14747.63" offset="0x040002" crc="0xa4ad5e19"/>
+      </region>
+    </roms>
+  </game>
+
 
   <game name="desert" board="model2" vr_buttons="in0:0x20,in0:0x40,in0:0x80">
     <title>Desert Tank</title>
@@ -3502,7 +3596,6 @@
       </region>
     </roms>
   </game>
-
 
   <game name="rascot2" board="model2c" preliminary="true">
     <title>Royal Ascot II</title>
