@@ -3,7 +3,9 @@ name: Build
 # Builds sm2-emu on every push/PR to main (catches build breaks early) and
 # packages release artifacts on every run: a Linux x86_64 AppImage + tarball,
 # a Linux aarch64 AppImage + tarball, and a macOS dmg. Pushing a `v*` tag
-# additionally publishes those five artifacts to a GitHub Release.
+# publishes those five artifacts to a proper GitHub Release. A plain push to
+# main (no tag) instead updates a single rolling "dev" pre-release in place,
+# so there is always exactly one downloadable link to the latest main build.
 on:
   push:
     branches: [ main ]
@@ -280,6 +282,66 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          files: |
+            artifacts/sm2-emu-linux-x86_64-appimage/*
+            artifacts/sm2-emu-linux-x86_64-tarball/*
+            artifacts/sm2-emu-linux-aarch64-appimage/*
+            artifacts/sm2-emu-linux-aarch64-tarball/*
+            artifacts/sm2-emu-macos-dmg/*
+
+  # ---------------------------------------------------------------------
+  # Plain push to main (no tag): roll a single "dev" pre-release forward to
+  # this commit instead of piling up a permanent release per push.
+  # ---------------------------------------------------------------------
+  dev-release:
+    name: Publish rolling dev pre-release
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [ linux-x86_64, linux-aarch64, macos ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Force the `dev` tag onto this commit so the release it backs always
+      # points at the latest main build, rather than creating a new tag.
+      - name: Move dev tag to HEAD
+        run: |
+          git tag -f dev
+          git push origin dev --force
+
+      # Name this build after an existing tag on this exact commit (e.g. a
+      # v* tag pushed at the same time), falling back to the short SHA.
+      - name: Label this build
+        id: label
+        run: |
+          point_tag=$(git tag --points-at HEAD | grep -vx dev | head -n1 || true)
+          echo "label=${point_tag:-${GITHUB_SHA:0:8}}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      # The dev release is one rolling slot: fixed asset filenames mean each
+      # new build replaces the last one instead of accumulating. The other
+      # three artifacts are already stably named; only the tarballs embed
+      # VERSION (the commit SHA here), so those two need renaming.
+      - name: Normalize asset filenames
+        run: |
+          mv artifacts/sm2-emu-linux-x86_64-tarball/*.tar.gz \
+             artifacts/sm2-emu-linux-x86_64-tarball/sm2-emu-linux-x86_64.tar.gz
+          mv artifacts/sm2-emu-linux-aarch64-tarball/*.tar.gz \
+             artifacts/sm2-emu-linux-aarch64-tarball/sm2-emu-linux-aarch64.tar.gz
+
+      - name: Publish dev pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev
+          name: "Dev build (${{ steps.label.outputs.label }})"
+          body: "Automated rolling build of the latest main branch (commit ${{ github.sha }})."
+          prerelease: true
           files: |
             artifacts/sm2-emu-linux-x86_64-appimage/*
             artifacts/sm2-emu-linux-x86_64-tarball/*
