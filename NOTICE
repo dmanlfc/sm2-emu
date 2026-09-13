@@ -82,10 +82,17 @@ Third-party dependencies
 
   SDL3                      — zlib licence      — https://libsdl.org
   Musashi                   — MIT licence       — Karl Stenerud
+  ymfm                      — BSD-3-Clause      — Aaron Giles
+  Dear ImGui                — MIT licence       — Omar Cornut
   VulkanMemoryAllocator     — MIT licence       — AMD / GPUOpen
   Vulkan-Headers            — Apache-2.0 / MIT  — The Khronos Group
   miniz                     — MIT licence       — Rich Geldreich et al.
   pugixml                   — MIT licence       — Arseny Kapoulkine
+  LZMA SDK                  — Public domain     — Igor Pavlov
+  stb_image                 — Public domain     — Sean Barrett
+  libcurl                   — curl licence      — Daniel Stenberg et al.
+    (optional, for the game picker's artwork scraping; linked from the
+    system, not vendored under 3rdparty/)
 
 Sega, Model 2, Virtua Fighter, Virtua Cop and Daytona USA are trademarks of
 their respective owners. sm2-emu is an independent work and is not affiliated

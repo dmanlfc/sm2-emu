@@ -63,7 +63,7 @@ option(SM2_ENABLE_VALIDATION
     ${SM2_VALIDATION_DEFAULT})
 option(SM2_WERROR       "Treat compiler warnings as errors"        OFF)
 option(SM2_SHADER_WERROR "Treat shader compiler warnings as errors" ON)
-option(SM2_BUILD_TESTS  "Build unit tests"                          ON)
+option(SM2_BUILD_TESTS  "Build unit tests"                          OFF)
 
 # Dependencies come from the system where available (find_package). Anything
 # not found falls back to the copy under 3rdparty/ (git submodules, plus the

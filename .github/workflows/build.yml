@@ -63,10 +63,6 @@ jobs:
         with:
           key: linux-x86_64
 
-      # SM2_BUILD_TESTS is forced OFF: tests/ is listed in .gitignore and was
-      # never committed, so add_subdirectory(tests) has nothing to build on a
-      # fresh clone (this affects every clone, not just CI). ctest is
-      # therefore skipped here too. Drop this override once tests/ is tracked.
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
@@ -74,7 +70,6 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DSM2_BUILD_VULKAN=ON \
-            -DSM2_BUILD_TESTS=OFF \
             -DSM2_LTO=ON
 
       - name: Build
@@ -152,10 +147,6 @@ jobs:
         with:
           key: linux-aarch64
 
-      # SM2_BUILD_TESTS is forced OFF: tests/ is listed in .gitignore and was
-      # never committed, so add_subdirectory(tests) has nothing to build on a
-      # fresh clone (this affects every clone, not just CI). ctest is
-      # therefore skipped here too. Drop this override once tests/ is tracked.
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
@@ -164,7 +155,6 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DSM2_BUILD_OPENGL_DESKTOP=OFF -DSM2_BUILD_OPENGL_ES=ON \
             -DSM2_BUILD_VULKAN=ON \
-            -DSM2_BUILD_TESTS=OFF \
             -DSM2_LTO=ON
 
       - name: Build
@@ -230,10 +220,6 @@ jobs:
         with:
           key: macos-arm64
 
-      # SM2_BUILD_TESTS is forced OFF: tests/ is listed in .gitignore and was
-      # never committed, so add_subdirectory(tests) has nothing to build on a
-      # fresh clone (this affects every clone, not just CI). ctest is
-      # therefore skipped here too. Drop this override once tests/ is tracked.
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
@@ -241,7 +227,6 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DSM2_BUILD_VULKAN=ON \
-            -DSM2_BUILD_TESTS=OFF \
             -DSM2_LTO=ON
 
       - name: Build

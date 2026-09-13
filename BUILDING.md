@@ -46,7 +46,6 @@ be on `PATH` (it runs on the build host, not the target).
 ```sh
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-ctest --test-dir build
 ```
 
 The default build produces a binary with the software renderer and the OpenGL
@@ -63,7 +62,8 @@ debugging, use `-DCMAKE_BUILD_TYPE=Debug` (unoptimised, with symbols; also
 turns Vulkan validation on by default when the Vulkan backend is built).
 
 Useful options: `-DSM2_ENABLE_VALIDATION=ON` (default in Debug),
-`-DSM2_WERROR=ON`, `-DSM2_BUILD_TESTS=OFF`.
+`-DSM2_WERROR=ON`, `-DSM2_BUILD_TESTS=OFF`, `-DSM2_LTO=ON` (link-time
+optimisation for release configs; what the CI release builds use).
 
 ## Graphics backends
 
@@ -112,7 +112,11 @@ context); it also works under Wayland.
 sudo apt install cmake ninja-build build-essential \
                  glslc \
                  libgl-dev libgles-dev libegl-dev \
-                 libsdl3-dev libpugixml-dev libcurl4-openssl-dev
+                 libpugixml-dev libcurl4-openssl-dev \
+                 libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+                 libxi-dev libxfixes-dev libxss-dev libxrender-dev libxtst-dev \
+                 libasound2-dev libpulse-dev libudev-dev \
+                 libwayland-dev libwayland-bin libxkbcommon-dev libdecor-0-dev
 
 # Add these only if building the Vulkan backend (-DSM2_BUILD_VULKAN=ON)
 sudo apt install libvulkan-dev vulkan-validationlayers \
@@ -123,6 +127,14 @@ sudo apt install libvulkan-dev vulkan-validationlayers \
 Debian/Ubuntu has no packages for miniz, the LZMA SDK, stb_image or a Dear ImGui
 with the SDL3 backend; those come from `3rdparty/` automatically, so nothing
 extra is needed as long as the submodules are checked out.
+
+There's also no `libsdl3-dev` package on current Ubuntu (24.04), so SDL3
+always builds from the vendored `3rdparty/SDL` submodule here — and *that*
+build silently drops video/audio/input backends it can't find headers for,
+rather than failing. The X11, Wayland and ALSA/PulseAudio/udev packages above
+exist so SDL3 actually builds in with all of them; skip them and you'll get a
+working binary that's mysteriously missing a windowing or audio backend
+rather than a build error.
 
 ```sh
 # Arch / Manjaro — default build (software + OpenGL)
