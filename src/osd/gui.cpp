@@ -28,8 +28,11 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
+#include <system_error>
 
 namespace sm2::osd {
 
@@ -568,13 +571,18 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
 
         // -- Paths tab -----------------------------------------------------
         if (ImGui::BeginTabItem("Paths")) {
-            const auto dir_field = [](const char* label, const char* id,
-                                      std::string& value, const char* help) {
+            const auto dir_field = [this](const char* label, const char* id,
+                                         std::string& value, DirPickerTarget target,
+                                         const char* help) {
                 ImGui::Text("%s", label);
                 char buf[512];
                 std::snprintf(buf, sizeof(buf), "%s", value.c_str());
                 if (ImGui::InputText(id, buf, sizeof(buf))) {
                     value = buf;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button((std::string("Browse...##browse") + id).c_str())) {
+                    open_dir_picker(target, value);
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
@@ -602,14 +610,17 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             }
 
             dir_field("ROM directory", "##romdir", config.rom_dir,
+                      DirPickerTarget::RomDir,
                       "Where the ROM archives live. A game launched by name is\n"
                       "loaded from here as <name>.zip or <name>.7z.");
             ImGui::Spacing();
             dir_field("Saves directory", "##saves", config.nvram_dir,
+                      DirPickerTarget::NvramDir,
                       "Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
                       "(.eeprom) images -- high scores and operator settings.");
             ImGui::Spacing();
             dir_field("Screenshots directory", "##shots", config.screenshot_dir,
+                      DirPickerTarget::ScreenshotDir,
                       "Where F12 screenshots are written.");
 
             ImGui::Spacing();
@@ -709,6 +720,9 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
         }
 
         ImGui::EndTabBar();
+
+        // Drawn here so it keeps showing even after a tab switch.
+        draw_dir_picker_popup(config);
 
         // Save button, on the tabs that carry settings but not on About.
         if (!on_about_tab) {
@@ -1382,6 +1396,158 @@ void Gui::draw_sinden_border(const Config& config)
     list->AddRectFilled(ImVec2(x0, y1 - t), ImVec2(x1, y1), colour);        // bottom
     list->AddRectFilled(ImVec2(x0, y0), ImVec2(x0 + t, y1), colour);        // left
     list->AddRectFilled(ImVec2(x1 - t, y0), ImVec2(x1, y1), colour);        // right
+}
+
+// ---------------------------------------------------------------------------
+// Directory picker (Paths tab "Browse..." buttons)
+// ---------------------------------------------------------------------------
+
+void Gui::open_dir_picker(DirPickerTarget target, const std::string& initial)
+{
+    namespace fs = std::filesystem;
+
+    m_dir_picker_target = target;
+
+    std::error_code ec;
+    fs::path        start(initial);
+    if (initial.empty() || !fs::is_directory(start, ec)) {
+        // Fall back to the home directory, then cwd.
+#ifdef _WIN32
+        const char* home = std::getenv("USERPROFILE");
+#else
+        const char* home = std::getenv("HOME");
+#endif
+        start = (home != nullptr) ? fs::path(home) : fs::current_path(ec);
+    }
+
+    m_dir_picker_path = start.string();
+    refresh_dir_picker_entries();
+
+    // Deferred to draw_dir_picker_popup() -- see m_dir_picker_request_open.
+    m_dir_picker_request_open = true;
+}
+
+void Gui::refresh_dir_picker_entries()
+{
+    namespace fs = std::filesystem;
+
+    m_dir_picker_subdirs.clear();
+    m_dir_picker_unreadable = false;
+
+    try {
+        std::error_code ec;
+        fs::directory_iterator it(m_dir_picker_path, ec);
+        if (ec) {
+            m_dir_picker_unreadable = true;
+            return;
+        }
+        for (const auto& entry : it) {
+            std::error_code is_dir_ec;
+            if (entry.is_directory(is_dir_ec) && !is_dir_ec) {
+                m_dir_picker_subdirs.push_back(entry.path().filename().string());
+            }
+        }
+    } catch (const fs::filesystem_error&) {
+        m_dir_picker_unreadable = true;
+        m_dir_picker_subdirs.clear();
+    }
+
+    std::sort(m_dir_picker_subdirs.begin(), m_dir_picker_subdirs.end(),
+              [](const std::string& a, const std::string& b) {
+                  return std::lexicographical_compare(
+                      a.begin(), a.end(), b.begin(), b.end(),
+                      [](unsigned char ca, unsigned char cb) {
+                          return std::tolower(ca) < std::tolower(cb);
+                      });
+              });
+}
+
+void Gui::draw_dir_picker_popup(Config& config)
+{
+    namespace fs = std::filesystem;
+
+    if (m_dir_picker_request_open) {
+        m_dir_picker_request_open = false;
+        ImGui::OpenPopup("Choose Directory");
+    }
+
+    ImGui::SetNextWindowSize(ImVec2(520, 420), ImGuiCond_Appearing);
+    if (!ImGui::BeginPopupModal("Choose Directory", nullptr,
+                                ImGuiWindowFlags_NoSavedSettings)) {
+        return;
+    }
+
+    char buf[1024];
+    std::snprintf(buf, sizeof buf, "%s", m_dir_picker_path.c_str());
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputText("##dirpath", buf, sizeof buf,
+                         ImGuiInputTextFlags_EnterReturnsTrue)) {
+        m_dir_picker_path = buf;
+        refresh_dir_picker_entries();
+    }
+
+    const fs::path current(m_dir_picker_path);
+    const fs::path parent = current.parent_path();
+    const bool     has_parent = !parent.empty() && parent != current;
+    if (!has_parent) {
+        ImGui::BeginDisabled();
+    }
+    if (ImGui::Button("Up")) {
+        m_dir_picker_path = parent.string();
+        refresh_dir_picker_entries();
+    }
+    if (!has_parent) {
+        ImGui::EndDisabled();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Refresh")) {
+        refresh_dir_picker_entries();
+    }
+
+    ImGui::Separator();
+
+    if (m_dir_picker_unreadable) {
+        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                           "Cannot list this directory (permission denied, or it "
+                           "doesn't exist).");
+    }
+
+    if (ImGui::BeginChild("##dirlist",
+                          ImVec2(0, -ImGui::GetFrameHeightWithSpacing() * 2), true)) {
+        for (const auto& name : m_dir_picker_subdirs) {
+            if (ImGui::Selectable(name.c_str())) {
+                m_dir_picker_path = (current / name).string();
+                refresh_dir_picker_entries();
+            }
+        }
+    }
+    ImGui::EndChild();
+
+    std::error_code ec;
+    const bool valid = fs::is_directory(m_dir_picker_path, ec) && !ec;
+    if (!valid) {
+        ImGui::BeginDisabled();
+    }
+    if (ImGui::Button("Select This Folder")) {
+        switch (m_dir_picker_target) {
+            case DirPickerTarget::RomDir:        config.rom_dir        = m_dir_picker_path; break;
+            case DirPickerTarget::NvramDir:      config.nvram_dir      = m_dir_picker_path; break;
+            case DirPickerTarget::ScreenshotDir: config.screenshot_dir = m_dir_picker_path; break;
+            case DirPickerTarget::None: break;
+        }
+        m_dir_picker_target = DirPickerTarget::None;
+        ImGui::CloseCurrentPopup();
+    }
+    if (!valid) {
+        ImGui::EndDisabled();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel")) {
+        m_dir_picker_target = DirPickerTarget::None;
+        ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
 }
 
 // ---------------------------------------------------------------------------

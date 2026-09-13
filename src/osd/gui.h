@@ -173,10 +173,18 @@ private:
     void draw_gamepad_tab(Config& config, class Input* input);
     void draw_lightgun_tab(Config& config, class Input* input);
     void draw_network_tab(Config& config);
+    void draw_dir_picker_popup(Config& config);
     void draw_status_bar(float measured_hz);
     void draw_fps_overlay(float measured_hz, const char* renderer_label);
     void draw_crosshairs(const class Input* input);
     void draw_sinden_border(const Config& config);
+
+    enum class DirPickerTarget { None, RomDir, NvramDir, ScreenshotDir };
+
+    void open_dir_picker(DirPickerTarget target, const std::string& initial);
+
+    /// Re-lists the subdirectories of m_dir_picker_path.
+    void refresh_dir_picker_entries();
 
     SDL_Window* m_window      = nullptr;
     std::string m_config_path;  ///< where Save writes; empty -> default path.
@@ -219,6 +227,17 @@ private:
 
     // -- cabinet link status -----------------------------------------------
     LinkStatus m_link_status;
+
+    // -- directory picker state (Paths tab "Browse..." buttons) -------------
+    // Self-drawn (std::filesystem only), avoiding a native-dialog dependency.
+    DirPickerTarget           m_dir_picker_target     = DirPickerTarget::None;
+    std::string               m_dir_picker_path;       ///< editable path field
+    std::vector<std::string>  m_dir_picker_subdirs;    ///< immediate children of the path above
+    bool                      m_dir_picker_unreadable  = false;
+
+    /// BeginTabItem() overrides the ID stack, so OpenPopup() must be issued
+    /// from draw_dir_picker_popup() (after EndTabBar()) instead of here.
+    bool                      m_dir_picker_request_open = false;
 
     // -- game picker state -------------------------------------------------
     bool                       m_picker_enabled = false;

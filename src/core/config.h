@@ -78,7 +78,7 @@ struct Config {
     bool fullscreen = false;
 
     /// Show the FPS counter overlay in the top-right corner.
-    bool show_fps = true;
+    bool show_fps = false;
 
     /// Light-gun mode: draw the aiming crosshair(s) and hide the OS mouse cursor
     /// over the window, for the gun titles. Off leaves the crosshair hidden and

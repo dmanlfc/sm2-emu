@@ -937,11 +937,16 @@ int main(int argc, char** argv)
                                   && !options.config.rom_dir.empty()
                                   && !options.list_games && options.boot_test == 0;
 
+    // Same as will_show_picker, minus requiring rom_dir already set: it may
+    // be set later from the Paths tab, whose rescan below needs the database.
+    const bool may_need_picker = options.rom_path.empty() && options.game.empty()
+                                 && !options.list_games && options.boot_test == 0;
+
     // -- ROM database ------------------------------------------------------
     // Loaded before anything graphical, so a bad ROM path fails immediately
     // instead of after a window has appeared.
     rom::GameDatabase database;
-    if (options.list_games || !options.rom_path.empty() || will_show_picker) {
+    if (options.list_games || !options.rom_path.empty() || may_need_picker) {
         const std::optional<std::string> database_path = rom::GameDatabase::locate();
         if (!database_path.has_value() || !database.load(*database_path)) {
             return 1;
@@ -1657,6 +1662,7 @@ int main(int argc, char** argv)
         bool running            = true;
         bool screenshot_requested = false;  ///< Set by F12, serviced next frame.
         bool return_to_picker_requested = false;  ///< Set by Esc; unload + picker.
+        bool settings_was_visible = gui.visible();  ///< Settings visibility, last frame.
         // Fixed at launch by --graphics-backend software. There is no runtime
         // switch: the two renderers are a launch-time choice.
         const bool use_software_renderer = options.start_in_software_renderer;
@@ -2127,6 +2133,11 @@ int main(int argc, char** argv)
             if (options.config.fullscreen != window.fullscreen()) {
                 window.set_fullscreen(options.config.fullscreen);
             }
+            // Settings just closed with no game loaded: rescan rom_dir.
+            if (settings_was_visible && !gui.visible() && machine_iface == nullptr) {
+                show_picker();
+            }
+            settings_was_visible = gui.visible();
             // Always finalise the ImGui frame (Render must follow NewFrame).
             gui.end_frame();
             backend->draw_overlay(gui_active);
