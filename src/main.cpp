@@ -126,10 +126,6 @@ enum class GraphicsBackendChoice {
 /// Default when --graphics-backend is not given: whichever GPU backend was
 /// compiled in, else software.
 ///
-/// GLES is preferred over Vulkan where built: GLES is the ARM target (the only
-/// config that builds it) and its native driver beat V3DV Vulkan on every set
-/// on a Pi 5. A desktop build never enables GLES, so it keeps Vulkan/desktop-GL.
-/// Only governs a bare invocation; the Batocera frontend passes the flag anyway.
 constexpr GraphicsBackendChoice kDefaultGraphicsBackend =
 #if defined(SM2_HAVE_OPENGL_ES)
     GraphicsBackendChoice::Opengl;
@@ -1656,10 +1652,12 @@ int main(int argc, char** argv)
         window_config.height     = options.config.window_height;
         window_config.fullscreen = options.config.fullscreen;
 
-        // Which GPU backend presents. `opengl` names it; `vulkan` and
-        // `software` present through Vulkan, or OpenGL if Vulkan is not built
-        // (`software` only replaces the drawing, not the presentation path).
-        bool present_with_opengl = options.graphics_backend == GraphicsBackendChoice::Opengl;
+        // Which GPU backend presents. `software` only replaces the drawing,
+        // so it presents through OpenGL where built, else Vulkan.
+        bool present_with_opengl = options.graphics_backend != GraphicsBackendChoice::Vulkan;
+#if !defined(SM2_HAVE_OPENGL_DESKTOP) && !defined(SM2_HAVE_OPENGL_ES)
+        present_with_opengl = false;
+#endif
 #if !defined(SM2_HAVE_VULKAN)
         present_with_opengl = true;
 #endif
