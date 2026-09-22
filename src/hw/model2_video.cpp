@@ -154,6 +154,14 @@ void Model2Video::build_tone_curve(std::span<u32> out) const
     }
 }
 
+void Model2Video::swap_layers(std::vector<u32>& below, std::vector<u32>& above)
+{
+    below.resize(m_below.size());
+    above.resize(m_above.size());
+    m_below.swap(below);
+    m_above.swap(above);
+}
+
 void Model2Video::compose()
 {
     const auto start = std::chrono::steady_clock::now();

@@ -381,6 +381,14 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->show_fps)) {
                 bad_value();
             }
+        } else if (key == "software_async") {
+            if (!parse_bool(value, &out->software_async)) {
+                bad_value();
+            }
+        } else if (key == "software_slow_cores") {
+            if (!parse_bool(value, &out->software_slow_cores)) {
+                bad_value();
+            }
         } else if (key == "show_notifications") {
             if (!parse_bool(value, &out->show_notifications)) {
                 bad_value();
@@ -719,6 +727,10 @@ bool save_config(const std::string& path, const Config& config)
         << "\n"
         << "fullscreen = " << bool_text(config.fullscreen) << "\n"
         << "show_fps = " << bool_text(config.show_fps) << "\n"
+        << "# Software renderer: draw on a second thread, one frame behind.\n"
+        << "software_async = " << bool_text(config.software_async) << "\n"
+        << "# With software_async on a big.LITTLE CPU, draw on the slow cores.\n"
+        << "software_slow_cores = " << bool_text(config.software_slow_cores) << "\n"
         << "show_notifications = " << bool_text(config.show_notifications) << "\n"
         << "lightgun = " << bool_text(config.lightgun) << "\n"
         << "lightgun_crosshair = " << bool_text(config.lightgun_crosshair) << "\n"

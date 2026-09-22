@@ -85,6 +85,13 @@ struct Config {
     /// Show the FPS counter overlay in the top-right corner.
     bool show_fps = false;
 
+    /// Software renderer: draw on a second thread, one frame behind. Forced
+    /// off for captures.
+    bool software_async = true;
+
+    /// With software_async on a big.LITTLE host, draw on the slow cores.
+    bool software_slow_cores = true;
+
     /// Show brief on-screen notifications (e.g. "State saved"), top-centered,
     /// while gameplay continues. On by default.
     bool show_notifications = true;

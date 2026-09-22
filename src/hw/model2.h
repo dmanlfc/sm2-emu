@@ -315,6 +315,11 @@ private:
     /// Resolve an address to a memory window, or return an empty one when the
     /// address belongs to a register or is unmapped.
     [[nodiscard]] Window resolve(u32 address);
+    /// Main program ROM and work RAM without building a Window; nullptr for
+    /// anything else, which then goes through resolve() as before.
+    [[nodiscard]] const u8* hot_read(u32 address, u32 width) const;
+    /// Same for writes, work RAM only.
+    [[nodiscard]] u8* hot_write(u32 address, u32 width);
 
     /// Burst capability of a register region.
     ///

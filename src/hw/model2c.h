@@ -337,6 +337,11 @@ private:
 
     void note_video_write(const Window& window, u32 width);
     [[nodiscard]] Window resolve(u32 address);
+    /// Main program ROM and work RAM without building a Window; nullptr for
+    /// anything else, which then goes through resolve() as before.
+    [[nodiscard]] const u8* hot_read(u32 address, u32 width) const;
+    /// Same for writes, work RAM only.
+    [[nodiscard]] u8* hot_write(u32 address, u32 width);
     [[nodiscard]] static u16 register_flags(u32 address);
     [[nodiscard]] u32 register_read(u32 address, u32 width);
     void register_write(u32 address, u32 value, u32 width);

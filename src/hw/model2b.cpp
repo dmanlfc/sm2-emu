@@ -1247,8 +1247,28 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
 // Bus interface
 // ---------------------------------------------------------------------------
 
+const u8* Model2B::hot_read(u32 address, u32 width) const
+{
+    if (const u32 offset = address - kRomMainCpu; offset < 0x200000) {
+        return offset + width <= m_rom_maincpu.size() ? m_rom_maincpu.data() + offset : nullptr;
+    }
+    if (const u32 offset = address - kWorkRam; offset < 0x100000) {
+        return offset + width <= m_work_ram.size() ? m_work_ram.data() + offset : nullptr;
+    }
+    return nullptr;
+}
+
+u8* Model2B::hot_write(u32 address, u32 width)
+{
+    if (const u32 offset = address - kWorkRam; offset < 0x100000) {
+        return offset + width <= m_work_ram.size() ? m_work_ram.data() + offset : nullptr;
+    }
+    return nullptr;
+}
+
 u8 Model2B::read8(u32 address)
 {
+    if (const u8* p = hot_read(address, 1)) return *p;
     const Window w = resolve(address);
     if (w.base != nullptr) return *w.base;
     return static_cast<u8>(register_read(address, 1) & 0xff);
@@ -1256,6 +1276,11 @@ u8 Model2B::read8(u32 address)
 
 u16 Model2B::read16(u32 address)
 {
+    if (const u8* p = hot_read(address, 2)) {
+        u16 v;
+        std::memcpy(&v, p, sizeof(v));
+        return v;
+    }
     const Window w = resolve(address);
     if (w.base != nullptr && w.size >= 2) return load16(w.base);
     return static_cast<u16>(register_read(address, 2) & 0xffff);
@@ -1263,6 +1288,11 @@ u16 Model2B::read16(u32 address)
 
 u32 Model2B::read32(u32 address)
 {
+    if (const u8* p = hot_read(address, 4)) {
+        u32 v;
+        std::memcpy(&v, p, sizeof(v));
+        return v;
+    }
     const Window w = resolve(address);
     if (w.base != nullptr && w.size >= 4) return load32(w.base);
     return register_read(address, 4);
@@ -1279,6 +1309,7 @@ u32 Model2B::read32(u32 address)
 // read_dword_flags.
 std::pair<u8, u16> Model2B::read8_flags(u32 address)
 {
+    if (const u8* p = hot_read(address, 1)) return {*p, cpu::kBusFlagBurst};
     const Window w = resolve(address);
     if (w.base != nullptr) {
         if ((w.flags & cpu::kBusFlagBurst) == 0) {
@@ -1295,6 +1326,10 @@ std::pair<u8, u16> Model2B::read8_flags(u32 address)
 
 u16 Model2B::write8_flags(u32 address, u8 value)
 {
+    if (u8* p = hot_write(address, 1)) {
+        *p = value;
+        return cpu::kBusFlagBurst;
+    }
     // Resolve once, unlike write8()'s two lookups; same branch order.
     const Window w = resolve(address);
     const u16    flags = w.base != nullptr ? w.flags : register_flags(address);
@@ -1314,6 +1349,11 @@ u16 Model2B::write8_flags(u32 address, u8 value)
 
 std::pair<u32, u16> Model2B::read32_flags(u32 address)
 {
+    if (const u8* p = hot_read(address, 4)) {
+        u32 v;
+        std::memcpy(&v, p, sizeof(v));
+        return {v, cpu::kBusFlagBurst};
+    }
     const Window w = resolve(address);
     if (w.base != nullptr && w.size >= 4) {
         if ((w.flags & cpu::kBusFlagBurst) == 0) ++m_no_burst_reads[address >> 20];
@@ -1326,6 +1366,10 @@ std::pair<u32, u16> Model2B::read32_flags(u32 address)
 
 void Model2B::write8(u32 address, u8 value)
 {
+    if (u8* p = hot_write(address, 1)) {
+        *p = value;
+        return;
+    }
     const Window w = resolve(address);
     if (w.base != nullptr && w.writable) {
         *w.base = value;
@@ -1338,6 +1382,10 @@ void Model2B::write8(u32 address, u8 value)
 
 void Model2B::write16(u32 address, u16 value)
 {
+    if (u8* p = hot_write(address, 2)) {
+        std::memcpy(p, &value, sizeof(value));
+        return;
+    }
     const Window w = resolve(address);
     if (w.base != nullptr && w.writable && w.size >= 2) {
         store16(w.base, value);
@@ -1350,6 +1398,10 @@ void Model2B::write16(u32 address, u16 value)
 
 void Model2B::write32(u32 address, u32 value)
 {
+    if (u8* p = hot_write(address, 4)) {
+        std::memcpy(p, &value, sizeof(value));
+        return;
+    }
     const Window w = resolve(address);
     if (w.base != nullptr && w.writable && w.size >= 4) {
         store32(w.base, value);
@@ -1362,6 +1414,10 @@ void Model2B::write32(u32 address, u32 value)
 
 u16 Model2B::write32_flags(u32 address, u32 value)
 {
+    if (u8* p = hot_write(address, 4)) {
+        std::memcpy(p, &value, sizeof(value));
+        return cpu::kBusFlagBurst;
+    }
     const Window w = resolve(address);
     const u16 flags = w.base != nullptr ? w.flags : register_flags(address);
     if ((flags & cpu::kBusFlagBurst) == 0) ++m_no_burst_writes[address >> 20];

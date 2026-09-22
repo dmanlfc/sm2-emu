@@ -78,9 +78,17 @@ Concretely, a core wants:
 - **NEON / SSE2** for the vectorised paths (present but not the main lever).
 
 As per above, cores beyond the first buy little improvement: the emulation is
-single-threaded by design, and while the software renderer splits its
-rasteriser across a few cores, the frame's cost is dominated by the one core
+single-threaded by design, and the frame's cost is dominated by the one core
 running the two CPUs. A faster single core beats more cores every time here.
+
+The software renderer is the exception, and it uses the other cores two ways.
+It splits its rasteriser into bands, and by default (`software_async = true`
+in the ini) it draws each frame on its own thread one frame behind the
+emulation, so the draw overlaps the next frame's CPU work at the cost of a
+frame of latency. On a big.LITTLE part (`software_slow_cores = true`) that
+thread and its bands are pinned to the little cores, which are useless for
+the interpreters but fine for the rasteriser, leaving the big cores entirely
+to the emulation. Captures and comparisons force the synchronous path.
 
 ### Renderer / GPU
 
@@ -107,6 +115,16 @@ TT), while the heavy coprocessor sets land near or under it (House of the Dead,
 Fighting Vipers, Dead or Alive, Last Bronx). So the Pi 5 is the sensible floor
 for ARM, with the caveat that the most CPU-heavy titles do not yet hold a locked
 57.5 Hz there.
+
+A big.LITTLE handheld does better than its two big cores suggest, because the
+little ones take the draw. Measured on an Anbernic RG 55G1 (Snapdragon 4 Gen
+2: 2x Cortex-A78 @ 2.4 GHz + 6x Cortex-A55), software backend, in-game and
+unthrottled, with the process pinned to the two A78s: Daytona 106, Virtua
+Fighter 2 109, Dead or Alive 84, House of the Dead 83, Fighting Vipers 74 and
+Last Bronx 68 fps, so every set holds 57.5 Hz with headroom. Leave the
+emulation to the scheduler and it lands on the A55s, where the same sets run
+at 40-60 fps; pin it (Batocera's CPU cores setting does this) or make sure
+the front end you use does.
 
 **RAM** is undemanding: a loaded set is ~90–110 MiB of ROM regions plus working
 buffers, so a couple of hundred MB of headroom is plenty.

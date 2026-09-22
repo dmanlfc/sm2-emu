@@ -90,6 +90,10 @@ public:
     /// Tilemap pixels that belong in front of the 3D output.
     [[nodiscard]] std::span<const u32> above() const { return m_above; }
 
+    /// Exchange the layer buffers with the caller's, in constant time; compose()
+    /// rewrites every pixel, so it does not care what it gets back.
+    void swap_layers(std::vector<u32>& below, std::vector<u32>& above);
+
     /// Colour of palette entry zero, which the hardware shows where nothing else
     /// is drawn.
     [[nodiscard]] u32 background() const { return m_pens.empty() ? 0xff000000u : m_pens[0]; }

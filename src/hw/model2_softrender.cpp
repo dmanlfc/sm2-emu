@@ -10,6 +10,8 @@
 
 #include "hw/model2_softrender.h"
 
+#include "core/cpu_topology.h"
+
 #include "hw/model2_machine_base.h"
 #include "hw/model2_video.h"
 
@@ -20,6 +22,10 @@
 #include <limits>
 #include <thread>
 #include <vector>
+
+#if defined(__linux__)
+#include <sched.h>
+#endif
 
 namespace sm2::hw {
 namespace {
@@ -111,6 +117,72 @@ SoftRenderer::SoftRenderer()
     for (u32 index = 0; index < 256; ++index) {
         m_gamma[index] = static_cast<u8>(
             std::max((static_cast<double>(index) - 64.0) * 255.0 / 191.0, 0.0));
+    }
+}
+
+SoftRenderer::~SoftRenderer()
+{
+    {
+        std::lock_guard lock(m_mutex);
+        m_quit = true;
+    }
+    m_work_cv.notify_all();
+    for (std::thread& t : m_threads) {
+        t.join();
+    }
+}
+
+void SoftRenderer::band_rows(u32 w, u32 workers, s32& row_begin, s32& row_end)
+{
+    const s32 rows = static_cast<s32>(kHeight);
+    row_begin      = static_cast<s32>(static_cast<u64>(w) * rows / workers);
+    row_end        = static_cast<s32>(static_cast<u64>(w + 1) * rows / workers);
+}
+
+void SoftRenderer::start_workers(u32 workers)
+{
+    if (!m_threads.empty()) {
+        return;
+    }
+    m_counts.assign(workers, 0);
+    m_threads.reserve(workers - 1);
+    for (u32 w = 1; w < workers; ++w) {
+        m_threads.emplace_back(&SoftRenderer::worker_loop, this, w);
+    }
+}
+
+void SoftRenderer::worker_loop(u32 w)
+{
+    if (!m_worker_cpus.empty()) {
+        core::pin_current_thread({m_worker_cpus[(w - 1) % m_worker_cpus.size()]});
+    }
+    u64 seen = 0;
+    for (;;) {
+        const RenderList* list  = nullptr;
+        u32               bands = 0;
+        {
+            std::unique_lock lock(m_mutex);
+            m_work_cv.wait(lock, [&] { return m_quit || m_generation != seen; });
+            if (m_quit) {
+                return;
+            }
+            seen  = m_generation;
+            list  = m_job_list;
+            bands = m_job_bands;
+        }
+
+        s32 begin = 0;
+        s32 end   = 0;
+        band_rows(w, bands, begin, end);
+        m_counts[w] = 0;
+        render_band(*list, begin, end, m_counts[w]);
+
+        {
+            std::lock_guard lock(m_mutex);
+            if (--m_pending == 0) {
+                m_done_cv.notify_one();
+            }
+        }
     }
 }
 
@@ -639,18 +711,29 @@ void SoftRenderer::draw_polygon(const RenderPolygon& poly, const Rect& cliprect,
     }
 }
 
-u32 SoftRenderer::worker_count()
+u32 SoftRenderer::available_cores()
 {
-    // Clamped to 4: the raster is only 384 rows, so past a handful of bands the
-    // per-thread launch cost outweighs the split, and the emulation cores still
-    // need the main thread.
-    static const u32 count = [] {
-        const unsigned hw = std::thread::hardware_concurrency();
-        if (hw <= 1) {
-            return 1u;
+#if defined(__linux__)
+    cpu_set_t set;
+    CPU_ZERO(&set);
+    if (sched_getaffinity(0, sizeof(set), &set) == 0) {
+        const int count = CPU_COUNT(&set);
+        if (count > 0) {
+            return static_cast<u32>(count);
         }
-        return std::min<u32>(hw, 4u);
-    }();
+    }
+#endif
+    const unsigned hw = std::thread::hardware_concurrency();
+    return hw == 0 ? 1u : static_cast<u32>(hw);
+}
+
+u32 SoftRenderer::worker_count() const
+{
+    if (m_bands_override != 0) {
+        return std::min<u32>(m_bands_override, 8u);
+    }
+    // Clamped to 4: past a handful of bands the split buys nothing.
+    static const u32 count = std::min<u32>(std::max<u32>(available_cores(), 1u), 4u);
     return count;
 }
 
@@ -662,7 +745,23 @@ void SoftRenderer::render_band(const RenderList& list, s32 row_begin, s32 row_en
     // Walk the whole list in draw order, clipped to this band's rows; a polygon
     // that does not reach them is clipped to nothing and skipped.
     const Rect cliprect{0, row_begin, static_cast<s32>(kWidth) - 1, row_end - 1};
+    const auto band_top    = static_cast<float>(row_begin);
+    const auto band_bottom = static_cast<float>(row_end);
     for (const RenderPolygon& poly : list.polygons) {
+        // Conservative rejects ahead of draw_polygon's setup: a polygon skipped
+        // here draws no row of this band (round_coordinate stays within +-1).
+        if (poly.scissor[3] < row_begin || poly.scissor[1] >= row_end) {
+            continue;
+        }
+        float min_y = poly.v[0].y;
+        float max_y = poly.v[0].y;
+        for (u32 index = 1; index < poly.num_vertices; ++index) {
+            min_y = std::min(min_y, poly.v[index].y);
+            max_y = std::max(max_y, poly.v[index].y);
+        }
+        if (max_y + 1.0F < band_top || min_y - 1.0F > band_bottom) {
+            continue;
+        }
         draw_polygon(poly, cliprect, pixels);
     }
 }
@@ -670,26 +769,43 @@ void SoftRenderer::render_band(const RenderList& list, s32 row_begin, s32 row_en
 void SoftRenderer::render(const Model2MachineBase& machine, const RenderList& list,
                           std::span<u32> out)
 {
-    if (out.size() < static_cast<usize>(kWidth) * kHeight) {
+    const Model2Video& video = machine.video();
+    SoftFrameSources   sources;
+    sources.palram           = machine.palette_ram();
+    sources.colorxlat        = machine.colour_translate();
+    sources.lumaram          = machine.luma_ram();
+    sources.texture0         = machine.texture_ram(0);
+    sources.texture1         = machine.texture_ram(1);
+    sources.below            = video.below();
+    sources.above            = video.above();
+    sources.background       = video.background();
+    sources.render_test_mode = machine.render_test_mode();
+    sources.list             = &list;
+    render(sources, out);
+}
+
+void SoftRenderer::render(const SoftFrameSources& sources, std::span<u32> out)
+{
+    if (out.size() < static_cast<usize>(kWidth) * kHeight || sources.list == nullptr) {
         return;
     }
 
-    m_palram    = machine.palette_ram();
-    m_colorxlat = machine.colour_translate();
-    m_lumaram   = machine.luma_ram();
-    m_texture0  = machine.texture_ram(0);
-    m_texture1  = machine.texture_ram(1);
-    m_pixels    = 0;
+    const RenderList& list = *sources.list;
 
-    const Model2Video& video = machine.video();
+    m_palram    = sources.palram;
+    m_colorxlat = sources.colorxlat;
+    m_lumaram   = sources.lumaram;
+    m_texture0  = sources.texture0;
+    m_texture1  = sources.texture1;
+    m_pixels    = 0;
 
     // The background pen first, as MAME's screen_update fills the bitmap with
     // m_palette->pen(0).
     std::fill(out.begin(), out.begin() + static_cast<usize>(kWidth) * kHeight,
-              video.background());
+              sources.background);
 
     // Then the tilemap layers of priority category zero.
-    const std::span<const u32> below = video.below();
+    const std::span<const u32> below = sources.below;
     for (usize index = 0; index < static_cast<usize>(kWidth) * kHeight && index < below.size();
          ++index) {
         if ((below[index] >> 24) != 0) {
@@ -698,35 +814,44 @@ void SoftRenderer::render(const Model2MachineBase& machine, const RenderList& li
     }
 
     // Then the 3D, or the framebuffer in its place.
-    if (!machine.render_test_mode()) {
+    if (!sources.render_test_mode) {
         std::fill(m_destmap.begin(), m_destmap.end(), 0u);
         std::fill(m_fillmap.begin(), m_fillmap.end(), u8{0});
 
-        const u32 workers = worker_count();
+        u32 workers = worker_count();
+        if (!m_threads.empty()) {
+            // The pool was sized on the first frame; never wait on threads that
+            // do not exist.
+            workers = std::min<u32>(workers, static_cast<u32>(m_threads.size()) + 1);
+        }
         if (workers <= 1) {
             m_pixels = 0;
             render_band(list, 0, static_cast<s32>(kHeight), m_pixels);
         } else {
             // One band of rows per worker; see render_band and draw_polygon for
             // why the split is bit-identical to serial.
-            std::vector<std::thread> pool;
-            std::vector<u32>         counts(workers, 0);
-            pool.reserve(workers - 1);
-            const s32 rows = static_cast<s32>(kHeight);
-            const auto band = [&](u32 w) {
-                const s32 begin = static_cast<s32>(static_cast<u64>(w) * rows / workers);
-                const s32 end   = static_cast<s32>(static_cast<u64>(w + 1) * rows / workers);
-                render_band(list, begin, end, counts[w]);
-            };
-            for (u32 w = 1; w < workers; ++w) {
-                pool.emplace_back(band, w);
+            start_workers(workers);
+            {
+                std::lock_guard lock(m_mutex);
+                m_job_list  = &list;
+                m_job_bands = workers;
+                m_pending   = workers - 1;
+                ++m_generation;
             }
-            band(0);  // this thread takes band 0 rather than sitting idle
-            for (std::thread& t : pool) {
-                t.join();
+            m_work_cv.notify_all();
+
+            s32 begin = 0;
+            s32 end   = 0;
+            band_rows(0, workers, begin, end);
+            m_counts[0] = 0;
+            render_band(list, begin, end, m_counts[0]);  // band 0 on this thread
+
+            {
+                std::unique_lock lock(m_mutex);
+                m_done_cv.wait(lock, [&] { return m_pending == 0; });
             }
             m_pixels = 0;
-            for (const u32 c : counts) {
+            for (const u32 c : m_counts) {
                 m_pixels += c;
             }
         }
@@ -742,7 +867,7 @@ void SoftRenderer::render(const Model2MachineBase& machine, const RenderList& li
     }
 
     // Finally the layers of category one.
-    const std::span<const u32> above = video.above();
+    const std::span<const u32> above = sources.above;
     for (usize index = 0; index < static_cast<usize>(kWidth) * kHeight && index < above.size();
          ++index) {
         if ((above[index] >> 24) != 0) {

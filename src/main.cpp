@@ -33,6 +33,7 @@
 #include "hw/model2c.h"
 #include "hw/model2_debug.h"
 #include "hw/model2_softrender.h"
+#include "hw/model2_softrender_async.h"
 #include "hw/save_state_io.h"
 #include "osd/audio.h"
 #include "osd/frame_pacer.h"
@@ -822,6 +823,8 @@ int main(int argc, char** argv)
     // Settings with no command-line flag come straight from the file, so the
     // GUI shows and round-trips what was saved.
     options.config.show_fps            = from_file.show_fps;
+    options.config.software_async      = from_file.software_async;
+    options.config.software_slow_cores = from_file.software_slow_cores;
     options.config.show_notifications  = from_file.show_notifications;
     options.config.wheel_ffb           = from_file.wheel_ffb;
     options.config.wheel_ffb_strength  = from_file.wheel_ffb_strength;
@@ -1849,6 +1852,9 @@ int main(int argc, char** argv)
         std::vector<u32> soft_frame(static_cast<usize>(backend->native_width())
                                         * backend->native_height(),
                                     0);
+        // The same rasteriser one frame behind, on its own thread.
+        hw::AsyncSoftRenderer async_soft(soft_renderer);
+        async_soft.set_use_slow_cores(options.config.software_slow_cores);
 
         // Paced against real time rather than against the display, because the
         // machine's 57.5245 Hz divides into no monitor's refresh rate.
@@ -1893,6 +1899,11 @@ int main(int argc, char** argv)
         core::StageTimer stage_record("command_recording");
         core::StageTimer stage_submit("submit_and_present");
         core::StageTimer stage_software("software_renderer");
+        // software_async: what the main thread pays (snapshot, wait) and what
+        // the render thread spent (async_draw).
+        core::StageTimer stage_software_wait("software_wait");
+        core::StageTimer stage_software_snapshot("software_snapshot");
+        core::StageTimer stage_software_async("software_async_draw");
         // Time blocked on the GPU/present inside begin_frame() (Vulkan
         // fence+acquire, GL swap back-pressure) -- otherwise an invisible stall.
         core::StageTimer stage_present_wait("present_wait");
@@ -1909,6 +1920,7 @@ int main(int argc, char** argv)
             for (core::StageTimer* timer :
                 {&stage_run_frame, &stage_geometry, &stage_compose, &stage_build,
                  &stage_tilemap_upload, &stage_record, &stage_submit, &stage_software,
+                 &stage_software_wait, &stage_software_snapshot, &stage_software_async,
                  &stage_present_wait, &stage_cpu_i960, &stage_cpu_copro,
                  &stage_cpu_sound}) {
                 timer->reserve(expected);
@@ -1942,6 +1954,16 @@ int main(int argc, char** argv)
         // Fixed at launch by --graphics-backend software. There is no runtime
         // switch: the two renderers are a launch-time choice.
         const bool use_software_renderer = options.start_in_software_renderer;
+        // Draw one frame behind on a second thread; off for captures, which
+        // want the frame they asked for.
+        const bool async_software = use_software_renderer && options.config.software_async
+                                    && options.screenshot.empty() && !options.soft_render
+                                    && options.screenshot_interval == 0
+                                    && options.screenshot_frames.empty();
+        if (use_software_renderer) {
+            SM2_INFO("software renderer: %s", async_software ? "one frame behind, on its own thread"
+                                                              : "synchronous");
+        }
         u64  last_title_ns      = SDL_GetTicksNS();
 
         // --duration's deadline, and the per-frame wall-clock cost recorded for
@@ -2363,12 +2385,30 @@ int main(int argc, char** argv)
                 // skipped entirely; its result lands in the same native target
                 // either renderer presents from, which is what lets a screenshot
                 // and the present/letterbox path stay renderer-agnostic.
-                {
-                    auto scope = core::maybe_scope(stage_software, profile_sample);
-                    soft_renderer.render(*machine_iface, machine_iface->render_list(),
-                                         soft_frame);
+                if (async_software && !render_test) {
+                    // Collect and present the previous frame, then hand this one
+                    // to the render thread.
+                    {
+                        auto scope = core::maybe_scope(stage_software_wait, profile_sample);
+                        async_soft.wait();
+                    }
+                    if (profile_sample && async_soft.last_render_ms() > 0.0) {
+                        stage_software_async.record_ms(async_soft.last_render_ms());
+                    }
+                    backend->submit_native_frame(soft_frame);
+                    {
+                        auto scope =
+                            core::maybe_scope(stage_software_snapshot, profile_sample);
+                        async_soft.begin(*machine_iface, soft_frame);
+                    }
+                } else {
+                    {
+                        auto scope = core::maybe_scope(stage_software, profile_sample);
+                        soft_renderer.render(*machine_iface, machine_iface->render_list(),
+                                             soft_frame);
+                    }
+                    backend->submit_native_frame(soft_frame);
                 }
-                backend->submit_native_frame(soft_frame);
             } else {
                 // Render test mode cuts the DSP out: the framebuffer bank the host has
                 // been drawing into is shown instead of the 3D pass, and has already
@@ -2526,6 +2566,7 @@ int main(int argc, char** argv)
             // it, drop the machine, then bring the picker back up.
             if (return_to_picker_requested) {
                 return_to_picker_requested = false;
+                async_soft.forget_machine();
                 if (machine_iface != nullptr) {
                     machine_iface->save_nvram();
                 }
@@ -2746,6 +2787,10 @@ int main(int argc, char** argv)
             std::printf("frames presented  : %u\n", frames_presented);
             std::printf("average fps        : %.2f (%.3f ms/frame mean)\n",
                         1000.0 / mean_ms, mean_ms);
+            if (async_software) {
+                std::printf("texture snapshots  : %u of %u frames copied texture RAM\n",
+                            async_soft.texture_copies(), async_soft.frames_begun());
+            }
             std::printf("p50 / p95 / p99 ms : %.3f / %.3f / %.3f (%.2f / %.2f / %.2f fps)\n",
                         p50, p95, p99, 1000.0 / p50, 1000.0 / p95, 1000.0 / p99);
             std::printf("throttled          : %s\n", options.config.throttle ? "yes" : "no");
@@ -2784,7 +2829,8 @@ int main(int argc, char** argv)
                     {&stage_run_frame, &stage_cpu_i960, &stage_cpu_copro,
                      &stage_cpu_sound, &stage_geometry, &stage_compose,
                      &stage_tilemap_upload, &stage_build, &stage_record, &stage_submit,
-                     &stage_present_wait, &stage_software}) {
+                     &stage_present_wait, &stage_software, &stage_software_wait,
+                     &stage_software_snapshot, &stage_software_async}) {
                     const core::StageStats stats = core::summarise(*timer);
                     if (stats.samples == 0) {
                         continue;

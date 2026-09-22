@@ -20,6 +20,7 @@
 add_library(sm2_core STATIC
     core/archive.cpp
     core/config.cpp
+    core/cpu_topology.cpp
     core/log.cpp
     core/net.cpp
 )
@@ -240,6 +241,7 @@ add_library(sm2_hw STATIC
     hw/model2_original.cpp
     hw/model2_sound.cpp
     hw/model2_softrender.cpp
+    hw/model2_softrender_async.cpp
     hw/model2_video.cpp
     hw/msm6253.cpp
     hw/save_state_io.cpp
