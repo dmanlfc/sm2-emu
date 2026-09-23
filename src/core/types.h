@@ -14,6 +14,7 @@
 //
 #pragma once
 
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 
@@ -74,30 +75,22 @@ template <typename T>
 
 [[nodiscard]] inline u32 f2u(float value) noexcept
 {
-    u32 out;
-    __builtin_memcpy(&out, &value, sizeof(out));
-    return out;
+    return std::bit_cast<u32>(value);
 }
 
 [[nodiscard]] inline float u2f(u32 value) noexcept
 {
-    float out;
-    __builtin_memcpy(&out, &value, sizeof(out));
-    return out;
+    return std::bit_cast<float>(value);
 }
 
 [[nodiscard]] inline u64 d2u(double value) noexcept
 {
-    u64 out;
-    __builtin_memcpy(&out, &value, sizeof(out));
-    return out;
+    return std::bit_cast<u64>(value);
 }
 
 [[nodiscard]] inline double u2d(u64 value) noexcept
 {
-    double out;
-    __builtin_memcpy(&out, &value, sizeof(out));
-    return out;
+    return std::bit_cast<double>(value);
 }
 
 // ---------------------------------------------------------------------------

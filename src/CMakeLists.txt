@@ -14,6 +14,17 @@
 #
 
 # ---------------------------------------------------------------------------
+# Windows: keep <windows.h> out of the way
+# ---------------------------------------------------------------------------
+# The LZMA SDK headers drag in <windows.h>, whose min/max macros eat any
+# std::max() call that follows. Scoped to our own targets so the bundled
+# third-party builds keep the header they expect.
+
+if(SM2_PLATFORM_WINDOWS)
+    add_compile_definitions(NOMINMAX _CRT_SECURE_NO_WARNINGS)
+endif()
+
+# ---------------------------------------------------------------------------
 # sm2_core — types, logging, small utilities
 # ---------------------------------------------------------------------------
 

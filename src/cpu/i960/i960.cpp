@@ -31,6 +31,7 @@
 #include "cpu/mame_compat.h"
 
 #include <algorithm>
+#include <bit>
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>

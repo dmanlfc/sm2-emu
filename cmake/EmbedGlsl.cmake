@@ -50,6 +50,35 @@ if(NOT collision EQUAL -1)
         "that text.")
 endif()
 
+# MSVC caps a single string literal at 16380 bytes, which the larger polygon
+# shaders exceed, so the payload goes out as a run of adjacent raw strings and
+# the compiler concatenates them back into one. Splitting anywhere is safe: a
+# raw string has no escape sequences to cut in half. (MSVC's ceiling on the
+# concatenated result is 64KB -- far above any shader here.)
+#
+# The leading newline reproduces the single-literal form this replaced, so
+# glCompileShader still reports the same line numbers.
+
+set(payload "
+${source}")
+string(LENGTH "${payload}" payload_length)
+
+set(chunk_size 8000)
+set(body "")
+set(offset 0)
+while(offset LESS payload_length)
+    math(EXPR remaining "${payload_length} - ${offset}")
+    if(remaining LESS chunk_size)
+        set(take ${remaining})
+    else()
+        set(take ${chunk_size})
+    endif()
+    string(SUBSTRING "${payload}" ${offset} ${take} chunk)
+    string(APPEND body "R\"glsl(${chunk})glsl\"
+")
+    math(EXPR offset "${offset} + ${take}")
+endwhile()
+
 get_filename_component(out_name "${SM2_OUT}" NAME)
 string(TOUPPER "${out_name}" guard)
 string(REGEX REPLACE "[^A-Za-z0-9]" "_" guard "${guard}")
@@ -62,8 +91,8 @@ file(WRITE "${SM2_OUT}"
 
 namespace sm2::shaders {
 
-inline constexpr const char* ${SM2_SYMBOL} = R\"glsl(
-${source})glsl\";
+inline constexpr const char* ${SM2_SYMBOL} =
+${body};
 
 }  // namespace sm2::shaders
 
