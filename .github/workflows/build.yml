@@ -266,7 +266,6 @@ jobs:
       # glslc (build-time shader compiler) and the Vulkan headers/loader both
       # come from the LunarG SDK; there is no system package for either.
       - name: Install Vulkan SDK
-        id: vulkan
         uses: jakoch/install-vulkan-sdk-action@v1.6.0
         with:
           vulkan_version: 1.4.328.1
@@ -284,10 +283,10 @@ jobs:
           key: windows-x64
           variant: sccache
 
+      # VULKAN_SDK comes from the install action, which exports it to the
+      # environment of every later step; find_package(Vulkan) reads it.
       - name: Configure
         shell: bash
-        env:
-          VULKAN_SDK: ${{ steps.vulkan.outputs.VULKAN_SDK }}
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
