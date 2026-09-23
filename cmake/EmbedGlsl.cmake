@@ -50,14 +50,9 @@ if(NOT collision EQUAL -1)
         "that text.")
 endif()
 
-# MSVC caps a single string literal at 16380 bytes, which the larger polygon
-# shaders exceed, so the payload goes out as a run of adjacent raw strings and
-# the compiler concatenates them back into one. Splitting anywhere is safe: a
-# raw string has no escape sequences to cut in half. (MSVC's ceiling on the
-# concatenated result is 64KB -- far above any shader here.)
-#
-# The leading newline reproduces the single-literal form this replaced, so
-# glCompileShader still reports the same line numbers.
+# MSVC caps a string literal at 16380 bytes, so emit adjacent raw-string chunks
+# that the compiler concatenates. The leading newline keeps shader line numbers
+# unchanged.
 
 set(payload "
 ${source}")

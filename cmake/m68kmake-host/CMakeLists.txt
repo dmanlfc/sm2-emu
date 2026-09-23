@@ -15,17 +15,8 @@ set_target_properties(m68kmake PROPERTIES C_STANDARD 99)
 if(MSVC)
     target_compile_definitions(m68kmake PRIVATE _CRT_SECURE_NO_WARNINGS)
 
-    # Build the generator unoptimised. MSVC 19.44 miscompiles the loop that
-    # folds a bit pattern such as "1010............" into an opcode mask: at /O2
-    # every mask loses bit 14, so 0xf000 is emitted as 0xb000 and nothing ends
-    # up carrying the 0xff00 mask that m68ki_build_opcode_table() scans for.
-    # That scan then walks off the end of the handler table and fills the
-    # instruction jump table with garbage, so the first 68000 instruction the
-    # sound board executes calls through a null pointer. The loop itself is
-    # well-defined C and /Od and /O1 both produce the right table; the generator
-    # runs once per build and takes milliseconds, so drop the optimiser rather
-    # than rely on which levels happen to be safe. The configuration's own /O
-    # flags are stripped first so /Od does not merely override them (D9025).
+    # MSVC 19.44 at /O2 drops bit 14 from every generated opcode mask and match,
+    # which crashes m68k_init(). Strip the config's /O flags and build at /Od.
     foreach(flags
             CMAKE_C_FLAGS
             CMAKE_C_FLAGS_RELEASE

@@ -6,8 +6,7 @@ name: Build
 # publishes those five artifacts to a proper GitHub Release. A plain push to
 # main (no tag) instead updates a single rolling "dev" pre-release in place,
 # so there is always exactly one downloadable link to the latest main build.
-# A Windows x64 (MSVC) zip is also built and uploaded as a workflow artifact,
-# but is not yet attached to either release.
+# A Windows x64 zip is also built as a workflow artifact, not yet released.
 on:
   push:
     branches: [ main ]
@@ -252,8 +251,7 @@ jobs:
 
   # ---------------------------------------------------------------------
   # Windows x64 (MSVC) — software + OpenGL 4.3 desktop + Vulkan, packaged
-  # as a zip of the exe and games.xml side by side. Keeps the MSVC build
-  # honest: it is the one toolchain the jobs above don't exercise.
+  # as a zip of the exe and games.xml.
   # ---------------------------------------------------------------------
   windows-x64:
     name: Windows x64 MSVC (zip)
@@ -263,8 +261,7 @@ jobs:
         with:
           submodules: recursive
 
-      # glslc (build-time shader compiler) and the Vulkan headers/loader both
-      # come from the LunarG SDK; there is no system package for either.
+      # Provides glslc and the Vulkan headers/loader, and exports VULKAN_SDK.
       - name: Install Vulkan SDK
         uses: jakoch/install-vulkan-sdk-action@v1.6.0
         with:
@@ -276,15 +273,13 @@ jobs:
         with:
           arch: x64
 
-      # sccache rather than ccache: the action's own recommendation on Windows.
+      # sccache: the action's recommendation on Windows.
       - name: Cache sccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: windows-x64
           variant: sccache
 
-      # VULKAN_SDK comes from the install action, which exports it to the
-      # environment of every later step; find_package(Vulkan) reads it.
       - name: Configure
         shell: bash
         run: |
@@ -298,8 +293,7 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      # build/bin already holds sm2-emu.exe with games.xml beside it, one of
-      # the places the game database lookup searches (see rom/game_db.cpp).
+      # games.xml beside the exe is one of the places game_db.cpp searches.
       - name: Build zip
         shell: pwsh
         run: |

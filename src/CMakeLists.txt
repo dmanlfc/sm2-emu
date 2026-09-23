@@ -13,12 +13,8 @@
 # express written permission of the author.
 #
 
-# ---------------------------------------------------------------------------
-# Windows: keep <windows.h> out of the way
-# ---------------------------------------------------------------------------
-# The LZMA SDK headers drag in <windows.h>, whose min/max macros eat any
-# std::max() call that follows. Scoped to our own targets so the bundled
-# third-party builds keep the header they expect.
+# The LZMA SDK pulls in <windows.h>, whose min/max macros break std::max; scoped
+# to our targets so the third-party builds are untouched.
 
 if(SM2_PLATFORM_WINDOWS)
     add_compile_definitions(NOMINMAX _CRT_SECURE_NO_WARNINGS)
