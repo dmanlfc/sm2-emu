@@ -6,6 +6,8 @@ name: Build
 # publishes those five artifacts to a proper GitHub Release. A plain push to
 # main (no tag) instead updates a single rolling "dev" pre-release in place,
 # so there is always exactly one downloadable link to the latest main build.
+# A Windows x64 (MSVC) zip is also built and uploaded as a workflow artifact,
+# but is not yet attached to either release.
 on:
   push:
     branches: [ main ]
@@ -247,6 +249,69 @@ jobs:
         with:
           name: sm2-emu-macos-dmg
           path: sm2-emu-macos.dmg
+
+  # ---------------------------------------------------------------------
+  # Windows x64 (MSVC) — software + OpenGL 4.3 desktop + Vulkan, packaged
+  # as a zip of the exe and games.xml side by side. Keeps the MSVC build
+  # honest: it is the one toolchain the jobs above don't exercise.
+  # ---------------------------------------------------------------------
+  windows-x64:
+    name: Windows x64 MSVC (zip)
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # glslc (build-time shader compiler) and the Vulkan headers/loader both
+      # come from the LunarG SDK; there is no system package for either.
+      - name: Install Vulkan SDK
+        id: vulkan
+        uses: jakoch/install-vulkan-sdk-action@v1.6.0
+        with:
+          vulkan_version: 1.4.328.1
+          cache: true
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+        with:
+          arch: x64
+
+      # sccache rather than ccache: the action's own recommendation on Windows.
+      - name: Cache sccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: windows-x64
+          variant: sccache
+
+      - name: Configure
+        shell: bash
+        env:
+          VULKAN_SDK: ${{ steps.vulkan.outputs.VULKAN_SDK }}
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
+            -DSM2_BUILD_VULKAN=ON \
+            -DSM2_LTO=ON
+
+      - name: Build
+        run: cmake --build build
+
+      # build/bin already holds sm2-emu.exe with games.xml beside it, one of
+      # the places the game database lookup searches (see rom/game_db.cpp).
+      - name: Build zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          Compress-Archive -Path build/bin/sm2-emu.exe, build/bin/games.xml `
+            -DestinationPath out/sm2-emu-windows-x64.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sm2-emu-windows-x64-zip
+          path: out/sm2-emu-windows-x64.zip
 
   # ---------------------------------------------------------------------
   # Tag push only: gather the three artifacts above onto a GitHub Release.
