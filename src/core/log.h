@@ -14,6 +14,7 @@
 //
 #pragma once
 
+#include <atomic>
 #include <cstdio>
 #include <string_view>
 
@@ -37,7 +38,17 @@ enum class Level {
 /// Messages below this level are discarded. Defaults to Info.
 void set_level(Level level);
 
-[[nodiscard]] Level level();
+namespace detail {
+// Exposed so that level() inlines at every call site. Relaxed is enough: the
+// only writer is set_level() at startup, and a reader that sees a stale value
+// for a few accesses logs one line more or less, never anything incorrect.
+extern std::atomic<Level> g_level;
+}  // namespace detail
+
+[[nodiscard]] inline Level level()
+{
+    return detail::g_level.load(std::memory_order_relaxed);
+}
 
 /// Mirror all output to `path` in addition to stderr. Empty disables.
 bool set_log_file(std::string_view path);
@@ -54,7 +65,9 @@ void write(Level level, const char* fmt, ...)
 }  // namespace sm2::log
 
 // The level check happens before argument evaluation so that disabled trace
-// logging in a memory handler costs one comparison.
+// logging in a memory handler costs one load and one comparison. level() is
+// inline for that reason: defined out of line it would be a call across
+// translation units on every memory access unless LTO happened to be on.
 #define SM2_LOG(lvl, ...)                                        \
     do {                                                         \
         if (::sm2::log::Level::lvl >= ::sm2::log::level()) {      \

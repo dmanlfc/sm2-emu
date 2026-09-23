@@ -14,6 +14,7 @@
 //
 #include "core/log.h"
 
+#include <atomic>
 #include <cerrno>
 #include <cstdarg>
 #include <cstdio>
@@ -22,9 +23,13 @@
 #include <string>
 
 namespace sm2::log {
+
+namespace detail {
+std::atomic<Level> g_level{Level::Info};
+}  // namespace detail
+
 namespace {
 
-Level       g_level = Level::Info;
 std::FILE*  g_file  = nullptr;
 std::mutex  g_mutex;
 
@@ -44,16 +49,7 @@ const char* level_tag(Level level)
 
 void set_level(Level level)
 {
-    std::lock_guard lock(g_mutex);
-    g_level = level;
-}
-
-Level level()
-{
-    // Read without the lock: a torn read of an enum is not possible on any
-    // platform we target, and taking a mutex on the trace fast path would
-    // dominate the cost of the logging it is meant to elide.
-    return g_level;
+    detail::g_level.store(level, std::memory_order_relaxed);
 }
 
 bool set_log_file(std::string_view path)
