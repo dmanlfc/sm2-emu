@@ -20,7 +20,7 @@ community.
 
 Linux is the primary target. macOS is supported just because that's partly what
 I used for development and runs Vulkan through MoltenVK. I don't care for
-Windows... there, I said it.
+Windows... there, I said it but I have provided a port for the unfortunate :-)
 
 The journey included a lot of discussions with GenAI. I'm not going to lie, but
 its ability to really lean in and help tackle the hard parts was somewhat
@@ -106,6 +106,7 @@ GPU backends need OpenGL 4.3 core (desktop), OpenGL ES 3.1 (ARM), or Vulkan 1.3
 | Platform | Notes |
 |----------|-------|
 | **x86-64 (Linux)** | The primary target. Any modern desktop or laptop core clears every set with headroom on any backend. |
+| **x86-64 (Windows)** | Builds with MSVC and runs the software and OpenGL/Vulkan backends. CI builds it and boots it headless on every push; interactive in-game rendering has not been verified on Windows hardware yet, so treat the Windows build as provisional. |
 | **macOS** | Apple Silicon (recommended; runs everything far above full speed) or a 2015+ Intel Mac. The GPU path runs through MoltenVK (install the Vulkan SDK); the software path needs neither. |
 | **ARM (aarch64 SBC / handheld)** | Needs an out-of-order core. A **Raspberry Pi 5 (Cortex-A76 @ 2.4 GHz)** is the realistic entry point: it holds full speed on the lighter sets but **only sits around — or just below — full speed on the heavier SHARC/MB86235 games**, so it is not comfortable across the whole library. Anything with weaker or in-order cores is below playable on the demanding sets. |
 

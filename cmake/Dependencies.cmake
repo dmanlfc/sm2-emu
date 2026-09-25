@@ -96,7 +96,13 @@ endif()
 # SDL3 — window, input, audio
 # ---------------------------------------------------------------------------
 
-find_package(SDL3 3.2 CONFIG QUIET)
+# Windows has no system SDL3 and wants a self-contained exe, so build the
+# vendored copy static there; elsewhere prefer the system's.
+if(WIN32)
+    set(SDL3_FOUND FALSE)
+else()
+    find_package(SDL3 3.2 CONFIG QUIET)
+endif()
 
 if(SDL3_FOUND)
     set(SM2_SDL3_ORIGIN "system (${SDL3_VERSION})")

@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.24)
 #
 
 project(sm2-emu
-    VERSION     0.9.12
+    VERSION     0.9.13
     DESCRIPTION "Sega Model 2 arcade emulator"
     LANGUAGES   C CXX
 )
@@ -98,6 +98,10 @@ elseif(APPLE)
     set(SM2_PLATFORM_MACOS TRUE)
 elseif(WIN32)
     set(SM2_PLATFORM_WINDOWS TRUE)
+    # <windows.h> (pulled in transitively by some vendored deps) defines min/max
+    # macros that break std::min/std::max, and is huge by default. Suppress both
+    # globally so any translation unit that ends up including it is unaffected.
+    add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN)
 else()
     message(WARNING "sm2-emu has not been tested on ${CMAKE_SYSTEM_NAME}")
 endif()

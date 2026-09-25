@@ -231,6 +231,61 @@ Step by step, from a clean machine:
    reports that no Vulkan devices were found, `molten-vk` is missing: install it
    (`brew install molten-vk`) and reconfigure so it is picked up.
 
+## Windows
+
+Windows builds with **MSVC** (Visual Studio 2022's toolchain) and Ninja. SDL3
+has no system package on Windows, so it is built static from the vendored
+`3rdparty/SDL` submodule automatically — the finished build is a single
+self-contained folder (`sm2-emu.exe` + `games.xml`) with no DLLs to ship
+alongside it.
+
+> The Windows build is exercised on CI on every push — it compiles, links and
+> starts headless — but interactive in-game rendering has not yet been
+> confirmed on real Windows hardware. Treat it as provisional until that check
+> is done.
+
+You need:
+
+- **Visual Studio 2022** with the "Desktop development with C++" workload (the
+  MSVC compiler and the Windows SDK), or the standalone Build Tools.
+- **CMake 3.24+** and **Ninja** (both ship with recent Visual Studio, or install
+  them separately).
+- The **[Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows)** if building the
+  Vulkan backend. It also provides `glslc`, which every build needs to compile
+  and lint the shaders. Its installer sets `VULKAN_SDK` for you.
+
+Clone with submodules (see the top of this document), then, from a **x64 Native
+Tools Command Prompt for VS 2022** (so `cl.exe` and the SDK are on `PATH`):
+
+```bat
+cmake -S . -B build -G Ninja ^
+    -DCMAKE_BUILD_TYPE=Release ^
+    -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl ^
+    -DSM2_BUILD_VULKAN=ON
+cmake --build build
+ctest --test-dir build
+```
+
+Drop `-DSM2_BUILD_VULKAN=ON` for a software + OpenGL 4.3 build with no Vulkan
+dependency. The executable and `games.xml` land in `build\bin`. `cmake --install
+build --prefix <dir>` lays out a self-contained folder you can zip and run
+anywhere.
+
+Everything else — miniz, the LZMA SDK, stb_image, pugixml and Dear ImGui — is
+built from `3rdparty/` on Windows too, so a recursive checkout needs nothing
+else fetched. `libcurl` is optional: without it the game picker runs offline.
+To get artwork scraping, install a static libcurl with vcpkg and point CMake at
+it (this is what the CI build does):
+
+```bat
+vcpkg install curl:x64-windows-static-md
+cmake -S . -B build -G Ninja ^
+    -DCMAKE_BUILD_TYPE=Release ^
+    -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
+    -DVCPKG_TARGET_TRIPLET=x64-windows-static-md ^
+    -DSM2_BUILD_VULKAN=ON
+```
+
 ## Cross-compilation (Buildroot, Yocto, Batocera, embedded)
 
 sm2-emu builds for `x86_64`, `aarch64` and `riscv64`. Cross-compiling needs no

@@ -249,12 +249,91 @@ jobs:
           path: sm2-emu-macos.dmg
 
   # ---------------------------------------------------------------------
-  # Tag push only: gather the three artifacts above onto a GitHub Release.
+  # Windows x86_64 (MSVC) — software + OpenGL 4.3 + Vulkan, packaged as a zip.
+  # SDL3 is static from the vendored submodule, so the zip is a self-contained
+  # folder (exe + games.xml). No ROMs on the runner, so the runtime check is a
+  # headless smoke test, not an in-game render.
+  # ---------------------------------------------------------------------
+  windows-x86_64:
+    name: Windows x86_64 (zip)
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Put cl.exe / the MSVC environment on PATH so Ninja drives MSVC.
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      # Provides VULKAN_SDK and glslc (needed by every build to lint shaders).
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          install_runtime: true
+          cache: true
+
+      # libcurl for the artwork scraper, static so the exe stays self-contained.
+      # The -md triplet keeps the dynamic CRT (/MD), matching the project's
+      # default runtime; plain x64-windows-static would use /MT and mismatch.
+      - name: Install libcurl (vcpkg)
+        run: vcpkg install curl:x64-windows-static-md
+
+      - name: Cache ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: windows-x86_64
+          variant: sccache
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl `
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
+            -DSM2_BUILD_VULKAN=ON `
+            -DSM2_LTO=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Install
+        run: cmake --install build --prefix "sm2-emu-${{ env.VERSION }}-windows-x86_64"
+
+      # The binary must start, print usage and load the game database.
+      - name: Smoke test
+        run: |
+          $exe = "sm2-emu-${{ env.VERSION }}-windows-x86_64\sm2-emu.exe"
+          & $exe --help
+          if ($LASTEXITCODE -ne 0) { throw "sm2-emu --help exited $LASTEXITCODE" }
+          & $exe --list-games
+          if ($LASTEXITCODE -ne 0) { throw "sm2-emu --list-games exited $LASTEXITCODE" }
+
+      - name: Build zip
+        run: |
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          Compress-Archive -Path "sm2-emu-${{ env.VERSION }}-windows-x86_64" `
+            -DestinationPath "out\sm2-emu-${{ env.VERSION }}-windows-x86_64.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sm2-emu-windows-x86_64-zip
+          path: out/sm2-emu-${{ env.VERSION }}-windows-x86_64.zip
+
+  # ---------------------------------------------------------------------
+  # Tag push only: gather the artifacts above onto a GitHub Release.
   # ---------------------------------------------------------------------
   release:
     name: Publish release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [ linux-x86_64, linux-aarch64, macos ]
+    needs: [ linux-x86_64, linux-aarch64, macos, windows-x86_64 ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -273,6 +352,7 @@ jobs:
             artifacts/sm2-emu-linux-aarch64-appimage/*
             artifacts/sm2-emu-linux-aarch64-tarball/*
             artifacts/sm2-emu-macos-dmg/*
+            artifacts/sm2-emu-windows-x86_64-zip/*
 
   # ---------------------------------------------------------------------
   # Plain push to main (no tag): roll a single "dev" pre-release forward to
@@ -281,7 +361,7 @@ jobs:
   dev-release:
     name: Publish rolling dev pre-release
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [ linux-x86_64, linux-aarch64, macos ]
+    needs: [ linux-x86_64, linux-aarch64, macos, windows-x86_64 ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -319,6 +399,8 @@ jobs:
              artifacts/sm2-emu-linux-x86_64-tarball/sm2-emu-linux-x86_64.tar.gz
           mv artifacts/sm2-emu-linux-aarch64-tarball/*.tar.gz \
              artifacts/sm2-emu-linux-aarch64-tarball/sm2-emu-linux-aarch64.tar.gz
+          mv artifacts/sm2-emu-windows-x86_64-zip/*.zip \
+             artifacts/sm2-emu-windows-x86_64-zip/sm2-emu-windows-x86_64.zip
 
       - name: Publish dev pre-release
         uses: softprops/action-gh-release@v2
@@ -333,3 +415,4 @@ jobs:
             artifacts/sm2-emu-linux-aarch64-appimage/*
             artifacts/sm2-emu-linux-aarch64-tarball/*
             artifacts/sm2-emu-macos-dmg/*
+            artifacts/sm2-emu-windows-x86_64-zip/*

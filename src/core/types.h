@@ -14,6 +14,7 @@
 //
 #pragma once
 
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 
@@ -70,34 +71,26 @@ template <typename T>
 // ---------------------------------------------------------------------------
 // Model 2 ships floats down a 24-bit wire by discarding the low 8 mantissa
 // bits, so the geometry code moves between float and its bit pattern
-// constantly. These mirror MAME's f2u/u2f.
+// constantly. These mirror MAME's f2u/u2f; std::bit_cast keeps them portable.
 
-[[nodiscard]] inline u32 f2u(float value) noexcept
+[[nodiscard]] constexpr u32 f2u(float value) noexcept
 {
-    u32 out;
-    __builtin_memcpy(&out, &value, sizeof(out));
-    return out;
+    return std::bit_cast<u32>(value);
 }
 
-[[nodiscard]] inline float u2f(u32 value) noexcept
+[[nodiscard]] constexpr float u2f(u32 value) noexcept
 {
-    float out;
-    __builtin_memcpy(&out, &value, sizeof(out));
-    return out;
+    return std::bit_cast<float>(value);
 }
 
-[[nodiscard]] inline u64 d2u(double value) noexcept
+[[nodiscard]] constexpr u64 d2u(double value) noexcept
 {
-    u64 out;
-    __builtin_memcpy(&out, &value, sizeof(out));
-    return out;
+    return std::bit_cast<u64>(value);
 }
 
-[[nodiscard]] inline double u2d(u64 value) noexcept
+[[nodiscard]] constexpr double u2d(u64 value) noexcept
 {
-    double out;
-    __builtin_memcpy(&out, &value, sizeof(out));
-    return out;
+    return std::bit_cast<double>(value);
 }
 
 // ---------------------------------------------------------------------------

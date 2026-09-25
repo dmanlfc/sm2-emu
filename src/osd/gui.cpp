@@ -1089,6 +1089,15 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
     }
     ImGui::EndDisabled();
 
+    // Dedicated light guns (recoil motors, per-device buttons) are an evdev
+    // feature, so that block is Linux-only. Elsewhere the mouse is the gun.
+#ifndef SM2_HAVE_EVDEV
+    (void)input;
+    ImGui::Separator();
+    ImGui::TextWrapped(
+        "Player 1 aims with the mouse; the left button fires and the right "
+        "button reloads (shoot off screen).");
+#else
     ImGui::Separator();
     ImGui::TextUnformatted("Recoil");
     ImGui::SameLine();
@@ -1173,6 +1182,7 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
             }
         }
     }
+#endif  // SM2_HAVE_EVDEV
 
     ImGui::Separator();
     ImGui::TextUnformatted("Sinden border");

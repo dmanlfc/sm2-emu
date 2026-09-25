@@ -26,6 +26,11 @@ add_library(sm2_core STATIC
 )
 target_include_directories(sm2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(sm2_core PRIVATE sm2_warnings)
+# Winsock for core/net.cpp. net.cpp also names these via #pragma comment(lib),
+# but that is MSVC-only; naming them here covers clang-cl and MinGW too.
+if(WIN32)
+    target_link_libraries(sm2_core PUBLIC ws2_32 iphlpapi)
+endif()
 
 # ---------------------------------------------------------------------------
 # sm2_render — backend-neutral render support
@@ -333,6 +338,16 @@ if(SM2_PLATFORM_MACOS)
         "${SM2_MACOS_ICNS}"
         "${CMAKE_SOURCE_DIR}/data/games.xml"
         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+elseif(SM2_PLATFORM_WINDOWS)
+    # Compile the .ico into the .exe so Explorer/taskbar show it. MSVC builds
+    # any .rc listed as a source automatically. The window icon while running is
+    # set separately in osd/window.cpp.
+    set(SM2_WIN_ICON "${CMAKE_SOURCE_DIR}/data/icons/sm2-emu.ico")
+    configure_file(
+        "${CMAKE_SOURCE_DIR}/cmake/sm2-emu.rc.in"
+        "${CMAKE_BINARY_DIR}/sm2-emu.rc"
+        @ONLY)
+    target_sources(sm2-emu PRIVATE "${CMAKE_BINARY_DIR}/sm2-emu.rc")
 endif()
 # sm2_core is not listed: sm2_osd and sm2_hw expose it PUBLIC, and naming it
 # again makes the linker warn about a duplicate archive. sm2_hw brings in
@@ -412,6 +427,12 @@ if(SM2_PLATFORM_MACOS)
     # it installs to a Applications-style bundle directory and needs nothing
     # alongside it.
     install(TARGETS sm2-emu BUNDLE DESTINATION ".")
+elseif(SM2_PLATFORM_WINDOWS)
+    # Keep games.xml beside the .exe (GameDatabase::locate checks the exe dir)
+    # so the install prefix is one self-contained folder to zip and run.
+    install(TARGETS sm2-emu RUNTIME DESTINATION ".")
+    install(FILES "${CMAKE_SOURCE_DIR}/data/games.xml" DESTINATION ".")
+    install(FILES "${SM2_ICON_DIR}/sm2-emu.ico" DESTINATION ".")
 else()
     install(TARGETS sm2-emu RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
     install(FILES "${CMAKE_SOURCE_DIR}/data/games.xml"

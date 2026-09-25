@@ -1,0 +1,4 @@
+// Windows resource script for sm2-emu. Configured by CMake so the .exe carries
+// the application icon (shown in Explorer, the taskbar and Alt-Tab). The window
+// icon while running is set separately in osd/window.cpp via SDL.
+IDI_ICON1 ICON "@SM2_WIN_ICON@"
