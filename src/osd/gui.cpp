@@ -406,10 +406,11 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             // v1, so this only edits the config; it applies on the next launch.
             ImGui::Separator();
             {
-                static constexpr std::array<const char*, 4> kScaleLabels = {
-                    "1x (native)", "2x", "3x", "4x"};
+                static constexpr std::array<const char*, 8> kScaleLabels = {
+                    "1x (native)", "2x", "3x", "4x", "5x", "6x", "7x", "8x (4K)"};
                 int scale_index =
-                    std::clamp(static_cast<int>(config.render_scale), 1, 4) - 1;
+                    std::clamp(static_cast<int>(config.render_scale),
+                               1, static_cast<int>(kScaleLabels.size())) - 1;
                 ImGui::SetNextItemWidth(140);
                 if (ImGui::Combo("3D render scale", &scale_index, kScaleLabels.data(),
                                  static_cast<int>(kScaleLabels.size()))) {

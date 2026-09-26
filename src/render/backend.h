@@ -99,9 +99,10 @@ enum class NativeFormat : u32 {
 constexpr u32 kNativeWidth  = 496;
 constexpr u32 kNativeHeight = 384;
 
-/// The largest internal 3D render scale (N in 1..4). 4x is 1984x1536, within
-/// every device this project targets.
-constexpr u32 kMaxRenderScale = 4;
+/// The largest internal 3D render scale (N in 1..8). 8x is 3968x3072, enough to
+/// render the 3D at 4K on a capable GPU; clamp_scale_to_max_dimension reduces N
+/// on a device that cannot allocate a target that large.
+constexpr u32 kMaxRenderScale = 8;
 
 /// The scaled raster the 3D pass and composite run at when render_scale is N.
 /// At N=1 these are the native size; the native constants keep their own
@@ -110,11 +111,10 @@ constexpr u32 kMaxRenderScale = 4;
 [[nodiscard]] constexpr u32 scaled_height(u32 render_scale) { return render_scale * kNativeHeight; }
 
 /// Largest scale in 1..requested whose N*native colour/depth target fits a
-/// device's max 2D image/texture dimension. 4x is 1984x1536, within every
-/// device this project targets, so this only reduces N on a device that
-/// genuinely cannot allocate the target -- a guard, not an expected path. A
-/// limit that cannot hold even native (< 496) still returns 1: native is the
-/// floor, and a device that small cannot run the renderer at all.
+/// device's max 2D image/texture dimension. 8x is 3968x3072, so a device whose
+/// limit is 4096 or above takes the full range; one at 2048 is held to 4x, and
+/// so on down. A limit that cannot hold even native (< 496) still returns 1:
+/// native is the floor, and a device that small cannot run the renderer at all.
 [[nodiscard]] constexpr u32 clamp_scale_to_max_dimension(u32 requested, u32 max_dimension)
 {
     u32 scale = requested;
