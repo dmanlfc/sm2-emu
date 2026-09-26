@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <limits>
 
 namespace sm2::render {
 namespace {
@@ -184,6 +185,23 @@ TriangulatedFrame triangulate(const hw::Model2MachineBase* machine,
             params.flags = (params.flags & ~kFlagChecker) | kFlagBlended;
         }
         frame.polygons.push_back(params);
+
+        // The vertex ring for the fragment shader's edge walk (see PolyGeom).
+        // No 1/8 on u/v here: the shader's int(uv*32) carries the eighths the
+        // software renderer folds into its uoz*z*256, so texelUV stays the raw
+        // p[1]/p[2] the fan path produced.
+        PolyGeom geom{};
+        geom.num_vertices = poly.num_vertices;
+        for (u32 corner = 0; corner < poly.num_vertices; ++corner) {
+            const hw::PolyVertex& pv = poly.v[corner];
+            const float           oz = 1.0F / (pv.p[0] + std::numeric_limits<float>::min());
+            geom.x[corner]          = pv.x;
+            geom.y[corner]          = pv.y;
+            geom.one_over_z[corner] = oz;
+            geom.u_over_z[corner]   = pv.p[1] * oz;
+            geom.v_over_z[corner]   = pv.p[2] * oz;
+        }
+        frame.geometry.push_back(geom);
 
         // A fan. The clipper produces convex polygons, so fanning from the
         // first vertex cannot fold over itself.

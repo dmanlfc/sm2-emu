@@ -87,6 +87,7 @@ void Poly3DPass::shutdown()
     }
     destroy_persistent_buffer(&m_vertex_buffer);
     destroy_persistent_buffer(&m_polygon_buffer);
+    destroy_persistent_buffer(&m_geometry_buffer);
     destroy_persistent_buffer(&m_sheets_buffer);
     destroy_persistent_buffer(&m_luma_buffer);
 }
@@ -142,6 +143,9 @@ bool Poly3DPass::create_buffers()
     m_polygon_buffer = create_persistent_buffer(
         static_cast<usize>(render::kMaxPolygons) * sizeof(render::PolyParams),
         GL_SHADER_STORAGE_BUFFER);
+    m_geometry_buffer = create_persistent_buffer(
+        static_cast<usize>(render::kMaxPolygons) * sizeof(render::PolyGeom),
+        GL_SHADER_STORAGE_BUFFER);
     m_sheets_buffer =
         create_persistent_buffer(static_cast<usize>(kSheetWords) * 2 * sizeof(u32),
                                  GL_SHADER_STORAGE_BUFFER);
@@ -163,6 +167,7 @@ bool Poly3DPass::create_buffers()
     TexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 1, 1, 1);
 
     return m_vertex_buffer.handle != 0 && m_polygon_buffer.handle != 0
+        && m_geometry_buffer.handle != 0
         && m_sheets_buffer.handle != 0 && m_luma_buffer.handle != 0
         && m_decoded_texture != 0 && m_tone_texture != 0;
 }
@@ -277,6 +282,8 @@ void Poly3DPass::build(const hw::Model2MachineBase* machine, const hw::Model2Vid
                               static_cast<usize>(m_vertex_count) * sizeof(render::Vertex));
         m_polygon_buffer.write(m_frame_geometry.polygons.data(),
                                m_frame_geometry.polygons.size() * sizeof(render::PolyParams));
+        m_geometry_buffer.write(m_frame_geometry.geometry.data(),
+                                m_frame_geometry.geometry.size() * sizeof(render::PolyGeom));
     }
 }
 
@@ -346,6 +353,7 @@ void Poly3DPass::draw_polygons()
     BindTexture(GL_TEXTURE_2D, m_tone_texture);
     BindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_luma_buffer.handle);
     BindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_polygon_buffer.handle);
+    BindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, m_geometry_buffer.handle);
 
     BindVertexArray(m_vao);
     BindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer.handle);

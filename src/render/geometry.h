@@ -54,6 +54,25 @@ struct Vertex {
     u32   polygon;
 };
 
+/// One polygon's screen-space vertex ring, so the fragment shader can walk the
+/// edges and interpolate the texture across the whole polygon rather than per
+/// fan triangle -- a fan warps a textured quad, whose corners map u,v
+/// bilinearly, because its two triangles disagree along the shared diagonal.
+/// Must match the PolyGeom declaration in polygon.frag exactly.
+///
+/// Pre-divided on the host: u_over_z/v_over_z are u/z and v/z with u,v the raw
+/// texture point (eighths of a texel). Parallel scalar arrays because std430
+/// gives a float array a four-byte stride, so this packs with no padding.
+struct PolyGeom {
+    float x[8];
+    float y[8];
+    float one_over_z[8];
+    float u_over_z[8];
+    float v_over_z[8];
+    u32   num_vertices;
+    u32   pad[3];
+};
+
 /// Everything the fragment stage needs to know about one polygon. Must match
 /// the PolyParams declaration in polygon.frag exactly.
 struct PolyParams {
@@ -127,6 +146,8 @@ struct Batch {
 struct TriangulatedFrame {
     std::vector<Vertex>     vertices;
     std::vector<PolyParams> polygons;
+    /// One per polygons[] entry, same index. See PolyGeom.
+    std::vector<PolyGeom>   geometry;
     std::vector<Batch>      batches;
 
     /// Polygons that produced at least one triangle.

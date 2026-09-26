@@ -171,6 +171,10 @@ struct Options {
     std::string dump_audio;
     std::string rom_path;
 
+    /// Load this save state before the run loop, so --run-frames 1 --screenshot
+    /// captures that exact moment (used to compare backends on real gameplay).
+    std::string load_state;
+
     /// Capture a frame every this many frames instead of only the last one. Each
     /// goes to the screenshot path with the frame number appended.
     sm2::u32 screenshot_interval = 0;
@@ -280,6 +284,8 @@ void print_usage()
         "      --rom-dir <dir> Where the ROM archives live; a game named with no\n"
         "                      path is loaded from <dir>/<name>.zip or .7z\n"
         "      --screenshot-dir <dir>  Where F12 screenshots are written\n"
+        "      --load-state <file>  Restore this save state before running, so a\n"
+        "                      one-frame --screenshot captures that exact moment\n"
         "\n");
     sm2::osd::Input::print_bindings();
     std::printf("\nNo ROM data is distributed with this software.\n");
@@ -495,6 +501,8 @@ void print_usage()
                 return false;
             }
         } else if (takes_value("--screenshot", &out->screenshot)) {
+            // handled
+        } else if (takes_value("--load-state", &out->load_state)) {
             // handled
         } else if (takes_value("--rom-dir", &out->config.rom_dir)) {
             out->given.rom_dir = true;
@@ -1051,6 +1059,20 @@ int main(int argc, char** argv)
     cpu::i960::I960* main_cpu    = loaded.has_value() ? loaded->main_cpu    : nullptr;
     hw::SoundBoard*  sound_board = loaded.has_value() ? loaded->sound_board : nullptr;
     const hw::I8251* sound_link  = loaded.has_value() ? loaded->sound_link  : nullptr;
+
+    // Restore a save state before anything runs, so a one-frame --screenshot
+    // renders exactly that state through whichever backend is selected.
+    if (!options.load_state.empty()) {
+        if (machine_iface == nullptr) {
+            SM2_ERROR("--load-state needs a ROM");
+            return 1;
+        }
+        if (!machine_iface->load_state(options.load_state)) {
+            SM2_ERROR("--load-state: failed to load '%s'", options.load_state.c_str());
+            return 1;
+        }
+        SM2_INFO("loaded save state '%s'", options.load_state.c_str());
+    }
 
     // -- headless boot test ------------------------------------------------
     // Headless save-state regression (see the block for what it checks). Runs

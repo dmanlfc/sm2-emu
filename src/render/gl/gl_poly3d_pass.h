@@ -110,6 +110,7 @@ private:
 
     PersistentBuffer m_vertex_buffer;
     PersistentBuffer m_polygon_buffer;
+    PersistentBuffer m_geometry_buffer;
 
     // -- texture decode -----------------------------------------------------
 

@@ -110,6 +110,19 @@ layout(set = 0, binding = 2) uniform sampler2D uTone;
 
 layout(std430, set = 0, binding = 3) readonly buffer Polys { PolyParams uPolygon[]; };
 
+/// One polygon's screen-space vertex ring; see PolyGeom in render/geometry.h.
+struct PolyGeom {
+    float x[8];
+    float y[8];
+    float oneOverZ[8];
+    float uOverZ[8];
+    float vOverZ[8];
+    uint  numVertices;
+    uint  pad[3];
+};
+
+layout(std430, set = 0, binding = 5) readonly buffer Geom { PolyGeom uGeom[]; };
+
 /// Custom textures, packed into square layers with a wrapped gutter round each
 /// (render/texture_replace.cpp). Filtered and mipmapped like any modern texture.
 layout(set = 0, binding = 4) uniform sampler2DArray uReplace;
@@ -371,10 +384,10 @@ ivec2 sampleMipChain(PolyParams p, int u, int v, int mml, int level, int maxLeve
 /// source changes: coordinates, wrapping and mirroring are the polygon's own,
 /// and the tint carries the polygon's colouring and lighting relative to the
 /// colouring the image was painted over.
-vec3 sampleReplacement(PolyParams p, vec2 texelDx, vec2 texelDy)
+vec3 sampleReplacement(PolyParams p, vec2 texelUV, vec2 texelDx, vec2 texelDy)
 {
     const vec2 size = vec2(float(p.texWidth), float(p.texHeight)) * 8.0;
-    const vec2 st   = vTexel / size;
+    const vec2 st   = texelUV / size;
 
     vec2 wrapped = fract(st);
     if ((p.flags & kFlagMirrorX) != 0u && mod(floor(st.x), 2.0) != 0.0) {
@@ -407,14 +420,71 @@ vec3 sampleReplacement(PolyParams p, vec2 texelDx, vec2 texelDy)
     return min(texel.rgb * tint, vec3(1.0));
 }
 
+/// u/z, v/z and 1/z at a native-pixel centre, reproducing render_convex's
+/// whole-polygon interpolation (model2_softrender.cpp). Convex scanline fill:
+/// intersect y = fy with every non-horizontal edge, keep the leftmost and
+/// rightmost crossing, interpolate across in x. Returns vec3(u/z, v/z, 1/z).
+vec3 polygonInterpolate(uint idx, float fx, float fy)
+{
+    const uint n = uGeom[idx].numVertices;
+
+    float leftX  =  1.0e30;
+    float rightX = -1.0e30;
+    vec3  leftP  = vec3(0.0);
+    vec3  rightP = vec3(0.0);
+    bool  any    = false;
+
+    for (uint i = 0u; i < n; ++i) {
+        const uint  j  = (i + 1u == n) ? 0u : i + 1u;
+        const float y1 = uGeom[idx].y[i];
+        const float y2 = uGeom[idx].y[j];
+        if (y1 == y2) {
+            continue;
+        }
+        // Half a pixel of slack so a fragment rounded just past the top/bottom
+        // vertex still resolves; t is then clamped into the edge.
+        const float lo = min(y1, y2);
+        const float hi = max(y1, y2);
+        if (fy < lo - 0.5 || fy > hi + 0.5) {
+            continue;
+        }
+        const float t   = clamp((fy - y1) / (y2 - y1), 0.0, 1.0);
+        const float x   = mix(uGeom[idx].x[i], uGeom[idx].x[j], t);
+        const vec3  ppp = vec3(mix(uGeom[idx].uOverZ[i],   uGeom[idx].uOverZ[j],   t),
+                               mix(uGeom[idx].vOverZ[i],   uGeom[idx].vOverZ[j],   t),
+                               mix(uGeom[idx].oneOverZ[i], uGeom[idx].oneOverZ[j], t));
+        any = true;
+        if (x < leftX)  { leftX  = x; leftP  = ppp; }
+        if (x > rightX) { rightX = x; rightP = ppp; }
+    }
+
+    if (!any) {
+        return vec3(uGeom[idx].uOverZ[0], uGeom[idx].vOverZ[0], uGeom[idx].oneOverZ[0]);
+    }
+
+    const float span = rightX - leftX;
+    const float tx   = (span > 1.0e-6) ? clamp((fx - leftX) / span, 0.0, 1.0) : 0.0;
+    return mix(leftP, rightP, tx);
+}
+
 void main()
 {
     const PolyParams p = uPolygon[vPolygon];
 
-    // Before any discard or per-polygon branch, so neighbouring pixels of a
-    // different polygon still take part in the difference.
-    const vec2 texelDx = dFdx(vTexel);
-    const vec2 texelDy = dFdy(vTexel);
+    // Texture coordinate from the edge walk, not the rasteriser's per-fan-
+    // triangle interpolation of vTexel, which warps textured quads. The vertex
+    // stage applies no Y flip on either target, so gl_FragCoord is already in
+    // the ring's space (bottom-origin on GL, top on Vulkan, but so is the
+    // geometry); only the render scale is divided back out to reach native.
+    const vec2  nativeCoord = gl_FragCoord.xy / float(pc.renderScale);
+    const vec3  interp      = polygonInterpolate(vPolygon, nativeCoord.x, nativeCoord.y);
+    const float invZ        = interp.z;
+    const float zRecon      = 1.0 / invZ;
+    // Raw u,v in eighths, as vTexel used to carry.
+    const vec2  texelUV     = vec2(interp.x, interp.y) * zRecon;
+
+    const vec2 texelDx = dFdx(texelUV);
+    const vec2 texelDy = dFdy(texelUV);
 
     // Translucency by stipple: a screen-locked checkerboard on the native raster
     // grid. When the 3D is rasterised at N*native, gl_FragCoord runs at the
@@ -431,21 +501,19 @@ void main()
     const float coverage = ((p.flags & kFlagBlended) != 0u) ? 0.5 : 1.0;
 
     if ((p.flags & kFlagTextured) != 0u && p.replace != 0u) {
-        fragColour = vec4(sampleReplacement(p, texelDx, texelDy) * coverage, coverage);
+        fragColour = vec4(sampleReplacement(p, texelUV, texelDx, texelDy) * coverage, coverage);
         return;
     }
 
     uint shade;
 
     if ((p.flags & kFlagTextured) != 0u) {
-        // The rasteriser handed us u/z, v/z and 1/z interpolated linearly; this
-        // recovers the depth the hardware would have divided by.
-        const float z = 1.0 / gl_FragCoord.w;
+        const float z = zRecon;
 
         // Texture points carry three fractional bits, and the fixed-point
         // coordinates here carry eight.
-        const int u = int(vTexel.x * 32.0);
-        const int v = int(vTexel.y * 32.0);
+        const int u = int(texelUV.x * 32.0);
+        const int v = int(texelUV.y * 32.0);
 
         // Level of detail from the depth against the polygon's own bias. The
         // fractional part blends between two levels; a negative value means the
@@ -476,8 +544,8 @@ void main()
         if (pc.textureQuality > 1u) {
             // The longer screen-space gradient axis is the direction of maximum
             // stretch; step the extra taps along it.
-            const vec2 du = dFdx(vTexel) * 32.0;
-            const vec2 dv = dFdy(vTexel) * 32.0;
+            const vec2 du = texelDx * 32.0;
+            const vec2 dv = texelDy * 32.0;
             const float lenx = dot(du, du);
             const float leny = dot(dv, dv);
             const vec2  major = (lenx > leny) ? du : dv;
