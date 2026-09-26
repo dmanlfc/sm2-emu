@@ -70,7 +70,8 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DSM2_BUILD_VULKAN=ON \
-            -DSM2_LTO=ON
+            -DSM2_LTO=ON \
+            -DSM2_TUNE=x86-64-v2
 
       - name: Build
         run: cmake --build build
