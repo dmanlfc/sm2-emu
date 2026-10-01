@@ -179,6 +179,12 @@ struct Config {
     /// Centring resistance, 0..100 percent of the wheel's maximum torque.
     u32 wheel_ffb_strength = 30;
 
+    /// The centring spring of the Sega Rally Championship and Daytona USA
+    /// panel, all their versions, 0..100 percent of the resistance above where
+    /// it is strongest. Very light on a cabinet: it brings the wheel back and is
+    /// barely felt when held against. The other games' panels have none.
+    u32 wheel_panel_spring = 20;
+
     /// A synthesised road/engine rumble: a vibration that rises with the
     /// throttle and with hard steering. Used on games without force feedback;
     /// a wheel delivering force feedback does not also rumble.

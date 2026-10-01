@@ -857,6 +857,23 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
         resistance = ((resistance + 5) / 10) * 10;  // snap to 10 % steps
         config.wheel_ffb_strength = static_cast<u32>(std::clamp(resistance, 0, 100));
     }
+
+    // The light spring of the one panel that has one.
+    int panel_spring = static_cast<int>(config.wheel_panel_spring);
+    if (ImGui::SliderInt("Panel spring", &panel_spring, 0, 100, "%d%%")) {
+        panel_spring = ((panel_spring + 2) / 5) * 5;  // snap to 5 % steps
+        config.wheel_panel_spring = static_cast<u32>(std::clamp(panel_spring, 0, 100));
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("The centring spring of the Sega Rally Championship and\n"
+                          "Daytona USA cabinets: very light, it brings the wheel\n"
+                          "back and is barely felt when held against. A share of\n"
+                          "the resistance above. The other games' cabinets drive\n"
+                          "the wheel with no spring, and ignore this setting.");
+    }
+    ImGui::TextDisabled("Sega Rally Championship and Daytona USA only, all versions.");
     ImGui::EndDisabled();
 
     // Synthetic engine/road rumble, since the game streams no continuous buzz.

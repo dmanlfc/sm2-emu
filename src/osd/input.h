@@ -102,6 +102,9 @@ public:
     struct WheelSettings {
         bool ffb           = true;
         u32  strength      = 50;
+        /// The light centring spring of the Sega Rally and Daytona USA panel,
+        /// 0..100 percent of `strength`; no other game has one.
+        u32  panel_spring  = 20;
         u32  steer_degrees = 270;
         u32  lock_degrees  = 240;  ///< physical rotation for full game lock.
 

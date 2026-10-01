@@ -115,6 +115,7 @@ enum class GraphicsBackendChoice {
     sm2::osd::Input::WheelSettings w;
     w.ffb             = c.wheel_ffb;
     w.strength        = c.wheel_ffb_strength;
+    w.panel_spring    = c.wheel_panel_spring;
     w.steer_degrees   = c.wheel_steer_degrees;
     w.lock_degrees    = c.wheel_lock_degrees;
     w.rumble          = c.wheel_rumble;
@@ -897,6 +898,7 @@ int main(int argc, char** argv)
     options.config.show_notifications  = from_file.show_notifications;
     options.config.wheel_ffb           = from_file.wheel_ffb;
     options.config.wheel_ffb_strength  = from_file.wheel_ffb_strength;
+    options.config.wheel_panel_spring  = from_file.wheel_panel_spring;
     options.config.wheel_steer_degrees = from_file.wheel_steer_degrees;
     options.config.wheel_lock_degrees  = from_file.wheel_lock_degrees;
     options.config.wheel_rumble          = from_file.wheel_rumble;

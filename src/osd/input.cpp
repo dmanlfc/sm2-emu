@@ -216,11 +216,6 @@ int centring_spring(int deflection, int full)
 constexpr double kDriveBoardIrqHz = 1000.0;
 constexpr double kMachineHz       = 57.5245;
 
-/// The centring spring of the panel Sega Rally and Daytona share, as a share
-/// (%) of the wheel's force where it is strongest. Very light on a cabinet: it
-/// brings the wheel back, and is barely felt when held against.
-constexpr int kPanelSpringPercent = 20;
-
 /// At start-up Sega Rally's board raises its power until its own ADC reads this
 /// many counts of 128 off centre, one way and the other, and keeps that power:
 /// what it takes against the panel's spring, and against the drag of the
@@ -1003,12 +998,14 @@ void Input::update_force_feedback(const rom::GameSpec& game)
         const auto spring = [deflection](int full) { return centring_spring(deflection, full); };
 
         // The centring spring of the panel Sega Rally and Daytona share, which
-        // also centres the wheel in menus and attract mode. Indy 500's panel,
-        // and Touring Car's, Over Rev's and Super GT's, drive the wheel
-        // straight from the motor, with no spring.
+        // also centres the wheel in menus and attract mode: very light on a
+        // cabinet, the user's share of the strength. Indy 500's panel, and
+        // Touring Car's, Over Rev's and Super GT's, drive the wheel straight
+        // from the motor, with no spring.
         const bool panel_spring = game.drive_protocol == rom::DriveProtocol::Rally
                                || game.drive_protocol == rom::DriveProtocol::Daytona;
-        const int  panel_full   = ceiling * kPanelSpringPercent / 100;
+        const int  panel_full =
+            ceiling * static_cast<int>(std::min(m_wheel_settings.panel_spring, 100u)) / 100;
         const int  baseline     = panel_spring ? spring(panel_full) : 0;
 
         // Positive levels push the wheel left (the output is negated).
