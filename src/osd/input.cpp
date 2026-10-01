@@ -1008,7 +1008,7 @@ void Input::update_force_feedback(const rom::GameSpec& game)
             ceiling * static_cast<int>(std::min(m_wheel_settings.panel_spring, 100u)) / 100;
         const int  baseline     = panel_spring ? spring(panel_full) : 0;
 
-        // Positive levels push the wheel left (the output is negated).
+        // Positive levels push the wheel left, as WheelForce::set_force takes them.
         int game_force = 0;
         if (game.drive_protocol == rom::DriveProtocol::Daytona) {
             // Daytona's board works out its forces from the wheel itself. Its
@@ -1191,10 +1191,12 @@ void Input::update_force_feedback(const rom::GameSpec& game)
         return (want == 0) != (sent == 0) || std::abs(want - sent) >= kFeltChange;
     };
 
-    if (m_wheel.ffb && worth_sending(level, m_wheel.force_level)) {
-        m_wheel.force_level = level;
-        // Negated so the force opposes the deflection and centres the wheel.
-        m_wheel.ffb->set_force(static_cast<s16>(-level));
+    // Positive left, like the deflection's spring: a wheel turned right is
+    // pulled back left. Reversed for a driver that has it the other way.
+    const int force_out = m_wheel_settings.ffb_invert ? -level : level;
+    if (m_wheel.ffb && worth_sending(force_out, m_wheel.force_level)) {
+        m_wheel.force_level = force_out;
+        m_wheel.ffb->set_force(static_cast<s16>(force_out));
     }
 
     if (m_wheel.ffb && m_wheel.ffb->has_rumble()) {

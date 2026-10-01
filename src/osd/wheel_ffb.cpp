@@ -39,8 +39,9 @@ bool test_bit(const unsigned long* bits, int bit)
     return ((bits[static_cast<usize>(bit) / kLongBits] >> (static_cast<usize>(bit) % kLongBits)) & 1u) != 0;
 }
 
-/// Along the steering axis; the level's sign sets the direction. Matches what
-/// SDL sends for a Cartesian {x, 0} direction.
+/// Along the steering axis: 90 degrees, which linux/input.h calls left, so a
+/// positive level pulls the wheel left (the drivers take level * sin(direction)).
+/// Matches what SDL sends for a Cartesian {x, 0} direction.
 constexpr u16 kSteerDirection = 0x4000;
 
 bool write_ff(int fd, u16 code, s32 value)
@@ -83,7 +84,7 @@ SDL_HapticEffect sdl_constant_effect(s16 level)
     effect.type                      = SDL_HAPTIC_CONSTANT;
     effect.constant.type             = SDL_HAPTIC_CONSTANT;
     effect.constant.length           = SDL_HAPTIC_INFINITY;
-    // dir[0] = 0: the level's sign sets the direction.
+    // dir[0] = 0: the level's sign sets the direction, positive to the left.
     effect.constant.direction.type   = SDL_HAPTIC_CARTESIAN;
     effect.constant.direction.dir[0] = 0;
     effect.constant.level            = level;

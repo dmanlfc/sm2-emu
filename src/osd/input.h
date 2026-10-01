@@ -105,6 +105,9 @@ public:
         /// The light centring spring of the Sega Rally and Daytona USA panel,
         /// 0..100 percent of `strength`; no other game has one.
         u32  panel_spring  = 20;
+        /// Reverses the force, for a driver that pushes right on the positive
+        /// force with which DirectInput, SDL and Linux push left.
+        bool ffb_invert    = false;
         u32  steer_degrees = 270;
         u32  lock_degrees  = 240;  ///< physical rotation for full game lock.
 

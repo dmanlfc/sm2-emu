@@ -50,7 +50,9 @@ public:
 
     /// Device autocentre strength, 0..100.
     void set_autocenter(int percent);
-    /// Signed constant force; the sign sets the direction.
+    /// Signed constant force: positive pushes the wheel left, negative right.
+    /// The convention of DirectInput, SDL and Linux: a force along the
+    /// steering axis comes from its positive end, the right.
     void set_force(s16 level);
     /// Default sine period in ms (~50 Hz), felt as a buzz.
     static constexpr u16 kRumblePeriod = 20;

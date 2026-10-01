@@ -874,6 +874,15 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
                           "the wheel with no spring, and ignore this setting.");
     }
     ImGui::TextDisabled("Sega Rally Championship and Daytona USA only, all versions.");
+
+    ImGui::Checkbox("Invert force feedback", &config.wheel_ffb_invert);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("For a wheel whose driver pushes the wrong way: it pulls\n"
+                          "away from the centre instead of bringing it back, and\n"
+                          "the game's forces go the opposite way.");
+    }
     ImGui::EndDisabled();
 
     // Synthetic engine/road rumble, since the game streams no continuous buzz.

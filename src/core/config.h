@@ -185,6 +185,10 @@ struct Config {
     /// barely felt when held against. The other games' panels have none.
     u32 wheel_panel_spring = 20;
 
+    /// Reverses the wheel's force, for a driver that pushes right on the
+    /// positive force with which DirectInput, SDL and Linux push left.
+    bool wheel_ffb_invert = false;
+
     /// A synthesised road/engine rumble: a vibration that rises with the
     /// throttle and with hard steering. Used on games without force feedback;
     /// a wheel delivering force feedback does not also rumble.
