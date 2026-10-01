@@ -646,6 +646,34 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Menu)])) {
                 bad_value();
             }
+        } else if (key == "wheel_button_gear_1") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Gear1)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_gear_2") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Gear2)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_gear_3") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Gear3)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_gear_4") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::Gear4)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_button_gear_neutral") {
+            if (!parse_s32(value, &out->wheel_buttons[cfg_role(Config::WheelRole::GearNeutral)])) {
+                bad_value();
+            }
+        } else if (key == "wheel_shifter_neutral") {
+            if (!parse_bool(value, &out->wheel_shifter_neutral)) {
+                bad_value();
+            }
+        } else if (key == "wheel_shift_neutral_ms") {
+            if (!parse_u32(value, &out->wheel_shift_neutral_ms)) {
+                bad_value();
+            }
         } else if (key == "wheel_steer_axis") {
             if (!parse_s32(value, &out->wheel_steer_axis)) {
                 bad_value();
@@ -731,6 +759,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     out->window_height = std::max(out->window_height, 192u);
     out->wheel_ffb_strength    = std::min(out->wheel_ffb_strength, 100u);
     out->wheel_panel_spring    = std::min(out->wheel_panel_spring, 100u);
+    out->wheel_shift_neutral_ms = std::min(out->wheel_shift_neutral_ms, 500u);
     out->wheel_rumble_strength = std::min(out->wheel_rumble_strength, 100u);
     out->pad_rumble_strength = std::min(out->pad_rumble_strength, 100u);
     if (out->outputs_network_port == 0 || out->outputs_network_port > 65535) {
@@ -925,6 +954,20 @@ bool save_config(const std::string& path, const Config& config)
         << "wheel_button_test = " << config.wheel_buttons[cfg_role(Config::WheelRole::Test)] << "\n"
         << "wheel_button_service = " << config.wheel_buttons[cfg_role(Config::WheelRole::Service)] << "\n"
         << "wheel_button_menu = " << config.wheel_buttons[cfg_role(Config::WheelRole::Menu)] << "\n"
+        << "# An H shifter's positions, one button each, on the games with a gate\n"
+        << "# gearbox (Daytona USA, Sega Rally Championship).\n"
+        << "wheel_button_gear_1 = " << config.wheel_buttons[cfg_role(Config::WheelRole::Gear1)] << "\n"
+        << "wheel_button_gear_2 = " << config.wheel_buttons[cfg_role(Config::WheelRole::Gear2)] << "\n"
+        << "wheel_button_gear_3 = " << config.wheel_buttons[cfg_role(Config::WheelRole::Gear3)] << "\n"
+        << "wheel_button_gear_4 = " << config.wheel_buttons[cfg_role(Config::WheelRole::Gear4)] << "\n"
+        << "wheel_button_gear_neutral = " << config.wheel_buttons[cfg_role(Config::WheelRole::GearNeutral)] << "\n"
+        << "# With an H shifter bound: its lever in none of the gears is in neutral,\n"
+        << "# as on the cabinet. Off, the last gear stays until another is chosen.\n"
+        << "wheel_shifter_neutral = " << bool_text(config.wheel_shifter_neutral) << "\n"
+        << "# A paddle or RB/LB shift from one gear to another passes through\n"
+        << "# neutral this long, in ms, as a lever crosses the gate; 0 shifts\n"
+        << "# straight. 0..500.\n"
+        << "wheel_shift_neutral_ms = " << config.wheel_shift_neutral_ms << "\n"
         << "# Wheel axes, or -1 to auto-detect (steering axis 0; pedals by rest\n"
         << "# position). Set by the GUI calibration when a wheel differs.\n"
         << "wheel_steer_axis = " << config.wheel_steer_axis << "\n"

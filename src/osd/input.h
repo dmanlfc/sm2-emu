@@ -121,6 +121,11 @@ public:
         std::array<s32, Config::kWheelRoleCount> buttons =
             Config{}.wheel_buttons;
 
+        /// An H shifter's lever in none of the gears is in neutral; and how
+        /// long, in ms, a sequential shift between two gears shows neutral.
+        bool shifter_neutral  = true;
+        u32  shift_neutral_ms = 100;
+
         /// Wheel axis per analogue control, or -1 to auto-detect. Invert flags
         /// apply to a pedal that reads high released, low pressed. Half flags,
         /// to a pedal on half of its axis, released at the centre and pressed
@@ -399,6 +404,8 @@ private:
     mutable std::string m_gear_game;         ///< game the gate was seeded for.
     mutable bool m_gear_up_held    = false;
     mutable bool m_gear_down_held  = false;
+    /// Frames of neutral left in a sequential shift between two gears.
+    mutable u32  m_shift_neutral_frames = 0;
 
     /// Gamepad shoulder-button shifter edge state, shared with the wheel gate.
     mutable bool m_pad_gear_up_held   = false;

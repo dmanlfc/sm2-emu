@@ -2368,13 +2368,16 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
 
     // Gear selector. The shifter's positions are exposed as one bit each and the
     // machine turns them into the code its program expects. Nothing held means
-    // "hold the last gear", which is what the real gate does between positions.
+    // "hold the last gear", as MAME does between positions.
     //
-    // F1 to F4 select gears 1 to 4 (GEARS bits 1..4) and F5 is neutral (bit 0).
+    // F1 to F4 select gears 1 to 4 (GEARS bits 1..4) and F5 is neutral (bit 0),
+    // as do the wheel buttons of an H shifter (Gear1..4, GearNeutral). Paddles
+    // and RB/LB step through the gate instead.
     if (game.gearbox) {
         if (m_gear_game != game.name) {
-            m_wheel_gear = game.start_gear;
-            m_gear_game  = game.name;
+            m_wheel_gear           = game.start_gear;
+            m_gear_game            = game.name;
+            m_shift_neutral_frames = 0;
         }
 
         u8 gears = 0;
@@ -2394,50 +2397,85 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             }
         }
 
-        // Paddle shifters step through the gate, neutral included.
-        if (m_wheel.handle != nullptr) {
-            const int count = SDL_GetNumJoystickButtons(m_wheel.handle);
-            const auto role_held = [&](Config::WheelRole role) {
-                const s32 button = m_wheel_settings.buttons[static_cast<usize>(role)];
-                return button >= 0 && button < count
-                    && SDL_GetJoystickButton(m_wheel.handle, button);
-            };
-            const bool up   = role_held(Config::WheelRole::GearUp);
-            const bool down = role_held(Config::WheelRole::GearDown);
-            bool shifted = false;
-            if (up && !m_gear_up_held && m_wheel_gear < 4) {
-                ++m_wheel_gear;
-                shifted = true;
-            }
-            if (down && !m_gear_down_held && m_wheel_gear > 0) {
-                --m_wheel_gear;
-                shifted = true;
-            }
-            m_gear_up_held   = up;
-            m_gear_down_held = down;
-            if (shifted || gears == 0) {
-                gears = static_cast<u8>(1u << m_wheel_gear);
+        const int  wheel_buttons = m_wheel.handle != nullptr
+                                     ? SDL_GetNumJoystickButtons(m_wheel.handle) : 0;
+        const auto role_bound    = [&](Config::WheelRole role) {
+            const s32 button = m_wheel_settings.buttons[static_cast<usize>(role)];
+            return button >= 0 && button < wheel_buttons;
+        };
+        const auto role_held = [&](Config::WheelRole role) {
+            return role_bound(role)
+                && SDL_GetJoystickButton(m_wheel.handle,
+                                         m_wheel_settings.buttons[static_cast<usize>(role)]);
+        };
+
+        // An H shifter: a button per gear, and maybe one for neutral.
+        static constexpr Config::WheelRole kGearRoles[4] = {
+            Config::WheelRole::Gear1, Config::WheelRole::Gear2,
+            Config::WheelRole::Gear3, Config::WheelRole::Gear4,
+        };
+        bool h_shifter = false;
+        for (u32 gear = 0; gear < 4; ++gear) {
+            h_shifter |= role_bound(kGearRoles[gear]);
+            if (role_held(kGearRoles[gear])) {
+                gears |= static_cast<u8>(1u << (gear + 1));
+                m_wheel_gear = gear + 1;
             }
         }
+        if (role_held(Config::WheelRole::GearNeutral)) {
+            gears |= 0x01;
+            m_wheel_gear = 0;
+        }
+        if (gears != 0) {
+            m_shift_neutral_frames = 0;  // a lever in a position needs no crossing
+        }
 
-        // Gamepad shifter: RB up, LB down, edge-detected, sharing m_wheel_gear.
-        if (SDL_Gamepad* pad = pad_for(0); pad != nullptr) {
-            const bool up   = SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
-            const bool down = SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
-            bool shifted = false;
-            if (up && !m_pad_gear_up_held && m_wheel_gear < 4) {
+        // Paddles and RB/LB step through the gate, neutral included. Going from
+        // one gear to another crosses neutral for a moment, as a lever does
+        // through the gate's centre.
+        const u32 crossing = static_cast<u32>(
+            m_wheel_settings.shift_neutral_ms * kMachineHz / 1000.0 + 0.999);
+        const auto step = [&](bool up, bool down, bool* up_held, bool* down_held) {
+            const u32 from = m_wheel_gear;
+            if (up && !*up_held && m_wheel_gear < 4) {
                 ++m_wheel_gear;
-                shifted = true;
             }
-            if (down && !m_pad_gear_down_held && m_wheel_gear > 0) {
+            if (down && !*down_held && m_wheel_gear > 0) {
                 --m_wheel_gear;
-                shifted = true;
             }
-            m_pad_gear_up_held   = up;
-            m_pad_gear_down_held = down;
-            if (shifted || gears == 0) {
-                gears = static_cast<u8>(1u << m_wheel_gear);
+            *up_held   = up;
+            *down_held = down;
+            if (m_wheel_gear != from && from != 0 && m_wheel_gear != 0) {
+                m_shift_neutral_frames = crossing;
             }
+        };
+        bool sequential = false;
+        if (m_wheel.handle != nullptr) {
+            sequential = true;
+            step(role_held(Config::WheelRole::GearUp), role_held(Config::WheelRole::GearDown),
+                 &m_gear_up_held, &m_gear_down_held);
+        }
+        if (SDL_Gamepad* pad = pad_for(0); pad != nullptr) {
+            sequential = true;
+            step(SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER),
+                 SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER),
+                 &m_pad_gear_up_held, &m_pad_gear_down_held);
+        }
+
+        // A position held (a key, an H shifter's button) wins over the paddles.
+        if (gears == 0) {
+            if (h_shifter && m_wheel_settings.shifter_neutral) {
+                // The H shifter's lever is in none of the gears: neutral, as
+                // on the cabinet.
+                gears                  = 0x01;
+                m_wheel_gear           = 0;
+                m_shift_neutral_frames = 0;
+            } else if (sequential) {
+                gears = static_cast<u8>(m_shift_neutral_frames > 0 ? 0x01 : 1u << m_wheel_gear);
+            }
+        }
+        if (m_shift_neutral_frames > 0) {
+            --m_shift_neutral_frames;
         }
 
         inputs->gears = gears;
