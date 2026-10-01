@@ -34,12 +34,16 @@ struct DriveCommand {
         Vibrate,    ///< Shaking with no direction.
         PushLeft,   ///< Constant force turning the wheel left.
         PushRight,  ///< Constant force turning the wheel right.
+        Chop,       ///< Sets the board's torque chopping (`chop`); keeps the current force.
     };
 
     Effect effect   = Effect::None;
     int    strength = 0;  ///< 0..kDriveFull.
     /// A push the game streams continuously (a torque), rather than a jolt.
     bool   held     = false;
+    /// For Chop: 0 ends the chopping, 1..7 chops the torque, flipping it off
+    /// and on every 2^(chop+1) interrupts of the drive board.
+    u8     chop     = 0;
 
     [[nodiscard]] bool is_push() const
     {

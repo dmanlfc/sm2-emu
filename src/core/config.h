@@ -237,6 +237,13 @@ struct Config {
     bool wheel_accel_invert = false;
     bool wheel_brake_invert = false;
 
+    /// A pedal on half of its axis: released at the centre, pressed towards
+    /// one end, the low end when inverted (Y- rather than Y+). Two pedals can
+    /// share an axis this way. Captured during calibration, from an axis that
+    /// rests at its centre.
+    bool wheel_accel_half = false;
+    bool wheel_brake_half = false;
+
     // -- gamepad -----------------------------------------------------------
 
     /// Gamepad rumble: the game's jolts plus a buzz rising with steering. Driving games only.

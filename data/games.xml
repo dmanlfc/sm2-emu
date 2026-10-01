@@ -80,7 +80,7 @@
   `gearbox="true"` marks a title whose IN1 bits 0x70 read a gear selector
   rather than buttons (MAME's daytona_gearbox_r). `drive_board="true"` marks
   one that latches force-feedback commands on port E. `drive_protocol` says how
-  to read them: "daytona" (the default), "stcc" or "rally".
+  to read them: "daytona" (the default), "indy" or "rally".
 
   `shift_buttons="true"` marks a title that shifts with two momentary buttons,
   Shift Up on IN1 0x10 and Shift Down on IN1 0x20, rather than the 0x70 gate
@@ -2544,7 +2544,7 @@
   </game>
 
 
-  <game name="indy500" drive_board="true" shift_buttons="true" board="model2b" start1="0x40" vr_buttons="in1:0x01,in1:0x02">
+  <game name="indy500" drive_board="true" drive_protocol="indy" shift_buttons="true" board="model2b" start1="0x40" vr_buttons="in1:0x01,in1:0x02">
     <title>INDY 500 Twin</title>
     <manufacturer>Sega</manufacturer>
     <year>1995</year>
@@ -3328,7 +3328,7 @@
   </game>
 
 
-  <game name="overrev" board="model2c" start1="0x40" shift_buttons="true" vr_buttons="in1:0x01,in1:0x02">
+  <game name="overrev" drive_board="true" drive_protocol="indy" board="model2c" start1="0x40" shift_buttons="true" vr_buttons="in1:0x01,in1:0x02">
     <title>Over Rev</title>
     <manufacturer>Jaleco</manufacturer>
     <year>1997</year>
@@ -4114,7 +4114,7 @@
   </game>
 
 
-  <game name="sgt24h" shift_buttons="true" board="model2b" start1="0x40" vr_buttons="in1:0x01">
+  <game name="sgt24h" drive_board="true" drive_protocol="indy" shift_buttons="true" board="model2b" start1="0x40" vr_buttons="in1:0x01">
     <title>Super GT 24h</title>
     <manufacturer>Jaleco</manufacturer>
     <year>1996</year>
@@ -4590,7 +4590,7 @@
   </game>
 
 
-  <game name="stcc" drive_board="true" drive_protocol="stcc" board="model2c" start1="0x40" shift_buttons="true">
+  <game name="stcc" drive_board="true" drive_protocol="indy" board="model2c" start1="0x40" shift_buttons="true">
     <title>Sega Touring Car Championship</title>
     <manufacturer>Sega</manufacturer>
     <year>1996</year>

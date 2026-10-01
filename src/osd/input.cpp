@@ -192,6 +192,67 @@ bool is_wheel_typed(SDL_JoystickID id)
     return SDL_GetJoystickTypeForID(id) == SDL_JOYSTICK_TYPE_WHEEL;
 }
 
+/// The synthesised centring spring standing in for the cabinet panel's: zero in
+/// a small deadzone, rising to `full` part way to lock. Signed like the
+/// deflection.
+int centring_spring(int deflection, int full)
+{
+    constexpr int kDeadzone = 1500;
+    constexpr int kSpan     = 14000;
+    const int     m         = std::abs(deflection);
+    if (m <= kDeadzone) {
+        return 0;
+    }
+    const int force = full * std::min(m - kDeadzone, kSpan) / kSpan;
+    return deflection < 0 ? -force : force;
+}
+
+// The drive board of Sega Rally and Daytona, one board with two programs,
+// EPR-17891 and EPR-16488A (docs: BackForceFeeder's docs/EPR-17891-SegaRally-
+// DriveBoard and docs/EPR-16488A-Daytona-DriveBoard). Their timings count the
+// board's interrupts, whose rate is not known: about 1250 cycles of work each
+// at 4 MHz cap it near 2-3 kHz, and 1 kHz (the 8 MHz crystal / 8192) is taken
+// until it is measured.
+constexpr double kDriveBoardIrqHz = 1000.0;
+constexpr double kMachineHz       = 57.5245;
+
+/// The centring spring of the panel Sega Rally and Daytona share, as a share
+/// (%) of the wheel's force where it is strongest. Very light on a cabinet: it
+/// brings the wheel back, and is barely felt when held against.
+constexpr int kPanelSpringPercent = 20;
+
+/// At start-up Sega Rally's board raises its power until its own ADC reads this
+/// many counts of 128 off centre, one way and the other, and keeps that power:
+/// what it takes against the panel's spring, and against the drag of the
+/// clutch and the gears, which a PC wheel does not have.
+constexpr int kRallyCalibCountsRight = 30;
+constexpr int kRallyCalibCountsLeft  = 32;
+
+/// Daytona's board does the same to 16 counts either way, and keeps the mean
+/// of the two powers less one.
+constexpr int kDaytonaCalibCounts = 16;
+
+/// The board's motor powers (0..63) are taken on the scale of Sega Rally's
+/// torques: 32, its strongest, is the wheel's full strength.
+constexpr int kBoardFullPower = 32;
+
+/// `deflection`, the wheel's axis, as the board's ADC counts off its centre
+/// (128 a side): the same share of the game's steering travel.
+int board_counts(int deflection, u32 steer_degrees, u32 lock_degrees)
+{
+    const long long steer = std::max(1u, steer_degrees);
+    const long long lock  = std::max(1u, lock_degrees);
+    return static_cast<int>(std::clamp(deflection * 128LL * steer / lock / 32767, -128LL, 128LL));
+}
+
+/// The opposite: the wheel's axis `counts` off the board's centre.
+int board_deflection(int counts, u32 steer_degrees, u32 lock_degrees)
+{
+    const long long steer = std::max(1u, steer_degrees);
+    const long long lock  = std::max(1u, lock_degrees);
+    return static_cast<int>(std::min(32767LL * counts / 128 * lock / steer, 32767LL));
+}
+
 }  // namespace
 
 u8 Input::stick_bits(s16 x, s16 y)
@@ -503,15 +564,62 @@ void Input::add_wheel(SDL_JoystickID id)
     m_wheel.can_rumble = SDL_GetBooleanProperty(SDL_GetJoystickProperties(handle),
                                                 SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN, false);
 
-    // Axis roles: use the calibrated values when set, else auto-detect. Steering
-    // self-centres (rests mid-travel) while a pedal rests hard at one end; axis 0
-    // is steering on every wheel that exists, so it anchors the search and the
-    // other axes resting at an extreme are pedals, taken in order accel then
-    // brake. A wheel whose layout defeats this is corrected in the GUI.
     const int axes = SDL_GetNumJoystickAxes(handle);
     for (int axis = 0; axis < axes && axis < Wheel::kMaxAxes; ++axis) {
         m_wheel.axis_rest[static_cast<usize>(axis)] = SDL_GetJoystickAxis(handle, axis);
     }
+    assign_wheel_axes();
+
+    // Force feedback is a constant force we aim ourselves each frame (see
+    // update_force_feedback): the wheel's driver ignores FF_SPRING but honours
+    // FF_CONSTANT, so the centring pull is computed from the wheel angle rather
+    // than programmed as a spring. Started at zero level and left running.
+    if (m_wheel_settings.ffb) {
+        auto ffb = std::make_unique<WheelForce>();
+        if (ffb->open(handle)) {
+            SM2_INFO("wheel force feedback: %s%s", ffb->backend(),
+                     ffb->has_rumble() ? " (with rumble)" : "");
+            // Centres the wheel until our spring has a position to work from.
+            ffb->set_autocenter(50);
+            m_wheel.autocenter = true;
+            m_wheel.ffb        = std::move(ffb);
+        } else {
+            SM2_INFO("wheel has no constant-force effect; using plain rumble");
+        }
+    }
+}
+
+void Input::set_wheel_settings(const WheelSettings& wheel)
+{
+    const WheelSettings& old = m_wheel_settings;
+    const bool axes_changed =
+        wheel.steer_axis != old.steer_axis || wheel.accel_axis != old.accel_axis
+        || wheel.brake_axis != old.brake_axis || wheel.accel_invert != old.accel_invert
+        || wheel.brake_invert != old.brake_invert || wheel.accel_half != old.accel_half
+        || wheel.brake_half != old.brake_half;
+    m_wheel_settings = wheel;
+    // A calibration takes effect at once, not at the wheel's next connection.
+    if (axes_changed && m_wheel.handle != nullptr) {
+        assign_wheel_axes();
+    }
+}
+
+void Input::assign_wheel_axes()
+{
+    // Axis roles: use the calibrated values when set, else auto-detect. Steering
+    // self-centres (rests mid-travel) while a pedal rests hard at one end; axis 0
+    // is steering on every wheel that exists, so it anchors the search and the
+    // other axes resting at an extreme are pedals, taken in order accel then
+    // brake. A wheel whose layout defeats this is corrected in the GUI; so is a
+    // pedal on half of its axis, which rests at the centre like the steering.
+    const int axes = SDL_GetNumJoystickAxes(m_wheel.handle);
+    m_wheel.steer_axis   = -1;
+    m_wheel.accel_axis   = -1;
+    m_wheel.brake_axis   = -1;
+    m_wheel.accel_invert = false;
+    m_wheel.brake_invert = false;
+    m_wheel.accel_half   = false;
+    m_wheel.brake_half   = false;
     if (m_wheel_settings.steer_axis >= 0 || m_wheel_settings.accel_axis >= 0
         || m_wheel_settings.brake_axis >= 0) {
         m_wheel.steer_axis   = m_wheel_settings.steer_axis;
@@ -519,6 +627,8 @@ void Input::add_wheel(SDL_JoystickID id)
         m_wheel.brake_axis   = m_wheel_settings.brake_axis;
         m_wheel.accel_invert = m_wheel_settings.accel_invert;
         m_wheel.brake_invert = m_wheel_settings.brake_invert;
+        m_wheel.accel_half   = m_wheel_settings.accel_half;
+        m_wheel.brake_half   = m_wheel_settings.brake_half;
     } else {
         m_wheel.steer_axis = axes > 0 ? 0 : -1;
         int assigned_pedals = 0;
@@ -543,29 +653,11 @@ void Input::add_wheel(SDL_JoystickID id)
         }
     }
 
-    const char* name = SDL_GetJoystickName(handle);
-    SM2_INFO("wheel: %s (%d axes; steer %d accel %d(inv %d) brake %d(inv %d))",
+    const char* name = SDL_GetJoystickName(m_wheel.handle);
+    SM2_INFO("wheel: %s (%d axes; steer %d accel %d(inv %d half %d) brake %d(inv %d half %d))",
              name != nullptr ? name : "steering wheel", axes,
-             m_wheel.steer_axis, m_wheel.accel_axis, m_wheel.accel_invert,
-             m_wheel.brake_axis, m_wheel.brake_invert);
-
-    // Force feedback is a constant force we aim ourselves each frame (see
-    // update_force_feedback): the wheel's driver ignores FF_SPRING but honours
-    // FF_CONSTANT, so the centring pull is computed from the wheel angle rather
-    // than programmed as a spring. Started at zero level and left running.
-    if (m_wheel_settings.ffb) {
-        auto ffb = std::make_unique<WheelForce>();
-        if (ffb->open(handle)) {
-            SM2_INFO("wheel force feedback: %s%s", ffb->backend(),
-                     ffb->has_rumble() ? " (with rumble)" : "");
-            // Centres the wheel until our spring has a position to work from.
-            ffb->set_autocenter(50);
-            m_wheel.autocenter = true;
-            m_wheel.ffb        = std::move(ffb);
-        } else {
-            SM2_INFO("wheel has no constant-force effect; using plain rumble");
-        }
-    }
+             m_wheel.steer_axis, m_wheel.accel_axis, m_wheel.accel_invert, m_wheel.accel_half,
+             m_wheel.brake_axis, m_wheel.brake_invert, m_wheel.brake_half);
 }
 
 void Input::remove_wheel(SDL_JoystickID id)
@@ -587,6 +679,24 @@ s16 Input::wheel_axis(int axis) const
         return m_wheel.axis_rest[static_cast<usize>(axis)];
     }
     return SDL_GetJoystickAxis(m_wheel.handle, axis);
+}
+
+float Input::pedal_travel(int axis, bool invert, bool half) const
+{
+    const float raw = static_cast<float>(wheel_axis(axis));
+    float travel;
+    if (half) {
+        // Released at the centre, pressed towards one end.
+        travel = invert ? -raw / 32768.0f : raw / 32767.0f;
+    } else {
+        // SDL normalises every axis to -32768..32767: a pedal over the whole
+        // axis rests at one end and is pressed at the other.
+        travel = (raw + 32768.0f) / 65535.0f;
+        if (invert) {
+            travel = 1.0f - travel;
+        }
+    }
+    return std::clamp(travel, 0.0f, 1.0f);
 }
 
 bool Input::sample_wheel_channel(const rom::AnalogChannel& channel, u8* out) const
@@ -656,14 +766,11 @@ bool Input::sample_wheel_channel(const rom::AnalogChannel& channel, u8* out) con
     }
 
     // A pedal. The physical pedal gives fraction 0 released, 1 pressed. A wheel
-    // whose pedal reads the other way is corrected by the user's invert flag.
-    const bool invert =
-        (channel.control == rom::AnalogControl::Brake) ? m_wheel.brake_invert
-                                                       : m_wheel.accel_invert;
-    if (invert) {
-        fraction = 1.0f - fraction;
-    }
-    fraction = std::clamp(fraction, 0.0f, 1.0f);
+    // whose pedal reads the other way is corrected by the user's invert flag;
+    // one on half of its axis, by the half flag.
+    const bool brake = channel.control == rom::AnalogControl::Brake;
+    fraction = pedal_travel(axis, brake ? m_wheel.brake_invert : m_wheel.accel_invert,
+                            brake ? m_wheel.brake_half : m_wheel.accel_half);
 
     // Map the pedal the way MAME's PORT_BIT does. A PORT_REVERSE pedal (Over
     // Rev, Super GT) reads inverted -- released at the maximum, pressed at the
@@ -833,13 +940,19 @@ s32 Input::captured_axis(const s16* baseline, int count, bool* positive) const
 void Input::update_drive_board(const rom::GameSpec& game, std::span<const u8> writes)
 {
     for (const u8 value : writes) {
+        SM2_TRACE("drive board: %02X", value);
+        if (game.drive_protocol == rom::DriveProtocol::Daytona) {
+            m_daytona.command(value);
+        } else if (game.drive_protocol == rom::DriveProtocol::Indy) {
+            m_indy.command(value);
+        }
         const DriveCommand command = decode_drive_command(game.drive_protocol, value);
         if (command.effect == DriveCommand::Effect::Other) {
             continue;
         }
-        // A one-off spring does not interrupt a streamed command.
-        if (command.effect == DriveCommand::Effect::Spring && !command.held
-            && m_drive_command.held) {
+        // The chopping is a setting of the board, beside the torque, not one.
+        if (command.effect == DriveCommand::Effect::Chop) {
+            m_drive_chop = command.chop;
             continue;
         }
         m_drive_command = command;
@@ -862,6 +975,12 @@ void Input::update_force_feedback(const rom::GameSpec& game)
     const DriveCommand& command = m_drive_command;
     int level  = 0;
     int rumble = 0;   // sine magnitude, felt as vibration rather than a push
+    // Sega Rally's chopping when it flips too fast for the frames: its swing,
+    // played as a sine on a wheel delivering force feedback, and its period.
+    int chop_swing     = 0;
+    u16 chop_period_ms = WheelForce::kRumblePeriod;
+    const double board_ticks = kDriveBoardIrqHz / kMachineHz;
+    m_drive_ticks += board_ticks;
     if (wheel_ffb_active(game)) {
         const int ceiling = static_cast<int>(
             std::clamp(m_wheel_settings.strength, 0u, 100u) * 32767 / 100);
@@ -880,34 +999,114 @@ void Input::update_force_feedback(const rom::GameSpec& game)
         const int velocity = deflection - m_wheel.last_deflection;
         m_wheel.last_deflection = deflection;
 
-        // A spring of the given strength: zero in a small deadzone, rising to full
-        // strength part way to lock. Signed like the deflection.
-        const auto spring = [deflection](int full) {
-            constexpr int kDeadzone = 1500;
-            constexpr int kSpan     = 14000;
-            const int     m         = std::abs(deflection);
-            if (m <= kDeadzone) {
-                return 0;
-            }
-            const int force = full * std::min(m - kDeadzone, kSpan) / kSpan;
-            return deflection < 0 ? -force : force;
-        };
+        // A spring of the given strength about the wheel's position.
+        const auto spring = [deflection](int full) { return centring_spring(deflection, full); };
 
-        // So the wheel centres in menus and attract mode too, not only once the
-        // game sends its own centring. Left out while the game streams its own
-        // spring, as it then centres the wheel itself.
-        const bool game_centres =
-            command.held && command.effect == DriveCommand::Effect::Spring;
-        const int  baseline     = game_centres ? 0 : spring(ceiling * 3 / 4);
+        // The centring spring of the panel Sega Rally and Daytona share, which
+        // also centres the wheel in menus and attract mode. Indy 500's panel,
+        // and Touring Car's, Over Rev's and Super GT's, drive the wheel
+        // straight from the motor, with no spring.
+        const bool panel_spring = game.drive_protocol == rom::DriveProtocol::Rally
+                               || game.drive_protocol == rom::DriveProtocol::Daytona;
+        const int  panel_full   = ceiling * kPanelSpringPercent / 100;
+        const int  baseline     = panel_spring ? spring(panel_full) : 0;
 
         // Positive levels push the wheel left (the output is negated).
         int game_force = 0;
-        if (command.is_push() && command.held) {
+        if (game.drive_protocol == rom::DriveProtocol::Daytona) {
+            // Daytona's board works out its forces from the wheel itself. Its
+            // start-up calibration finds the power that holds the wheel 16
+            // counts off the centre against the panel's spring: here the
+            // simulated spring's force there.
+            const u32 steer       = m_wheel_settings.steer_degrees;
+            const u32 lock        = m_wheel_settings.lock_degrees;
+            const int unit        = std::max(1, ceiling / kBoardFullPower);
+            const int calib_force = centring_spring(
+                board_deflection(kDaytonaCalibCounts, steer, lock), panel_full);
+            const int breakaway = std::max(0, (calib_force + unit - 1) / unit - 1);
+            const DaytonaBoard::Output out =
+                m_daytona.step(board_counts(deflection, steer, lock), board_ticks, breakaway);
+            const int force = out.power * ceiling / kBoardFullPower;
+            switch (out.way) {
+                case DaytonaBoard::Way::Down: game_force = force; break;   // left
+                case DaytonaBoard::Way::Up:   game_force = -force; break;  // right
+                case DaytonaBoard::Way::None: {
+                    // A power with no way: the clutch holds the wheel to the
+                    // standing motor, a brake against the turn.
+                    constexpr int kFullSpeed = 1024;
+                    game_force = force * std::clamp(velocity, -kFullSpeed, kFullSpeed) / kFullSpeed;
+                    break;
+                }
+            }
+            SM2_DEBUG("ffb daytona: on=%d effect=%02X osc=%d way=%d power=%d breakaway=%d",
+                      m_daytona.forces_on() ? 1 : 0, m_daytona.effect(),
+                      m_daytona.oscillating() ? 1 : 0, static_cast<int>(out.way), out.power,
+                      breakaway);
+        } else if (game.drive_protocol == rom::DriveProtocol::Indy) {
+            // Indy 500's board drives its direct-drive motor with two powers,
+            // one each way, worked out from the wheel; 63 is the motor's full
+            // duty, here the wheel's full strength. What the two have in
+            // common brakes the motor, against the turn.
+            const int position =
+                0x80 + board_counts(deflection, m_wheel_settings.steer_degrees,
+                                    m_wheel_settings.lock_degrees);
+            const IndyBoard::Output out = m_indy.step(position, IndyBoard::kNmiHz / kMachineHz);
+            constexpr int kFullPower = 63;
+            constexpr int kFullSpeed = 1024;
+            const int brake = std::min(out.up, out.down) * ceiling / kFullPower;
+            game_force = (out.down - out.up) * ceiling / kFullPower  // down is left
+                       + brake * std::clamp(velocity, -kFullSpeed, kFullSpeed) / kFullSpeed;
+            SM2_DEBUG("ffb indy: effect=%02X base=%d centre=%02X position=%d up=%d down=%d",
+                      m_indy.effect(), m_indy.base(), m_indy.centre(), position, out.up,
+                      out.down);
+        } else if (command.is_push() && command.held) {
             // A streamed torque is the game's own steering feel, centring
             // included; apply it as sent.
             m_wheel.constant_hold = 0;
             m_wheel.constant_dir  = 0;
-            game_force = command.effect == DriveCommand::Effect::PushLeft ? mag : -mag;
+            const int dir   = command.effect == DriveCommand::Effect::PushLeft ? 1 : -1;
+            int       force = mag;
+            if (game.drive_protocol == rom::DriveProtocol::Rally) {
+                // The Sega Rally board adds to a push that turns the wheel away
+                // from the centre the power its start-up calibration found
+                // against the panel's spring: here what the simulated spring
+                // pushes at the same point, its ADC counts taken as a share of
+                // the game's steering travel. Its centre test, the ADC against
+                // $7D, is three counts short of the centre: taken as the centre.
+                // Nearer the centre the board's power exceeds the spring and
+                // goes into the drag of the clutch and the gears; a PC wheel
+                // has none, so no more than the spring there is added.
+                const bool outward = dir > 0 ? deflection < 0 : deflection >= 0;
+                if (outward) {
+                    const int counts = dir > 0 ? kRallyCalibCountsLeft : kRallyCalibCountsRight;
+                    const int calib  = centring_spring(
+                        board_deflection(counts, m_wheel_settings.steer_degrees,
+                                         m_wheel_settings.lock_degrees),
+                        panel_full);
+                    force += std::min(std::abs(spring(panel_full)), calib);
+                }
+
+                // While $11..$17 hold, the board chops its output: off half the
+                // time, a quarter stronger the other half, flipping every
+                // 2^(N+1) of its interrupts.
+                if (m_drive_chop != 0) {
+                    const double flip = static_cast<double>(2u << m_drive_chop);
+                    if (flip >= 2.0 * board_ticks) {
+                        const bool off = (static_cast<u64>(m_drive_ticks / flip) & 1u) != 0;
+                        force          = off ? 0 : force * 5 / 4;
+                    } else {
+                        // Faster than the frames can show: its mean as the
+                        // torque, its swing as a vibration where there is one.
+                        force = force * 5 / 8;
+                        if (m_wheel.ffb->has_rumble()) {
+                            chop_swing     = std::min(force, 32767);
+                            chop_period_ms = static_cast<u16>(
+                                std::max(1.0, 2.0 * flip * 1000.0 / kDriveBoardIrqHz));
+                        }
+                    }
+                }
+            }
+            game_force = dir * force;
         } else if (command.is_push()) {
             const int dir = command.effect == DriveCommand::Effect::PushLeft ? 1 : -1;
             // A push is a jolt from the road, so it also drives the vibration; a
@@ -976,21 +1175,19 @@ void Input::update_force_feedback(const rom::GameSpec& game)
         // G923's motor is strong, so even a small sine magnitude is plenty.
         const int rmax = static_cast<int>(
             std::clamp(m_wheel_settings.rumble_strength, 0u, 100u) * 4000 / 100);
-        const int accel_raw = static_cast<int>(
-            wheel_axis(m_wheel.accel_axis));  // -32768..32767
-        int throttle = accel_raw + 32768;  // 0..65535, pedal released..pressed
-        if (m_wheel.accel_invert) {
-            throttle = 65535 - throttle;
-        }
+        const float throttle =
+            pedal_travel(m_wheel.accel_axis, m_wheel.accel_invert, m_wheel.accel_half);
         // A faint idle hum (a fifth of the range) rising to the full engine level.
-        const int engine = rmax / 5 + (rmax * 4 / 5) * throttle / 65535;
+        const int engine = rmax / 5 + static_cast<int>(static_cast<float>(rmax * 4 / 5) * throttle);
         rumble = std::max(rumble, engine);
     }
 
     // Smooth it: a trigger is a single-frame spike, so decay the running
     // magnitude and hold it a few frames into a sustained felt vibration.
+    // A wheel delivering force feedback rumbles only with the board's chopping.
     int rumble_now = std::max(rumble, (m_wheel.rumble_mag < 0 ? 0 : m_wheel.rumble_mag) * 4 / 5);
-    rumble_now     = ffb_active ? 0 : std::clamp(rumble_now, 0, 32767);
+    rumble_now     = ffb_active ? chop_swing : std::clamp(rumble_now, 0, 32767);
+    const u16 rumble_period = chop_swing != 0 ? chop_period_ms : WheelForce::kRumblePeriod;
 
     constexpr int kFeltChange = 256;
     const auto worth_sending = [](int want, int sent) {
@@ -1004,9 +1201,11 @@ void Input::update_force_feedback(const rom::GameSpec& game)
     }
 
     if (m_wheel.ffb && m_wheel.ffb->has_rumble()) {
-        if (worth_sending(rumble_now, m_wheel.rumble_mag)) {
-            m_wheel.rumble_mag = rumble_now;
-            m_wheel.ffb->set_rumble(static_cast<s16>(rumble_now));
+        const bool new_period = rumble_now != 0 && rumble_period != m_wheel.rumble_period;
+        if (worth_sending(rumble_now, m_wheel.rumble_mag) || new_period) {
+            m_wheel.rumble_mag    = rumble_now;
+            m_wheel.rumble_period = rumble_period;
+            m_wheel.ffb->set_rumble(static_cast<s16>(rumble_now), rumble_period);
         }
     } else if (m_wheel.can_rumble) {
         // A wheel has no rumble motors; its driver swings the steering instead.
@@ -1023,8 +1222,9 @@ void Input::update_force_feedback(const rom::GameSpec& game)
         m_wheel.rumble_mag = rumble_now;
     }
 
-    SM2_DEBUG("ffb: effect=%d strength=%d steer=%d level=%d rumble=%d",
+    SM2_DEBUG("ffb: effect=%d strength=%d chop=%d steer=%d level=%d rumble=%d",
               static_cast<int>(m_drive_command.effect), m_drive_command.strength,
+              static_cast<int>(m_drive_chop),
               m_wheel.steer_axis >= 0 ? static_cast<int>(wheel_axis(m_wheel.steer_axis)) : 0,
               level, rumble_now);
 }

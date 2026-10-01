@@ -29,8 +29,7 @@
 namespace sm2::osd {
 namespace {
 
-/// Vibration period in ms (~50 Hz).
-constexpr u16 kRumblePeriod = 20;
+constexpr u16 kRumblePeriod = WheelForce::kRumblePeriod;
 
 #ifdef __linux__
 constexpr usize kLongBits = 8 * sizeof(unsigned long);
@@ -65,14 +64,14 @@ ff_effect constant_effect(int id, s16 level)
     return effect;
 }
 
-ff_effect sine_effect(int id, s16 magnitude)
+ff_effect sine_effect(int id, s16 magnitude, u16 period_ms = kRumblePeriod)
 {
     ff_effect effect{};
     effect.type                 = FF_PERIODIC;
     effect.id                   = static_cast<s16>(id);
     effect.direction            = kSteerDirection;
     effect.u.periodic.waveform  = FF_SINE;
-    effect.u.periodic.period    = kRumblePeriod;
+    effect.u.periodic.period    = period_ms;
     effect.u.periodic.magnitude = magnitude;
     return effect;
 }
@@ -91,14 +90,14 @@ SDL_HapticEffect sdl_constant_effect(s16 level)
     return effect;
 }
 
-SDL_HapticEffect sdl_sine_effect(s16 magnitude)
+SDL_HapticEffect sdl_sine_effect(s16 magnitude, u16 period_ms = kRumblePeriod)
 {
     SDL_HapticEffect effect{};
     effect.type                      = SDL_HAPTIC_SINE;
     effect.periodic.type             = SDL_HAPTIC_SINE;
     effect.periodic.direction.type   = SDL_HAPTIC_CARTESIAN;
     effect.periodic.direction.dir[0] = 1;
-    effect.periodic.period           = kRumblePeriod;
+    effect.periodic.period           = period_ms;
     effect.periodic.magnitude        = magnitude;
     effect.periodic.length           = SDL_HAPTIC_INFINITY;
     return effect;
@@ -311,19 +310,19 @@ void WheelForce::set_force(s16 level)
     SDL_UpdateHapticEffect(m_haptic, m_force_effect, &effect);
 }
 
-void WheelForce::set_rumble(s16 magnitude)
+void WheelForce::set_rumble(s16 magnitude, u16 period_ms)
 {
     if (m_rumble_effect < 0) {
         return;
     }
 #ifdef __linux__
     if (m_fd >= 0) {
-        ff_effect effect = sine_effect(m_rumble_effect, magnitude);
+        ff_effect effect = sine_effect(m_rumble_effect, magnitude, period_ms);
         ioctl(m_fd, EVIOCSFF, &effect);
         return;
     }
 #endif
-    SDL_HapticEffect effect = sdl_sine_effect(magnitude);
+    SDL_HapticEffect effect = sdl_sine_effect(magnitude, period_ms);
     SDL_UpdateHapticEffect(m_haptic, m_rumble_effect, &effect);
 }
 

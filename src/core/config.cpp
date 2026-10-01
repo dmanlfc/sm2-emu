@@ -658,6 +658,14 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->wheel_brake_invert)) {
                 bad_value();
             }
+        } else if (key == "wheel_accel_half") {
+            if (!parse_bool(value, &out->wheel_accel_half)) {
+                bad_value();
+            }
+        } else if (key == "wheel_brake_half") {
+            if (!parse_bool(value, &out->wheel_brake_half)) {
+                bad_value();
+            }
         } else if (key.rfind("gun1_button_", 0) == 0 || key.rfind("gun2_button_", 0) == 0) {
             const usize player = key[3] == '2' ? 1 : 0;
             const std::string role = key.substr(std::strlen("gun1_button_"));
@@ -908,6 +916,10 @@ bool save_config(const std::string& path, const Config& config)
         << "wheel_brake_axis = " << config.wheel_brake_axis << "\n"
         << "wheel_accel_invert = " << bool_text(config.wheel_accel_invert) << "\n"
         << "wheel_brake_invert = " << bool_text(config.wheel_brake_invert) << "\n"
+        << "# A pedal on half of its axis, released at the centre: pressed towards\n"
+        << "# the high end, or the low end when inverted (Y-).\n"
+        << "wheel_accel_half = " << bool_text(config.wheel_accel_half) << "\n"
+        << "wheel_brake_half = " << bool_text(config.wheel_brake_half) << "\n"
         << "\n"
         << "# Light-gun buttons, per player, as raw Linux evdev key codes (0\n"
         << "# unbinds). Trigger fires, reload is the off-screen reload / missile,\n"

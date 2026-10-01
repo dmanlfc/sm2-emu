@@ -125,6 +125,8 @@ enum class GraphicsBackendChoice {
     w.brake_axis    = c.wheel_brake_axis;
     w.accel_invert  = c.wheel_accel_invert;
     w.brake_invert  = c.wheel_brake_invert;
+    w.accel_half    = c.wheel_accel_half;
+    w.brake_half    = c.wheel_brake_half;
     return w;
 }
 
@@ -905,6 +907,8 @@ int main(int argc, char** argv)
     options.config.wheel_brake_axis    = from_file.wheel_brake_axis;
     options.config.wheel_accel_invert  = from_file.wheel_accel_invert;
     options.config.wheel_brake_invert  = from_file.wheel_brake_invert;
+    options.config.wheel_accel_half    = from_file.wheel_accel_half;
+    options.config.wheel_brake_half    = from_file.wheel_brake_half;
 
     options.config.pad_rumble          = from_file.pad_rumble;
     options.config.pad_rumble_strength = from_file.pad_rumble_strength;

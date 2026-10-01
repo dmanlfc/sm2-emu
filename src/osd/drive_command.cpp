@@ -24,8 +24,9 @@ DriveCommand make(Effect effect, int steps, int full_steps, bool held = false)
     return {effect, steps * kDriveFull / full_steps, held};
 }
 
-// Daytona, Indy 500 and Touring Car: effect in the high nibble,
-// strength in the low one.
+// Indy 500, Touring Car, Over Rev and Super GT: effect in the high nibble,
+// strength in the low one. Their board is IndyBoard for a force-feedback
+// wheel; this reading is only what pads and plain rumble get of it.
 //   0x1x  spring       0..7
 //   0x2x  friction     0..7
 //   0x3x  centring     0..12
@@ -34,7 +35,7 @@ DriveCommand make(Effect effect, int steps, int full_steps, bool held = false)
 //   0x6x  push right   0 releases, up to 7
 // 0x0x and 0x7x are the boot handshake. Indy 500 follows each effect with two
 // parameter bytes, 0xbx then 0xax, not yet understood.
-DriveCommand decode_daytona(u8 value)
+DriveCommand decode_indy(u8 value)
 {
     constexpr DriveCommand kOther{Effect::Other};
     const int low = value & 0x0f;
@@ -49,36 +50,54 @@ DriveCommand decode_daytona(u8 value)
     }
 }
 
-// Touring Car uses Daytona's bytes but streams its pushes every frame as a
-// centring torque worked out from the car, which lags the wheel: swinging from
-// one turn into the next, it still pushes the old way and throws the wheel. So
-// only its strength is used, as a spring about the wheel's own position. It
-// idles at 1, so strength runs from 1 (none) to 7 (full).
-DriveCommand decode_stcc(u8 value)
+// Daytona's board works out its forces from the wheel's position (see
+// DaytonaBoard), which a force-feedback wheel follows. This is only the gist
+// of a byte, for what has no such wheel: pads and plain rumble.
+//   0x00-0x04, 0x08, 0x09, 0x0b, 0x0c  forces off
+//   0x2x  brake (n <= 7)      0x3x  centring spring
+//   0x4x  push away from the centre: shakes, on a pad
+//   0x5x  push left           0x6x  push right   (0x50, 0x60 push too)
+//   other 0x1x-0x6x: no effect; 0x7x and up: settings and questions.
+DriveCommand decode_daytona(u8 value)
 {
-    DriveCommand command = decode_daytona(value);
-    if (command.is_push()) {
-        const int low    = value & 0x0f;
-        command.effect   = Effect::Spring;
-        command.strength = low <= 1 ? 0 : (low - 1) * kDriveFull / 6;
-        command.held     = true;
+    const int n = value & 0x07;
+    switch (value >> 4) {
+        case 0x0:
+            return (value == 0x0a || n >= 5) ? DriveCommand{Effect::Other} : DriveCommand{};
+        case 0x2: return value & 0x08 ? DriveCommand{} : make(Effect::Friction, n + 1, 8);
+        case 0x3: return make(Effect::Spring, n + 1, 8);
+        case 0x4: return value & 0x08 ? DriveCommand{} : make(Effect::Vibrate, n + 1, 8);
+        case 0x5: return value & 0x08 ? DriveCommand{} : make(Effect::PushLeft, n + 1, 8);
+        case 0x6: return value & 0x08 ? DriveCommand{} : make(Effect::PushRight, n + 1, 8);
+        case 0x1: return DriveCommand{};
+        default:  return DriveCommand{Effect::Other};
     }
-    return command;
 }
 
 // Sega Rally streams a torque every frame, strength in the low five bits:
 //   0x80..0x9f  push right  1..32
 //   0xc0..0xdf  push left   1..32
-// Holding the wheel over sends a push back towards centre. 0x00 releases;
-// 0x10 and 0x15 are not forces.
+// Holding the wheel over sends a push back towards centre. 0x00 releases.
+// 0x10..0x17 set the board's torque chopping (0x10 ends it) without touching
+// the torque, which the game uses as 0x15 on shocks and rough ground. Every
+// other byte leaves the torque as it is: the board replays its last torque
+// command (0x40..0x5f, a power with no direction, is not sent by the game).
+// Read in the board's EPROM, EPR-17891.
 DriveCommand decode_rally(u8 value)
 {
     const int low = value & 0x1f;
     switch (value & 0xe0) {
         case 0x80: return make(Effect::PushRight, low + 1, 32, true);
         case 0xc0: return make(Effect::PushLeft, low + 1, 32, true);
-        default:   return value == 0x00 ? DriveCommand{} : DriveCommand{Effect::Other};
+        default:   break;
     }
+    if (value == 0x00) {
+        return DriveCommand{};
+    }
+    if ((value & 0xf8) == 0x10) {
+        return {Effect::Chop, 0, false, static_cast<u8>(value & 0x07)};
+    }
+    return DriveCommand{Effect::Other};
 }
 
 }  // namespace
@@ -86,7 +105,7 @@ DriveCommand decode_rally(u8 value)
 DriveCommand decode_drive_command(rom::DriveProtocol protocol, u8 value)
 {
     switch (protocol) {
-        case rom::DriveProtocol::Stcc:  return decode_stcc(value);
+        case rom::DriveProtocol::Indy:  return decode_indy(value);
         case rom::DriveProtocol::Rally: return decode_rally(value);
         case rom::DriveProtocol::Daytona:
         default: return decode_daytona(value);

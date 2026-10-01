@@ -52,8 +52,11 @@ public:
     void set_autocenter(int percent);
     /// Signed constant force; the sign sets the direction.
     void set_force(s16 level);
-    /// Sine magnitude, 0..32767.
-    void set_rumble(s16 magnitude);
+    /// Default sine period in ms (~50 Hz), felt as a buzz.
+    static constexpr u16 kRumblePeriod = 20;
+
+    /// Sine magnitude, 0..32767, and its period in ms.
+    void set_rumble(s16 magnitude, u16 period_ms = kRumblePeriod);
 
 private:
     bool open_evdev(const char* path);

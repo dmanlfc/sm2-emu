@@ -140,7 +140,7 @@ namespace {
 [[nodiscard]] bool parse_drive_protocol(std::string_view text, DriveProtocol* out)
 {
     if (text == "daytona") { *out = DriveProtocol::Daytona; return true; }
-    if (text == "stcc")    { *out = DriveProtocol::Stcc;    return true; }
+    if (text == "indy")    { *out = DriveProtocol::Indy;    return true; }
     if (text == "rally")   { *out = DriveProtocol::Rally;   return true; }
     return false;
 }

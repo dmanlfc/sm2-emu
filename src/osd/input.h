@@ -16,7 +16,9 @@
 
 #include "core/config.h"
 #include "core/types.h"
+#include "osd/daytona_board.h"
 #include "osd/drive_command.h"
+#include "osd/indy_board.h"
 #include "rom/game.h"
 
 #include <SDL3/SDL.h>
@@ -114,12 +116,16 @@ public:
             Config{}.wheel_buttons;
 
         /// Wheel axis per analogue control, or -1 to auto-detect. Invert flags
-        /// apply to a pedal that reads high released, low pressed.
+        /// apply to a pedal that reads high released, low pressed. Half flags,
+        /// to a pedal on half of its axis, released at the centre and pressed
+        /// towards the high end, the low one when inverted.
         s32  steer_axis   = -1;
         s32  accel_axis   = -1;
         s32  brake_axis   = -1;
         bool accel_invert = false;
         bool brake_invert = false;
+        bool accel_half   = false;
+        bool brake_half   = false;
     };
 
     /// Start the gamepad subsystem and open whatever is already plugged in.
@@ -146,8 +152,9 @@ public:
     void poll(hw::Inputs* inputs) const;
 
     /// Replace the wheel feel settings live, e.g. from a GUI slider. Cheap; the
-    /// steering range and FFB strength take effect on the next frame.
-    void set_wheel_settings(const WheelSettings& wheel) { m_wheel_settings = wheel; }
+    /// steering range and FFB strength take effect on the next frame, a new
+    /// axis calibration at once.
+    void set_wheel_settings(const WheelSettings& wheel);
 
     /// True when a wheel is connected, for the settings UI to show its controls.
     [[nodiscard]] bool wheel_connected() const { return m_wheel.handle != nullptr; }
@@ -302,6 +309,7 @@ private:
         std::unique_ptr<WheelForce> ffb;
         int            force_level  = 0;   ///< Last level commanded, to skip no-ops.
         int            rumble_mag   = -1;  ///< last rumble magnitude, to skip no-ops.
+        u16            rumble_period = 0;  ///< ms, of the last rumble sent; 0 before any.
 
         bool           autocenter = false;  ///< device autocentre still holding it.
         bool           can_rumble = false;  ///< has rumble motors of its own.
@@ -327,6 +335,8 @@ private:
         int  brake_axis   = -1;
         bool accel_invert = false;
         bool brake_invert = false;
+        bool accel_half   = false;  ///< pedal on half its axis, see WheelSettings.
+        bool brake_half   = false;
 
         /// SDL reports 0 for an axis that has not sent an event yet, which on a
         /// pedal is half pressed. Until one moves, use its value read at open.
@@ -337,6 +347,11 @@ private:
 
     [[nodiscard]] s16 wheel_axis(int axis) const;
 
+    /// How far a pedal on `axis` is pressed, 0 released to 1 fully: over the
+    /// whole axis, or over half of it from the centre when `half`; `invert`
+    /// for a pedal pressed towards the low end.
+    [[nodiscard]] float pedal_travel(int axis, bool invert, bool half) const;
+
 
     void add_gamepad(SDL_JoystickID id);
     void remove_gamepad(SDL_JoystickID id);
@@ -344,6 +359,9 @@ private:
     /// Open `id` as a wheel if it looks like one and no wheel is open yet.
     void add_wheel(SDL_JoystickID id);
     void remove_wheel(SDL_JoystickID id);
+
+    /// Give the open wheel's axes their roles: calibrated, or auto-detected.
+    void assign_wheel_axes();
 
 
     /// Read one driving control straight off the wheel, or a sentinel byte when
@@ -417,6 +435,20 @@ private:
 
     /// The drive board's current force command.
     DriveCommand                     m_drive_command;
+
+    /// Daytona's drive board, which works out its forces from the wheel: fed
+    /// the game's bytes, it drives a force-feedback wheel.
+    DaytonaBoard                     m_daytona;
+
+    /// Indy 500's drive board (Touring Car, Over Rev, Super GT), the same way.
+    IndyBoard                        m_indy;
+
+    /// Sega Rally's board-side torque chopping: 0 off, 1..7 set by $11..$17.
+    /// It outlives the torque commands until a $10 ends it, as on the board.
+    u8                               m_drive_chop  = 0;
+    /// The Sega Rally board's interrupts counted since start, simulated: its
+    /// chopping flips on bits of this count.
+    double                           m_drive_ticks = 0.0;
 
     /// The burst currently playing, shared by every pad: one drive board, one car.
     int                              m_pad_rumble_level    = 0;
