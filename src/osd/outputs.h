@@ -17,7 +17,10 @@
 // DOFLinx and similar tools in MAME's two formats.
 //
 // Network: a TCP server (port 8000 by default) sending "name = value\r" lines,
-// with "mame_start = <set>", "mame_stop = 1" and "pause = 0/1".
+// with "mame_start = <set>", "mame_stop = 1" and "pause = 0/1". When a game
+// starts, it is also announced once the way Supermodel does,
+// "mame_start = <set>\rtcp = <port>\r" over UDP to 127.0.0.1:8001:
+// BackForceFeeder waits for that before it connects.
 //
 // Windows: a hidden "MAMEOutput" window answering MAME's registered window
 // messages, so clients that speak the Windows protocol work unchanged.
@@ -45,8 +48,9 @@ public:
     Outputs(const Outputs&)            = delete;
     Outputs& operator=(const Outputs&) = delete;
 
-    /// Enable or disable each backend. Cheap to call every frame.
-    void configure(bool network, u16 port, bool windows);
+    /// Enable or disable each backend. Cheap to call every frame. announce_port
+    /// is the UDP port for the start announcement, 0 for none.
+    void configure(bool network, u16 port, u16 announce_port, bool windows);
 
     /// The set being run, or an empty string for none. A change sends
     /// mame_stop for the old set and mame_start for the new one.
@@ -59,6 +63,15 @@ public:
 
     /// Accept clients and flush queued messages. Call once per frame.
     void poll();
+
+    /// Where the network outputs stand, for the settings.
+    struct NetworkStatus {
+        bool        enabled   = false;
+        bool        listening = false;
+        usize       clients   = 0;
+        std::string error;  ///< Why it is not listening; empty when it is.
+    };
+    [[nodiscard]] NetworkStatus network_status() const;
 
     /// One published output, exposed for the backends.
     struct Item {
@@ -83,7 +96,8 @@ private:
 
     std::unique_ptr<Backend> m_network;
     std::unique_ptr<Backend> m_windows;
-    u16                      m_port = 0;
+    u16                      m_port          = 0;
+    u16                      m_announce_port = 0;
 };
 
 }  // namespace sm2::osd

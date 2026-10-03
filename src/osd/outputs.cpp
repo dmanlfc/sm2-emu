@@ -21,6 +21,7 @@
 #include "core/net.h"
 
 #include <cstring>
+#include <span>
 #include <string_view>
 #include <utility>
 
@@ -40,6 +41,7 @@ public:
     virtual void paused(bool paused) = 0;
     virtual void poll(const std::string& game, const std::vector<Item>& items,
                       bool paused) = 0;
+    [[nodiscard]] virtual NetworkStatus status() const { return {}; }
 };
 
 namespace {
@@ -94,13 +96,24 @@ std::string line(std::string_view name, s32 value)
 
 class NetworkBackend final : public Outputs::Backend {
 public:
-    explicit NetworkBackend(u16 port)
+    NetworkBackend(u16 port, u16 announce_port) : m_port(port), m_announce_port(announce_port)
     {
         m_started = net::startup();
         if (m_started && m_server.open(port)) {
             SM2_INFO("outputs: network outputs on port %u", port);
+        } else if (m_server.address_in_use()) {
+            m_error = "port " + std::to_string(port) + " is already in use";
+            SM2_WARN("outputs: TCP port %u is already in use, probably by another emulator "
+                     "or output tool; close it, or set outputs_network_port to a free port",
+                     port);
         } else {
+            m_error = m_server.last_error();
             SM2_WARN("outputs: %s", m_server.last_error().c_str());
+        }
+
+        // Supermodel's announcement goes to this machine, where the tools run.
+        if (m_started && m_announce_port != 0 && !m_announce.open("127.0.0.1", 0)) {
+            SM2_WARN("outputs: no UDP announcement: %s", m_announce.last_error().c_str());
         }
     }
 
@@ -120,6 +133,7 @@ public:
                 m_server.broadcast(line(item.name, item.value));
             }
         }
+        announce(game);
     }
 
     void stop() override { m_server.broadcast("mame_stop = 1\r"); }
@@ -150,8 +164,31 @@ public:
         });
     }
 
+    [[nodiscard]] Outputs::NetworkStatus status() const override
+    {
+        return {true, m_server.valid(), m_server.client_count(), m_error};
+    }
+
 private:
+    /// Supermodel's datagram, "mame_start = <set>\rtcp = <port>\r", sent once
+    /// when a game starts, provided the server listens.
+    void announce(const std::string& game)
+    {
+        if (game.empty() || !m_announce.valid() || !m_server.valid()) {
+            return;
+        }
+        const std::string text =
+            "mame_start = " + game + "\rtcp = " + std::to_string(m_port) + "\r";
+        const auto* bytes = reinterpret_cast<const u8*>(text.data());
+        static_cast<void>(
+            m_announce.send_to(std::span<const u8>(bytes, text.size()), "127.0.0.1", m_announce_port));
+    }
+
     net::TcpServer m_server;
+    net::UdpSocket m_announce;
+    u16            m_port          = 0;
+    u16            m_announce_port = 0;
+    std::string    m_error;
     bool           m_started = false;
 };
 
@@ -349,12 +386,13 @@ Outputs::~Outputs()
     set_game({}, {});
 }
 
-void Outputs::configure(bool network, u16 port, bool windows)
+void Outputs::configure(bool network, u16 port, u16 announce_port, bool windows)
 {
-    if (network && (m_network == nullptr || port != m_port)) {
+    if (network && (m_network == nullptr || port != m_port || announce_port != m_announce_port)) {
         m_network.reset();
-        m_network = std::make_unique<NetworkBackend>(port);
-        m_port    = port;
+        m_network       = std::make_unique<NetworkBackend>(port, announce_port);
+        m_port          = port;
+        m_announce_port = announce_port;
         if (!m_game.empty()) {
             m_network->start(m_game, m_items);
         }
@@ -481,6 +519,11 @@ void Outputs::poll()
     if (m_network != nullptr) {
         m_network->poll(m_game, m_items, m_paused);
     }
+}
+
+Outputs::NetworkStatus Outputs::network_status() const
+{
+    return m_network != nullptr ? m_network->status() : NetworkStatus{};
 }
 
 }  // namespace sm2::osd

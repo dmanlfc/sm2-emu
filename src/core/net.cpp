@@ -359,6 +359,7 @@ TcpServer::~TcpServer()
 bool TcpServer::open(u16 port)
 {
     close();
+    m_address_in_use = false;
 
 #if defined(_WIN32)
     const Fd fd = static_cast<Fd>(::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP));
@@ -383,6 +384,11 @@ bool TcpServer::open(u16 port)
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     if (::bind(fd, reinterpret_cast<sockaddr*>(&addr), sizeof addr) != 0
         || ::listen(fd, SOMAXCONN) != 0) {
+#if defined(_WIN32)
+        m_address_in_use = WSAGetLastError() == WSAEADDRINUSE;
+#else
+        m_address_in_use = errno == EADDRINUSE;
+#endif
         m_last_error = "listen *:" + std::to_string(port) + ": " + last_socket_error();
         close_fd(fd);
         return false;

@@ -562,14 +562,22 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->pad_rumble)) {
                 bad_value();
             }
-        } else if (key == "outputs_network") {
+        } else if (key == "outputs_network" || key == "net_outputs") {
+            // net_outputs* are the names an earlier build of this fork wrote.
             if (!parse_bool(value, &out->outputs_network)) {
                 bad_value();
             }
-        } else if (key == "outputs_network_port") {
+        } else if (key == "outputs_network_port" || key == "net_outputs_port") {
             if (!parse_u32(value, &out->outputs_network_port)) {
                 bad_value();
             }
+        } else if (key == "outputs_network_udp_port" || key == "net_outputs_udp_port") {
+            if (!parse_u32(value, &out->outputs_network_udp_port)) {
+                bad_value();
+            }
+        } else if (key == "net_outputs_ip") {
+            // The outputs listen on every interface now; the old setting is
+            // read and dropped.
         } else if (key == "outputs_windows") {
             if (!parse_bool(value, &out->outputs_windows)) {
                 bad_value();
@@ -711,6 +719,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     if (out->outputs_network_port == 0 || out->outputs_network_port > 65535) {
         out->outputs_network_port = 8000;
     }
+    out->outputs_network_udp_port = std::min(out->outputs_network_udp_port, 65535u);  // 0 is "off"
     // A sane rotation range: tight enough to be usable, and never zero (which
     // would divide by zero when scaling the steering).
     out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
@@ -863,9 +872,13 @@ bool save_config(const std::string& path, const Config& config)
         << "pad_rumble_strength = " << config.pad_rumble_strength << "\n"
         << "# Cabinet lamps and drive-board bytes for MAMEHooker, DOFLinx and\n"
         << "# similar tools, in MAME's formats: over TCP (network) and, on\n"
-        << "# Windows, as window messages.\n"
+        << "# Windows, as window messages. With the network outputs on, a starting\n"
+        << "# game is also announced over UDP to outputs_network_udp_port, as\n"
+        << "# Supermodel does on 8001, which BackForceFeeder waits for; 0 turns\n"
+        << "# the announcement off.\n"
         << "outputs_network = " << bool_text(config.outputs_network) << "\n"
         << "outputs_network_port = " << config.outputs_network_port << "\n"
+        << "outputs_network_udp_port = " << config.outputs_network_udp_port << "\n"
         << "outputs_windows = " << bool_text(config.outputs_windows) << "\n"
         << "# Your wheel's own physical rotation range (a G-series PC wheel is\n"
         << "# ~900). The cabinet's ~240 of lock is mapped onto it, so matching\n"

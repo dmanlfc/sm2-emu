@@ -161,6 +161,7 @@ struct Options {
         bool screenshot_dir = false;
         bool render_scale = false;
         bool graphics_backend = false;
+        bool outputs_network = false;
     } given;
 
     bool        show_help  = false;
@@ -281,6 +282,10 @@ void print_usage()
         "      --list-games    List the games in the ROM database\n"
         "      --list-gpus     List the Vulkan devices that could be used\n"
         "      --log-level <l> trace, debug, info, warning or error\n"
+        "      --net-outputs   Publish the lamps and drive-board commands like\n"
+        "                      MAME's network output (TCP, port 8000 unless the\n"
+        "                      settings say otherwise, announced over UDP 8001),\n"
+        "                      for BackForceFeeder, MameHooker, DOFLinx and the like\n"
         "      --no-vsync      Present without waiting for vertical blank\n"
         "      --nvram <dir>   Directory for saves: NVRAM and EEPROM images\n"
         "      --render-scale <n>  Internal 3D render scale, 1..8 (default 1 =\n"
@@ -384,6 +389,9 @@ void print_usage()
         } else if (std::strcmp(arg, "--lightgun") == 0) {
             out->config.lightgun = true;
             out->given.lightgun  = true;
+        } else if (std::strcmp(arg, "--net-outputs") == 0) {
+            out->config.outputs_network = true;
+            out->given.outputs_network  = true;
         } else if (std::strcmp(arg, "--log-unmapped") == 0) {
             out->log_unmapped = true;
         } else if (std::strcmp(arg, "--boot-test") == 0) {
@@ -900,9 +908,12 @@ int main(int argc, char** argv)
 
     options.config.pad_rumble          = from_file.pad_rumble;
     options.config.pad_rumble_strength = from_file.pad_rumble_strength;
-    options.config.outputs_network      = from_file.outputs_network;
-    options.config.outputs_network_port = from_file.outputs_network_port;
-    options.config.outputs_windows      = from_file.outputs_windows;
+    if (!options.given.outputs_network) {
+        options.config.outputs_network = from_file.outputs_network;
+    }
+    options.config.outputs_network_port     = from_file.outputs_network_port;
+    options.config.outputs_network_udp_port = from_file.outputs_network_udp_port;
+    options.config.outputs_windows          = from_file.outputs_windows;
 
     options.config.link_enabled        = from_file.link_enabled;
     options.config.link_local_ip       = from_file.link_local_ip;
@@ -2248,6 +2259,7 @@ int main(int argc, char** argv)
 
             outputs.configure(options.config.outputs_network,
                               static_cast<u16>(options.config.outputs_network_port),
+                              static_cast<u16>(options.config.outputs_network_udp_port),
                               options.config.outputs_windows);
             if (machine_iface != nullptr && loaded.has_value()) {
                 outputs.set_game(loaded->game.name, loaded->game.parent);
@@ -2629,6 +2641,11 @@ int main(int argc, char** argv)
                 gui.set_link_status(osd::Gui::LinkStatus{
                     options.config.link_enabled, comm.enabled(), comm.link_alive(),
                     comm.link_id(), comm.link_count()});
+            }
+            {
+                const osd::Outputs::NetworkStatus status = outputs.network_status();
+                gui.set_outputs_status(
+                    osd::Gui::OutputsStatus{status.listening, status.clients, status.error});
             }
             // GPU capabilities gate the enhancement options in the GUI.
             {

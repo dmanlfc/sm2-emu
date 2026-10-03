@@ -1484,6 +1484,65 @@ void Gui::draw_network_tab(Config& config)
         ImGui::BulletText("%s  %s / %s", iface.name.c_str(), iface.ipv4.c_str(),
                           iface.subnet_mask.c_str());
     }
+
+    ImGui::SeparatorText("Cabinet outputs");
+
+    ImGui::Checkbox("Network outputs (MAME protocol)", &config.outputs_network);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            "Sends the cabinet lamps and the drive-board commands the way MAME's\n"
+            "network output does, for BackForceFeeder, MameHooker, DOFLinx and\n"
+            "the like. Takes effect straight away.");
+    }
+
+    ImGui::BeginDisabled(!config.outputs_network);
+    {
+        int port = static_cast<int>(config.outputs_network_port);
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::InputInt("Outputs port", &port)) {
+            config.outputs_network_port = static_cast<u32>(std::clamp(port, 1, 65535));
+        }
+    }
+    {
+        int port = static_cast<int>(config.outputs_network_udp_port);
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::InputInt("Announce port (UDP)", &port)) {
+            config.outputs_network_udp_port = static_cast<u32>(std::clamp(port, 0, 65535));
+        }
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("When a game starts, announces it and the outputs port\n"
+                              "once to tools on this machine that wait for it, as\n"
+                              "Supermodel does (8001, which BackForceFeeder listens\n"
+                              "on). 0 turns it off.");
+        }
+    }
+    ImGui::EndDisabled();
+
+    ImGui::Checkbox("Windows outputs (MAMEOutput messages)", &config.outputs_windows);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("The same outputs over MAME's Windows-message protocol,\n"
+                          "for tools that speak that one. Windows only.");
+    }
+
+    if (!config.outputs_network) {
+        ImGui::TextDisabled("Network outputs off.");
+    } else if (!m_outputs_status.error.empty()) {
+        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Not listening: %s",
+                           m_outputs_status.error.c_str());
+    } else if (!m_outputs_status.listening) {
+        ImGui::TextDisabled("Not listening.");
+    } else if (m_outputs_status.clients == 0) {
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Listening; no tool connected.");
+    } else {
+        ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "%zu tool(s) connected.",
+                           m_outputs_status.clients);
+    }
 }
 
 // ---------------------------------------------------------------------------

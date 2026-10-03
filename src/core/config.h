@@ -253,6 +253,11 @@ struct Config {
     /// TCP port for the network outputs; MAME uses 8000.
     u32 outputs_network_port = 8000;
 
+    /// UDP port for Supermodel's announcement of a starting game, which
+    /// BackForceFeeder waits for before it connects; 8001 is Supermodel's.
+    /// 0 sends none.
+    u32 outputs_network_udp_port = 8001;
+
     /// Publish the same outputs over MAME's Windows-message protocol (Windows only).
     bool outputs_windows = false;
 

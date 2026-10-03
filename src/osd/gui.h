@@ -105,6 +105,14 @@ public:
     };
     void set_link_status(const LinkStatus& status) { m_link_status = status; }
 
+    /// Live cabinet-output server state for the Network tab, fed each frame.
+    struct OutputsStatus {
+        bool        listening = false;  ///< serving the running game
+        usize       clients   = 0;      ///< tools connected
+        std::string error;              ///< why the last listen failed, if it did
+    };
+    void set_outputs_status(OutputsStatus status) { m_outputs_status = std::move(status); }
+
     // -- per-game volume ---------------------------------------------------
 
     /// One Audio-tab row: a game family, keyed by its parent set name.
@@ -304,6 +312,7 @@ private:
 
     // -- cabinet link status -----------------------------------------------
     LinkStatus m_link_status;
+    OutputsStatus m_outputs_status;
 
     // -- per-game volume (Audio tab) ---------------------------------------
     std::vector<VolumeFamily> m_volume_families;
