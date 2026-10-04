@@ -294,6 +294,12 @@ void Scsp::serialize(Archive& ar)
 	ar.raw(m_midi_transmit_byte);
 	ar.raw(m_random_state);
 
+	for (OutputLpf& f : m_out_lpf)
+	{
+		ar.raw(f.z1);
+		ar.raw(f.z2);
+	}
+
 	if (ar.loading() && !ar.failed()) {
 		// Re-bind each slot's LFO table/scale pointers from its (restored)
 		// registers, exactly as a register write to LFO control would.
@@ -786,6 +792,24 @@ void Scsp::init()
 	m_active_slots = 0;
 
 	LFO_Init();
+	// 2-pole Butterworth low-pass approximating the board's analogue output stage.
+	// Tuned against a hardware recording: 8 kHz matched the 4-11 kHz balance.
+	constexpr float kOutputLpfHz = 8000.0f;
+	{
+		const float w0 = 2.0f * 3.14159265f * kOutputLpfHz / float(sample_rate());
+		const float cw = std::cos(w0);
+		const float alpha = std::sin(w0) / (2.0f * 0.70710678f);
+		const float a0 = 1.0f + alpha;
+		for (OutputLpf& f : m_out_lpf)
+		{
+			f.b0 = ((1.0f - cw) * 0.5f) / a0;
+			f.b1 = (1.0f - cw) / a0;
+			f.b2 = f.b0;
+			f.a1 = (-2.0f * cw) / a0;
+			f.a2 = (1.0f - alpha) / a0;
+			f.z1 = f.z2 = 0.0f;
+		}
+	}
 	// no "pend"
 	m_udata.data[0x20/2] = 0;
 	m_TimCnt[0] = 0xffff;
@@ -1256,9 +1280,20 @@ inline s32 Scsp::UpdateSlot(SCSP_SLOT *slot)
 	{
 		const s32 sum = m_RINGBUF[(m_BUFPTR + MDXSL(slot)) & 63] + m_RINGBUF[(m_BUFPTR + MDYSL(slot)) & 63];
 		const s32 pos = sign_extend((sum << (MDL(slot) - 4)) + fpart, 11 + SHIFT);
+		const s32 one = 1 << SHIFT;
+		const s32 mask = one - 1;
+
 		base1 += pos >> SHIFT;
 		base2 += pos >> SHIFT;
-		fpart = pos & ((1 << SHIFT) - 1);
+
+		// fraction of the FM fractional offset applied to the interpolation weight, in 1/16ths
+		constexpr s32 FM_FRAC_BLEND = 1;
+
+		s32 delta = ((pos & mask) - fpart) & mask;
+		if (delta >= (one >> 1))
+			delta -= one;
+
+		fpart = (fpart + ((delta * FM_FRAC_BLEND) >> 4)) & mask;
 	}
 
 	if (PCM8B(slot))
@@ -1498,6 +1533,12 @@ void Scsp::DoMasterSamples(s16 *output, u32 frames)
 		// MAME applies MVOL as a stream output gain, downstream of this function.
 		output[s * 2 + 0] = s16(float(output[s * 2 + 0]) * m_master_gain);
 		output[s * 2 + 1] = s16(float(output[s * 2 + 1]) * m_master_gain);
+
+		for (int c = 0; c < 2; ++c)
+		{
+			const long y = std::lround(m_out_lpf[c].process(float(output[s * 2 + c])));
+			output[s * 2 + c] = s16(std::clamp(y, -32768L, 32767L));
+		}
 
 		const s32 peak = std::max(std::abs(int(output[s * 2 + 0])),
 								  std::abs(int(output[s * 2 + 1])));

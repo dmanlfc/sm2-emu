@@ -271,6 +271,21 @@ private:
     int m_PSCALES[8][256];
     int m_ASCALES[8][256];
 
+    struct OutputLpf
+    {
+        float b0 = 1, b1 = 0, b2 = 0, a1 = 0, a2 = 0;
+        float z1 = 0, z2 = 0;
+
+        float process(float x)
+        {
+            const float y = b0 * x + z1;
+            z1 = b1 * x - a1 * y + z2;
+            z2 = b2 * x - a2 * y;
+            return y;
+        }
+    };
+    OutputLpf m_out_lpf[2];
+
     /// MVOL, as a multiplier. MAME sets it as a stream output gain; here it is
     /// applied where the mixer writes its result.
     float m_master_gain = 1.0f;
