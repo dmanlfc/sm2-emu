@@ -282,11 +282,26 @@ add_library(sm2_osd STATIC
     osd/drive_command.cpp
     osd/frame_pacer.cpp
     osd/gui.cpp
+    osd/i18n.cpp
     osd/input.cpp
     osd/scraper.cpp
+    osd/ui_text.cpp
     osd/wheel_ffb.cpp
     osd/window.cpp
 )
+# System font lookup for the overlay's translations, per platform.
+if(SM2_HAVE_FONTCONFIG)
+    target_sources(sm2_osd PRIVATE osd/sysfont_fontconfig.cpp)
+    target_link_libraries(sm2_osd PRIVATE PkgConfig::FONTCONFIG)
+elseif(SM2_PLATFORM_MACOS)
+    target_sources(sm2_osd PRIVATE osd/sysfont_coretext.cpp)
+    target_link_libraries(sm2_osd PRIVATE "-framework CoreText" "-framework CoreFoundation")
+elseif(SM2_PLATFORM_WINDOWS)
+    target_sources(sm2_osd PRIVATE osd/sysfont_dwrite.cpp)
+    target_link_libraries(sm2_osd PRIVATE dwrite)
+else()
+    target_sources(sm2_osd PRIVATE osd/sysfont_none.cpp)
+endif()
 # The Gamepad tab's pad picture, embedded as a byte array.
 set(SM2_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 foreach(asset pad_xbox_outline)
@@ -319,6 +334,8 @@ target_link_libraries(sm2_osd
     PRIVATE
         sm2_render
         sm2_stb
+        sm2_harfbuzz
+        sm2_sheenbidi
         sm2_warnings
 )
 # libcurl for the artwork scraper; absent -> scraper compiles to a no-op.
@@ -357,6 +374,11 @@ if(SM2_PLATFORM_MACOS)
         "${SM2_MACOS_ICNS}"
         "${CMAKE_SOURCE_DIR}/data/games.xml"
         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    # The overlay's translations, in Contents/Resources/lang.
+    file(GLOB SM2_LANG_FILES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/data/lang/*.po")
+    target_sources(sm2-emu PRIVATE ${SM2_LANG_FILES})
+    set_source_files_properties(${SM2_LANG_FILES}
+        PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lang")
 elseif(SM2_PLATFORM_WINDOWS)
     # Compile the .ico into the .exe so Explorer/taskbar show it. MSVC builds
     # any .rc listed as a source automatically. The window icon while running is
@@ -403,7 +425,10 @@ if(NOT SM2_PLATFORM_MACOS)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${CMAKE_SOURCE_DIR}/data/games.xml"
                 "$<TARGET_FILE_DIR:sm2-emu>/games.xml"
-        COMMENT "Staging games.xml"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_SOURCE_DIR}/data/lang"
+                "$<TARGET_FILE_DIR:sm2-emu>/lang"
+        COMMENT "Staging games.xml and translations"
         VERBATIM
     )
 endif()
@@ -433,6 +458,7 @@ endif()
 #   bin/sm2-emu                          the executable
 #   share/sm2-emu/games.xml              the ROM database (GameDatabase::locate
 #                                        searches ../share/sm2-emu for it)
+#   share/sm2-emu/lang/*.po              the overlay's translations
 # plus the desktop-integration icons per platform (below). The in-window icon 
 # is compiled in separately (src/osd/app_icon.h) and does not depend on any of 
 # this being installed.
@@ -451,11 +477,16 @@ elseif(SM2_PLATFORM_WINDOWS)
     # so the install prefix is one self-contained folder to zip and run.
     install(TARGETS sm2-emu RUNTIME DESTINATION ".")
     install(FILES "${CMAKE_SOURCE_DIR}/data/games.xml" DESTINATION ".")
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/data/lang" DESTINATION "."
+            FILES_MATCHING PATTERN "*.po")
     install(FILES "${SM2_ICON_DIR}/sm2-emu.ico" DESTINATION ".")
 else()
     install(TARGETS sm2-emu RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
     install(FILES "${CMAKE_SOURCE_DIR}/data/games.xml"
             DESTINATION "${CMAKE_INSTALL_DATADIR}/sm2-emu")
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/data/lang"
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/sm2-emu"
+            FILES_MATCHING PATTERN "*.po")
 endif()
 
 if(SM2_PLATFORM_LINUX)

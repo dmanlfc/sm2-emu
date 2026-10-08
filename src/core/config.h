@@ -97,6 +97,10 @@ struct Config {
     /// while gameplay continues. On by default.
     bool show_notifications = true;
 
+    /// Overlay language: a catalog name from lang/ ("de", "pt_BR"), "en", or
+    /// "auto" to follow the system's preferred languages.
+    std::string language = "auto";
+
     /// Light-gun mode: draw the aiming crosshair(s) and hide the OS mouse cursor
     /// over the window, for the gun titles. Off leaves the crosshair hidden and
     /// the cursor visible (aiming still works, it is just not shown).

@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.24)
 #
 
 project(sm2-emu
-    VERSION     0.9.42
+    VERSION     0.9.43
     DESCRIPTION "Sega Model 2 arcade emulator"
     LANGUAGES   C CXX
 )
@@ -163,4 +163,5 @@ if(SM2_BUILD_VULKAN)
 endif()
 message(STATUS "  glslc           : ${SM2_GLSLC}")
 message(STATUS "  SDL3            : ${SM2_SDL3_ORIGIN}")
+message(STATUS "  HarfBuzz        : ${SM2_HARFBUZZ_ORIGIN}")
 message(STATUS "")

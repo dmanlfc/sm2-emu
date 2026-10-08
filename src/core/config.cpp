@@ -400,6 +400,8 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->software_slow_cores)) {
                 bad_value();
             }
+        } else if (key == "language") {
+            out->language = value.empty() ? "auto" : value;
         } else if (key == "show_notifications") {
             if (!parse_bool(value, &out->show_notifications)) {
                 bad_value();
@@ -833,6 +835,9 @@ bool save_config(const std::string& path, const Config& config)
         << "# With software_async on a big.LITTLE CPU, draw on the slow cores.\n"
         << "software_slow_cores = " << bool_text(config.software_slow_cores) << "\n"
         << "show_notifications = " << bool_text(config.show_notifications) << "\n"
+        << "# Overlay language: auto (follow the system), en, or a file name from\n"
+        << "# lang/ without .po (de, pt_BR, zh_TW, ...).\n"
+        << "language = " << config.language << "\n"
         << "lightgun = " << bool_text(config.lightgun) << "\n"
         << "lightgun_crosshair = " << bool_text(config.lightgun_crosshair) << "\n"
         << "lightgun_hide_flash = " << bool_text(config.lightgun_hide_flash) << "\n"

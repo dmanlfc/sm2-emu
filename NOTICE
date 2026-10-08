@@ -90,6 +90,10 @@ Third-party dependencies
   pugixml                   — MIT licence       — Arseny Kapoulkine
   LZMA SDK                  — Public domain     — Igor Pavlov
   stb_image                 — Public domain     — Sean Barrett
+  stb_truetype              — Public domain     — Sean Barrett
+    (ImGui's copy, also used to draw shaped glyphs)
+  HarfBuzz                  — Old MIT licence   — Behdad Esfahbod et al.
+  SheenBidi                 — Apache-2.0        — Muhammad Tayyab Akram
   libcurl                   — curl licence      — Daniel Stenberg et al.
     (optional, for the game picker's artwork scraping; linked from the
     system, not vendored under 3rdparty/)

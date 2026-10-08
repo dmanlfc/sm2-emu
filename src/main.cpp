@@ -39,6 +39,7 @@
 #include "osd/outputs.h"
 #include "osd/frame_pacer.h"
 #include "osd/gui.h"
+#include "osd/i18n.h"
 #include "osd/input.h"
 #include "osd/scraper.h"
 #include "osd/window.h"
@@ -887,6 +888,7 @@ int main(int argc, char** argv)
     options.config.software_async      = from_file.software_async;
     options.config.software_slow_cores = from_file.software_slow_cores;
     options.config.show_notifications  = from_file.show_notifications;
+    options.config.language            = from_file.language;
     options.config.wheel_ffb           = from_file.wheel_ffb;
     options.config.wheel_ffb_strength  = from_file.wheel_ffb_strength;
     options.config.wheel_ffb_invert    = from_file.wheel_ffb_invert;
@@ -1866,7 +1868,7 @@ int main(int argc, char** argv)
                       });
             gui.set_volume_families(std::move(families));
         }
-        if (!gui.init(window.handle())) {
+        if (!gui.init(window.handle(), options.config.language)) {
             SM2_ERROR("could not initialise the GUI overlay");
             SDL_Quit();
             return 1;
@@ -2657,7 +2659,8 @@ int main(int argc, char** argv)
                 for (const hw::SlotInfo& s :
                      hw::list_state_slots(options.config.states_dir, loaded->game.name)) {
                     osd::Gui::StateSlot g;
-                    g.label = (s.slot == hw::kQuickSlot) ? "Quick" : ("Slot " + s.slot);
+                    g.label = (s.slot == hw::kQuickSlot) ? i18n::tr("Quick")
+                                                       : i18n::trf("Slot %s", s.slot.c_str());
                     g.slot      = s.slot;
                     g.occupied  = s.occupied;
                     g.timestamp = s.timestamp;
@@ -2824,29 +2827,29 @@ int main(int argc, char** argv)
                 if (state_action->op == StateOp::Save) {
                     if (machine_iface->save_state(path)) {
                         SM2_INFO("saved state to slot '%s'", state_action->slot.c_str());
-                        gui.notify("State saved: " + file);
+                        gui.notify(i18n::trf("State saved: %s", file.c_str()));
                     } else {
                         SM2_WARN("could not save state to slot '%s'",
                                  state_action->slot.c_str());
-                        gui.notify("Save failed: " + file);
+                        gui.notify(i18n::trf("Save failed: %s", file.c_str()));
                     }
                 } else if (state_action->op == StateOp::Load) {
                     if (machine_iface->load_state(path)) {
                         SM2_INFO("loaded state from slot '%s'", state_action->slot.c_str());
                         pacer.resync();  // the frame clock jumped; do not chase it
-                        gui.notify("State loaded: " + file);
+                        gui.notify(i18n::trf("State loaded: %s", file.c_str()));
                     } else {
                         SM2_WARN("could not load state from slot '%s' (empty or "
                                  "incompatible)", state_action->slot.c_str());
-                        gui.notify("Load failed: " + file + " (empty or incompatible)");
+                        gui.notify(i18n::trf("Load failed: %s (empty or incompatible)", file.c_str()));
                     }
                 } else {  // StateOp::Delete
                     if (hw::delete_state_slot(options.config.states_dir,
                                               loaded->game.name, state_action->slot)) {
                         SM2_INFO("deleted state slot '%s'", state_action->slot.c_str());
-                        gui.notify("State deleted: " + file);
+                        gui.notify(i18n::trf("State deleted: %s", file.c_str()));
                     } else {
-                        gui.notify("Delete failed: " + file);
+                        gui.notify(i18n::trf("Delete failed: %s", file.c_str()));
                     }
                 }
             }

@@ -210,8 +210,19 @@ file(WRITE "${SM2_STB_GEN}/stb_image_impl.c"
     "#define STBI_ONLY_PNG\n"
     "#include \"stb_image.h\"\n")
 
-add_library(sm2_stb STATIC "${SM2_STB_GEN}/stb_image_impl.c")
+# The overlay's shaped text rasterises glyphs by index with stb_truetype. ImGui
+# compiles its own copy static (private to imgui_draw.cpp), so build an
+# exported one here from the same header.
+file(WRITE "${SM2_STB_GEN}/stb_truetype_impl.c"
+    "#define STB_TRUETYPE_IMPLEMENTATION\n"
+    "#include \"imstb_truetype.h\"\n")
+
+add_library(sm2_stb STATIC
+    "${SM2_STB_GEN}/stb_image_impl.c"
+    "${SM2_STB_GEN}/stb_truetype_impl.c")
 target_include_directories(sm2_stb SYSTEM PUBLIC "${SM2_STB_DIR}")
+set_source_files_properties("${SM2_STB_GEN}/stb_truetype_impl.c" PROPERTIES
+    INCLUDE_DIRECTORIES "${SM2_3RDPARTY}/imgui")
 set_target_properties(sm2_stb PROPERTIES C_STANDARD 11)
 if(MSVC)
     target_compile_options(sm2_stb PRIVATE /w)
@@ -545,4 +556,73 @@ if(MSVC)
     target_compile_options(sm2_ymfm PRIVATE /w)
 else()
     target_compile_options(sm2_ymfm PRIVATE -w)
+endif()
+
+# ---------------------------------------------------------------------------
+# HarfBuzz and SheenBidi — text shaping for translated overlay text
+# ---------------------------------------------------------------------------
+# Scripts such as Arabic, Hebrew and the Indic family need their glyphs chosen,
+# joined and reordered before ImGui can draw them, which ImGui does not do.
+# HarfBuzz shapes and SheenBidi runs the Unicode bidirectional algorithm.
+# HarfBuzz comes from the system on Linux; Windows and macOS build it static
+# from the submodule so the zip and the dmg carry no extra library. SheenBidi
+# is rarely packaged, so it is always vendored.
+
+if(WIN32 OR APPLE)
+    set(harfbuzz_FOUND FALSE)
+else()
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(HARFBUZZ IMPORTED_TARGET harfbuzz>=4.0)
+    endif()
+endif()
+
+if(HARFBUZZ_FOUND)
+    add_library(sm2_harfbuzz INTERFACE)
+    target_link_libraries(sm2_harfbuzz INTERFACE PkgConfig::HARFBUZZ)
+    set(SM2_HARFBUZZ_ORIGIN "system (${HARFBUZZ_VERSION})")
+else()
+    # harfbuzz.cc is upstream's single translation unit build of the library.
+    add_library(sm2_harfbuzz STATIC "${SM2_3RDPARTY}/harfbuzz/src/harfbuzz.cc")
+    target_include_directories(sm2_harfbuzz SYSTEM PUBLIC "${SM2_3RDPARTY}/harfbuzz/src")
+    if(MSVC)
+        target_compile_options(sm2_harfbuzz PRIVATE /w /bigobj)
+    else()
+        target_compile_options(sm2_harfbuzz PRIVATE -w)
+    endif()
+    set(SM2_HARFBUZZ_ORIGIN "vendored (3rdparty/harfbuzz)")
+endif()
+
+add_library(sm2_sheenbidi STATIC "${SM2_3RDPARTY}/SheenBidi/Source/SheenBidi.c")
+target_include_directories(sm2_sheenbidi SYSTEM PUBLIC "${SM2_3RDPARTY}/SheenBidi/Headers")
+target_include_directories(sm2_sheenbidi PRIVATE "${SM2_3RDPARTY}/SheenBidi/Source")
+target_compile_definitions(sm2_sheenbidi PRIVATE SB_CONFIG_UNITY)
+set_target_properties(sm2_sheenbidi PROPERTIES C_STANDARD 11)
+if(MSVC)
+    target_compile_options(sm2_sheenbidi PRIVATE /w /utf-8)
+else()
+    target_compile_options(sm2_sheenbidi PRIVATE -w)
+endif()
+
+# ---------------------------------------------------------------------------
+# System font lookup — fonts for the overlay's translated text
+# ---------------------------------------------------------------------------
+# The overlay draws English in ImGui's built-in ProggyClean and takes every
+# other script from the fonts the OS already has: fontconfig on Linux,
+# CoreText on macOS and DirectWrite on Windows. Linux without fontconfig still
+# builds; languages ProggyClean cannot draw then fall back to English.
+set(SM2_HAVE_FONTCONFIG FALSE)
+if(SM2_PLATFORM_LINUX)
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(FONTCONFIG IMPORTED_TARGET fontconfig)
+    endif()
+    if(FONTCONFIG_FOUND)
+        set(SM2_HAVE_FONTCONFIG TRUE)
+    else()
+        message(WARNING
+            "fontconfig was not found, so translations needing fonts beyond "
+            "Latin-1 will show in English. Install libfontconfig-dev "
+            "(Debian/Ubuntu), fontconfig-devel (Fedora) or fontconfig (Arch).")
+    endif()
 endif()

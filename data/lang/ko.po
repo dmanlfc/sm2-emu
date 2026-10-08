@@ -1,0 +1,1550 @@
+# Korean translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the sm2-emu package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sm2-emu\n"
+"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"POT-Creation-Date: 2026-10-09 00:35+1000\n"
+"PO-Revision-Date: 2026-10-09 12:00+1000\n"
+"Last-Translator: machine translation, needs review\n"
+"Language-Team: none\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language-Name: 한국어\n"
+"X-Language-Name-English: Korean\n"
+
+#: src/main.cpp
+#, no-c-format
+msgid "Quick"
+msgstr "빠른"
+
+#: src/main.cpp
+#, c-format
+msgid "Slot %s"
+msgstr "슬롯 %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State saved: %s"
+msgstr "상태 저장됨: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Save failed: %s"
+msgstr "저장 실패: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State loaded: %s"
+msgstr "상태 불러옴: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Load failed: %s (empty or incompatible)"
+msgstr "불러오기 실패: %s (비어 있거나 호환되지 않음)"
+
+#: src/main.cpp
+#, c-format
+msgid "State deleted: %s"
+msgstr "상태 삭제됨: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Delete failed: %s"
+msgstr "삭제 실패: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "File"
+msgstr "파일"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide overlay"
+msgstr "오버레이 숨기기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "종료"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "설정"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "수직 동기화"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "전체 화면"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "FPS 표시"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On-screen notifications"
+msgstr "화면 알림"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light-gun mode"
+msgstr "라이트건 모드"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Video"
+msgstr "비디오"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wait for vertical blank before presenting.\n"
+"Prevents tearing but adds up to one frame of latency."
+msgstr ""
+"화면을 표시하기 전에 수직 공백을 기다립니다.\n"
+"화면 찢김을 막지만 최대 1프레임의 지연이 추가됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "알림"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "자동 (시스템)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "언어"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU"
+msgstr "GPU"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto (best)"
+msgstr "자동 (최적)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Renderer"
+msgstr "렌더러"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software"
+msgstr "소프트웨어"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Which renderer draws the game. Applies on the\n"
+"next launch - save settings and relaunch."
+msgstr ""
+"게임을 그리는 렌더러입니다. 다음 실행 시\n"
+"적용됩니다. 설정을 저장하고 다시 실행하세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window size"
+msgstr "창 크기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Width"
+msgstr "너비"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Height"
+msgstr "높이"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x (native)"
+msgstr "1x (원본)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "8x (4K)"
+msgstr "8x (4K)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D render scale"
+msgstr "3D 렌더 배율"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution. Higher is crisper 3D\n"
+"(2D/HUD stays sharp). GPU backends only; the software\n"
+"renderer stays native. Applies on the next launch - save\n"
+"settings and relaunch."
+msgstr ""
+"내부 3D 렌더링 해상도입니다. 높을수록 3D가 선명해집니다\n"
+"(2D/HUD는 선명하게 유지). GPU 백엔드 전용이며\n"
+"소프트웨어 렌더러는 원본 해상도를 유지합니다. 다음 실행 시\n"
+"적용됩니다. 설정을 저장하고 다시 실행하세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bilinear"
+msgstr "바이리니어"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Integer"
+msgstr "정수배"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Nearest"
+msgstr "최근접"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sharp-bilinear"
+msgstr "샤프 바이리니어"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D scaling"
+msgstr "2D 스케일링"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How the frame is magnified to the window.\n"
+"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+"nearest shows at non-integer window sizes. Integer snaps\n"
+"to a whole multiple (pixel-perfect, with black bars).\n"
+"Applies live."
+msgstr ""
+"프레임을 창 크기로 확대하는 방식입니다.\n"
+"샤프 바이리니어는 정수배가 아닌 창 크기에서 최근접이\n"
+"보이는 일렁임 없이 2D 글자를 선명하게 유지합니다. 정수배는\n"
+"정확한 배수로 맞춥니다 (픽셀 단위로 정확, 검은 여백 있음).\n"
+"즉시 적용됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3 (arcade)"
+msgstr "4:3 (아케이드)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Square pixels"
+msgstr "정사각 픽셀"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stretch"
+msgstr "늘이기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aspect"
+msgstr "화면 비율"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape (the default).\n"
+"Square pixels shows the raw 496x384 (slightly narrow).\n"
+"Stretch fills the whole window. Applies live."
+msgstr ""
+"4:3은 아케이드 모니터의 비율입니다 (기본값).\n"
+"정사각 픽셀은 원본 496x384를 표시합니다 (약간 좁음).\n"
+"늘이기는 창 전체를 채웁니다. 즉시 적용됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CRT filter"
+msgstr "CRT 필터"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A cosmetic arcade-monitor look over the finished frame:\n"
+"scanlines, an RGB shadow mask, glow and optional screen\n"
+"curvature. Purely visual; applies live."
+msgstr ""
+"완성된 프레임 위에 아케이드 모니터 느낌을 더합니다:\n"
+"스캔라인, RGB 섀도 마스크, 글로우, 선택적 화면\n"
+"곡률. 시각 효과일 뿐이며 즉시 적용됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines"
+msgstr "스캔라인"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Mask"
+msgstr "마스크"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Glow"
+msgstr "글로우"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Curvature"
+msgstr "곡률"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enhancement (cosmetic, beyond the original hardware)"
+msgstr "향상 (시각 효과, 원래 하드웨어 이상)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropic"
+msgstr "비등방성"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Faithful"
+msgstr "원본 충실"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D texture filter"
+msgstr "3D 텍스처 필터"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(unsupported)"
+msgstr "(지원 안 됨)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This GPU does not report anisotropic filtering."
+msgstr "이 GPU는 비등방성 필터링을 지원하지 않습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropy"
+msgstr "비등방성"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D upscale"
+msgstr "2D 업스케일"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+"Applies live."
+msgstr ""
+"2D 레이어(HUD, 글자, 메뉴)의 가장자리를 부드럽게 합니다.\n"
+"xBR과 ScaleFX는 대각선을 둥글게 하고, 원본 충실은\n"
+"픽셀을 선명하게 유지합니다. 즉시 적용됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Blended"
+msgstr "블렌드"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stipple"
+msgstr "점묘"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Translucency"
+msgstr "반투명"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass,\n"
+"shadows) as a checkerboard. Blended draws the 50%\n"
+"see-through surface it's trying to achieve. Applies live."
+msgstr ""
+"하드웨어는 반투명 표면(조명, 유리, 그림자)을\n"
+"체크무늬로 그립니다. 블렌드는 원래 의도한 50%\n"
+"반투명 표면을 그립니다. 즉시 적용됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Custom textures"
+msgstr "사용자 텍스처"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Replace the game's 3D textures with images saved in\n"
+"saves/textures/<game>/load, named as dumped. GPU\n"
+"renderers only; Reload picks up edited files."
+msgstr ""
+"게임의 3D 텍스처를 saves/textures/<game>/load에\n"
+"덤프된 이름으로 저장한 이미지로 교체합니다. GPU\n"
+"렌더러 전용이며, 다시 불러오기로 수정한 파일을 반영합니다."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu loaded"
+msgstr "%zu개 불러옴"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload"
+msgstr "다시 불러오기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dump textures"
+msgstr "텍스처 덤프"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them,\n"
+"with an index.html to browse, to saves/textures/<game>/dump\n"
+"when the game exits or this is turned off."
+msgstr ""
+"게임이 그리는 모든 3D 텍스처를 모아, 탐색용\n"
+"index.html과 함께 saves/textures/<game>/dump에\n"
+"기록합니다 (게임 종료 시 또는 이 옵션을 끌 때)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Audio"
+msgstr "오디오"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Paths"
+msgstr "경로"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "찾아보기..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Config directory"
+msgstr "설정 디렉터리"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where sm2-emu.ini is read from and saved to.\n"
+"Set with --config <dir>; cannot be changed here."
+msgstr ""
+"sm2-emu.ini를 읽고 저장하는 위치입니다.\n"
+"--config <dir>로 지정하며, 여기서는 변경할 수 없습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ROM directory"
+msgstr "ROM 디렉터리"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the ROM archives live. A game launched by name is\n"
+"loaded from here as <name>.zip or <name>.7z."
+msgstr ""
+"ROM 압축 파일이 있는 위치입니다. 이름으로 실행한 게임은\n"
+"여기에서 <name>.zip 또는 <name>.7z로 불러옵니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves directory"
+msgstr "세이브 디렉터리"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+"(.eeprom) images -- high scores and operator settings."
+msgstr ""
+"배터리 백업 세이브: 게임별 NVRAM(.nv) 및 EEPROM\n"
+"(.eeprom) 이미지 -- 최고 점수와 운영자 설정."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots directory"
+msgstr "스크린샷 디렉터리"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where F12 screenshots are written."
+msgstr "F12 스크린샷이 저장되는 위치입니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scrape artwork online"
+msgstr "온라인에서 아트워크 가져오기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game picker fetch box art and descriptions from\n"
+"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"picker still lists and launches every game, with placeholder\n"
+"tiles and no descriptions."
+msgstr ""
+"게임 선택 화면이 네트워크를 통해 ArcadeDB에서\n"
+"박스 아트와 설명을 가져옵니다. 끄면 sm2-emu는\n"
+"오프라인을 유지합니다: 모든 게임을 표시하고 실행할 수\n"
+"있지만, 임시 타일이 표시되고 설명은 없습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad"
+msgstr "게임패드"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel"
+msgstr "핸들"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light Gun"
+msgstr "라이트건"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network"
+msgstr "네트워크"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "상태 저장"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "정보"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 2 arcade emulator"
+msgstr "세가 Model 2 아케이드 에뮬레이터"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "BSD 3-Clause licence. See LICENSE."
+msgstr "BSD 3조항 라이선스. LICENSE를 참고하세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "sm2-emu exists because of open source shared with the community."
+msgstr "sm2-emu는 커뮤니티와 공유된 오픈 소스 덕분에 존재합니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to the projects whose code makes it possible:"
+msgstr "코드로 이를 가능하게 해 준 프로젝트들에 감사드립니다:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The MAME project - Sega Model 2 emulation guidance"
+msgstr "MAME 프로젝트 - 세가 Model 2 에뮬레이션 지침"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+msgstr "Musashi - Motorola 68000 CPU 코어 (Karl Stenerud)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+msgstr "ymfm - Yamaha FM 사운드 코어 (Aaron Giles)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SDL - windowing, input and audio"
+msgstr "SDL - 창, 입력 및 오디오"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dear ImGui - this user interface (Omar Cornut)"
+msgstr "Dear ImGui - 이 사용자 인터페이스 (Omar Cornut)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "pugixml - games.xml parsing"
+msgstr "pugixml - games.xml 파싱"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "miniz - ZIP archive decompression"
+msgstr "miniz - ZIP 압축 해제"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+msgstr "LZMA SDK - 7-Zip 압축 해제 (Igor Pavlov)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+msgstr "VulkanMemoryAllocator - GPU 메모리 (AMD / GPUOpen)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shaderc / glslang - shader compilation"
+msgstr "shaderc / glslang - 셰이더 컴파일"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "stb_image - box-art image decoding (Sean Barrett)"
+msgstr "stb_image - 박스 아트 이미지 디코딩 (Sean Barrett)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr "게임패드 그림 - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "libcurl - artwork scraping (optional)"
+msgstr "libcurl - 아트워크 가져오기 (선택 사항)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "HarfBuzz - text shaping for translations"
+msgstr "HarfBuzz - 번역용 텍스트 셰이핑"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr "SheenBidi - 오른쪽에서 왼쪽으로 쓰는 텍스트 배치 (Muhammad Tayyab Akram)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game artwork and descriptions from ArcadeDB"
+msgstr "게임 아트워크와 설명 제공: ArcadeDB"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(adb.arcadeitalia.net, by Motoschifo)."
+msgstr "(adb.arcadeitalia.net, Motoschifo 제작)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "See NOTICE for full per-component attribution."
+msgstr "구성 요소별 전체 저작자 표시는 NOTICE를 참고하세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "If you'd like to support development:"
+msgstr "개발을 후원하고 싶으시다면:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save settings"
+msgstr "설정 저장"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Saved to %s"
+msgstr "%s에 저장됨"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel connected."
+msgstr "핸들이 연결되었습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "연결된 핸들이 없습니다. 연결되면 설정이 적용됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Force feedback"
+msgstr "포스 피드백"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel force on driving games: centring and cornering\n"
+"forces decoded from the game's own drive-board commands,\n"
+"plus an impact jolt when you hit something."
+msgstr ""
+"레이싱 게임에서의 핸들 반력: 게임 자체의 드라이브\n"
+"보드 명령에서 해석한 센터링 및 코너링 힘과\n"
+"충돌 시의 충격."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Resistance"
+msgstr "저항"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "포스 피드백 반전"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls\n"
+"away from the centre instead of bringing it back, and\n"
+"the game's forces go the opposite way."
+msgstr ""
+"드라이버가 반대 방향으로 미는 핸들용: 핸들이 중앙으로\n"
+"돌아오지 않고 중앙에서 멀어지며, 게임의 힘이\n"
+"반대로 작용하는 경우에 사용합니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble"
+msgstr "진동"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force\n"
+"feedback. It never runs alongside force feedback."
+msgstr ""
+"게임 속 충격에 맞춰 진동합니다 (포스 피드백이 없는\n"
+"핸들용). 포스 피드백과 동시에 작동하지 않습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "진동 세기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "엔진 진동"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"스로틀에 따라 커지는 추가 진동입니다. 게임에서 나오는\n"
+"진동이 아닙니다. 끄면 게임의 포스 피드백만 느껴집니다."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%u deg"
+msgstr "%u도"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "조향 범위"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock\n"
+"angle below is mapped onto it, so matching your wheel\n"
+"gives arcade-like response."
+msgstr ""
+"사용하는 핸들 자체의 회전 범위로 설정하세요. 아래의\n"
+"락 각도가 이 범위에 매핑되므로, 핸들과 맞추면\n"
+"아케이드와 비슷한 반응을 얻을 수 있습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "락 각도"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d deg"
+msgstr "%d도"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total,\n"
+"so half each side of centre). Lower is more sensitive."
+msgstr ""
+"게임에서 최대 조향이 되기까지 실제로 돌리는 양 (합계,\n"
+"중앙 기준 좌우 절반씩). 낮을수록 민감합니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "축"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+msgstr "자동 감지됨. 조향이나 페달이 이상하면 다시 보정하세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "조향"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "가속 페달"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "브레이크"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "자동"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "축 %d (반전)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "축 %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "조작하세요..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "cancel"
+msgstr "취소"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Calibrate"
+msgstr "보정"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "버튼"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the wheel button for that control."
+msgstr "'할당'을 누른 뒤, 해당 조작에 쓸 핸들 버튼을 누르세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Coin"
+msgstr "코인"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "버튼 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "버튼 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "버튼 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "버튼 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "기어 올림"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "기어 내림"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Test"
+msgstr "테스트"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "서비스"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu (F10)"
+msgstr "메뉴 (F10)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "할당 안 됨"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "버튼 %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "버튼을 누르세요..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bind"
+msgstr "할당"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "clear"
+msgstr "지우기"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "게임패드 %d개가 연결되었습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "연결된 게임패드가 없습니다. 연결되면 설정이 적용됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "플레이어"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "SDL 기본값으로 초기화"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Down"
+msgstr "기어 내림"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Up"
+msgstr "위로 이동"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Left"
+msgstr "왼쪽으로 이동"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Right"
+msgstr "오른쪽으로 이동"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Down"
+msgstr "아래로 이동"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Up"
+msgstr "기어 올림"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer / Aim"
+msgstr "조향 / 조준"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "오른쪽 레버"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "오른쪽 스틱"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "왼쪽 스틱"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (반전)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then push a stick.\n"
+"Right-click to go back to the default."
+msgstr ""
+"클릭한 뒤 스틱을 미세요.\n"
+"오른쪽 클릭하면 기본값으로 돌아갑니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick\n"
+"or press a button. Right-click for the default."
+msgstr ""
+"클릭한 뒤 트리거를 당기거나, 스틱을 밀거나,\n"
+"버튼을 누르세요. 오른쪽 클릭하면 기본값으로 돌아갑니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press a button or pull a trigger.\n"
+"Right-click to unbind."
+msgstr ""
+"클릭한 뒤 버튼을 누르거나 트리거를 당기세요.\n"
+"오른쪽 클릭하면 할당이 해제됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
+"is Virtual On's. Test and Service are Guide+Start and Guide+Back."
+msgstr "왼쪽 스틱으로도 이동할 수 있고, 숄더 버튼은 버튼 3/4로도 작동합니다. 오른쪽 레버는 Virtual On용입니다. 테스트와 서비스는 Guide+Start와 Guide+Back입니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick sensitivity"
+msgstr "스틱 감도"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection\n"
+"is always full lock; under 100% the middle of the travel does\n"
+"less, over 100% it does more."
+msgstr ""
+"데드존을 넘은 스틱 이동에 대한 반응입니다. 끝까지 밀면\n"
+"항상 최대 조향입니다. 100% 미만이면 중간 구간의 반응이\n"
+"약해지고, 100%를 넘으면 강해집니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts in driving games.\n"
+"Other games stay quiet."
+msgstr ""
+"레이싱 게임에서 게임 속 충격에 맞춰 진동합니다.\n"
+"다른 게임에서는 진동하지 않습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering vibration"
+msgstr "조향 진동"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"조향할수록 커지는 추가 진동입니다. 게임에서 나오는\n"
+"진동이 아닙니다. 끄면 게임의 포스 피드백만 느껴집니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset"
+msgstr "초기화"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Per-game volume"
+msgstr "게임별 볼륨"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Raise or lower a game's volume from its default level.\n"
+"One slider covers every revision of a game. Off plays\n"
+"every game at its default, whatever the sliders say.\n"
+"\n"
+"Warning: above 100% loud effects can clip (audible\n"
+"distortion)."
+msgstr ""
+"게임의 볼륨을 기본 레벨에서 높이거나 낮춥니다.\n"
+"슬라이더 하나가 게임의 모든 리비전에 적용됩니다. 끄면\n"
+"슬라이더 값과 관계없이 모든 게임을 기본 볼륨으로 재생합니다.\n"
+"\n"
+"경고: 100%를 넘으면 큰 효과음이 클리핑될 수 있습니다\n"
+"(들리는 왜곡)."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Now playing: %s"
+msgstr "재생 중: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Filter games"
+msgstr "게임 검색"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset all"
+msgstr "모두 초기화"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game"
+msgstr "게임"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "볼륨"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Show the aiming crosshair and hide the mouse cursor,\n"
+"for the light-gun titles (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+msgstr ""
+"조준점을 표시하고 마우스 커서를 숨깁니다\n"
+"(라이트건 게임용: Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show crosshair"
+msgstr "조준점 표시"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"has its own sight (e.g. a Sinden). Positional-gun\n"
+"titles always draw their own regardless."
+msgstr ""
+"sm2-emu 자체 조준점을 그립니다. 건에 자체 조준기가\n"
+"있으면 끄세요 (예: Sinden). 위치 감지형 건 게임은\n"
+"설정과 관계없이 항상 자체 조준점을 그립니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide shot flash"
+msgstr "사격 섬광 숨기기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+"House of the Dead show on each shot."
+msgstr ""
+"Virtua Cop, Virtua Cop 2, House of the Dead에서\n"
+"사격할 때마다 나타나는 흰색 섬광을 숨깁니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Player 1 aims with the mouse; the left button fires and the right button "
+"reloads (shoot off screen)."
+msgstr "플레이어 1은 마우스로 조준합니다. 왼쪽 버튼으로 사격하고 오른쪽 버튼으로 재장전합니다 (화면 밖 사격)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Recoil"
+msgstr "반동"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Kick the gun's rumble motor on each shot, for guns\n"
+"that have one (Sinden and similar). No effect on a\n"
+"gun without a motor."
+msgstr ""
+"사격할 때마다 건의 진동 모터를 작동합니다 (Sinden 등\n"
+"모터가 있는 건용). 모터가 없는 건에서는\n"
+"효과가 없습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enable recoil"
+msgstr "반동 사용"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Strength"
+msgstr "세기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "장치"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Gun %zu (player %zu): %s"
+msgstr "건 %zu (플레이어 %zu): %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"in absolute mouse mode (GUN4IR, Sinden, AimTrak) before launching for "
+"independent per-player aiming."
+msgstr "전용 라이트건이 감지되지 않았습니다. 플레이어 1은 마우스로 조준합니다. 왼쪽 버튼으로 사격하고 오른쪽 버튼으로 재장전합니다 (화면 밖 사격). 플레이어별로 독립 조준하려면 실행 전에 절대 좌표 마우스 모드의 건(GUN4IR, Sinden, AimTrak)을 연결하세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"tagged ID_INPUT_GUN for independent per-player aiming."
+msgstr "전용 라이트건이 감지되지 않았습니다. 플레이어 1은 마우스로 조준합니다. 왼쪽 버튼으로 사격하고 오른쪽 버튼으로 재장전합니다 (화면 밖 사격). 플레이어별로 독립 조준하려면 ID_INPUT_GUN 태그가 있는 건을 연결하세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun buttons"
+msgstr "건 버튼"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the button on that player's gun."
+msgstr "'할당'을 누른 뒤, 해당 플레이어 건의 버튼을 누르세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload/Missile"
+msgstr "재장전/미사일"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "트리거"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat down"
+msgstr "햇 아래"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat left"
+msgstr "햇 왼쪽"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat right"
+msgstr "햇 오른쪽"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat up"
+msgstr "햇 위"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Player %d"
+msgstr "플레이어 %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sinden border"
+msgstr "Sinden 테두리"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A bright frame around the game image that a Sinden\n"
+"gun's camera tracks for aiming. Only shown in\n"
+"light-gun mode."
+msgstr ""
+"게임 화면 둘레의 밝은 테두리로, Sinden 건의\n"
+"카메라가 조준에 사용합니다. 라이트건\n"
+"모드에서만 표시됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show border"
+msgstr "테두리 표시"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Colour"
+msgstr "색상"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Thickness"
+msgstr "두께"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "네트워크로 기체 연결"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same\n"
+"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+"this cabinet standalone. Takes effect on the next game launch."
+msgstr ""
+"같은 LAN에서 같은 게임(Sega Rally, Daytona, Super GT 24h,\n"
+"Indy 500 등)을 실행하는 다른 기기와 통신 대전합니다. 끄면\n"
+"이 기체는 단독으로 동작합니다. 다음 게임 실행 시 적용됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next cabinet. For two machines, point each at the other. The master/"
+"slave role is chosen in the game's own test menu, not here."
+msgstr "통신 보드는 링 구조입니다. 각 기체는 자신의 주소에서 수신하고 다음 기체로 전송합니다. 두 대라면 서로를 지정하세요. 마스터/슬레이브 역할은 여기가 아니라 게임 자체의 테스트 메뉴에서 선택합니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "이 기체"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "로컬 IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "감지"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank\n"
+"listens on every interface. Detect fills it from the\n"
+"primary network adapter."
+msgstr ""
+"기체 LAN에서 이 기기의 주소입니다. 비워 두면\n"
+"모든 인터페이스에서 수신합니다. '감지'는 기본\n"
+"네트워크 어댑터에서 값을 채웁니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "서브넷 마스크"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "수신 포트"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "기체 번호"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring (0-based).\n"
+"For your own bookkeeping; the game negotiates the\n"
+"actual link id from the ring."
+msgstr ""
+"링에서 이 기체의 위치 (0부터 시작).\n"
+"관리용 번호이며, 실제 링크 ID는 게임이\n"
+"링에서 협상합니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "링의 다음 기체"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "다음 IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the\n"
+"other machine's IP. Blank means this cabinet does not\n"
+"forward (tail of a chain)."
+msgstr ""
+"이 기체가 전송할 대상입니다. 두 대라면 상대 기기의\n"
+"IP입니다. 비워 두면 이 기체는 전달하지 않습니다\n"
+"(체인의 끝)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "다음 포트"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "상태"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "링크가 설정되었습니다. 다음 게임 실행 시 시작됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "단독 (기체 연결 없음)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "게임이 링크 보드를 켜기를 기다리는 중..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "연결됨: 기체 %u / %u."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "링 구성 중..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This machine's interfaces:"
+msgstr "이 기기의 인터페이스:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "게임을 불러오면 상태를 저장하고 복원할 수 있습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is F6, "
+"quick-load is F7."
+msgstr "기기 전체를 슬롯에 저장하고 나중에 복원합니다. 빠른 저장은 F6, 빠른 불러오기는 F7입니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "삭제"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "불러오기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "저장"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "비어 있음"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CALIBRATING GUN - shoot each target"
+msgstr "건 보정 중 - 각 표적을 쏘세요"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Choose Directory"
+msgstr "디렉터리 선택"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Up"
+msgstr "위로"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Refresh"
+msgstr "새로 고침"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannot list this directory (permission denied, or it doesn't exist)."
+msgstr "이 디렉터리를 표시할 수 없습니다 (권한이 없거나 존재하지 않음)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select This Folder"
+msgstr "이 폴더 선택"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel"
+msgstr "취소"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "F10: toggle overlay"
+msgstr "F10: 오버레이 전환"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select a game"
+msgstr "게임 선택"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter: launch   F10: settings   F9: quit"
+msgstr "Enter: 실행   F10: 설정   F9: 종료"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"(F1) > Paths, then relaunch."
+msgstr "ROM 디렉터리에서 Model 2 ROM 압축 파일을 찾을 수 없습니다. 설정(F1) > 경로에서 지정한 뒤 다시 실행하세요."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetching description..."
+msgstr "설명을 가져오는 중..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No description available."
+msgstr "설명이 없습니다."

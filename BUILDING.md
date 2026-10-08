@@ -21,6 +21,12 @@ Requirements:
 - libcurl, for the game picker's artwork scraping. Optional: without it the
   picker still lists and launches every game, just with no downloaded art or
   descriptions.
+- HarfBuzz and SheenBidi, which shape translated overlay text (Arabic, Hebrew,
+  the Indic scripts, Thai, ...). HarfBuzz comes from the system on Linux and
+  is built from `3rdparty/` on Windows and macOS; SheenBidi is always built
+  from `3rdparty/`.
+- fontconfig on Linux, so translations can use the system's fonts. Optional:
+  without it, languages that need more than Latin-1 fall back to English.
 - For the OpenGL / OpenGL ES backends (built by default): the system GL/GLES
   and EGL libraries (Mesa on Linux). No extra headers are needed — SDL3
   provides GL loading.
@@ -113,6 +119,7 @@ sudo apt install cmake ninja-build build-essential \
                  glslc \
                  libgl-dev libgles-dev libegl-dev \
                  libpugixml-dev libcurl4-openssl-dev \
+                 libfontconfig-dev libharfbuzz-dev \
                  libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
                  libxi-dev libxfixes-dev libxss-dev libxrender-dev libxtst-dev \
                  libasound2-dev libpulse-dev libudev-dev \
@@ -138,7 +145,8 @@ rather than a build error.
 
 ```sh
 # Arch / Manjaro — default build (software + OpenGL)
-sudo pacman -S --needed base-devel cmake ninja shaderc mesa sdl3 pugixml miniz curl
+sudo pacman -S --needed base-devel cmake ninja shaderc mesa sdl3 pugixml miniz curl \
+                        fontconfig harfbuzz
 
 # Add these only if building the Vulkan backend (-DSM2_BUILD_VULKAN=ON)
 sudo pacman -S --needed vulkan-headers vulkan-icd-loader \

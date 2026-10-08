@@ -1,0 +1,1551 @@
+# Latvian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# This file is distributed under the same license as the sm2-emu package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sm2-emu\n"
+"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"POT-Creation-Date: 2026-10-09 00:35+1000\n"
+"PO-Revision-Date: 2026-10-09 00:35+1000\n"
+"Last-Translator: machine translation, needs review\n"
+"Language-Team: none\n"
+"Language: lv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);\n"
+"X-Language-Name: Latviešu\n"
+"X-Language-Name-English: Latvian\n"
+
+#: src/main.cpp
+#, no-c-format
+msgid "Quick"
+msgstr "Ātrā"
+
+#: src/main.cpp
+#, c-format
+msgid "Slot %s"
+msgstr "Slots %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State saved: %s"
+msgstr "Stāvoklis saglabāts: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Save failed: %s"
+msgstr "Neizdevās saglabāt: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State loaded: %s"
+msgstr "Stāvoklis ielādēts: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Load failed: %s (empty or incompatible)"
+msgstr "Neizdevās ielādēt: %s (tukšs vai nesaderīgs)"
+
+#: src/main.cpp
+#, c-format
+msgid "State deleted: %s"
+msgstr "Stāvoklis dzēsts: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Delete failed: %s"
+msgstr "Neizdevās dzēst: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "File"
+msgstr "Fails"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide overlay"
+msgstr "Paslēpt pārklājumu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "Iziet"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "Iestatījumi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "Vsync"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "Pilnekrāns"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "FPS skaitītājs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On-screen notifications"
+msgstr "Paziņojumi ekrānā"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light-gun mode"
+msgstr "Gaismas pistoles režīms"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Video"
+msgstr "Video"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wait for vertical blank before presenting.\n"
+"Prevents tearing but adds up to one frame of latency."
+msgstr ""
+"Pirms attēlošanas gaidīt vertikālo atgriezi.\n"
+"Novērš plīšanu, bet pievieno līdz viena kadra aizturi."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "Paziņojumi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "Automātiski (sistēma)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "Valoda"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU"
+msgstr "GPU"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto (best)"
+msgstr "Automātiski (labākais)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Renderer"
+msgstr "Renderētājs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software"
+msgstr "Programmatūras"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Which renderer draws the game. Applies on the\n"
+"next launch - save settings and relaunch."
+msgstr ""
+"Kurš renderētājs zīmē spēli. Stājas spēkā nākamajā\n"
+"palaišanā - saglabājiet iestatījumus un palaidiet no jauna."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window size"
+msgstr "Loga izmērs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Width"
+msgstr "Platums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Height"
+msgstr "Augstums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x (native)"
+msgstr "1x (oriģinālais)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "8x (4K)"
+msgstr "8x (4K)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D render scale"
+msgstr "3D renderēšanas mērogs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution. Higher is crisper 3D\n"
+"(2D/HUD stays sharp). GPU backends only; the software\n"
+"renderer stays native. Applies on the next launch - save\n"
+"settings and relaunch."
+msgstr ""
+"Iekšējā 3D renderēšanas izšķirtspēja. Augstāka - asāks 3D\n"
+"(2D/HUD paliek ass). Tikai GPU renderētājiem; programmatūras\n"
+"renderētājs paliek oriģinālais. Stājas spēkā nākamajā palaišanā -\n"
+"saglabājiet iestatījumus un palaidiet no jauna."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bilinear"
+msgstr "Bilineārs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Integer"
+msgstr "Vesels skaitlis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Nearest"
+msgstr "Tuvākais"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sharp-bilinear"
+msgstr "Ass bilineārs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D scaling"
+msgstr "2D mērogošana"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How the frame is magnified to the window.\n"
+"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+"nearest shows at non-integer window sizes. Integer snaps\n"
+"to a whole multiple (pixel-perfect, with black bars).\n"
+"Applies live."
+msgstr ""
+"Kā kadrs tiek palielināts līdz logam.\n"
+"Ass bilineārs saglabā 2D tekstu asu bez mirgošanas,\n"
+"ko „tuvākais” rāda ne-veselu loga izmēru gadījumā.\n"
+"„Vesels skaitlis” pielāgo veselam daudzkārtnim\n"
+"(pikseļprecīzi, ar melnām joslām). Stājas spēkā uzreiz."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3 (arcade)"
+msgstr "4:3 (arkādes)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Square pixels"
+msgstr "Kvadrātveida pikseļi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stretch"
+msgstr "Izstiept"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aspect"
+msgstr "Malu attiecība"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape (the default).\n"
+"Square pixels shows the raw 496x384 (slightly narrow).\n"
+"Stretch fills the whole window. Applies live."
+msgstr ""
+"4:3 ir arkādes monitora forma (noklusējums).\n"
+"Kvadrātveida pikseļi rāda neapstrādātu 496x384 (nedaudz šauru).\n"
+"„Izstiept” aizpilda visu logu. Stājas spēkā uzreiz."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CRT filter"
+msgstr "CRT filtrs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A cosmetic arcade-monitor look over the finished frame:\n"
+"scanlines, an RGB shadow mask, glow and optional screen\n"
+"curvature. Purely visual; applies live."
+msgstr ""
+"Kosmētisks arkādes monitora izskats pāri gatavajam kadram:\n"
+"skenēšanas līnijas, RGB ēnu maska, mirdzums un pēc izvēles\n"
+"ekrāna izliekums. Tikai vizuāls; stājas spēkā uzreiz."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines"
+msgstr "Skenēšanas līnijas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Mask"
+msgstr "Maska"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Glow"
+msgstr "Mirdzums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Curvature"
+msgstr "Izliekums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enhancement (cosmetic, beyond the original hardware)"
+msgstr "Uzlabojumi (kosmētiski, pāri oriģinālajai aparatūrai)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropic"
+msgstr "Anizotropais"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Faithful"
+msgstr "Oriģināls"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D texture filter"
+msgstr "3D tekstūru filtrs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(unsupported)"
+msgstr "(netiek atbalstīts)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This GPU does not report anisotropic filtering."
+msgstr "Šis GPU neziņo par anizotropo filtrēšanu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropy"
+msgstr "Anizotropija"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D upscale"
+msgstr "2D palielināšana"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+"Applies live."
+msgstr ""
+"Nogludināt 2D slāņu malas (HUD, teksts, izvēlnes). xBR un\n"
+"ScaleFX noapaļo diagonāles; „Oriģināls” saglabā asus\n"
+"pikseļus. Stājas spēkā uzreiz."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Blended"
+msgstr "Sapludināts"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stipple"
+msgstr "Punktots"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Translucency"
+msgstr "Caurspīdīgums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass,\n"
+"shadows) as a checkerboard. Blended draws the 50%\n"
+"see-through surface it's trying to achieve. Applies live."
+msgstr ""
+"Aparatūra zīmē caurspīdīgas virsmas (gaismas, stiklu,\n"
+"ēnas) kā šaha galdiņu. „Sapludināts” zīmē 50%\n"
+"caurspīdīgu virsmu, ko tā cenšas panākt. Stājas spēkā uzreiz."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Custom textures"
+msgstr "Pielāgotas tekstūras"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Replace the game's 3D textures with images saved in\n"
+"saves/textures/<game>/load, named as dumped. GPU\n"
+"renderers only; Reload picks up edited files."
+msgstr ""
+"Aizstāt spēles 3D tekstūras ar attēliem, kas saglabāti\n"
+"saves/textures/<game>/load, nosauktiem kā izgūtie. Tikai\n"
+"GPU renderētāji; „Pārlādēt” ielasa rediģētos failus."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu loaded"
+msgstr "Ielādētas: %zu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload"
+msgstr "Pārlādēt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dump textures"
+msgstr "Izgūt tekstūras"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them,\n"
+"with an index.html to browse, to saves/textures/<game>/dump\n"
+"when the game exits or this is turned off."
+msgstr ""
+"Savākt visas spēles zīmētās 3D tekstūras un ierakstīt tās\n"
+"ar pārlūkošanai paredzētu index.html mapē saves/textures/<game>/dump,\n"
+"kad spēle beidzas vai šī opcija tiek izslēgta."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Audio"
+msgstr "Audio"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Paths"
+msgstr "Ceļi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "Pārlūkot..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Config directory"
+msgstr "Konfigurācijas mape"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where sm2-emu.ini is read from and saved to.\n"
+"Set with --config <dir>; cannot be changed here."
+msgstr ""
+"No kurienes sm2-emu.ini tiek nolasīts un kur saglabāts.\n"
+"Iestata ar --config <dir>; šeit mainīt nevar."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ROM directory"
+msgstr "ROM mape"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the ROM archives live. A game launched by name is\n"
+"loaded from here as <name>.zip or <name>.7z."
+msgstr ""
+"Kur atrodas ROM arhīvi. Pēc nosaukuma palaista spēle\n"
+"tiek ielādēta no šejienes kā <name>.zip vai <name>.7z."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves directory"
+msgstr "Saglabājumu mape"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+"(.eeprom) images -- high scores and operator settings."
+msgstr ""
+"Ar bateriju uzturēti saglabājumi: katras spēles NVRAM (.nv) un\n"
+"EEPROM (.eeprom) attēli -- rekordi un operatora iestatījumi."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots directory"
+msgstr "Ekrānuzņēmumu mape"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where F12 screenshots are written."
+msgstr "Kur tiek ierakstīti F12 ekrānuzņēmumi."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scrape artwork online"
+msgstr "Lejupielādēt attēlus tiešsaistē"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game picker fetch box art and descriptions from\n"
+"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"picker still lists and launches every game, with placeholder\n"
+"tiles and no descriptions."
+msgstr ""
+"Ļaut spēļu izvēlnei ielādēt vāku attēlus un aprakstus no\n"
+"ArcadeDB caur tīklu. Izslēgts saglabā sm2-emu bezsaistē:\n"
+"izvēlne joprojām parāda un palaiž visas spēles, ar\n"
+"aizvietotāju flīzēm un bez aprakstiem."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad"
+msgstr "Spēļu pults"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel"
+msgstr "Stūre"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light Gun"
+msgstr "Gaismas pistole"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network"
+msgstr "Tīkls"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "Stāvokļi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "Par"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 2 arcade emulator"
+msgstr "Sega Model 2 arkādes automātu emulators"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "BSD 3-Clause licence. See LICENSE."
+msgstr "BSD 3-Clause licence. Skatīt LICENSE."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "sm2-emu exists because of open source shared with the community."
+msgstr "sm2-emu pastāv, pateicoties atvērtajam kodam, ar ko dalās kopiena."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to the projects whose code makes it possible:"
+msgstr "Paldies projektiem, kuru kods to padara iespējamu:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The MAME project - Sega Model 2 emulation guidance"
+msgstr "MAME projekts - Sega Model 2 emulācijas vadlīnijas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+msgstr "Musashi - Motorola 68000 CPU kodols (Karl Stenerud)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+msgstr "ymfm - Yamaha FM skaņas kodoli (Aaron Giles)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SDL - windowing, input and audio"
+msgstr "SDL - logi, ievade un audio"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dear ImGui - this user interface (Omar Cornut)"
+msgstr "Dear ImGui - šī lietotāja saskarne (Omar Cornut)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "pugixml - games.xml parsing"
+msgstr "pugixml - games.xml parsēšana"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "miniz - ZIP archive decompression"
+msgstr "miniz - ZIP arhīvu atspiešana"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+msgstr "LZMA SDK - 7-Zip arhīvu atspiešana (Igor Pavlov)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+msgstr "VulkanMemoryAllocator - GPU atmiņa (AMD / GPUOpen)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shaderc / glslang - shader compilation"
+msgstr "shaderc / glslang - ēnotāju kompilēšana"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "stb_image - box-art image decoding (Sean Barrett)"
+msgstr "stb_image - vāku attēlu dekodēšana (Sean Barrett)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr "Spēļu pults attēls - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "libcurl - artwork scraping (optional)"
+msgstr "libcurl - attēlu lejupielāde (pēc izvēles)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "HarfBuzz - text shaping for translations"
+msgstr "HarfBuzz - teksta veidošana tulkojumiem"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr "SheenBidi - teksta izkārtojums no labās uz kreiso (Muhammad Tayyab Akram)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game artwork and descriptions from ArcadeDB"
+msgstr "Spēļu attēli un apraksti no ArcadeDB"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(adb.arcadeitalia.net, by Motoschifo)."
+msgstr "(adb.arcadeitalia.net, autors Motoschifo)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "See NOTICE for full per-component attribution."
+msgstr "Pilnu katra komponenta autortiesību informāciju skatīt NOTICE."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "If you'd like to support development:"
+msgstr "Ja vēlaties atbalstīt izstrādi:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save settings"
+msgstr "Saglabāt iestatījumus"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Saved to %s"
+msgstr "Saglabāts: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel connected."
+msgstr "Stūre pievienota."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "Stūre nav pievienota. Iestatījumi stāsies spēkā, kad tā būs."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Force feedback"
+msgstr "Spēka atgriezeniskā saite"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel force on driving games: centring and cornering\n"
+"forces decoded from the game's own drive-board commands,\n"
+"plus an impact jolt when you hit something."
+msgstr ""
+"Stūres spēks braukšanas spēlēs: centrēšanas un pagriezienu\n"
+"spēki, atšifrēti no spēles stūres vadības plates komandām,\n"
+"kā arī trieciena grūdiens, kad kaut kam ietriecaties."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Resistance"
+msgstr "Pretestība"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "Invertēt spēka atgriezenisko saiti"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls\n"
+"away from the centre instead of bringing it back, and\n"
+"the game's forces go the opposite way."
+msgstr ""
+"Stūrei, kuras draiveris spiež nepareizā virzienā: tā velk\n"
+"prom no centra, nevis atgriež to, un spēles spēki\n"
+"darbojas pretējā virzienā."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble"
+msgstr "Vibrācija"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force\n"
+"feedback. It never runs alongside force feedback."
+msgstr ""
+"Vibrē spēles triecienos - stūrēm bez spēka atgriezeniskās\n"
+"saites. Nekad nedarbojas kopā ar spēka atgriezenisko saiti."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "Vibrācijas stiprums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "Dzinēja vibrācija"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"Papildu vibrācija, kas pieaug līdz ar gāzi. Tā nav\n"
+"no spēles. Izslēdziet, lai just tikai spēles spēka atgriezenisko saiti."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%u deg"
+msgstr "%u°"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "Stūrēšanas diapazons"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock\n"
+"angle below is mapped onto it, so matching your wheel\n"
+"gives arcade-like response."
+msgstr ""
+"Iestatiet sava stūres rata griešanās diapazonu. Zemāk\n"
+"esošais bloķēšanas leņķis tiek attēlots uz to, tāpēc\n"
+"atbilstība jūsu stūrei dod arkādei līdzīgu reakciju."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "Bloķēšanas leņķis"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d deg"
+msgstr "%d°"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total,\n"
+"so half each side of centre). Lower is more sensitive."
+msgstr ""
+"Cik tālu fiziski pagriezt līdz pilnai spēles bloķēšanai\n"
+"(kopā, tātad puse uz katru pusi). Mazāks - jutīgāks."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "Asis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+msgstr "Noteikts automātiski. Kalibrējiet atkārtoti, ja stūre vai pedālis darbojas nepareizi."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "Stūrēšana"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "Gāze"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "Bremze"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "auto"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "ass %d (invertēta)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "ass %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "pakustiniet to..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "cancel"
+msgstr "atcelt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Calibrate"
+msgstr "Kalibrēt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "Pogas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the wheel button for that control."
+msgstr "Nospiediet „Piesaistīt”, tad nospiediet stūres pogu šai vadīklai."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Coin"
+msgstr "Monēta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "Poga 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "Poga 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "Poga 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "Poga 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "Pārnesums augšup"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "Pārnesums lejup"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Test"
+msgstr "Tests"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "Serviss"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu (F10)"
+msgstr "Izvēlne (F10)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "nepiesaistīts"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "poga %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "nospiediet pogu..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bind"
+msgstr "Piesaistīt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "clear"
+msgstr "notīrīt"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "Pievienota %d spēļu pults."
+msgstr[1] "Pievienotas %d spēļu pultis."
+msgstr[2] "Pievienotas %d spēļu pultis."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "Spēļu pults nav pievienota. Iestatījumi stāsies spēkā, kad tā būs."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "Spēlētājs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "Atjaunot SDL noklusējumus"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Down"
+msgstr "Pārnesums lejup"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Up"
+msgstr "Kustēties augšup"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Left"
+msgstr "Kustēties pa kreisi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Right"
+msgstr "Kustēties pa labi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Down"
+msgstr "Kustēties lejup"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Up"
+msgstr "Pārnesums augšup"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer / Aim"
+msgstr "Stūrēt / tēmēt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Labā svira"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "Labā kursorsvira"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "Kreisā kursorsvira"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (invertēts)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then push a stick.\n"
+"Right-click to go back to the default."
+msgstr ""
+"Noklikšķiniet, tad pakustiniet kursorsviru.\n"
+"Ar labo klikšķi atjauno noklusējumu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick\n"
+"or press a button. Right-click for the default."
+msgstr ""
+"Noklikšķiniet, tad nospiediet mēlīti, pakustiniet\n"
+"kursorsviru vai nospiediet pogu. Labais klikšķis - noklusējums."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press a button or pull a trigger.\n"
+"Right-click to unbind."
+msgstr ""
+"Noklikšķiniet, tad nospiediet pogu vai mēlīti.\n"
+"Ar labo klikšķi atsaista."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
+"is Virtual On's. Test and Service are Guide+Start and Guide+Back."
+msgstr "Kreisā kursorsvira arī pārvieto; plecu pogas darbojas arī kā Poga 3/4. Labā svira ir Virtual On spēlei. Tests un Serviss ir Guide+Start un Guide+Back."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick sensitivity"
+msgstr "Kursorsviras jutība"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection\n"
+"is always full lock; under 100% the middle of the travel does\n"
+"less, over 100% it does more."
+msgstr ""
+"Kursorsviras gājiena reakcija aiz nejutīgās zonas. Pilna\n"
+"novirze vienmēr ir pilna bloķēšana; zem 100% gājiena vidus\n"
+"dara mazāk, virs 100% - vairāk."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts in driving games.\n"
+"Other games stay quiet."
+msgstr ""
+"Vibrē spēles triecienos braukšanas spēlēs.\n"
+"Citas spēles paliek klusas."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering vibration"
+msgstr "Stūrēšanas vibrācija"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"Papildu vibrācija, kas pieaug, stūrējot. Tā nav\n"
+"no spēles. Izslēdziet, lai just tikai spēles spēka atgriezenisko saiti."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset"
+msgstr "Atiestatīt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Per-game volume"
+msgstr "Spēles skaļums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Raise or lower a game's volume from its default level.\n"
+"One slider covers every revision of a game. Off plays\n"
+"every game at its default, whatever the sliders say.\n"
+"\n"
+"Warning: above 100% loud effects can clip (audible\n"
+"distortion)."
+msgstr ""
+"Palielināt vai samazināt spēles skaļumu no noklusējuma līmeņa.\n"
+"Viens slīdnis attiecas uz visām spēles versijām. Izslēgts\n"
+"atskaņo visas spēles noklusējuma līmenī, neatkarīgi no slīdņiem.\n"
+"\n"
+"Brīdinājums: virs 100% skaļi efekti var tikt nogriezti\n"
+"(dzirdami kropļojumi)."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Now playing: %s"
+msgstr "Tagad skan: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Filter games"
+msgstr "Filtrēt spēles"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset all"
+msgstr "Atiestatīt visu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game"
+msgstr "Spēle"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "Skaļums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Show the aiming crosshair and hide the mouse cursor,\n"
+"for the light-gun titles (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+msgstr ""
+"Rādīt tēmēkli un paslēpt peles kursoru\n"
+"gaismas pistoles spēlēm (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show crosshair"
+msgstr "Rādīt tēmēkli"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"has its own sight (e.g. a Sinden). Positional-gun\n"
+"titles always draw their own regardless."
+msgstr ""
+"Zīmēt sm2-emu tēmēkli. Izslēdziet, ja pistolei\n"
+"ir savs tēmēklis (piem., Sinden). Pozicionālo pistoļu\n"
+"spēles vienmēr zīmē savu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide shot flash"
+msgstr "Paslēpt šāviena zibsni"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+"House of the Dead show on each shot."
+msgstr ""
+"Paslēpt balto zibsni, ko Virtua Cop, Virtua Cop 2 un\n"
+"House of the Dead rāda pēc katra šāviena."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Player 1 aims with the mouse; the left button fires and the right button "
+"reloads (shoot off screen)."
+msgstr "1. spēlētājs tēmē ar peli; kreisā poga šauj, labā pārlādē (šaujiet ārpus ekrāna)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Recoil"
+msgstr "Atsitiens"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Kick the gun's rumble motor on each shot, for guns\n"
+"that have one (Sinden and similar). No effect on a\n"
+"gun without a motor."
+msgstr ""
+"Iedarbināt pistoles vibromotoru pēc katra šāviena\n"
+"pistolēm, kurām tāds ir (Sinden un līdzīgām). Pistolei\n"
+"bez motora nav nekādas ietekmes."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enable recoil"
+msgstr "Ieslēgt atsitienu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Strength"
+msgstr "Stiprums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "Ierīces"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Gun %zu (player %zu): %s"
+msgstr "Pistole %zu (spēlētājs %zu): %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"in absolute mouse mode (GUN4IR, Sinden, AimTrak) before launching for "
+"independent per-player aiming."
+msgstr "Īpašas gaismas pistoles nav atrastas. 1. spēlētājs tēmē ar peli; kreisā poga šauj, labā pārlādē (šaujiet ārpus ekrāna). Pirms palaišanas pievienojiet pistoles absolūtā peles režīmā (GUN4IR, Sinden, AimTrak), lai katrs spēlētājs tēmētu neatkarīgi."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"tagged ID_INPUT_GUN for independent per-player aiming."
+msgstr "Īpašas gaismas pistoles nav atrastas. 1. spēlētājs tēmē ar peli; kreisā poga šauj, labā pārlādē (šaujiet ārpus ekrāna). Pievienojiet pistoles ar ID_INPUT_GUN atzīmi, lai katrs spēlētājs tēmētu neatkarīgi."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun buttons"
+msgstr "Pistoles pogas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the button on that player's gun."
+msgstr "Nospiediet „Piesaistīt”, tad nospiediet pogu šī spēlētāja pistolē."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload/Missile"
+msgstr "Pārlādēt/raķete"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Mēlīte"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat down"
+msgstr "Krustpoga lejup"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat left"
+msgstr "Krustpoga pa kreisi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat right"
+msgstr "Krustpoga pa labi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat up"
+msgstr "Krustpoga augšup"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Player %d"
+msgstr "%d. spēlētājs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sinden border"
+msgstr "Sinden rāmis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A bright frame around the game image that a Sinden\n"
+"gun's camera tracks for aiming. Only shown in\n"
+"light-gun mode."
+msgstr ""
+"Spilgts rāmis ap spēles attēlu, ko Sinden pistoles\n"
+"kamera izseko tēmēšanai. Rādīts tikai\n"
+"gaismas pistoles režīmā."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show border"
+msgstr "Rādīt rāmi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Colour"
+msgstr "Krāsa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Thickness"
+msgstr "Biezums"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "Savienot automātus tīklā"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same\n"
+"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+"this cabinet standalone. Takes effect on the next game launch."
+msgstr ""
+"Sacensties savienojumā ar citām mašīnām tajā pašā LAN, kurās darbojas\n"
+"tā pati spēle (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Izslēgts\n"
+"šo automātu atstāj atsevišķu. Stājas spēkā nākamajā spēles palaišanā."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next cabinet. For two machines, point each at the other. The master/"
+"slave role is chosen in the game's own test menu, not here."
+msgstr "Sakaru plate ir gredzens: katrs automāts klausās savā adresē un sūta nākamajam automātam. Divām mašīnām norādiet vienu uz otru. Galvenā/pakārtotā loma tiek izvēlēta pašas spēles testa izvēlnē, nevis šeit."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "Šis automāts"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "Lokālā IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "Noteikt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank\n"
+"listens on every interface. Detect fills it from the\n"
+"primary network adapter."
+msgstr ""
+"Šīs mašīnas adrese automātu LAN tīklā. Tukšs\n"
+"klausās visās saskarnēs. „Noteikt” to aizpilda no\n"
+"primārā tīkla adaptera."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "Apakštīkla maska"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "Klausīšanās ports"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "Automāta numurs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring (0-based).\n"
+"For your own bookkeeping; the game negotiates the\n"
+"actual link id from the ring."
+msgstr ""
+"Kur šis automāts atrodas gredzenā (no 0).\n"
+"Jūsu pašu uzskaitei; faktisko savienojuma ID\n"
+"spēle saskaņo gredzenā."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "Nākamais automāts gredzenā"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "Nākamā IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the\n"
+"other machine's IP. Blank means this cabinet does not\n"
+"forward (tail of a chain)."
+msgstr ""
+"Automāts, uz kuru šis sūta. Divām mašīnām - otras\n"
+"mašīnas IP. Tukšs nozīmē, ka šis automāts\n"
+"nepārsūta (ķēdes gals)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "Nākamais ports"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "Statuss"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "Savienojums konfigurēts; sāksies nākamajā spēles palaišanā."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "Atsevišķs (bez automātu savienojuma)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "Gaida, kad spēle ieslēgs savienojuma plati..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "Savienots: automāts %u no %u."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "Veido gredzenu..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This machine's interfaces:"
+msgstr "Šīs mašīnas saskarnes:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "Ielādējiet spēli, lai saglabātu un atjaunotu tās stāvokli."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is F6, "
+"quick-load is F7."
+msgstr "Saglabājiet visu mašīnu slotā un atjaunojiet vēlāk. Ātrā saglabāšana - F6, ātrā ielāde - F7."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "Dzēst"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "Ielādēt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "Saglabāt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "tukšs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CALIBRATING GUN - shoot each target"
+msgstr "PISTOLES KALIBRĒŠANA - šaujiet katrā mērķī"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Choose Directory"
+msgstr "Izvēlieties mapi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Up"
+msgstr "Augšup"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Refresh"
+msgstr "Atsvaidzināt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannot list this directory (permission denied, or it doesn't exist)."
+msgstr "Nevar parādīt šīs mapes saturu (nav atļaujas vai tā neeksistē)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select This Folder"
+msgstr "Izvēlēties šo mapi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel"
+msgstr "Atcelt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "F10: toggle overlay"
+msgstr "F10: pārslēgt pārklājumu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select a game"
+msgstr "Izvēlieties spēli"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter: launch   F10: settings   F9: quit"
+msgstr "Enter: palaist   F10: iestatījumi   F9: iziet"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"(F1) > Paths, then relaunch."
+msgstr "ROM mapē netika atrasts neviens Model 2 ROM arhīvs. Iestatiet to sadaļā Iestatījumi (F1) > Ceļi un palaidiet no jauna."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetching description..."
+msgstr "Ielādē aprakstu..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No description available."
+msgstr "Apraksts nav pieejams."

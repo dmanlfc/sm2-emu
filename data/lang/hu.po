@@ -1,0 +1,1530 @@
+# Hungarian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+msgid ""
+msgstr ""
+"Project-Id-Version: sm2-emu\n"
+"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"POT-Creation-Date: 2026-10-09 00:35+1000\n"
+"PO-Revision-Date: 2026-10-09 00:35+1000\n"
+"Last-Translator: machine translation, needs review\n"
+"Language-Team: none\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Language-Name: Magyar\n"
+"X-Language-Name-English: Hungarian\n"
+
+#: src/main.cpp
+#, no-c-format
+msgid "Quick"
+msgstr "Gyors"
+
+#: src/main.cpp
+#, c-format
+msgid "Slot %s"
+msgstr "%s. hely"
+
+#: src/main.cpp
+#, c-format
+msgid "State saved: %s"
+msgstr "Állapot mentve: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Save failed: %s"
+msgstr "Mentés sikertelen: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State loaded: %s"
+msgstr "Állapot betöltve: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Load failed: %s (empty or incompatible)"
+msgstr "Betöltés sikertelen: %s (üres vagy nem kompatibilis)"
+
+#: src/main.cpp
+#, c-format
+msgid "State deleted: %s"
+msgstr "Állapot törölve: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Delete failed: %s"
+msgstr "Törlés sikertelen: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "File"
+msgstr "Fájl"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide overlay"
+msgstr "Átfedés elrejtése"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "Kilépés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "Beállítások"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "Vsync"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "Teljes képernyő"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "FPS-számláló"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On-screen notifications"
+msgstr "Képernyős értesítések"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light-gun mode"
+msgstr "Fénypisztoly mód"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Video"
+msgstr "Kép"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wait for vertical blank before presenting.\n"
+"Prevents tearing but adds up to one frame of latency."
+msgstr ""
+"Megjelenítés előtt megvárja a függőleges visszafutást.\n"
+"Megszünteti a képszakadást, de legfeljebb egy képkocka késést ad."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "Értesítések"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "Automatikus (rendszer)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "Nyelv"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU"
+msgstr "GPU"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto (best)"
+msgstr "Auto (legjobb)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Renderer"
+msgstr "Megjelenítő"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software"
+msgstr "Szoftveres"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Which renderer draws the game. Applies on the\n"
+"next launch - save settings and relaunch."
+msgstr ""
+"Melyik megjelenítő rajzolja a játékot. A következő\n"
+"indításkor érvényes - mentse a beállításokat, és indítsa újra."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window size"
+msgstr "Ablakméret"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Width"
+msgstr "Szélesség"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Height"
+msgstr "Magasság"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x (native)"
+msgstr "1x (natív)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "8x (4K)"
+msgstr "8x (4K)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D render scale"
+msgstr "3D renderelési skála"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution. Higher is crisper 3D\n"
+"(2D/HUD stays sharp). GPU backends only; the software\n"
+"renderer stays native. Applies on the next launch - save\n"
+"settings and relaunch."
+msgstr ""
+"Belső 3D renderelési felbontás. Nagyobb = élesebb 3D\n"
+"(a 2D/HUD éles marad). Csak GPU-megjelenítőkkel; a\n"
+"szoftveres natív marad. A következő indításkor érvényes\n"
+"- mentse a beállításokat, és indítsa újra."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bilinear"
+msgstr "Bilineáris"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Integer"
+msgstr "Egész szorzós"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Nearest"
+msgstr "Legközelebbi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sharp-bilinear"
+msgstr "Éles bilineáris"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D scaling"
+msgstr "2D méretezés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How the frame is magnified to the window.\n"
+"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+"nearest shows at non-integer window sizes. Integer snaps\n"
+"to a whole multiple (pixel-perfect, with black bars).\n"
+"Applies live."
+msgstr ""
+"Hogyan nagyítódik a képkocka az ablakra. Az éles bilineáris\n"
+"élesen tartja a 2D szöveget a legközelebbi módszer\n"
+"vibrálása nélkül nem egész ablakméreteknél. Az egész\n"
+"szorzós egész többszörösre igazít (pixelpontos, fekete\n"
+"sávokkal). Azonnal érvényes."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3 (arcade)"
+msgstr "4:3 (játékgép)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Square pixels"
+msgstr "Négyzetes pixelek"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stretch"
+msgstr "Nyújtás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aspect"
+msgstr "Képarány"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape (the default).\n"
+"Square pixels shows the raw 496x384 (slightly narrow).\n"
+"Stretch fills the whole window. Applies live."
+msgstr ""
+"A 4:3 a játékgép monitorának alakja (alapértelmezett).\n"
+"A négyzetes pixelek a nyers 496x384-et mutatják (kissé keskeny).\n"
+"A nyújtás kitölti az egész ablakot. Azonnal érvényes."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CRT filter"
+msgstr "CRT-szűrő"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A cosmetic arcade-monitor look over the finished frame:\n"
+"scanlines, an RGB shadow mask, glow and optional screen\n"
+"curvature. Purely visual; applies live."
+msgstr ""
+"Kozmetikai játékgép-monitor hatás a kész képkockán:\n"
+"pásztázó sorok, RGB árnyékmaszk, ragyogás és opcionális\n"
+"képernyőgörbület. Csak vizuális; azonnal érvényes."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines"
+msgstr "Pásztázó sorok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Mask"
+msgstr "Maszk"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Glow"
+msgstr "Ragyogás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Curvature"
+msgstr "Görbület"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enhancement (cosmetic, beyond the original hardware)"
+msgstr "Feljavítás (kozmetikai, az eredeti hardveren túl)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropic"
+msgstr "Anizotróp"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Faithful"
+msgstr "Hű"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D texture filter"
+msgstr "3D textúraszűrő"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(unsupported)"
+msgstr "(nem támogatott)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This GPU does not report anisotropic filtering."
+msgstr "Ez a GPU nem jelez anizotróp szűrést."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropy"
+msgstr "Anizotrópia"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D upscale"
+msgstr "2D felskálázás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+"Applies live."
+msgstr ""
+"Simítja a 2D rétegek széleit (HUD, szöveg, menük). Az xBR és\n"
+"a ScaleFX lekerekíti az átlókat; a Hű megtartja az éles\n"
+"pixeleket. Azonnal érvényes."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Blended"
+msgstr "Kevert"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stipple"
+msgstr "Pontozott"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Translucency"
+msgstr "Áttetszőség"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass,\n"
+"shadows) as a checkerboard. Blended draws the 50%\n"
+"see-through surface it's trying to achieve. Applies live."
+msgstr ""
+"A hardver az áttetsző felületeket (fények, üveg, árnyékok)\n"
+"sakktáblaként rajzolja. A Kevert a megcélzott 50%-os\n"
+"áttetsző felületet rajzolja. Azonnal érvényes."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Custom textures"
+msgstr "Egyéni textúrák"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Replace the game's 3D textures with images saved in\n"
+"saves/textures/<game>/load, named as dumped. GPU\n"
+"renderers only; Reload picks up edited files."
+msgstr ""
+"Lecseréli a játék 3D textúráit a saves/textures/<game>/load\n"
+"mappába mentett, kimentéskor kapott nevű képekre.\n"
+"Csak GPU-megjelenítők; az Újratöltés beolvassa a változásokat."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu loaded"
+msgstr "%zu betöltve"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload"
+msgstr "Újratöltés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dump textures"
+msgstr "Textúrák kimentése"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them,\n"
+"with an index.html to browse, to saves/textures/<game>/dump\n"
+"when the game exits or this is turned off."
+msgstr ""
+"Összegyűjti a játék által rajzolt összes 3D textúrát, és\n"
+"egy böngészhető index.html-lel a saves/textures/<game>/dump\n"
+"mappába írja, amikor a játék kilép vagy ezt kikapcsolja."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Audio"
+msgstr "Hang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Paths"
+msgstr "Útvonalak"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "Tallózás..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Config directory"
+msgstr "Konfigurációs mappa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where sm2-emu.ini is read from and saved to.\n"
+"Set with --config <dir>; cannot be changed here."
+msgstr ""
+"Ahonnan az sm2-emu.ini betöltődik és ahová mentődik.\n"
+"A --config <dir> kapcsolóval állítható; itt nem módosítható."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ROM directory"
+msgstr "ROM-mappa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the ROM archives live. A game launched by name is\n"
+"loaded from here as <name>.zip or <name>.7z."
+msgstr ""
+"Ahol a ROM-archívumok vannak. A név szerint indított\n"
+"játék innen töltődik be <name>.zip vagy <name>.7z néven."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves directory"
+msgstr "Mentések mappája"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+"(.eeprom) images -- high scores and operator settings."
+msgstr ""
+"Elemes mentések: játékonkénti NVRAM (.nv) és EEPROM\n"
+"(.eeprom) képfájlok -- rekordok és üzemeltetői beállítások."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots directory"
+msgstr "Képernyőképek mappája"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where F12 screenshots are written."
+msgstr "Ahová az F12 képernyőképek kerülnek."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scrape artwork online"
+msgstr "Borítóképek letöltése"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game picker fetch box art and descriptions from\n"
+"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"picker still lists and launches every game, with placeholder\n"
+"tiles and no descriptions."
+msgstr ""
+"A játékválasztó letöltheti a borítóképeket és leírásokat az\n"
+"ArcadeDB-ről a hálózaton át. Kikapcsolva az sm2-emu offline\n"
+"marad: a választó így is listáz és indít minden játékot,\n"
+"helyettesítő csempékkel, leírás nélkül."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad"
+msgstr "Játékvezérlő"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel"
+msgstr "Kormány"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light Gun"
+msgstr "Fénypisztoly"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network"
+msgstr "Hálózat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "Állapotok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "Névjegy"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 2 arcade emulator"
+msgstr "Sega Model 2 játékgép-emulátor"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "BSD 3-Clause licence. See LICENSE."
+msgstr "BSD 3-Clause licenc. Lásd: LICENSE."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "sm2-emu exists because of open source shared with the community."
+msgstr "Az sm2-emu a közösséggel megosztott nyílt forráskódnak köszönhetően létezik."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to the projects whose code makes it possible:"
+msgstr "Köszönet a projekteknek, amelyek kódja ezt lehetővé teszi:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The MAME project - Sega Model 2 emulation guidance"
+msgstr "A MAME projekt - útmutatás a Sega Model 2 emulációhoz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+msgstr "Musashi - Motorola 68000 CPU-mag (Karl Stenerud)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+msgstr "ymfm - Yamaha FM hangmagok (Aaron Giles)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SDL - windowing, input and audio"
+msgstr "SDL - ablakkezelés, bemenet és hang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dear ImGui - this user interface (Omar Cornut)"
+msgstr "Dear ImGui - ez a felhasználói felület (Omar Cornut)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "pugixml - games.xml parsing"
+msgstr "pugixml - games.xml feldolgozása"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "miniz - ZIP archive decompression"
+msgstr "miniz - ZIP-archívumok kibontása"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+msgstr "LZMA SDK - 7-Zip-archívumok kibontása (Igor Pavlov)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+msgstr "VulkanMemoryAllocator - GPU-memória (AMD / GPUOpen)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shaderc / glslang - shader compilation"
+msgstr "shaderc / glslang - shaderek fordítása"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "stb_image - box-art image decoding (Sean Barrett)"
+msgstr "stb_image - borítóképek dekódolása (Sean Barrett)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr "Játékvezérlő képe - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "libcurl - artwork scraping (optional)"
+msgstr "libcurl - borítóképek letöltése (opcionális)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "HarfBuzz - text shaping for translations"
+msgstr "HarfBuzz - szövegformázás a fordításokhoz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr "SheenBidi - jobbról balra író szövegelrendezés (Muhammad Tayyab Akram)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game artwork and descriptions from ArcadeDB"
+msgstr "Játékképek és leírások az ArcadeDB-ről"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(adb.arcadeitalia.net, by Motoschifo)."
+msgstr "(adb.arcadeitalia.net, készítette: Motoschifo)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "See NOTICE for full per-component attribution."
+msgstr "A komponensenkénti teljes forrásmegjelölés: NOTICE."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "If you'd like to support development:"
+msgstr "Ha támogatná a fejlesztést:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save settings"
+msgstr "Beállítások mentése"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Saved to %s"
+msgstr "Mentve ide: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel connected."
+msgstr "Kormány csatlakoztatva."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "Nincs kormány csatlakoztatva. A beállítások csatlakoztatáskor érvényesek."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Force feedback"
+msgstr "Erő-visszacsatolás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel force on driving games: centring and cornering\n"
+"forces decoded from the game's own drive-board commands,\n"
+"plus an impact jolt when you hit something."
+msgstr ""
+"Kormányerő autós játékokban: középre húzó és kanyarerők\n"
+"a játék saját meghajtópanel-parancsaiból, valamint\n"
+"rántás, ha nekimegy valaminek."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Resistance"
+msgstr "Ellenállás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "Erő-visszacsatolás megfordítása"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls\n"
+"away from the centre instead of bringing it back, and\n"
+"the game's forces go the opposite way."
+msgstr ""
+"Olyan kormányhoz, amelynek illesztője rossz irányba tol:\n"
+"elhúz a középtől ahelyett, hogy visszahozná, és a\n"
+"játék erői ellenkező irányba hatnak."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble"
+msgstr "Rezgés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force\n"
+"feedback. It never runs alongside force feedback."
+msgstr ""
+"Rezeg a játékbeli ütközéseknél, erő-visszacsatolás nélküli\n"
+"kormányokhoz. Sosem fut együtt az erő-visszacsatolással."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "Rezgés erőssége"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "Motorrezgés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"Hozzáadott rezgés, amely a gázzal nő. Nem a játékból\n"
+"származik. Kapcsolja ki, ha csak a játék erőit akarja érezni."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%u deg"
+msgstr "%u fok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "Kormányzási tartomány"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock\n"
+"angle below is mapped onto it, so matching your wheel\n"
+"gives arcade-like response."
+msgstr ""
+"Állítsa a kormánya saját elfordulási tartományára. Az alábbi\n"
+"ütközési szög erre képződik le, így az egyezés\n"
+"játékgépszerű választ ad."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "Ütközési szög"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d deg"
+msgstr "%d fok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total,\n"
+"so half each side of centre). Lower is more sensitive."
+msgstr ""
+"Mennyit kell fizikailag fordítani a teljes kitéréshez\n"
+"(összesen, azaz fele mindkét irányba). Kisebb = érzékenyebb."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "Tengelyek"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+msgstr "Automatikusan felismerve. Kalibráljon újra, ha a kormányzás vagy egy pedál hibás."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "Kormányzás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "Gáz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "Fék"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "auto"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "%d. tengely (fordított)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "%d. tengely"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "mozgassa..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "cancel"
+msgstr "mégse"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Calibrate"
+msgstr "Kalibrálás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "Gombok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the wheel button for that control."
+msgstr "Nyomja meg a Hozzárendelést, majd a kormány gombját az adott funkcióhoz."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Coin"
+msgstr "Érme"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "1. gomb"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "2. gomb"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "3. gomb"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "4. gomb"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "Felváltás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "Leváltás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Test"
+msgstr "Teszt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "Szerviz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu (F10)"
+msgstr "Menü (F10)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "nincs hozzárendelve"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "%d. gomb"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "nyomjon meg egy gombot..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bind"
+msgstr "Hozzárendelés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "clear"
+msgstr "törlés"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "%d játékvezérlő csatlakoztatva."
+msgstr[1] "%d játékvezérlő csatlakoztatva."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "Nincs játékvezérlő csatlakoztatva. A beállítások csatlakoztatáskor érvényesek."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "Játékos"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "SDL alapértékek visszaállítása"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Down"
+msgstr "Leváltás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Up"
+msgstr "Mozgás fel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Left"
+msgstr "Mozgás balra"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Right"
+msgstr "Mozgás jobbra"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Down"
+msgstr "Mozgás le"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Up"
+msgstr "Felváltás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer / Aim"
+msgstr "Kormányzás / Célzás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Jobb oldali kar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "Jobb analóg kar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "Bal analóg kar"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (fordított)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then push a stick.\n"
+"Right-click to go back to the default."
+msgstr ""
+"Kattintson, majd mozdítson egy kart.\n"
+"Jobb kattintással visszaáll az alapérték."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick\n"
+"or press a button. Right-click for the default."
+msgstr ""
+"Kattintson, majd húzza meg a ravaszt, mozdítson\n"
+"egy kart vagy nyomjon gombot. Jobb klikk: alapérték."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press a button or pull a trigger.\n"
+"Right-click to unbind."
+msgstr ""
+"Kattintson, majd nyomjon gombot vagy ravaszt.\n"
+"Jobb kattintással törli a hozzárendelést."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The left stick also moves; the shoulders also act as Button 3/4. Right Lever is Virtual On's. Test and Service are Guide+Start and Guide+Back."
+msgstr "A bal analóg kar is mozgat; a vállgombok 3./4. gombként is működnek. A jobb oldali kar a Virtual On-hoz való. A Teszt és a Szerviz: Guide+Start és Guide+Back."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick sensitivity"
+msgstr "Kar érzékenysége"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection\n"
+"is always full lock; under 100% the middle of the travel does\n"
+"less, over 100% it does more."
+msgstr ""
+"A kar holtzónán túli kitérésének válasza. A teljes kitérés\n"
+"mindig teljes kormányzás; 100% alatt a tartomány közepe\n"
+"kevesebbet, 100% felett többet tesz."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts in driving games.\n"
+"Other games stay quiet."
+msgstr ""
+"Rezeg a játékbeli ütközéseknél autós játékokban.\n"
+"Más játékok csendesek maradnak."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering vibration"
+msgstr "Kormányzási rezgés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"Hozzáadott rezgés, amely a kormányzással nő. Nem a játékból\n"
+"származik. Kapcsolja ki, ha csak a játék erőit akarja érezni."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset"
+msgstr "Visszaállítás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Per-game volume"
+msgstr "Játékonkénti hangerő"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Raise or lower a game's volume from its default level.\n"
+"One slider covers every revision of a game. Off plays\n"
+"every game at its default, whatever the sliders say.\n"
+"\n"
+"Warning: above 100% loud effects can clip (audible\n"
+"distortion)."
+msgstr ""
+"Emeli vagy csökkenti egy játék hangerejét az alapszinthez képest.\n"
+"Egy csúszka egy játék összes változatára vonatkozik. Kikapcsolva\n"
+"minden játék az alapszintjén szól, a csúszkáktól függetlenül.\n"
+"\n"
+"Figyelem: 100% felett a hangos effektek torzulhatnak\n"
+"(hallható torzítás)."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Now playing: %s"
+msgstr "Most szól: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Filter games"
+msgstr "Játékok szűrése"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset all"
+msgstr "Összes visszaállítása"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game"
+msgstr "Játék"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "Hangerő"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Show the aiming crosshair and hide the mouse cursor,\n"
+"for the light-gun titles (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+msgstr ""
+"Megjeleníti a célkeresztet és elrejti az egérmutatót\n"
+"a fénypisztolyos játékokban (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show crosshair"
+msgstr "Célkereszt megjelenítése"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"has its own sight (e.g. a Sinden). Positional-gun\n"
+"titles always draw their own regardless."
+msgstr ""
+"Az sm2-emu saját célkeresztjét rajzolja. Kapcsolja ki, ha\n"
+"a pisztolynak saját irányzéka van (pl. Sinden). A pozíciós\n"
+"pisztolyos játékok mindig a sajátjukat rajzolják."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide shot flash"
+msgstr "Lövésvillanás elrejtése"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+"House of the Dead show on each shot."
+msgstr ""
+"Elrejti a fehér villanást, amelyet a Virtua Cop, a Virtua Cop 2\n"
+"és a House of the Dead minden lövésnél mutat."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player 1 aims with the mouse; the left button fires and the right button reloads (shoot off screen)."
+msgstr "Az 1. játékos egérrel céloz; a bal gomb lő, a jobb gomb újratölt (lövés a képernyőn kívülre)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Recoil"
+msgstr "Visszarúgás"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Kick the gun's rumble motor on each shot, for guns\n"
+"that have one (Sinden and similar). No effect on a\n"
+"gun without a motor."
+msgstr ""
+"Minden lövésnél megrúgja a pisztoly rezgőmotorját, ha\n"
+"van neki (Sinden és hasonlók). Motor nélküli\n"
+"pisztolyon nincs hatása."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enable recoil"
+msgstr "Visszarúgás bekapcsolása"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Strength"
+msgstr "Erősség"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "Eszközök"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Gun %zu (player %zu): %s"
+msgstr "%zu. pisztoly (%zu. játékos): %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No dedicated light guns detected. Player 1 aims with the mouse; the left button fires and the right button reloads (shoot off screen). Plug in guns in absolute mouse mode (GUN4IR, Sinden, AimTrak) before launching for independent per-player aiming."
+msgstr "Nem található külön fénypisztoly. Az 1. játékos egérrel céloz; a bal gomb lő, a jobb gomb újratölt (lövés a képernyőn kívülre). A játékosonként független célzáshoz indítás előtt csatlakoztasson abszolút egér módú pisztolyokat (GUN4IR, Sinden, AimTrak)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No dedicated light guns detected. Player 1 aims with the mouse; the left button fires and the right button reloads (shoot off screen). Plug in guns tagged ID_INPUT_GUN for independent per-player aiming."
+msgstr "Nem található külön fénypisztoly. Az 1. játékos egérrel céloz; a bal gomb lő, a jobb gomb újratölt (lövés a képernyőn kívülre). A játékosonként független célzáshoz csatlakoztasson ID_INPUT_GUN címkéjű pisztolyokat."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun buttons"
+msgstr "Pisztolygombok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the button on that player's gun."
+msgstr "Nyomja meg a Hozzárendelést, majd a gombot az adott játékos pisztolyán."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload/Missile"
+msgstr "Újratöltés/Rakéta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Ravasz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat down"
+msgstr "Hat le"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat left"
+msgstr "Hat balra"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat right"
+msgstr "Hat jobbra"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat up"
+msgstr "Hat fel"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Player %d"
+msgstr "%d. játékos"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sinden border"
+msgstr "Sinden keret"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A bright frame around the game image that a Sinden\n"
+"gun's camera tracks for aiming. Only shown in\n"
+"light-gun mode."
+msgstr ""
+"Világos keret a játékkép körül, amelyet a Sinden\n"
+"pisztoly kamerája követ célzáshoz. Csak\n"
+"fénypisztoly módban látható."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show border"
+msgstr "Keret megjelenítése"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Colour"
+msgstr "Szín"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Thickness"
+msgstr "Vastagság"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "Gépek összekapcsolása hálózaton"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same\n"
+"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+"this cabinet standalone. Takes effect on the next game launch."
+msgstr ""
+"Összekapcsolt verseny ugyanazon a LAN-on lévő, ugyanazt a\n"
+"játékot futtató gépekkel (Sega Rally, Daytona, Super GT 24h, Indy 500, ...).\n"
+"Kikapcsolva önálló. A következő játékindításkor érvényes."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The comms board is a ring: each cabinet listens on its own address and sends to the next cabinet. For two machines, point each at the other. The master/slave role is chosen in the game's own test menu, not here."
+msgstr "A kommunikációs panel gyűrűt alkot: minden gép a saját címén figyel, és a következő gépnek küld. Két gépnél mindegyiket a másikra irányítsa. A master/slave szerepet a játék saját tesztmenüjében kell választani, nem itt."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "Ez a gép"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "Helyi IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "Felismerés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank\n"
+"listens on every interface. Detect fills it from the\n"
+"primary network adapter."
+msgstr ""
+"Ennek a gépnek a címe a játékgépek LAN-ján. Üresen\n"
+"minden interfészen figyel. A Felismerés kitölti\n"
+"az elsődleges hálózati adapterből."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "Alhálózati maszk"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "Figyelő port"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "Gép száma"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring (0-based).\n"
+"For your own bookkeeping; the game negotiates the\n"
+"actual link id from the ring."
+msgstr ""
+"A gép helye a gyűrűben (0-tól).\n"
+"Csak nyilvántartáshoz; a tényleges kapcsolati\n"
+"azonosítót a játék egyezteti a gyűrűben."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "Következő gép a gyűrűben"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "Következő IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the\n"
+"other machine's IP. Blank means this cabinet does not\n"
+"forward (tail of a chain)."
+msgstr ""
+"A gép, amelynek ez küld. Két gépnél a másik\n"
+"gép IP-címe. Üresen ez a gép nem továbbít\n"
+"(a lánc vége)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "Következő port"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "Állapot"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "Kapcsolat beállítva; a következő játékindításkor indul."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "Önálló (nincs gépösszekapcsolás)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "Várakozás, hogy a játék bekapcsolja a kapcsolati panelt..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "Összekapcsolva: gép %u / %u."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "Gyűrű kiépítése..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This machine's interfaces:"
+msgstr "Ennek a gépnek az interfészei:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "Töltsön be egy játékot az állapot mentéséhez és visszaállításához."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save the whole machine to a slot and restore it later. Quick-save is F6, quick-load is F7."
+msgstr "Az egész gép mentése egy helyre és későbbi visszaállítása. Gyorsmentés: F6, gyorsbetöltés: F7."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "Törlés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "Betöltés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "Mentés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "üres"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CALIBRATING GUN - shoot each target"
+msgstr "PISZTOLY KALIBRÁLÁSA - lőjön minden célpontra"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Choose Directory"
+msgstr "Mappa kiválasztása"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Up"
+msgstr "Fel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Refresh"
+msgstr "Frissítés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannot list this directory (permission denied, or it doesn't exist)."
+msgstr "A mappa nem listázható (hozzáférés megtagadva, vagy nem létezik)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select This Folder"
+msgstr "Mappa kiválasztása"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel"
+msgstr "Mégse"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "F10: toggle overlay"
+msgstr "F10: átfedés be/ki"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select a game"
+msgstr "Válasszon játékot"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter: launch   F10: settings   F9: quit"
+msgstr "Enter: indítás   F10: beállítások   F9: kilépés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No Model 2 ROM archives were found in the ROM directory. Set it in Settings (F1) > Paths, then relaunch."
+msgstr "Nem található Model 2 ROM-archívum a ROM-mappában. Állítsa be: Beállítások (F1) > Útvonalak, majd indítsa újra."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetching description..."
+msgstr "Leírás letöltése..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No description available."
+msgstr "Nincs elérhető leírás."

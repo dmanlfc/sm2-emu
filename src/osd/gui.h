@@ -48,11 +48,12 @@ public:
     Gui(const Gui&) = delete;
     Gui& operator=(const Gui&) = delete;
 
-    /// Initialise ImGui and its SDL3 platform backend.
+    /// Initialise ImGui and its SDL3 platform backend, with the overlay in
+    /// `language` (see Config::language).
     ///
     /// Call once the window exists. The render backend initialises its own
     /// ImGui renderer backend separately, after this.
-    [[nodiscard]] bool init(SDL_Window* window);
+    [[nodiscard]] bool init(SDL_Window* window, const std::string& language);
 
     void shutdown();
 
@@ -235,6 +236,7 @@ public:
 
 private:
     void apply_scale();
+    void apply_language();
     void draw_picker(Config& config);
     void poll_scraper_and_load_metadata();
     void draw_menu_bar(Config& config);
@@ -268,6 +270,8 @@ private:
     bool        m_visible     = false;
     bool        m_initialised = false;
     float       m_ui_scale    = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.
+    std::string m_language;            ///< Config::language as last applied
+    bool        m_language_pending = false;  ///< m_language changed; rebuild before the next frame
     u32         m_framebuffer_width  = 0;  ///< overlay target extent; 0 = use ImGui's own.
     u32         m_framebuffer_height = 0;
 

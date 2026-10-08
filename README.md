@@ -319,6 +319,23 @@ was used is named in the log. Changes made in the overlay are saved on exit. A
 command-line flag always beats the file, and an unparseable line is reported and
 skipped rather than refused.
 
+### Language
+
+The overlay follows the system's preferred language (`language = auto`), or
+whichever one is picked under **Video → Language** or set as `language` in
+`sm2-emu.ini` (`en`, `de`, `ja`, `pt_BR`, ...); it switches live. English is
+drawn in the built-in font, other languages in the fonts the system already
+has (fontconfig on Linux, CoreText on macOS, DirectWrite on Windows), and
+right-to-left and complex scripts are shaped with HarfBuzz and SheenBidi. If
+the system has no font for a language, the overlay stays in English.
+
+The translations live in `data/lang/` as gettext `.po` files. The initial set
+was machine-translated, so corrections from native speakers are very welcome:
+edit the `.po` file (any PO editor such as Poedit works) and open a pull
+request. After changing overlay strings in the source, `data/lang/update-po.sh`
+refreshes the template and merges it into every catalog; its header explains
+how to start a new language.
+
 ### Video: scaling, aspect and CRT
 
 The Video tab (and the config file) control how the finished frame is presented,

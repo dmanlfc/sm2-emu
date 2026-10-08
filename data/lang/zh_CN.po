@@ -1,0 +1,1550 @@
+# Chinese (Simplified) translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the sm2-emu package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sm2-emu\n"
+"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"POT-Creation-Date: 2026-10-09 00:35+1000\n"
+"PO-Revision-Date: 2026-10-09 12:00+1000\n"
+"Last-Translator: machine translation, needs review\n"
+"Language-Team: none\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language-Name: 简体中文\n"
+"X-Language-Name-English: Chinese (Simplified)\n"
+
+#: src/main.cpp
+#, no-c-format
+msgid "Quick"
+msgstr "快速"
+
+#: src/main.cpp
+#, c-format
+msgid "Slot %s"
+msgstr "槽位 %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State saved: %s"
+msgstr "状态已保存：%s"
+
+#: src/main.cpp
+#, c-format
+msgid "Save failed: %s"
+msgstr "保存失败：%s"
+
+#: src/main.cpp
+#, c-format
+msgid "State loaded: %s"
+msgstr "状态已读取：%s"
+
+#: src/main.cpp
+#, c-format
+msgid "Load failed: %s (empty or incompatible)"
+msgstr "读取失败：%s（为空或不兼容）"
+
+#: src/main.cpp
+#, c-format
+msgid "State deleted: %s"
+msgstr "状态已删除：%s"
+
+#: src/main.cpp
+#, c-format
+msgid "Delete failed: %s"
+msgstr "删除失败：%s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "File"
+msgstr "文件"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide overlay"
+msgstr "隐藏覆盖层"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "退出"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "设置"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "垂直同步"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "全屏"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "FPS 计数器"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On-screen notifications"
+msgstr "屏幕通知"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light-gun mode"
+msgstr "光枪模式"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Video"
+msgstr "视频"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wait for vertical blank before presenting.\n"
+"Prevents tearing but adds up to one frame of latency."
+msgstr ""
+"显示前等待垂直消隐。\n"
+"可防止画面撕裂，但会增加最多一帧的延迟。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "通知"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "自动（系统）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "语言"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU"
+msgstr "GPU"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto (best)"
+msgstr "自动（最佳）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Renderer"
+msgstr "渲染器"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software"
+msgstr "软件"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Which renderer draws the game. Applies on the\n"
+"next launch - save settings and relaunch."
+msgstr ""
+"用于绘制游戏的渲染器。下次启动时生效，\n"
+"请保存设置并重新启动。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window size"
+msgstr "窗口大小"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Width"
+msgstr "宽度"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Height"
+msgstr "高度"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x (native)"
+msgstr "1x（原生）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "8x (4K)"
+msgstr "8x（4K）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D render scale"
+msgstr "3D 渲染倍率"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution. Higher is crisper 3D\n"
+"(2D/HUD stays sharp). GPU backends only; the software\n"
+"renderer stays native. Applies on the next launch - save\n"
+"settings and relaunch."
+msgstr ""
+"内部 3D 渲染分辨率。越高 3D 越清晰\n"
+"（2D/HUD 保持清晰）。仅限 GPU 后端；\n"
+"软件渲染器保持原生分辨率。下次启动时生效，\n"
+"请保存设置并重新启动。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bilinear"
+msgstr "双线性"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Integer"
+msgstr "整数倍"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Nearest"
+msgstr "最近邻"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sharp-bilinear"
+msgstr "锐利双线性"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D scaling"
+msgstr "2D 缩放"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How the frame is magnified to the window.\n"
+"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+"nearest shows at non-integer window sizes. Integer snaps\n"
+"to a whole multiple (pixel-perfect, with black bars).\n"
+"Applies live."
+msgstr ""
+"将画面放大到窗口的方式。\n"
+"锐利双线性可在非整数倍窗口尺寸下保持 2D 文字清晰，\n"
+"且没有最近邻产生的闪烁。整数倍会对齐到整倍数\n"
+"（像素精确，带黑边）。\n"
+"即时生效。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3 (arcade)"
+msgstr "4:3（街机）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Square pixels"
+msgstr "方形像素"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stretch"
+msgstr "拉伸"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aspect"
+msgstr "宽高比"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape (the default).\n"
+"Square pixels shows the raw 496x384 (slightly narrow).\n"
+"Stretch fills the whole window. Applies live."
+msgstr ""
+"4:3 是街机显示器的比例（默认）。\n"
+"方形像素显示原始的 496x384（略窄）。\n"
+"拉伸会填满整个窗口。即时生效。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CRT filter"
+msgstr "CRT 滤镜"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A cosmetic arcade-monitor look over the finished frame:\n"
+"scanlines, an RGB shadow mask, glow and optional screen\n"
+"curvature. Purely visual; applies live."
+msgstr ""
+"在完成的画面上叠加街机显示器外观：\n"
+"扫描线、RGB 荫罩、辉光以及可选的屏幕\n"
+"弯曲。纯视觉效果，即时生效。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines"
+msgstr "扫描线"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Mask"
+msgstr "荫罩"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Glow"
+msgstr "辉光"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Curvature"
+msgstr "弯曲度"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enhancement (cosmetic, beyond the original hardware)"
+msgstr "增强（视觉效果，超越原始硬件）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropic"
+msgstr "各向异性"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Faithful"
+msgstr "原汁原味"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D texture filter"
+msgstr "3D 纹理过滤"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(unsupported)"
+msgstr "（不支持）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This GPU does not report anisotropic filtering."
+msgstr "此 GPU 未报告支持各向异性过滤。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropy"
+msgstr "各向异性"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D upscale"
+msgstr "2D 放大"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+"Applies live."
+msgstr ""
+"平滑 2D 图层（HUD、文字、菜单）的边缘。xBR 和\n"
+"ScaleFX 会使斜线圆滑；原汁原味保持像素清晰。\n"
+"即时生效。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Blended"
+msgstr "混合"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stipple"
+msgstr "点阵"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Translucency"
+msgstr "半透明"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass,\n"
+"shadows) as a checkerboard. Blended draws the 50%\n"
+"see-through surface it's trying to achieve. Applies live."
+msgstr ""
+"硬件将半透明表面（灯光、玻璃、阴影）\n"
+"绘制为棋盘格。混合模式绘制其想要实现的\n"
+"50% 半透明表面。即时生效。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Custom textures"
+msgstr "自定义纹理"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Replace the game's 3D textures with images saved in\n"
+"saves/textures/<game>/load, named as dumped. GPU\n"
+"renderers only; Reload picks up edited files."
+msgstr ""
+"用保存在 saves/textures/<game>/load 中、\n"
+"按导出名称命名的图片替换游戏的 3D 纹理。\n"
+"仅限 GPU 渲染器；“重新加载”可读取编辑后的文件。"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu loaded"
+msgstr "已加载 %zu 个"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload"
+msgstr "重新加载"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dump textures"
+msgstr "导出纹理"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them,\n"
+"with an index.html to browse, to saves/textures/<game>/dump\n"
+"when the game exits or this is turned off."
+msgstr ""
+"收集游戏绘制的所有 3D 纹理，连同用于浏览的\n"
+"index.html 写入 saves/textures/<game>/dump\n"
+"（在游戏退出或关闭此选项时）。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Audio"
+msgstr "音频"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Paths"
+msgstr "路径"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "浏览..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Config directory"
+msgstr "配置目录"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where sm2-emu.ini is read from and saved to.\n"
+"Set with --config <dir>; cannot be changed here."
+msgstr ""
+"读取和保存 sm2-emu.ini 的位置。\n"
+"通过 --config <dir> 设置；此处无法更改。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ROM directory"
+msgstr "ROM 目录"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the ROM archives live. A game launched by name is\n"
+"loaded from here as <name>.zip or <name>.7z."
+msgstr ""
+"ROM 压缩包所在位置。按名称启动的游戏\n"
+"会从这里以 <name>.zip 或 <name>.7z 加载。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves directory"
+msgstr "存档目录"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+"(.eeprom) images -- high scores and operator settings."
+msgstr ""
+"电池备份存档：每个游戏的 NVRAM（.nv）和 EEPROM\n"
+"（.eeprom）镜像——最高分和运营设置。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots directory"
+msgstr "截图目录"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where F12 screenshots are written."
+msgstr "F12 截图的保存位置。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scrape artwork online"
+msgstr "在线获取封面图"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game picker fetch box art and descriptions from\n"
+"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"picker still lists and launches every game, with placeholder\n"
+"tiles and no descriptions."
+msgstr ""
+"让游戏选择界面通过网络从 ArcadeDB 获取\n"
+"封面图和简介。关闭后 sm2-emu 保持离线：\n"
+"选择界面仍会列出并启动所有游戏，\n"
+"但使用占位图块且没有简介。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad"
+msgstr "手柄"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel"
+msgstr "方向盘"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light Gun"
+msgstr "光枪"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network"
+msgstr "网络"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "即时存档"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "关于"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 2 arcade emulator"
+msgstr "世嘉 Model 2 街机模拟器"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "BSD 3-Clause licence. See LICENSE."
+msgstr "BSD 3-Clause 许可证。请参阅 LICENSE。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "sm2-emu exists because of open source shared with the community."
+msgstr "sm2-emu 的存在得益于与社区共享的开源项目。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to the projects whose code makes it possible:"
+msgstr "感谢以下项目，它们的代码让这一切成为可能："
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The MAME project - Sega Model 2 emulation guidance"
+msgstr "MAME 项目 - 世嘉 Model 2 模拟参考"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+msgstr "Musashi - Motorola 68000 CPU 核心（Karl Stenerud）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+msgstr "ymfm - Yamaha FM 音源核心（Aaron Giles）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SDL - windowing, input and audio"
+msgstr "SDL - 窗口、输入和音频"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dear ImGui - this user interface (Omar Cornut)"
+msgstr "Dear ImGui - 本用户界面（Omar Cornut）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "pugixml - games.xml parsing"
+msgstr "pugixml - games.xml 解析"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "miniz - ZIP archive decompression"
+msgstr "miniz - ZIP 压缩包解压"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+msgstr "LZMA SDK - 7-Zip 压缩包解压（Igor Pavlov）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+msgstr "VulkanMemoryAllocator - GPU 内存（AMD / GPUOpen）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shaderc / glslang - shader compilation"
+msgstr "shaderc / glslang - 着色器编译"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "stb_image - box-art image decoding (Sean Barrett)"
+msgstr "stb_image - 封面图片解码（Sean Barrett）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr "手柄图片 - Xelu's Free Controller Prompts（Nicolae Berbece），CC0"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "libcurl - artwork scraping (optional)"
+msgstr "libcurl - 封面图获取（可选）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "HarfBuzz - text shaping for translations"
+msgstr "HarfBuzz - 翻译文本塑形"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr "SheenBidi - 从右到左文本排版（Muhammad Tayyab Akram）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game artwork and descriptions from ArcadeDB"
+msgstr "游戏封面图和简介来自 ArcadeDB"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(adb.arcadeitalia.net, by Motoschifo)."
+msgstr "（adb.arcadeitalia.net，作者 Motoschifo）。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "See NOTICE for full per-component attribution."
+msgstr "完整的各组件署名信息请参阅 NOTICE。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "If you'd like to support development:"
+msgstr "如果您愿意支持开发："
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save settings"
+msgstr "保存设置"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Saved to %s"
+msgstr "已保存到 %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel connected."
+msgstr "方向盘已连接。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "未连接方向盘。连接后设置仍会生效。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Force feedback"
+msgstr "力反馈"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel force on driving games: centring and cornering\n"
+"forces decoded from the game's own drive-board commands,\n"
+"plus an impact jolt when you hit something."
+msgstr ""
+"赛车游戏中的方向盘力度：从游戏自身的驱动板\n"
+"指令解码出的回中力和过弯力，\n"
+"以及撞击时的冲击震动。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Resistance"
+msgstr "阻力"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "反转力反馈"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls\n"
+"away from the centre instead of bringing it back, and\n"
+"the game's forces go the opposite way."
+msgstr ""
+"适用于驱动程序方向推反的方向盘：它不回中\n"
+"而是被拉离中心，游戏的力也\n"
+"朝相反方向作用。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble"
+msgstr "震动"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force\n"
+"feedback. It never runs alongside force feedback."
+msgstr ""
+"在游戏中发生撞击时震动，适用于没有力反馈的\n"
+"方向盘。不会与力反馈同时运行。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "震动强度"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "引擎震动"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"随油门增大的附加震动。它并非\n"
+"来自游戏。关闭后只感受游戏本身的力反馈。"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%u deg"
+msgstr "%u 度"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "转向范围"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock\n"
+"angle below is mapped onto it, so matching your wheel\n"
+"gives arcade-like response."
+msgstr ""
+"设置为您方向盘自身的旋转范围。下方的锁定\n"
+"角度会映射到该范围，与方向盘匹配\n"
+"可获得接近街机的手感。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "锁定角度"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d deg"
+msgstr "%d 度"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total,\n"
+"so half each side of centre). Lower is more sensitive."
+msgstr ""
+"达到游戏中满舵所需的实际转动量（总计，\n"
+"即中心两侧各一半）。数值越低越灵敏。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "轴"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+msgstr "已自动检测。如果转向或踏板不正确，请重新校准。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "转向"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "油门"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "刹车"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "自动"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "轴 %d（反转）"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "轴 %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "请操作..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "cancel"
+msgstr "取消"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Calibrate"
+msgstr "校准"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "按键"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the wheel button for that control."
+msgstr "按下“绑定”，然后按下用于该操作的方向盘按键。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Coin"
+msgstr "投币"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "按键 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "按键 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "按键 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "按键 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "升挡"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "降挡"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Test"
+msgstr "测试"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "服务"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu (F10)"
+msgstr "菜单（F10）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "未绑定"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "按键 %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "请按一个按键..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bind"
+msgstr "绑定"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "clear"
+msgstr "清除"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "已连接 %d 个手柄。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "未连接手柄。连接后设置仍会生效。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "玩家"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "恢复为 SDL 默认值"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Down"
+msgstr "降挡"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Up"
+msgstr "向上移动"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Left"
+msgstr "向左移动"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Right"
+msgstr "向右移动"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Down"
+msgstr "向下移动"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Up"
+msgstr "升挡"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer / Aim"
+msgstr "转向 / 瞄准"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "右操纵杆"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "右摇杆"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "左摇杆"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s（反转）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then push a stick.\n"
+"Right-click to go back to the default."
+msgstr ""
+"点击后推动摇杆。\n"
+"右键点击恢复默认。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick\n"
+"or press a button. Right-click for the default."
+msgstr ""
+"点击后扣动扳机、推动摇杆\n"
+"或按下按键。右键点击恢复默认。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press a button or pull a trigger.\n"
+"Right-click to unbind."
+msgstr ""
+"点击后按下按键或扣动扳机。\n"
+"右键点击解除绑定。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
+"is Virtual On's. Test and Service are Guide+Start and Guide+Back."
+msgstr "左摇杆同样可以移动；肩键同样可作为按键 3/4。右操纵杆用于 Virtual On。测试和服务分别为 Guide+Start 和 Guide+Back。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick sensitivity"
+msgstr "摇杆灵敏度"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection\n"
+"is always full lock; under 100% the middle of the travel does\n"
+"less, over 100% it does more."
+msgstr ""
+"摇杆越过死区后的行程响应。推到底\n"
+"始终为满舵；低于 100% 时中段行程作用较小，\n"
+"高于 100% 时作用较大。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts in driving games.\n"
+"Other games stay quiet."
+msgstr ""
+"在赛车游戏中发生撞击时震动。\n"
+"其他游戏不震动。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering vibration"
+msgstr "转向震动"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"随转向增大的附加震动。它并非\n"
+"来自游戏。关闭后只感受游戏本身的力反馈。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset"
+msgstr "重置"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Per-game volume"
+msgstr "按游戏音量"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Raise or lower a game's volume from its default level.\n"
+"One slider covers every revision of a game. Off plays\n"
+"every game at its default, whatever the sliders say.\n"
+"\n"
+"Warning: above 100% loud effects can clip (audible\n"
+"distortion)."
+msgstr ""
+"在默认音量的基础上提高或降低游戏音量。\n"
+"一个滑块适用于游戏的所有版本。关闭后\n"
+"无论滑块如何设置，所有游戏均以默认音量播放。\n"
+"\n"
+"警告：高于 100% 时，响亮的音效可能会削波\n"
+"（产生可听见的失真）。"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Now playing: %s"
+msgstr "正在播放：%s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Filter games"
+msgstr "筛选游戏"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset all"
+msgstr "全部重置"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game"
+msgstr "游戏"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "音量"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Show the aiming crosshair and hide the mouse cursor,\n"
+"for the light-gun titles (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+msgstr ""
+"显示瞄准准星并隐藏鼠标光标，\n"
+"用于光枪游戏（Virtua Cop 2、House of the\n"
+"Dead、Gunblade NY、Rail Chase 2、Behind Enemy Lines）。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show crosshair"
+msgstr "显示准星"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"has its own sight (e.g. a Sinden). Positional-gun\n"
+"titles always draw their own regardless."
+msgstr ""
+"绘制 sm2-emu 自己的准星。如果光枪自带\n"
+"瞄准器（如 Sinden），请关闭此项。位置式光枪\n"
+"游戏无论如何都会绘制自己的准星。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide shot flash"
+msgstr "隐藏射击闪光"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+"House of the Dead show on each shot."
+msgstr ""
+"隐藏 Virtua Cop、Virtua Cop 2 和\n"
+"House of the Dead 每次射击时显示的白色闪光。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Player 1 aims with the mouse; the left button fires and the right button "
+"reloads (shoot off screen)."
+msgstr "玩家 1 用鼠标瞄准；左键射击，右键装弹（向屏幕外射击）。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Recoil"
+msgstr "后坐力"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Kick the gun's rumble motor on each shot, for guns\n"
+"that have one (Sinden and similar). No effect on a\n"
+"gun without a motor."
+msgstr ""
+"每次射击时驱动光枪的震动马达，适用于\n"
+"带马达的光枪（Sinden 等）。对没有马达的\n"
+"光枪无效。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enable recoil"
+msgstr "启用后坐力"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Strength"
+msgstr "强度"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "设备"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Gun %zu (player %zu): %s"
+msgstr "光枪 %zu（玩家 %zu）：%s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"in absolute mouse mode (GUN4IR, Sinden, AimTrak) before launching for "
+"independent per-player aiming."
+msgstr "未检测到专用光枪。玩家 1 用鼠标瞄准；左键射击，右键装弹（向屏幕外射击）。如需各玩家独立瞄准，请在启动前接入处于绝对鼠标模式的光枪（GUN4IR、Sinden、AimTrak）。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"tagged ID_INPUT_GUN for independent per-player aiming."
+msgstr "未检测到专用光枪。玩家 1 用鼠标瞄准；左键射击，右键装弹（向屏幕外射击）。如需各玩家独立瞄准，请接入标记为 ID_INPUT_GUN 的光枪。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun buttons"
+msgstr "光枪按键"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the button on that player's gun."
+msgstr "按下“绑定”，然后按下该玩家光枪上的按键。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload/Missile"
+msgstr "装弹/导弹"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "扳机"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat down"
+msgstr "苦力帽 下"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat left"
+msgstr "苦力帽 左"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat right"
+msgstr "苦力帽 右"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat up"
+msgstr "苦力帽 上"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Player %d"
+msgstr "玩家 %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sinden border"
+msgstr "Sinden 边框"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A bright frame around the game image that a Sinden\n"
+"gun's camera tracks for aiming. Only shown in\n"
+"light-gun mode."
+msgstr ""
+"游戏画面周围的明亮边框，Sinden 光枪的\n"
+"摄像头通过追踪它来瞄准。仅在\n"
+"光枪模式下显示。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show border"
+msgstr "显示边框"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Colour"
+msgstr "颜色"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Thickness"
+msgstr "粗细"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "通过网络连接机台"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same\n"
+"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+"this cabinet standalone. Takes effect on the next game launch."
+msgstr ""
+"与同一 LAN 中运行同一游戏的其他机器联机竞速\n"
+"（Sega Rally、Daytona、Super GT 24h、Indy 500 等）。关闭后\n"
+"本机台独立运行。下次启动游戏时生效。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next cabinet. For two machines, point each at the other. The master/"
+"slave role is chosen in the game's own test menu, not here."
+msgstr "通信板为环形结构：每台机台在自己的地址上监听，并发送到下一台机台。两台机器时，让它们互相指向对方。主机/从机角色在游戏自身的测试菜单中选择，而不是在这里。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "本机台"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "本地 IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "检测"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank\n"
+"listens on every interface. Detect fills it from the\n"
+"primary network adapter."
+msgstr ""
+"本机在机台 LAN 中的地址。留空则\n"
+"在所有接口上监听。“检测”会从\n"
+"主网络适配器填入地址。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "子网掩码"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "监听端口"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "机台编号"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring (0-based).\n"
+"For your own bookkeeping; the game negotiates the\n"
+"actual link id from the ring."
+msgstr ""
+"本机台在环中的位置（从 0 开始）。\n"
+"仅供您自己记录；实际的连接 ID\n"
+"由游戏在环中协商确定。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "环中的下一台机台"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "下一台 IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the\n"
+"other machine's IP. Blank means this cabinet does not\n"
+"forward (tail of a chain)."
+msgstr ""
+"本机台发送数据的目标。两台机器时，即\n"
+"另一台机器的 IP。留空表示本机台不转发\n"
+"（链的末端）。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "下一台端口"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "状态"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "连接已配置；将在下次启动游戏时开始。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "独立运行（无机台连接）。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "正在等待游戏开启连接板..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "已连接：机台 %u / %u。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "正在建立环..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This machine's interfaces:"
+msgstr "本机的网络接口："
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "加载游戏后即可保存和恢复其状态。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is F6, "
+"quick-load is F7."
+msgstr "将整台机器保存到槽位，之后再恢复。快速保存为 F6，快速读取为 F7。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "删除"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "读取"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "保存"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "空"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CALIBRATING GUN - shoot each target"
+msgstr "正在校准光枪 - 请射击每个目标"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Choose Directory"
+msgstr "选择目录"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Up"
+msgstr "上级"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Refresh"
+msgstr "刷新"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannot list this directory (permission denied, or it doesn't exist)."
+msgstr "无法列出此目录（权限不足或目录不存在）。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select This Folder"
+msgstr "选择此文件夹"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel"
+msgstr "取消"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "F10: toggle overlay"
+msgstr "F10：切换覆盖层"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select a game"
+msgstr "选择游戏"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter: launch   F10: settings   F9: quit"
+msgstr "Enter：启动   F10：设置   F9：退出"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"(F1) > Paths, then relaunch."
+msgstr "在 ROM 目录中未找到 Model 2 ROM 压缩包。请在 设置（F1）> 路径 中设置，然后重新启动。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetching description..."
+msgstr "正在获取简介..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No description available."
+msgstr "暂无简介。"

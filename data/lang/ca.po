@@ -1,0 +1,1549 @@
+# Catalan translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+msgid ""
+msgstr ""
+"Project-Id-Version: sm2-emu\n"
+"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"POT-Creation-Date: 2026-10-09 00:35+1000\n"
+"PO-Revision-Date: 2026-10-09 00:35+1000\n"
+"Last-Translator: machine translation, needs review\n"
+"Language-Team: none\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Language-Name: Català\n"
+"X-Language-Name-English: Catalan\n"
+
+#: src/main.cpp
+#, no-c-format
+msgid "Quick"
+msgstr "Ràpid"
+
+#: src/main.cpp
+#, c-format
+msgid "Slot %s"
+msgstr "Ranura %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State saved: %s"
+msgstr "Estat desat: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Save failed: %s"
+msgstr "Error en desar: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State loaded: %s"
+msgstr "Estat carregat: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Load failed: %s (empty or incompatible)"
+msgstr "Error en carregar: %s (buit o incompatible)"
+
+#: src/main.cpp
+#, c-format
+msgid "State deleted: %s"
+msgstr "Estat suprimit: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Delete failed: %s"
+msgstr "Error en suprimir: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "File"
+msgstr "Fitxer"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide overlay"
+msgstr "Amaga la superposició"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "Surt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "Configuració"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "Vsync"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "Pantalla completa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "Comptador d'FPS"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On-screen notifications"
+msgstr "Notificacions en pantalla"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light-gun mode"
+msgstr "Mode pistola de llum"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Video"
+msgstr "Vídeo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wait for vertical blank before presenting.\n"
+"Prevents tearing but adds up to one frame of latency."
+msgstr ""
+"Espera el retraçament vertical abans de mostrar.\n"
+"Evita l'esquinçament però afegeix fins a un fotograma de latència."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "Notificacions"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "Automàtic (sistema)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "Idioma"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU"
+msgstr "GPU"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto (best)"
+msgstr "Automàtic (el millor)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Renderer"
+msgstr "Renderitzador"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software"
+msgstr "Programari"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Which renderer draws the game. Applies on the\n"
+"next launch - save settings and relaunch."
+msgstr ""
+"Quin renderitzador dibuixa el joc. S'aplica en el\n"
+"proper inici - deseu la configuració i reinicieu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window size"
+msgstr "Mida de la finestra"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Width"
+msgstr "Amplada"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Height"
+msgstr "Alçada"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x (native)"
+msgstr "1x (nativa)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "8x (4K)"
+msgstr "8x (4K)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D render scale"
+msgstr "Escala de renderitzat 3D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution. Higher is crisper 3D\n"
+"(2D/HUD stays sharp). GPU backends only; the software\n"
+"renderer stays native. Applies on the next launch - save\n"
+"settings and relaunch."
+msgstr ""
+"Resolució interna del renderitzat 3D. Més alta, 3D més\n"
+"nítid (el 2D/HUD es manté nítid). Només motors de GPU; el\n"
+"renderitzador per programari es manté natiu. S'aplica en\n"
+"el proper inici - deseu la configuració i reinicieu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bilinear"
+msgstr "Bilineal"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Integer"
+msgstr "Sencer"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Nearest"
+msgstr "Més proper"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sharp-bilinear"
+msgstr "Bilineal nítid"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D scaling"
+msgstr "Escalat 2D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How the frame is magnified to the window.\n"
+"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+"nearest shows at non-integer window sizes. Integer snaps\n"
+"to a whole multiple (pixel-perfect, with black bars).\n"
+"Applies live."
+msgstr ""
+"Com s'amplia el fotograma a la finestra.\n"
+"Bilineal nítid manté el text 2D nítid sense el parpelleig\n"
+"que mostra el més proper en mides no senceres. Sencer ajusta\n"
+"a un múltiple exacte (píxel perfecte, amb barres negres).\n"
+"S'aplica a l'instant."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3 (arcade)"
+msgstr "4:3 (arcade)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Square pixels"
+msgstr "Píxels quadrats"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stretch"
+msgstr "Estira"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aspect"
+msgstr "Aspecte"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape (the default).\n"
+"Square pixels shows the raw 496x384 (slightly narrow).\n"
+"Stretch fills the whole window. Applies live."
+msgstr ""
+"4:3 és la forma del monitor de l'arcade (per defecte).\n"
+"Píxels quadrats mostra els 496x384 en brut (una mica estret).\n"
+"Estira omple tota la finestra. S'aplica a l'instant."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CRT filter"
+msgstr "Filtre CRT"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A cosmetic arcade-monitor look over the finished frame:\n"
+"scanlines, an RGB shadow mask, glow and optional screen\n"
+"curvature. Purely visual; applies live."
+msgstr ""
+"Un aspecte cosmètic de monitor d'arcade sobre el fotograma final:\n"
+"línies d'escaneig, màscara d'ombra RGB, resplendor i curvatura\n"
+"de pantalla opcional. Purament visual; s'aplica a l'instant."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines"
+msgstr "Línies d'escaneig"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Mask"
+msgstr "Màscara"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Glow"
+msgstr "Resplendor"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Curvature"
+msgstr "Curvatura"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enhancement (cosmetic, beyond the original hardware)"
+msgstr "Millora (cosmètica, més enllà del maquinari original)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropic"
+msgstr "Anisotròpic"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Faithful"
+msgstr "Fidel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D texture filter"
+msgstr "Filtre de textures 3D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(unsupported)"
+msgstr "(no compatible)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This GPU does not report anisotropic filtering."
+msgstr "Aquesta GPU no indica suport per al filtratge anisotròpic."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropy"
+msgstr "Anisotropia"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D upscale"
+msgstr "Escalat 2D millorat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+"Applies live."
+msgstr ""
+"Suavitza les vores de les capes 2D (HUD, text, menús). xBR i\n"
+"ScaleFX arrodoneixen les diagonals; Fidel manté els píxels nítids.\n"
+"S'aplica a l'instant."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Blended"
+msgstr "Barrejat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stipple"
+msgstr "Puntejat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Translucency"
+msgstr "Translucidesa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass,\n"
+"shadows) as a checkerboard. Blended draws the 50%\n"
+"see-through surface it's trying to achieve. Applies live."
+msgstr ""
+"El maquinari dibuixa les superfícies transparents (llums, vidre,\n"
+"ombres) com un tauler d'escacs. Barrejat dibuixa la superfície\n"
+"50% transparent que intenta aconseguir. S'aplica a l'instant."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Custom textures"
+msgstr "Textures personalitzades"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Replace the game's 3D textures with images saved in\n"
+"saves/textures/<game>/load, named as dumped. GPU\n"
+"renderers only; Reload picks up edited files."
+msgstr ""
+"Substitueix les textures 3D del joc per imatges desades a\n"
+"saves/textures/<game>/load, amb el nom de l'extracció. Només\n"
+"renderitzadors de GPU; Recarrega llegeix els fitxers editats."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu loaded"
+msgstr "%zu carregades"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload"
+msgstr "Recarrega"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dump textures"
+msgstr "Extreu textures"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them,\n"
+"with an index.html to browse, to saves/textures/<game>/dump\n"
+"when the game exits or this is turned off."
+msgstr ""
+"Recull cada textura 3D que dibuixa el joc i les escriu,\n"
+"amb un index.html per navegar-hi, a saves/textures/<game>/dump\n"
+"quan el joc surt o es desactiva aquesta opció."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Audio"
+msgstr "Àudio"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Paths"
+msgstr "Camins"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "Navega..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Config directory"
+msgstr "Directori de configuració"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where sm2-emu.ini is read from and saved to.\n"
+"Set with --config <dir>; cannot be changed here."
+msgstr ""
+"On es llegeix i es desa sm2-emu.ini.\n"
+"Es defineix amb --config <dir>; no es pot canviar aquí."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ROM directory"
+msgstr "Directori de ROM"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the ROM archives live. A game launched by name is\n"
+"loaded from here as <name>.zip or <name>.7z."
+msgstr ""
+"On són els arxius de ROM. Un joc iniciat pel nom es\n"
+"carrega des d'aquí com a <name>.zip o <name>.7z."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves directory"
+msgstr "Directori de partides desades"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+"(.eeprom) images -- high scores and operator settings."
+msgstr ""
+"Desades amb bateria: imatges NVRAM (.nv) i EEPROM (.eeprom)\n"
+"per joc -- rècords i configuració de l'operador."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots directory"
+msgstr "Directori de captures de pantalla"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where F12 screenshots are written."
+msgstr "On s'escriuen les captures de pantalla d'F12."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scrape artwork online"
+msgstr "Obtén imatges en línia"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game picker fetch box art and descriptions from\n"
+"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"picker still lists and launches every game, with placeholder\n"
+"tiles and no descriptions."
+msgstr ""
+"Permet que el selector de jocs obtingui portades i descripcions\n"
+"d'ArcadeDB per la xarxa. Desactivat manté sm2-emu fora de línia:\n"
+"el selector encara llista i inicia tots els jocs, amb miniatures\n"
+"genèriques i sense descripcions."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad"
+msgstr "Comandament"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel"
+msgstr "Volant"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light Gun"
+msgstr "Pistola de llum"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network"
+msgstr "Xarxa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "Estats"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "Quant a"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 2 arcade emulator"
+msgstr "Un emulador de l'arcade Sega Model 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "BSD 3-Clause licence. See LICENSE."
+msgstr "Llicència BSD de 3 clàusules. Vegeu LICENSE."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "sm2-emu exists because of open source shared with the community."
+msgstr "sm2-emu existeix gràcies al codi obert compartit amb la comunitat."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to the projects whose code makes it possible:"
+msgstr "Amb agraïment als projectes el codi dels quals ho fa possible:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The MAME project - Sega Model 2 emulation guidance"
+msgstr "El projecte MAME - orientació per a l'emulació del Sega Model 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+msgstr "Musashi - nucli de CPU Motorola 68000 (Karl Stenerud)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+msgstr "ymfm - nuclis de so FM de Yamaha (Aaron Giles)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SDL - windowing, input and audio"
+msgstr "SDL - finestres, entrada i àudio"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dear ImGui - this user interface (Omar Cornut)"
+msgstr "Dear ImGui - aquesta interfície d'usuari (Omar Cornut)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "pugixml - games.xml parsing"
+msgstr "pugixml - lectura de games.xml"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "miniz - ZIP archive decompression"
+msgstr "miniz - descompressió d'arxius ZIP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+msgstr "LZMA SDK - descompressió d'arxius 7-Zip (Igor Pavlov)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+msgstr "VulkanMemoryAllocator - memòria de la GPU (AMD / GPUOpen)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shaderc / glslang - shader compilation"
+msgstr "shaderc / glslang - compilació de shaders"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "stb_image - box-art image decoding (Sean Barrett)"
+msgstr "stb_image - descodificació de les portades (Sean Barrett)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr "Imatge del comandament - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "libcurl - artwork scraping (optional)"
+msgstr "libcurl - obtenció d'imatges (opcional)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "HarfBuzz - text shaping for translations"
+msgstr "HarfBuzz - composició de text per a les traduccions"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr "SheenBidi - disposició de text de dreta a esquerra (Muhammad Tayyab Akram)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game artwork and descriptions from ArcadeDB"
+msgstr "Imatges i descripcions dels jocs d'ArcadeDB"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(adb.arcadeitalia.net, by Motoschifo)."
+msgstr "(adb.arcadeitalia.net, de Motoschifo)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "See NOTICE for full per-component attribution."
+msgstr "Vegeu NOTICE per a l'atribució completa de cada component."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "If you'd like to support development:"
+msgstr "Si voleu donar suport al desenvolupament:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save settings"
+msgstr "Desa la configuració"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Saved to %s"
+msgstr "Desat a %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel connected."
+msgstr "Volant connectat."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "No hi ha cap volant connectat. La configuració s'aplicarà quan n'hi hagi un."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Force feedback"
+msgstr "Force feedback"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel force on driving games: centring and cornering\n"
+"forces decoded from the game's own drive-board commands,\n"
+"plus an impact jolt when you hit something."
+msgstr ""
+"Força al volant en jocs de conducció: forces de centrat i de\n"
+"revolt descodificades de les ordres de la placa de força del\n"
+"joc, més una sacsejada d'impacte quan xoqueu amb alguna cosa."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Resistance"
+msgstr "Resistència"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "Inverteix el force feedback"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls\n"
+"away from the centre instead of bringing it back, and\n"
+"the game's forces go the opposite way."
+msgstr ""
+"Per a un volant el controlador del qual empeny cap al costat\n"
+"equivocat: s'allunya del centre en lloc de tornar-hi, i\n"
+"les forces del joc van en sentit contrari."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble"
+msgstr "Vibració"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force\n"
+"feedback. It never runs alongside force feedback."
+msgstr ""
+"Vibra amb els impactes del joc, per a volants sense force\n"
+"feedback. Mai no funciona juntament amb el force feedback."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "Intensitat de la vibració"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "Vibració del motor"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"Una vibració afegida que creix amb l'accelerador. No prové\n"
+"del joc. Desactiveu-la per sentir només el force feedback del joc."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%u deg"
+msgstr "%u graus"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "Rang de gir"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock\n"
+"angle below is mapped onto it, so matching your wheel\n"
+"gives arcade-like response."
+msgstr ""
+"Definiu-lo com el rang de rotació del vostre volant. L'angle\n"
+"de bloqueig de sota s'hi assigna, de manera que igualar-lo\n"
+"dona una resposta com la de l'arcade."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "Angle de bloqueig"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d deg"
+msgstr "%d graus"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total,\n"
+"so half each side of centre). Lower is more sensitive."
+msgstr ""
+"Quant cal girar físicament per al bloqueig total del joc\n"
+"(total, és a dir, la meitat per banda). Menys és més sensible."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "Eixos"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+msgstr "Detectats automàticament. Recalibreu si la direcció o un pedal no és correcte."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "Direcció"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "Accelerador"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "Fre"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "auto"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "eix %d (invertit)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "eix %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "accioneu-lo..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "cancel"
+msgstr "cancel·la"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Calibrate"
+msgstr "Calibra"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "Botons"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the wheel button for that control."
+msgstr "Premeu Assigna i després el botó del volant per a aquest control."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Coin"
+msgstr "Moneda"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "Botó 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "Botó 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "Botó 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "Botó 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "Puja de marxa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "Baixa de marxa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Test"
+msgstr "Test"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "Servei"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu (F10)"
+msgstr "Menú (F10)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "sense assignar"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "botó %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "premeu un botó..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bind"
+msgstr "Assigna"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "clear"
+msgstr "esborra"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "%d comandament connectat."
+msgstr[1] "%d comandaments connectats."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "No hi ha cap comandament connectat. La configuració s'aplicarà quan n'hi hagi un."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "Jugador"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "Restableix els valors per defecte d'SDL"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Down"
+msgstr "Baixa de marxa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Up"
+msgstr "Mou amunt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Left"
+msgstr "Mou a l'esquerra"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Right"
+msgstr "Mou a la dreta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Down"
+msgstr "Mou avall"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Up"
+msgstr "Puja de marxa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer / Aim"
+msgstr "Direcció / Apunta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Palanca dreta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "Palanca analògica dreta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "Palanca analògica esquerra"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (invertit)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then push a stick.\n"
+"Right-click to go back to the default."
+msgstr ""
+"Feu clic i després moveu una palanca.\n"
+"Clic dret per tornar al valor per defecte."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick\n"
+"or press a button. Right-click for the default."
+msgstr ""
+"Feu clic i després premeu el gallet, moveu una palanca\n"
+"o premeu un botó. Clic dret per al valor per defecte."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press a button or pull a trigger.\n"
+"Right-click to unbind."
+msgstr ""
+"Feu clic i després premeu un botó o un gallet.\n"
+"Clic dret per desassignar."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
+"is Virtual On's. Test and Service are Guide+Start and Guide+Back."
+msgstr "La palanca esquerra també mou; els botons superiors també fan de Botó 3/4. La Palanca dreta és la de Virtual On. Test i Servei són Guide+Start i Guide+Back."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick sensitivity"
+msgstr "Sensibilitat de la palanca"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection\n"
+"is always full lock; under 100% the middle of the travel does\n"
+"less, over 100% it does more."
+msgstr ""
+"Resposta del recorregut de la palanca més enllà de la zona morta.\n"
+"La desviació total és sempre el bloqueig total; per sota del 100%\n"
+"el centre del recorregut fa menys, per sobre del 100% fa més."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts in driving games.\n"
+"Other games stay quiet."
+msgstr ""
+"Vibra amb els impactes del joc en jocs de conducció.\n"
+"Els altres jocs no vibren."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering vibration"
+msgstr "Vibració de la direcció"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"Una vibració afegida que creix en girar. No prové\n"
+"del joc. Desactiveu-la per sentir només el force feedback del joc."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset"
+msgstr "Restableix"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Per-game volume"
+msgstr "Volum per joc"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Raise or lower a game's volume from its default level.\n"
+"One slider covers every revision of a game. Off plays\n"
+"every game at its default, whatever the sliders say.\n"
+"\n"
+"Warning: above 100% loud effects can clip (audible\n"
+"distortion)."
+msgstr ""
+"Apuja o abaixa el volum d'un joc respecte al nivell per defecte.\n"
+"Un control lliscant cobreix totes les revisions d'un joc.\n"
+"Desactivat, tots els jocs sonen per defecte, diguin el que\n"
+"diguin els controls.\n"
+"\n"
+"Avís: per sobre del 100% els efectes forts poden saturar\n"
+"(distorsió audible)."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Now playing: %s"
+msgstr "Ara sona: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Filter games"
+msgstr "Filtra els jocs"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset all"
+msgstr "Restableix-ho tot"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game"
+msgstr "Joc"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "Volum"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Show the aiming crosshair and hide the mouse cursor,\n"
+"for the light-gun titles (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+msgstr ""
+"Mostra el punt de mira i amaga el cursor del ratolí, per\n"
+"als jocs de pistola de llum (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show crosshair"
+msgstr "Mostra el punt de mira"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"has its own sight (e.g. a Sinden). Positional-gun\n"
+"titles always draw their own regardless."
+msgstr ""
+"Dibuixa el punt de mira propi d'sm2-emu. Desactiveu-lo si\n"
+"la pistola té mira pròpia (p. ex. una Sinden). Els jocs de\n"
+"pistola posicional sempre dibuixen el seu igualment."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide shot flash"
+msgstr "Amaga el flaix del tret"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+"House of the Dead show on each shot."
+msgstr ""
+"Amaga el flaix blanc que Virtua Cop, Virtua Cop 2 i\n"
+"House of the Dead mostren a cada tret."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Player 1 aims with the mouse; the left button fires and the right button "
+"reloads (shoot off screen)."
+msgstr "El Jugador 1 apunta amb el ratolí; el botó esquerre dispara i el dret recarrega (dispareu fora de la pantalla)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Recoil"
+msgstr "Retrocés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Kick the gun's rumble motor on each shot, for guns\n"
+"that have one (Sinden and similar). No effect on a\n"
+"gun without a motor."
+msgstr ""
+"Activa el motor de vibració de la pistola a cada tret, per\n"
+"a pistoles que en tenen (Sinden i similars). Sense efecte\n"
+"en una pistola sense motor."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enable recoil"
+msgstr "Activa el retrocés"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Strength"
+msgstr "Intensitat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "Dispositius"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Gun %zu (player %zu): %s"
+msgstr "Pistola %zu (jugador %zu): %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"in absolute mouse mode (GUN4IR, Sinden, AimTrak) before launching for "
+"independent per-player aiming."
+msgstr "No s'ha detectat cap pistola de llum dedicada. El Jugador 1 apunta amb el ratolí; el botó esquerre dispara i el dret recarrega (dispareu fora de la pantalla). Connecteu pistoles en mode de ratolí absolut (GUN4IR, Sinden, AimTrak) abans d'iniciar per apuntar de manera independent per jugador."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"tagged ID_INPUT_GUN for independent per-player aiming."
+msgstr "No s'ha detectat cap pistola de llum dedicada. El Jugador 1 apunta amb el ratolí; el botó esquerre dispara i el dret recarrega (dispareu fora de la pantalla). Connecteu pistoles etiquetades ID_INPUT_GUN per apuntar de manera independent per jugador."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun buttons"
+msgstr "Botons de la pistola"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the button on that player's gun."
+msgstr "Premeu Assigna i després el botó de la pistola d'aquest jugador."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload/Missile"
+msgstr "Recarrega/Míssil"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Gallet"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat down"
+msgstr "Creueta avall"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat left"
+msgstr "Creueta esquerra"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat right"
+msgstr "Creueta dreta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat up"
+msgstr "Creueta amunt"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Player %d"
+msgstr "Jugador %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sinden border"
+msgstr "Vora Sinden"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A bright frame around the game image that a Sinden\n"
+"gun's camera tracks for aiming. Only shown in\n"
+"light-gun mode."
+msgstr ""
+"Un marc brillant al voltant de la imatge del joc que la càmera\n"
+"de la pistola Sinden segueix per apuntar. Només es mostra\n"
+"en mode pistola de llum."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show border"
+msgstr "Mostra la vora"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Colour"
+msgstr "Color"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Thickness"
+msgstr "Gruix"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "Enllaça màquines per la xarxa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same\n"
+"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+"this cabinet standalone. Takes effect on the next game launch."
+msgstr ""
+"Correu enllaçats amb altres màquines de la mateixa LAN amb el mateix\n"
+"títol (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Desactivat\n"
+"manté aquesta màquina independent. S'aplica en el proper joc iniciat."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next cabinet. For two machines, point each at the other. The master/"
+"slave role is chosen in the game's own test menu, not here."
+msgstr "La placa de comunicacions és un anell: cada màquina escolta a la seva pròpia adreça i envia a la màquina següent. Per a dues màquines, feu que cadascuna apunti a l'altra. El rol de mestre/esclau es tria al menú de test del mateix joc, no aquí."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "Aquesta màquina"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "IP local"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "Detecta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank\n"
+"listens on every interface. Detect fills it from the\n"
+"primary network adapter."
+msgstr ""
+"L'adreça d'aquesta màquina a la LAN de les màquines. En blanc\n"
+"escolta a totes les interfícies. Detecta l'omple a partir de\n"
+"l'adaptador de xarxa principal."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "Màscara de subxarxa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "Port d'escolta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "Número de màquina"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring (0-based).\n"
+"For your own bookkeeping; the game negotiates the\n"
+"actual link id from the ring."
+msgstr ""
+"Posició d'aquesta màquina a l'anell (començant per 0).\n"
+"Només per al vostre control; el joc negocia\n"
+"l'identificador real de l'enllaç a partir de l'anell."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "Màquina següent de l'anell"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "IP següent"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the\n"
+"other machine's IP. Blank means this cabinet does not\n"
+"forward (tail of a chain)."
+msgstr ""
+"La màquina a la qual envia aquesta. Per a dues màquines,\n"
+"la IP de l'altra màquina. En blanc vol dir que aquesta\n"
+"màquina no reenvia (final d'una cadena)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "Port següent"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "Estat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "Enllaç configurat; comença en el proper joc iniciat."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "Independent (sense enllaç de màquines)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "S'està esperant que el joc activi la placa d'enllaç..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "Enllaçada: màquina %u de %u."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "S'està establint l'anell..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This machine's interfaces:"
+msgstr "Interfícies d'aquesta màquina:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "Carregueu un joc per desar i restaurar-ne l'estat."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is F6, "
+"quick-load is F7."
+msgstr "Deseu tota la màquina en una ranura i restaureu-la més tard. Desat ràpid és F6, càrrega ràpida és F7."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "Suprimeix"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "Carrega"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "Desa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "buida"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CALIBRATING GUN - shoot each target"
+msgstr "CALIBRANT LA PISTOLA - dispareu a cada diana"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Choose Directory"
+msgstr "Trieu un directori"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Up"
+msgstr "Amunt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Refresh"
+msgstr "Actualitza"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannot list this directory (permission denied, or it doesn't exist)."
+msgstr "No es pot llistar aquest directori (permís denegat o no existeix)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select This Folder"
+msgstr "Selecciona aquesta carpeta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel"
+msgstr "Cancel·la"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "F10: toggle overlay"
+msgstr "F10: mostra/amaga la superposició"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select a game"
+msgstr "Seleccioneu un joc"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter: launch   F10: settings   F9: quit"
+msgstr "Enter: inicia   F10: configuració   F9: surt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"(F1) > Paths, then relaunch."
+msgstr "No s'ha trobat cap arxiu de ROM de Model 2 al directori de ROM. Definiu-lo a Configuració (F1) > Camins i reinicieu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetching description..."
+msgstr "S'està obtenint la descripció..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No description available."
+msgstr "No hi ha cap descripció disponible."

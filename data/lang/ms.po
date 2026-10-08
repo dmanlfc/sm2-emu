@@ -1,0 +1,1547 @@
+# Malay translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+msgid ""
+msgstr ""
+"Project-Id-Version: sm2-emu\n"
+"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"POT-Creation-Date: 2026-10-09 00:35+1000\n"
+"PO-Revision-Date: 2026-10-09 00:35+1000\n"
+"Last-Translator: machine translation, needs review\n"
+"Language-Team: none\n"
+"Language: ms\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language-Name: Bahasa Melayu\n"
+"X-Language-Name-English: Malay\n"
+
+#: src/main.cpp
+#, no-c-format
+msgid "Quick"
+msgstr "Pantas"
+
+#: src/main.cpp
+#, c-format
+msgid "Slot %s"
+msgstr "Slot %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State saved: %s"
+msgstr "Keadaan disimpan: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Save failed: %s"
+msgstr "Gagal menyimpan: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State loaded: %s"
+msgstr "Keadaan dimuatkan: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Load failed: %s (empty or incompatible)"
+msgstr "Gagal memuatkan: %s (kosong atau tidak serasi)"
+
+#: src/main.cpp
+#, c-format
+msgid "State deleted: %s"
+msgstr "Keadaan dipadam: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Delete failed: %s"
+msgstr "Gagal memadam: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "File"
+msgstr "Fail"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide overlay"
+msgstr "Sembunyikan tindihan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "Keluar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "Tetapan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "Vsync"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "Skrin penuh"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "Pembilang FPS"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On-screen notifications"
+msgstr "Pemberitahuan pada skrin"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light-gun mode"
+msgstr "Mod senapang cahaya"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Video"
+msgstr "Video"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wait for vertical blank before presenting.\n"
+"Prevents tearing but adds up to one frame of latency."
+msgstr ""
+"Tunggu kosong menegak sebelum memaparkan.\n"
+"Mengelakkan koyakan tetapi menambah kependaman sehingga satu bingkai."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "Pemberitahuan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "Automatik (sistem)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "Bahasa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU"
+msgstr "GPU"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto (best)"
+msgstr "Auto (terbaik)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Renderer"
+msgstr "Pemapar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software"
+msgstr "Perisian"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Which renderer draws the game. Applies on the\n"
+"next launch - save settings and relaunch."
+msgstr ""
+"Pemapar yang melukis permainan. Berkuat kuasa pada\n"
+"pelancaran seterusnya - simpan tetapan dan lancar semula."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window size"
+msgstr "Saiz tetingkap"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Width"
+msgstr "Lebar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Height"
+msgstr "Tinggi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x (native)"
+msgstr "1x (asli)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "8x (4K)"
+msgstr "8x (4K)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D render scale"
+msgstr "Skala pemaparan 3D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution. Higher is crisper 3D\n"
+"(2D/HUD stays sharp). GPU backends only; the software\n"
+"renderer stays native. Applies on the next launch - save\n"
+"settings and relaunch."
+msgstr ""
+"Resolusi pemaparan 3D dalaman. Lebih tinggi, 3D lebih tajam\n"
+"(2D/HUD kekal tajam). Bahagian belakang GPU sahaja; pemapar\n"
+"perisian kekal asli. Berkuat kuasa pada pelancaran\n"
+"seterusnya - simpan tetapan dan lancar semula."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bilinear"
+msgstr "Bilinear"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Integer"
+msgstr "Integer"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Nearest"
+msgstr "Terdekat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sharp-bilinear"
+msgstr "Bilinear tajam"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D scaling"
+msgstr "Penskalaan 2D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How the frame is magnified to the window.\n"
+"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+"nearest shows at non-integer window sizes. Integer snaps\n"
+"to a whole multiple (pixel-perfect, with black bars).\n"
+"Applies live."
+msgstr ""
+"Cara bingkai dibesarkan ke tetingkap.\n"
+"Bilinear tajam mengekalkan teks 2D tajam tanpa kerlipan\n"
+"yang ditunjukkan terdekat pada saiz bukan integer. Integer\n"
+"melaraskan ke gandaan penuh (piksel sempurna, dengan jalur\n"
+"hitam). Berkuat kuasa serta-merta."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3 (arcade)"
+msgstr "4:3 (arked)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Square pixels"
+msgstr "Piksel segi empat sama"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stretch"
+msgstr "Regangkan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aspect"
+msgstr "Nisbah aspek"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape (the default).\n"
+"Square pixels shows the raw 496x384 (slightly narrow).\n"
+"Stretch fills the whole window. Applies live."
+msgstr ""
+"4:3 ialah bentuk monitor arked (lalai).\n"
+"Piksel segi empat sama memaparkan 496x384 mentah (agak sempit).\n"
+"Regangkan memenuhi seluruh tetingkap. Berkuat kuasa serta-merta."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CRT filter"
+msgstr "Penapis CRT"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A cosmetic arcade-monitor look over the finished frame:\n"
+"scanlines, an RGB shadow mask, glow and optional screen\n"
+"curvature. Purely visual; applies live."
+msgstr ""
+"Rupa kosmetik monitor arked di atas bingkai akhir:\n"
+"garis imbasan, topeng bayang RGB, cahaya dan kelengkungan\n"
+"skrin pilihan. Visual semata-mata; berkuat kuasa serta-merta."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines"
+msgstr "Garis imbasan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Mask"
+msgstr "Topeng"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Glow"
+msgstr "Cahaya"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Curvature"
+msgstr "Kelengkungan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enhancement (cosmetic, beyond the original hardware)"
+msgstr "Peningkatan (kosmetik, melangkaui perkakasan asal)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropic"
+msgstr "Anisotropik"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Faithful"
+msgstr "Setia"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D texture filter"
+msgstr "Penapis tekstur 3D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(unsupported)"
+msgstr "(tidak disokong)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This GPU does not report anisotropic filtering."
+msgstr "GPU ini tidak melaporkan sokongan penapisan anisotropik."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropy"
+msgstr "Anisotropi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D upscale"
+msgstr "Peningkatan skala 2D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+"Applies live."
+msgstr ""
+"Licinkan tepi lapisan 2D (HUD, teks, menu). xBR dan\n"
+"ScaleFX membulatkan pepenjuru; Setia mengekalkan piksel tajam.\n"
+"Berkuat kuasa serta-merta."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Blended"
+msgstr "Diadun"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stipple"
+msgstr "Bintik"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Translucency"
+msgstr "Lut cahaya"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass,\n"
+"shadows) as a checkerboard. Blended draws the 50%\n"
+"see-through surface it's trying to achieve. Applies live."
+msgstr ""
+"Perkakasan melukis permukaan lut sinar (lampu, kaca,\n"
+"bayang) sebagai corak papan dam. Diadun melukis permukaan\n"
+"50% lut sinar yang cuba dicapainya. Berkuat kuasa serta-merta."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Custom textures"
+msgstr "Tekstur tersuai"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Replace the game's 3D textures with images saved in\n"
+"saves/textures/<game>/load, named as dumped. GPU\n"
+"renderers only; Reload picks up edited files."
+msgstr ""
+"Gantikan tekstur 3D permainan dengan imej yang disimpan dalam\n"
+"saves/textures/<game>/load, dinamakan seperti yang dilonggok.\n"
+"Pemapar GPU sahaja; Muat semula membaca fail yang disunting."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu loaded"
+msgstr "%zu dimuatkan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload"
+msgstr "Muat semula"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dump textures"
+msgstr "Longgok tekstur"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them,\n"
+"with an index.html to browse, to saves/textures/<game>/dump\n"
+"when the game exits or this is turned off."
+msgstr ""
+"Kumpul setiap tekstur 3D yang dilukis permainan dan tulisnya,\n"
+"dengan index.html untuk melayar, ke saves/textures/<game>/dump\n"
+"apabila permainan keluar atau pilihan ini dimatikan."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Audio"
+msgstr "Audio"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Paths"
+msgstr "Laluan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "Layari..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Config directory"
+msgstr "Direktori konfigurasi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where sm2-emu.ini is read from and saved to.\n"
+"Set with --config <dir>; cannot be changed here."
+msgstr ""
+"Tempat sm2-emu.ini dibaca dan disimpan.\n"
+"Ditetapkan dengan --config <dir>; tidak boleh diubah di sini."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ROM directory"
+msgstr "Direktori ROM"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the ROM archives live. A game launched by name is\n"
+"loaded from here as <name>.zip or <name>.7z."
+msgstr ""
+"Tempat arkib ROM disimpan. Permainan yang dilancarkan dengan\n"
+"nama dimuatkan dari sini sebagai <name>.zip atau <name>.7z."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves directory"
+msgstr "Direktori simpanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+"(.eeprom) images -- high scores and operator settings."
+msgstr ""
+"Simpanan berbateri: imej NVRAM (.nv) dan EEPROM (.eeprom)\n"
+"setiap permainan -- skor tertinggi dan tetapan pengendali."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots directory"
+msgstr "Direktori tangkapan skrin"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where F12 screenshots are written."
+msgstr "Tempat tangkapan skrin F12 ditulis."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scrape artwork online"
+msgstr "Dapatkan karya seni dalam talian"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game picker fetch box art and descriptions from\n"
+"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"picker still lists and launches every game, with placeholder\n"
+"tiles and no descriptions."
+msgstr ""
+"Benarkan pemilih permainan mendapatkan seni kotak dan perihalan\n"
+"dari ArcadeDB melalui rangkaian. Mati mengekalkan sm2-emu luar\n"
+"talian: pemilih masih menyenarai dan melancarkan setiap permainan,\n"
+"dengan jubin pemegang tempat dan tanpa perihalan."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad"
+msgstr "Pad permainan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel"
+msgstr "Stereng"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light Gun"
+msgstr "Senapang Cahaya"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network"
+msgstr "Rangkaian"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "Keadaan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "Perihal"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 2 arcade emulator"
+msgstr "Emulator arked Sega Model 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "BSD 3-Clause licence. See LICENSE."
+msgstr "Lesen BSD 3-Klausa. Lihat LICENSE."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "sm2-emu exists because of open source shared with the community."
+msgstr "sm2-emu wujud kerana sumber terbuka yang dikongsi dengan komuniti."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to the projects whose code makes it possible:"
+msgstr "Terima kasih kepada projek yang kodnya menjadikannya mungkin:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The MAME project - Sega Model 2 emulation guidance"
+msgstr "Projek MAME - panduan emulasi Sega Model 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+msgstr "Musashi - teras CPU Motorola 68000 (Karl Stenerud)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+msgstr "ymfm - teras bunyi FM Yamaha (Aaron Giles)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SDL - windowing, input and audio"
+msgstr "SDL - tetingkap, input dan audio"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dear ImGui - this user interface (Omar Cornut)"
+msgstr "Dear ImGui - antara muka pengguna ini (Omar Cornut)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "pugixml - games.xml parsing"
+msgstr "pugixml - penghuraian games.xml"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "miniz - ZIP archive decompression"
+msgstr "miniz - nyahmampatan arkib ZIP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+msgstr "LZMA SDK - nyahmampatan arkib 7-Zip (Igor Pavlov)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+msgstr "VulkanMemoryAllocator - memori GPU (AMD / GPUOpen)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shaderc / glslang - shader compilation"
+msgstr "shaderc / glslang - pengkompilan shader"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "stb_image - box-art image decoding (Sean Barrett)"
+msgstr "stb_image - penyahkodan imej seni kotak (Sean Barrett)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr "Gambar pad permainan - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "libcurl - artwork scraping (optional)"
+msgstr "libcurl - pengambilan karya seni (pilihan)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "HarfBuzz - text shaping for translations"
+msgstr "HarfBuzz - pembentukan teks untuk terjemahan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr "SheenBidi - susun atur teks kanan-ke-kiri (Muhammad Tayyab Akram)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game artwork and descriptions from ArcadeDB"
+msgstr "Karya seni dan perihalan permainan dari ArcadeDB"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(adb.arcadeitalia.net, by Motoschifo)."
+msgstr "(adb.arcadeitalia.net, oleh Motoschifo)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "See NOTICE for full per-component attribution."
+msgstr "Lihat NOTICE untuk atribusi penuh setiap komponen."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "If you'd like to support development:"
+msgstr "Jika anda ingin menyokong pembangunan:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save settings"
+msgstr "Simpan tetapan"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Saved to %s"
+msgstr "Disimpan ke %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel connected."
+msgstr "Stereng disambungkan."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "Tiada stereng disambungkan. Tetapan tetap terpakai apabila ada."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Force feedback"
+msgstr "Force feedback"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel force on driving games: centring and cornering\n"
+"forces decoded from the game's own drive-board commands,\n"
+"plus an impact jolt when you hit something."
+msgstr ""
+"Daya stereng dalam permainan memandu: daya pemusatan dan\n"
+"selekoh dinyahkod daripada arahan drive board permainan,\n"
+"serta hentakan impak apabila anda melanggar sesuatu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Resistance"
+msgstr "Rintangan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "Songsangkan force feedback"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls\n"
+"away from the centre instead of bringing it back, and\n"
+"the game's forces go the opposite way."
+msgstr ""
+"Untuk stereng yang pemacunya menolak ke arah salah: ia menarik\n"
+"menjauhi tengah dan bukannya membawanya kembali, dan\n"
+"daya permainan pergi ke arah bertentangan."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble"
+msgstr "Getaran"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force\n"
+"feedback. It never runs alongside force feedback."
+msgstr ""
+"Bergetar pada impak permainan, untuk stereng tanpa force\n"
+"feedback. Ia tidak pernah berjalan bersama force feedback."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "Kekuatan getaran"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "Getaran enjin"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"Getaran tambahan yang meningkat dengan pendikit. Ia bukan\n"
+"dari permainan. Matikan untuk merasa force feedback permainan sahaja."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%u deg"
+msgstr "%u darjah"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "Julat stereng"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock\n"
+"angle below is mapped onto it, so matching your wheel\n"
+"gives arcade-like response."
+msgstr ""
+"Tetapkan kepada julat putaran stereng anda sendiri. Sudut\n"
+"kunci di bawah dipetakan kepadanya, jadi memadankan stereng\n"
+"anda memberi tindak balas seperti arked."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "Sudut kunci"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d deg"
+msgstr "%d darjah"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total,\n"
+"so half each side of centre). Lower is more sensitive."
+msgstr ""
+"Sejauh mana perlu dipusing untuk kunci penuh permainan\n"
+"(jumlah, jadi separuh setiap sisi). Lebih rendah lebih sensitif."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "Paksi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+msgstr "Dikesan secara automatik. Tentukur semula jika stereng atau pedal salah."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "Stereng"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "Pemecut"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "Brek"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "auto"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "paksi %d (songsang)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "paksi %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "gerakkannya..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "cancel"
+msgstr "batal"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Calibrate"
+msgstr "Tentukur"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "Butang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the wheel button for that control."
+msgstr "Tekan Ikat, kemudian tekan butang stereng untuk kawalan itu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Coin"
+msgstr "Syiling"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "Butang 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "Butang 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "Butang 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "Butang 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "Naik gear"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "Turun gear"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Test"
+msgstr "Ujian"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "Servis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu (F10)"
+msgstr "Menu (F10)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "tidak diikat"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "butang %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "tekan butang..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bind"
+msgstr "Ikat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "clear"
+msgstr "kosongkan"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "%d pad permainan disambungkan."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "Tiada pad permainan disambungkan. Tetapan tetap terpakai apabila ada."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "Pemain"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "Set semula ke lalai SDL"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Down"
+msgstr "Turun Gear"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Up"
+msgstr "Gerak Atas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Left"
+msgstr "Gerak Kiri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Right"
+msgstr "Gerak Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Down"
+msgstr "Gerak Bawah"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Up"
+msgstr "Naik Gear"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer / Aim"
+msgstr "Stereng / Bidik"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Tuil Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "Batang Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "Batang Kiri"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (songsang)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then push a stick.\n"
+"Right-click to go back to the default."
+msgstr ""
+"Klik, kemudian tolak batang.\n"
+"Klik kanan untuk kembali ke lalai."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick\n"
+"or press a button. Right-click for the default."
+msgstr ""
+"Klik, kemudian tarik picu, tolak batang\n"
+"atau tekan butang. Klik kanan untuk lalai."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press a button or pull a trigger.\n"
+"Right-click to unbind."
+msgstr ""
+"Klik, kemudian tekan butang atau tarik picu.\n"
+"Klik kanan untuk nyahikat."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
+"is Virtual On's. Test and Service are Guide+Start and Guide+Back."
+msgstr "Batang kiri juga menggerakkan; butang bahu juga bertindak sebagai Butang 3/4. Tuil Kanan ialah untuk Virtual On. Ujian dan Servis ialah Guide+Start dan Guide+Back."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick sensitivity"
+msgstr "Kepekaan batang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection\n"
+"is always full lock; under 100% the middle of the travel does\n"
+"less, over 100% it does more."
+msgstr ""
+"Tindak balas gerakan batang melepasi zon mati. Pesongan penuh\n"
+"sentiasa kunci penuh; di bawah 100% bahagian tengah gerakan\n"
+"memberi kesan kurang, di atas 100% lebih."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts in driving games.\n"
+"Other games stay quiet."
+msgstr ""
+"Bergetar pada impak permainan dalam permainan memandu.\n"
+"Permainan lain kekal senyap."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering vibration"
+msgstr "Getaran stereng"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"Getaran tambahan yang meningkat semasa anda membelok. Ia bukan\n"
+"dari permainan. Matikan untuk merasa force feedback permainan sahaja."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset"
+msgstr "Set semula"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Per-game volume"
+msgstr "Kelantangan setiap permainan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Raise or lower a game's volume from its default level.\n"
+"One slider covers every revision of a game. Off plays\n"
+"every game at its default, whatever the sliders say.\n"
+"\n"
+"Warning: above 100% loud effects can clip (audible\n"
+"distortion)."
+msgstr ""
+"Naikkan atau turunkan kelantangan permainan dari tahap lalainya.\n"
+"Satu peluncur meliputi setiap revisi permainan. Mati memainkan\n"
+"setiap permainan pada lalainya, walau apa pun peluncurnya.\n"
+"\n"
+"Amaran: melebihi 100% kesan yang kuat boleh terpotong\n"
+"(herotan yang boleh didengar)."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Now playing: %s"
+msgstr "Sedang dimainkan: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Filter games"
+msgstr "Tapis permainan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset all"
+msgstr "Set semula semua"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game"
+msgstr "Permainan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "Kelantangan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Show the aiming crosshair and hide the mouse cursor,\n"
+"for the light-gun titles (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+msgstr ""
+"Tunjukkan rerambut sasaran dan sembunyikan kursor tetikus,\n"
+"untuk permainan senapang cahaya (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show crosshair"
+msgstr "Tunjukkan rerambut sasaran"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"has its own sight (e.g. a Sinden). Positional-gun\n"
+"titles always draw their own regardless."
+msgstr ""
+"Lukis rerambut sasaran sm2-emu sendiri. Matikan jika senapang\n"
+"mempunyai pembidik sendiri (cth. Sinden). Permainan senapang\n"
+"kedudukan sentiasa melukis milik sendiri walau apa pun."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide shot flash"
+msgstr "Sembunyikan kilat tembakan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+"House of the Dead show on each shot."
+msgstr ""
+"Sembunyikan kilat putih yang ditunjukkan Virtua Cop,\n"
+"Virtua Cop 2 dan House of the Dead pada setiap tembakan."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Player 1 aims with the mouse; the left button fires and the right button "
+"reloads (shoot off screen)."
+msgstr "Pemain 1 membidik dengan tetikus; butang kiri menembak dan butang kanan mengisi semula (tembak di luar skrin)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Recoil"
+msgstr "Sentakan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Kick the gun's rumble motor on each shot, for guns\n"
+"that have one (Sinden and similar). No effect on a\n"
+"gun without a motor."
+msgstr ""
+"Gerakkan motor getaran senapang pada setiap tembakan, untuk\n"
+"senapang yang memilikinya (Sinden dan seumpamanya). Tiada\n"
+"kesan pada senapang tanpa motor."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enable recoil"
+msgstr "Dayakan sentakan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Strength"
+msgstr "Kekuatan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "Peranti"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Gun %zu (player %zu): %s"
+msgstr "Senapang %zu (pemain %zu): %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"in absolute mouse mode (GUN4IR, Sinden, AimTrak) before launching for "
+"independent per-player aiming."
+msgstr "Tiada senapang cahaya khusus dikesan. Pemain 1 membidik dengan tetikus; butang kiri menembak dan butang kanan mengisi semula (tembak di luar skrin). Pasang senapang dalam mod tetikus mutlak (GUN4IR, Sinden, AimTrak) sebelum melancarkan untuk bidikan bebas setiap pemain."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"tagged ID_INPUT_GUN for independent per-player aiming."
+msgstr "Tiada senapang cahaya khusus dikesan. Pemain 1 membidik dengan tetikus; butang kiri menembak dan butang kanan mengisi semula (tembak di luar skrin). Pasang senapang bertanda ID_INPUT_GUN untuk bidikan bebas setiap pemain."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun buttons"
+msgstr "Butang senapang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the button on that player's gun."
+msgstr "Tekan Ikat, kemudian tekan butang pada senapang pemain itu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload/Missile"
+msgstr "Isi semula/Peluru berpandu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Picu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat down"
+msgstr "Hat bawah"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat left"
+msgstr "Hat kiri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat right"
+msgstr "Hat kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat up"
+msgstr "Hat atas"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Player %d"
+msgstr "Pemain %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sinden border"
+msgstr "Bingkai Sinden"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A bright frame around the game image that a Sinden\n"
+"gun's camera tracks for aiming. Only shown in\n"
+"light-gun mode."
+msgstr ""
+"Bingkai terang di sekeliling imej permainan yang dijejak\n"
+"kamera senapang Sinden untuk membidik. Hanya ditunjukkan\n"
+"dalam mod senapang cahaya."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show border"
+msgstr "Tunjukkan bingkai"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Colour"
+msgstr "Warna"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Thickness"
+msgstr "Ketebalan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "Pautkan kabinet melalui rangkaian"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same\n"
+"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+"this cabinet standalone. Takes effect on the next game launch."
+msgstr ""
+"Berlumba secara terpaut dengan mesin lain dalam LAN yang sama menjalankan\n"
+"judul yang sama (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Mati\n"
+"mengekalkan kabinet ini berdiri sendiri. Berkuat kuasa pada pelancaran seterusnya."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next cabinet. For two machines, point each at the other. The master/"
+"slave role is chosen in the game's own test menu, not here."
+msgstr "Papan komunikasi ialah gelang: setiap kabinet mendengar pada alamatnya sendiri dan menghantar ke kabinet seterusnya. Untuk dua mesin, halakan setiap satu kepada yang lain. Peranan master/slave dipilih dalam menu ujian permainan itu sendiri, bukan di sini."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "Kabinet ini"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "IP setempat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "Kesan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank\n"
+"listens on every interface. Detect fills it from the\n"
+"primary network adapter."
+msgstr ""
+"Alamat mesin ini pada LAN kabinet. Kosong bermaksud\n"
+"mendengar pada semua antara muka. Kesan mengisinya\n"
+"daripada penyesuai rangkaian utama."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "Topeng subnet"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "Port dengar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "Nombor kabinet"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring (0-based).\n"
+"For your own bookkeeping; the game negotiates the\n"
+"actual link id from the ring."
+msgstr ""
+"Kedudukan kabinet ini dalam gelang (bermula dari 0).\n"
+"Untuk rekod anda sendiri; permainan merundingkan\n"
+"ID pautan sebenar daripada gelang."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "Kabinet seterusnya dalam gelang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "IP seterusnya"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the\n"
+"other machine's IP. Blank means this cabinet does not\n"
+"forward (tail of a chain)."
+msgstr ""
+"Kabinet yang menerima hantaran daripada kabinet ini. Untuk dua\n"
+"mesin, IP mesin yang satu lagi. Kosong bermaksud kabinet ini\n"
+"tidak memajukan (hujung rantai)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "Port seterusnya"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "Status"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "Pautan dikonfigurasi; bermula pada pelancaran permainan seterusnya."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "Berdiri sendiri (tiada pautan kabinet)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "Menunggu permainan menghidupkan papan pautan..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "Terpaut: kabinet %u daripada %u."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "Mewujudkan gelang..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This machine's interfaces:"
+msgstr "Antara muka mesin ini:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "Muatkan permainan untuk menyimpan dan memulihkan keadaannya."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is F6, "
+"quick-load is F7."
+msgstr "Simpan seluruh mesin ke slot dan pulihkannya kemudian. Simpan pantas ialah F6, muat pantas ialah F7."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "Padam"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "Muat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "Simpan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "kosong"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CALIBRATING GUN - shoot each target"
+msgstr "MENENTUKUR SENAPANG - tembak setiap sasaran"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Choose Directory"
+msgstr "Pilih Direktori"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Up"
+msgstr "Naik"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Refresh"
+msgstr "Segar semula"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannot list this directory (permission denied, or it doesn't exist)."
+msgstr "Tidak dapat menyenaraikan direktori ini (kebenaran ditolak, atau ia tidak wujud)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select This Folder"
+msgstr "Pilih Folder Ini"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel"
+msgstr "Batal"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "F10: toggle overlay"
+msgstr "F10: togol tindihan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select a game"
+msgstr "Pilih permainan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter: launch   F10: settings   F9: quit"
+msgstr "Enter: lancar   F10: tetapan   F9: keluar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"(F1) > Paths, then relaunch."
+msgstr "Tiada arkib ROM Model 2 ditemui dalam direktori ROM. Tetapkannya dalam Tetapan (F1) > Laluan, kemudian lancar semula."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetching description..."
+msgstr "Mendapatkan perihalan..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No description available."
+msgstr "Tiada perihalan tersedia."

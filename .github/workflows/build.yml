@@ -51,6 +51,7 @@ jobs:
             cmake ninja-build build-essential glslc \
             libgl-dev libgles-dev libegl-dev \
             libpugixml-dev libcurl4-openssl-dev \
+            libfontconfig-dev libharfbuzz-dev \
             libvulkan-dev vulkan-validationlayers \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
             libxi-dev libxfixes-dev libxss-dev libxrender-dev libxtst-dev \
@@ -136,6 +137,7 @@ jobs:
             cmake ninja-build build-essential glslc \
             libgles-dev libegl-dev \
             libpugixml-dev libcurl4-openssl-dev \
+            libfontconfig-dev libharfbuzz-dev \
             libvulkan-dev vulkan-validationlayers \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
             libxi-dev libxfixes-dev libxss-dev libxrender-dev libxtst-dev \

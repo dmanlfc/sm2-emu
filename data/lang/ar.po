@@ -1,0 +1,1559 @@
+# Arabic translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+msgid ""
+msgstr ""
+"Project-Id-Version: sm2-emu\n"
+"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"POT-Creation-Date: 2026-10-09 00:35+1000\n"
+"PO-Revision-Date: 2026-10-09 00:35+1000\n"
+"Last-Translator: machine translation, needs review\n"
+"Language-Team: none\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Language-Name: العربية\n"
+"X-Language-Name-English: Arabic\n"
+
+#: src/main.cpp
+#, no-c-format
+msgid "Quick"
+msgstr "سريع"
+
+#: src/main.cpp
+#, c-format
+msgid "Slot %s"
+msgstr "الخانة %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State saved: %s"
+msgstr "تم حفظ الحالة: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Save failed: %s"
+msgstr "فشل الحفظ: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State loaded: %s"
+msgstr "تم تحميل الحالة: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Load failed: %s (empty or incompatible)"
+msgstr "فشل التحميل: %s (فارغة أو غير متوافقة)"
+
+#: src/main.cpp
+#, c-format
+msgid "State deleted: %s"
+msgstr "تم حذف الحالة: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Delete failed: %s"
+msgstr "فشل الحذف: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "File"
+msgstr "ملف"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide overlay"
+msgstr "إخفاء الواجهة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "خروج"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "الإعدادات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "المزامنة العمودية"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "ملء الشاشة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "عداد FPS"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On-screen notifications"
+msgstr "الإشعارات على الشاشة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light-gun mode"
+msgstr "وضع المسدس الضوئي"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Video"
+msgstr "الفيديو"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wait for vertical blank before presenting.\n"
+"Prevents tearing but adds up to one frame of latency."
+msgstr ""
+"انتظار الفراغ العمودي قبل العرض.\n"
+"يمنع التمزق لكنه يضيف تأخيرًا يصل إلى إطار واحد."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "الإشعارات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "تلقائي (النظام)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "اللغة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU"
+msgstr "GPU"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto (best)"
+msgstr "تلقائي (الأفضل)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Renderer"
+msgstr "المُصيِّر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software"
+msgstr "برمجي"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Which renderer draws the game. Applies on the\n"
+"next launch - save settings and relaunch."
+msgstr ""
+"المُصيِّر الذي يرسم اللعبة. يُطبَّق عند التشغيل\n"
+"التالي - احفظ الإعدادات وأعد التشغيل."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window size"
+msgstr "حجم النافذة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Width"
+msgstr "العرض"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Height"
+msgstr "الارتفاع"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x (native)"
+msgstr "1x (أصلي)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "8x (4K)"
+msgstr "8x (4K)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D render scale"
+msgstr "مقياس العرض ثلاثي الأبعاد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution. Higher is crisper 3D\n"
+"(2D/HUD stays sharp). GPU backends only; the software\n"
+"renderer stays native. Applies on the next launch - save\n"
+"settings and relaunch."
+msgstr ""
+"دقة العرض الداخلية ثلاثية الأبعاد. الأعلى أوضح للمشاهد\n"
+"ثلاثية الأبعاد (تبقى 2D/HUD حادة). لمحركات GPU فقط؛ يبقى\n"
+"المُصيِّر البرمجي بالدقة الأصلية. يُطبَّق عند التشغيل التالي -\n"
+"احفظ الإعدادات وأعد التشغيل."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bilinear"
+msgstr "ثنائي الخطية"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Integer"
+msgstr "عدد صحيح"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Nearest"
+msgstr "الأقرب"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sharp-bilinear"
+msgstr "ثنائي الخطية الحاد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D scaling"
+msgstr "تحجيم 2D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How the frame is magnified to the window.\n"
+"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+"nearest shows at non-integer window sizes. Integer snaps\n"
+"to a whole multiple (pixel-perfect, with black bars).\n"
+"Applies live."
+msgstr ""
+"كيفية تكبير الإطار إلى النافذة.\n"
+"يحافظ ثنائي الخطية الحاد على وضوح النص 2D دون الوميض\n"
+"الذي يظهره الأقرب عند أحجام نافذة غير صحيحة. العدد الصحيح\n"
+"يلتزم بمضاعف كامل (دقة بكسل تامة، مع أشرطة سوداء).\n"
+"يُطبَّق فورًا."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3 (arcade)"
+msgstr "4:3 (آركيد)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Square pixels"
+msgstr "بكسلات مربعة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stretch"
+msgstr "تمديد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aspect"
+msgstr "نسبة العرض"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape (the default).\n"
+"Square pixels shows the raw 496x384 (slightly narrow).\n"
+"Stretch fills the whole window. Applies live."
+msgstr ""
+"4:3 هو شكل شاشة الآركيد (الافتراضي).\n"
+"البكسلات المربعة تعرض 496x384 الخام (أضيق قليلًا).\n"
+"التمديد يملأ النافذة بالكامل. يُطبَّق فورًا."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CRT filter"
+msgstr "مرشح CRT"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A cosmetic arcade-monitor look over the finished frame:\n"
+"scanlines, an RGB shadow mask, glow and optional screen\n"
+"curvature. Purely visual; applies live."
+msgstr ""
+"مظهر تجميلي لشاشة الآركيد فوق الإطار النهائي:\n"
+"خطوط مسح، وقناع ظل RGB، وتوهج، وانحناء اختياري\n"
+"للشاشة. بصري فقط؛ يُطبَّق فورًا."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines"
+msgstr "خطوط المسح"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Mask"
+msgstr "القناع"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Glow"
+msgstr "التوهج"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Curvature"
+msgstr "الانحناء"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enhancement (cosmetic, beyond the original hardware)"
+msgstr "تحسين (تجميلي، يتجاوز العتاد الأصلي)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropic"
+msgstr "متباين الخواص"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Faithful"
+msgstr "أمين للأصل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D texture filter"
+msgstr "مرشح الخامات ثلاثية الأبعاد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(unsupported)"
+msgstr "(غير مدعوم)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This GPU does not report anisotropic filtering."
+msgstr "وحدة GPU هذه لا تدعم الترشيح متباين الخواص."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropy"
+msgstr "تباين الخواص"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D upscale"
+msgstr "تكبير 2D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+"Applies live."
+msgstr ""
+"تنعيم حواف الطبقات 2D (HUD والنصوص والقوائم). يدوّر xBR\n"
+"و ScaleFX الأقطار؛ ويحافظ الأمين للأصل على البكسلات الحادة.\n"
+"يُطبَّق فورًا."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Blended"
+msgstr "ممزوج"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stipple"
+msgstr "منقّط"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Translucency"
+msgstr "الشفافية"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass,\n"
+"shadows) as a checkerboard. Blended draws the 50%\n"
+"see-through surface it's trying to achieve. Applies live."
+msgstr ""
+"يرسم العتاد الأسطح الشفافة (الأضواء والزجاج\n"
+"والظلال) كرقعة شطرنج. الممزوج يرسم السطح الشفاف بنسبة 50%\n"
+"الذي يحاول العتاد تحقيقه. يُطبَّق فورًا."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Custom textures"
+msgstr "خامات مخصصة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Replace the game's 3D textures with images saved in\n"
+"saves/textures/<game>/load, named as dumped. GPU\n"
+"renderers only; Reload picks up edited files."
+msgstr ""
+"استبدال خامات اللعبة ثلاثية الأبعاد بصور محفوظة في\n"
+"saves/textures/<game>/load بأسماء التفريغ نفسها. لمُصيِّرات\n"
+"GPU فقط؛ إعادة التحميل تلتقط الملفات المعدّلة."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu loaded"
+msgstr "تم تحميل %zu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload"
+msgstr "إعادة التحميل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dump textures"
+msgstr "تفريغ الخامات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them,\n"
+"with an index.html to browse, to saves/textures/<game>/dump\n"
+"when the game exits or this is turned off."
+msgstr ""
+"جمع كل خامة ثلاثية الأبعاد ترسمها اللعبة وكتابتها،\n"
+"مع index.html للتصفح، في saves/textures/<game>/dump\n"
+"عند خروج اللعبة أو إيقاف هذا الخيار."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Audio"
+msgstr "الصوت"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Paths"
+msgstr "المسارات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "استعراض..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Config directory"
+msgstr "مجلد الإعدادات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where sm2-emu.ini is read from and saved to.\n"
+"Set with --config <dir>; cannot be changed here."
+msgstr ""
+"المكان الذي يُقرأ منه sm2-emu.ini ويُحفظ فيه.\n"
+"يُحدَّد بـ --config <dir>؛ لا يمكن تغييره هنا."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ROM directory"
+msgstr "مجلد ROM"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the ROM archives live. A game launched by name is\n"
+"loaded from here as <name>.zip or <name>.7z."
+msgstr ""
+"مكان أرشيفات ROM. اللعبة التي تُشغَّل باسمها\n"
+"تُحمَّل من هنا باسم <name>.zip أو <name>.7z."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves directory"
+msgstr "مجلد الحفظ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+"(.eeprom) images -- high scores and operator settings."
+msgstr ""
+"حفظ مدعوم بالبطارية: صور NVRAM (.nv) و EEPROM\n"
+"(.eeprom) لكل لعبة -- أعلى النتائج وإعدادات المشغّل."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots directory"
+msgstr "مجلد لقطات الشاشة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where F12 screenshots are written."
+msgstr "المكان الذي تُكتب فيه لقطات الشاشة بـ F12."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scrape artwork online"
+msgstr "جلب الصور الفنية عبر الإنترنت"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game picker fetch box art and descriptions from\n"
+"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"picker still lists and launches every game, with placeholder\n"
+"tiles and no descriptions."
+msgstr ""
+"السماح لمنتقي الألعاب بجلب صور الأغلفة والأوصاف من\n"
+"ArcadeDB عبر الشبكة. الإيقاف يبقي sm2-emu دون اتصال:\n"
+"يظل المنتقي يعرض كل الألعاب ويشغّلها، مع مربعات\n"
+"مؤقتة ودون أوصاف."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad"
+msgstr "يد التحكم"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel"
+msgstr "المقود"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light Gun"
+msgstr "المسدس الضوئي"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network"
+msgstr "الشبكة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "الحالات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "حول"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 2 arcade emulator"
+msgstr "محاكي آركيد لـ Sega Model 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "BSD 3-Clause licence. See LICENSE."
+msgstr "رخصة BSD ذات البنود الثلاثة. انظر LICENSE."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "sm2-emu exists because of open source shared with the community."
+msgstr "يوجد sm2-emu بفضل المصادر المفتوحة المشتركة مع المجتمع."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to the projects whose code makes it possible:"
+msgstr "مع الشكر للمشاريع التي تجعل شيفرتها ذلك ممكنًا:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The MAME project - Sega Model 2 emulation guidance"
+msgstr "مشروع MAME - إرشادات محاكاة Sega Model 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+msgstr "Musashi - نواة معالج Motorola 68000 (Karl Stenerud)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+msgstr "ymfm - أنوية صوت Yamaha FM (Aaron Giles)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SDL - windowing, input and audio"
+msgstr "SDL - النوافذ والإدخال والصوت"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dear ImGui - this user interface (Omar Cornut)"
+msgstr "Dear ImGui - واجهة المستخدم هذه (Omar Cornut)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "pugixml - games.xml parsing"
+msgstr "pugixml - تحليل games.xml"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "miniz - ZIP archive decompression"
+msgstr "miniz - فك ضغط أرشيفات ZIP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+msgstr "LZMA SDK - فك ضغط أرشيفات 7-Zip (Igor Pavlov)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+msgstr "VulkanMemoryAllocator - ذاكرة GPU (AMD / GPUOpen)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shaderc / glslang - shader compilation"
+msgstr "shaderc / glslang - ترجمة المظللات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "stb_image - box-art image decoding (Sean Barrett)"
+msgstr "stb_image - فك ترميز صور الأغلفة (Sean Barrett)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr "صورة يد التحكم - Xelu's Free Controller Prompts (Nicolae Berbece)، CC0"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "libcurl - artwork scraping (optional)"
+msgstr "libcurl - جلب الصور الفنية (اختياري)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "HarfBuzz - text shaping for translations"
+msgstr "HarfBuzz - تشكيل النصوص للترجمات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr "SheenBidi - تخطيط النصوص من اليمين إلى اليسار (Muhammad Tayyab Akram)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game artwork and descriptions from ArcadeDB"
+msgstr "الصور الفنية والأوصاف من ArcadeDB"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(adb.arcadeitalia.net, by Motoschifo)."
+msgstr "(adb.arcadeitalia.net، بواسطة Motoschifo)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "See NOTICE for full per-component attribution."
+msgstr "انظر NOTICE للإسناد الكامل لكل مكوّن."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "If you'd like to support development:"
+msgstr "إذا أردت دعم التطوير:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save settings"
+msgstr "حفظ الإعدادات"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Saved to %s"
+msgstr "تم الحفظ في %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel connected."
+msgstr "المقود متصل."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "لا يوجد مقود متصل. تُطبَّق الإعدادات عند توصيله."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Force feedback"
+msgstr "ردّ فعل القوة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel force on driving games: centring and cornering\n"
+"forces decoded from the game's own drive-board commands,\n"
+"plus an impact jolt when you hit something."
+msgstr ""
+"قوة المقود في ألعاب القيادة: قوى التوسيط والانعطاف\n"
+"المستخلصة من أوامر لوحة القيادة الخاصة باللعبة،\n"
+"إضافة إلى هزة اصطدام عندما تصطدم بشيء."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Resistance"
+msgstr "المقاومة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "عكس ردّ فعل القوة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls\n"
+"away from the centre instead of bringing it back, and\n"
+"the game's forces go the opposite way."
+msgstr ""
+"لمقود يدفع برنامج تشغيله في الاتجاه الخاطئ: يسحب\n"
+"بعيدًا عن المركز بدلًا من إعادته إليه، وتعمل قوى\n"
+"اللعبة في الاتجاه المعاكس."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble"
+msgstr "الاهتزاز"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force\n"
+"feedback. It never runs alongside force feedback."
+msgstr ""
+"يهتز عند اصطدامات اللعبة، للمقاود التي لا تدعم ردّ فعل\n"
+"القوة. لا يعمل أبدًا مع ردّ فعل القوة في آن واحد."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "قوة الاهتزاز"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "اهتزاز المحرك"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"اهتزاز إضافي يزداد مع دواسة الوقود. ليس\n"
+"من اللعبة. أوقفه لتشعر بردّ فعل قوة اللعبة فقط."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%u deg"
+msgstr "%u درجة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "مدى التوجيه"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock\n"
+"angle below is mapped onto it, so matching your wheel\n"
+"gives arcade-like response."
+msgstr ""
+"اضبطه على مدى دوران مقودك الفعلي. تُطابَق زاوية\n"
+"القفل أدناه عليه، لذا فإن مطابقة مقودك\n"
+"تعطي استجابة شبيهة بالآركيد."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "زاوية القفل"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d deg"
+msgstr "%d درجة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total,\n"
+"so half each side of centre). Lower is more sensitive."
+msgstr ""
+"مقدار الدوران الفعلي اللازم للقفل الكامل في اللعبة (إجمالي،\n"
+"أي نصفه على كل جانب من المركز). الأقل أكثر حساسية."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "المحاور"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+msgstr "اكتُشفت تلقائيًا. أعد المعايرة إذا كان التوجيه أو دواسة خاطئًا."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "التوجيه"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "دواسة الوقود"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "المكابح"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "تلقائي"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "المحور %d (معكوس)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "المحور %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "حرّكه..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "cancel"
+msgstr "إلغاء"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Calibrate"
+msgstr "معايرة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "الأزرار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the wheel button for that control."
+msgstr "اضغط ربط، ثم اضغط زر المقود لذلك التحكم."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Coin"
+msgstr "عملة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "الزر 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "الزر 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "الزر 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "الزر 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "رفع الغيار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "خفض الغيار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Test"
+msgstr "اختبار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "خدمة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu (F10)"
+msgstr "القائمة (F10)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "غير مربوط"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "الزر %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "اضغط زرًا..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bind"
+msgstr "ربط"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "clear"
+msgstr "مسح"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "%d يد تحكم متصلة."
+msgstr[1] "يد تحكم واحدة متصلة (%d)."
+msgstr[2] "يدا تحكم متصلتان (%d)."
+msgstr[3] "%d أيدي تحكم متصلة."
+msgstr[4] "%d يد تحكم متصلة."
+msgstr[5] "%d يد تحكم متصلة."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "لا توجد يد تحكم متصلة. تُطبَّق الإعدادات عند توصيلها."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "اللاعب"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "إعادة ضبط افتراضيات SDL"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Down"
+msgstr "خفض الغيار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Up"
+msgstr "تحرك لأعلى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Left"
+msgstr "تحرك لليسار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Right"
+msgstr "تحرك لليمين"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Down"
+msgstr "تحرك لأسفل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Up"
+msgstr "رفع الغيار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer / Aim"
+msgstr "توجيه / تصويب"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "الذراع الأيمن"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "العصا اليمنى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "العصا اليسرى"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (معكوس)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then push a stick.\n"
+"Right-click to go back to the default."
+msgstr ""
+"انقر، ثم حرّك عصا.\n"
+"انقر بالزر الأيمن للعودة إلى الافتراضي."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick\n"
+"or press a button. Right-click for the default."
+msgstr ""
+"انقر، ثم اضغط الزناد أو حرّك عصا\n"
+"أو اضغط زرًا. انقر بالزر الأيمن للافتراضي."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press a button or pull a trigger.\n"
+"Right-click to unbind."
+msgstr ""
+"انقر، ثم اضغط زرًا أو زنادًا.\n"
+"انقر بالزر الأيمن لإلغاء الربط."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
+"is Virtual On's. Test and Service are Guide+Start and Guide+Back."
+msgstr ""
+"العصا اليسرى تحرّك أيضًا؛ وأزرار الكتف تعمل أيضًا كالزر 3/4. الذراع الأيمن خاص بـ Virtual On. الاختبار والخدمة هما Guide+Start و Guide+Back."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick sensitivity"
+msgstr "حساسية العصا"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection\n"
+"is always full lock; under 100% the middle of the travel does\n"
+"less, over 100% it does more."
+msgstr ""
+"استجابة حركة العصا بعد المنطقة الميتة. الانحراف الكامل\n"
+"يعني دائمًا القفل الكامل؛ تحت 100% يكون منتصف الحركة\n"
+"أضعف، وفوق 100% يكون أقوى."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts in driving games.\n"
+"Other games stay quiet."
+msgstr ""
+"يهتز عند اصطدامات اللعبة في ألعاب القيادة.\n"
+"تبقى الألعاب الأخرى هادئة."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering vibration"
+msgstr "اهتزاز التوجيه"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"اهتزاز إضافي يزداد مع التوجيه. ليس\n"
+"من اللعبة. أوقفه لتشعر بردّ فعل قوة اللعبة فقط."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset"
+msgstr "إعادة ضبط"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Per-game volume"
+msgstr "مستوى الصوت لكل لعبة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Raise or lower a game's volume from its default level.\n"
+"One slider covers every revision of a game. Off plays\n"
+"every game at its default, whatever the sliders say.\n"
+"\n"
+"Warning: above 100% loud effects can clip (audible\n"
+"distortion)."
+msgstr ""
+"رفع أو خفض مستوى صوت اللعبة عن مستواها الافتراضي.\n"
+"منزلق واحد يشمل كل إصدارات اللعبة. الإيقاف يشغّل\n"
+"كل لعبة بمستواها الافتراضي، بغض النظر عن المنزلقات.\n"
+"\n"
+"تحذير: فوق 100% قد تتشوّه المؤثرات العالية (تشويه\n"
+"مسموع)."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Now playing: %s"
+msgstr "قيد التشغيل: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Filter games"
+msgstr "تصفية الألعاب"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset all"
+msgstr "إعادة ضبط الكل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game"
+msgstr "اللعبة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "مستوى الصوت"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Show the aiming crosshair and hide the mouse cursor,\n"
+"for the light-gun titles (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+msgstr ""
+"إظهار علامة التصويب وإخفاء مؤشر الفأرة،\n"
+"لألعاب المسدس الضوئي (Virtua Cop 2 و House of the\n"
+"Dead و Gunblade NY و Rail Chase 2 و Behind Enemy Lines)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show crosshair"
+msgstr "إظهار علامة التصويب"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"has its own sight (e.g. a Sinden). Positional-gun\n"
+"titles always draw their own regardless."
+msgstr ""
+"رسم علامة التصويب الخاصة بـ sm2-emu. أوقفها إذا كان للمسدس\n"
+"منظاره الخاص (مثل Sinden). ألعاب المسدس الموضعي\n"
+"ترسم علامتها دائمًا بغض النظر."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide shot flash"
+msgstr "إخفاء وميض الطلقة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+"House of the Dead show on each shot."
+msgstr ""
+"إخفاء الوميض الأبيض الذي تعرضه Virtua Cop و Virtua Cop 2\n"
+"و House of the Dead عند كل طلقة."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Player 1 aims with the mouse; the left button fires and the right button "
+"reloads (shoot off screen)."
+msgstr ""
+"اللاعب 1 يصوّب بالفأرة؛ الزر الأيسر يطلق والزر الأيمن يعيد التلقيم (أطلق خارج الشاشة)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Recoil"
+msgstr "الارتداد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Kick the gun's rumble motor on each shot, for guns\n"
+"that have one (Sinden and similar). No effect on a\n"
+"gun without a motor."
+msgstr ""
+"تشغيل محرك اهتزاز المسدس عند كل طلقة، للمسدسات\n"
+"التي تحتوي عليه (Sinden وما شابه). لا تأثير على\n"
+"مسدس بلا محرك."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enable recoil"
+msgstr "تفعيل الارتداد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Strength"
+msgstr "القوة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "الأجهزة"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Gun %zu (player %zu): %s"
+msgstr "المسدس %zu (اللاعب %zu): %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"in absolute mouse mode (GUN4IR, Sinden, AimTrak) before launching for "
+"independent per-player aiming."
+msgstr ""
+"لم يُكتشف أي مسدس ضوئي مخصص. اللاعب 1 يصوّب بالفأرة؛ الزر الأيسر يطلق والزر الأيمن يعيد التلقيم (أطلق خارج الشاشة). وصّل المسدسات في وضع الفأرة المطلق (GUN4IR و Sinden و AimTrak) قبل التشغيل لتصويب مستقل لكل لاعب."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"tagged ID_INPUT_GUN for independent per-player aiming."
+msgstr ""
+"لم يُكتشف أي مسدس ضوئي مخصص. اللاعب 1 يصوّب بالفأرة؛ الزر الأيسر يطلق والزر الأيمن يعيد التلقيم (أطلق خارج الشاشة). وصّل مسدسات موسومة بـ ID_INPUT_GUN لتصويب مستقل لكل لاعب."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun buttons"
+msgstr "أزرار المسدس"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the button on that player's gun."
+msgstr "اضغط ربط، ثم اضغط الزر على مسدس ذلك اللاعب."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload/Missile"
+msgstr "إعادة التلقيم/صاروخ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "الزناد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat down"
+msgstr "القبعة لأسفل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat left"
+msgstr "القبعة لليسار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat right"
+msgstr "القبعة لليمين"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat up"
+msgstr "القبعة لأعلى"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Player %d"
+msgstr "اللاعب %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sinden border"
+msgstr "إطار Sinden"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A bright frame around the game image that a Sinden\n"
+"gun's camera tracks for aiming. Only shown in\n"
+"light-gun mode."
+msgstr ""
+"إطار ساطع حول صورة اللعبة تتتبعه كاميرا مسدس\n"
+"Sinden للتصويب. يظهر فقط في\n"
+"وضع المسدس الضوئي."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show border"
+msgstr "إظهار الإطار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Colour"
+msgstr "اللون"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Thickness"
+msgstr "السماكة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "ربط الخزائن عبر الشبكة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same\n"
+"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+"this cabinet standalone. Takes effect on the next game launch."
+msgstr ""
+"السباق مرتبطًا بأجهزة أخرى على نفس LAN تشغّل نفس\n"
+"اللعبة (Sega Rally و Daytona و Super GT 24h و Indy 500 و...). الإيقاف يبقي\n"
+"هذه الخزانة مستقلة. يسري عند تشغيل اللعبة التالية."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next cabinet. For two machines, point each at the other. The master/"
+"slave role is chosen in the game's own test menu, not here."
+msgstr ""
+"لوحة الاتصالات حلقة: كل خزانة تستمع على عنوانها الخاص وترسل إلى الخزانة التالية. لجهازين، وجّه كلًا منهما إلى الآخر. يُختار دور الرئيسي/التابع في قائمة اختبار اللعبة نفسها، لا هنا."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "هذه الخزانة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "IP المحلي"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "اكتشاف"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank\n"
+"listens on every interface. Detect fills it from the\n"
+"primary network adapter."
+msgstr ""
+"عنوان هذا الجهاز على LAN الخزائن. الفراغ\n"
+"يستمع على كل الواجهات. اكتشاف يملؤه من\n"
+"محوّل الشبكة الأساسي."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "قناع الشبكة الفرعية"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "منفذ الاستماع"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "رقم الخزانة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring (0-based).\n"
+"For your own bookkeeping; the game negotiates the\n"
+"actual link id from the ring."
+msgstr ""
+"موقع هذه الخزانة في الحلقة (يبدأ من 0).\n"
+"لسجلاتك الخاصة؛ تتفاوض اللعبة على\n"
+"معرّف الربط الفعلي من الحلقة."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "الخزانة التالية في الحلقة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "IP التالي"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the\n"
+"other machine's IP. Blank means this cabinet does not\n"
+"forward (tail of a chain)."
+msgstr ""
+"الخزانة التي ترسل إليها هذه. لجهازين، هو\n"
+"IP الجهاز الآخر. الفراغ يعني أن هذه الخزانة لا\n"
+"تعيد التوجيه (نهاية السلسلة)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "المنفذ التالي"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "الحالة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "تم إعداد الربط؛ يبدأ عند تشغيل اللعبة التالية."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "مستقلة (بلا ربط خزائن)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "بانتظار أن تشغّل اللعبة لوحة الربط..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "مرتبطة: الخزانة %u من %u."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "جارٍ إنشاء الحلقة..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This machine's interfaces:"
+msgstr "واجهات هذا الجهاز:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "حمّل لعبة لحفظ حالتها واستعادتها."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is F6, "
+"quick-load is F7."
+msgstr ""
+"احفظ الجهاز بالكامل في خانة واستعده لاحقًا. الحفظ السريع F6، والتحميل السريع F7."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "حذف"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "تحميل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "حفظ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "فارغة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CALIBRATING GUN - shoot each target"
+msgstr "معايرة المسدس - أطلق على كل هدف"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Choose Directory"
+msgstr "اختيار مجلد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Up"
+msgstr "لأعلى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Refresh"
+msgstr "تحديث"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannot list this directory (permission denied, or it doesn't exist)."
+msgstr "تعذّر عرض هذا المجلد (تم رفض الإذن، أو أنه غير موجود)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select This Folder"
+msgstr "اختيار هذا المجلد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel"
+msgstr "إلغاء"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "F10: toggle overlay"
+msgstr "F10: إظهار/إخفاء الواجهة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select a game"
+msgstr "اختر لعبة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter: launch   F10: settings   F9: quit"
+msgstr "Enter: تشغيل   F10: الإعدادات   F9: خروج"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"(F1) > Paths, then relaunch."
+msgstr ""
+"لم يُعثر على أرشيفات ROM لـ Model 2 في مجلد ROM. اضبطه من الإعدادات (F1) > المسارات، ثم أعد التشغيل."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetching description..."
+msgstr "جارٍ جلب الوصف..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No description available."
+msgstr "لا يتوفر وصف."

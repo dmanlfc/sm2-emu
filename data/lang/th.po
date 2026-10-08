@@ -1,0 +1,1552 @@
+# Thai translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Thai translations for sm2-emu package.
+# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the sm2-emu package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sm2-emu\n"
+"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"POT-Creation-Date: 2026-10-09 00:35+1000\n"
+"PO-Revision-Date: 2026-10-09 00:35+1000\n"
+"Last-Translator: machine translation, needs review\n"
+"Language-Team: none\n"
+"Language: th\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Language-Name: ไทย\n"
+"X-Language-Name-English: Thai\n"
+
+#: src/main.cpp
+#, no-c-format
+msgid "Quick"
+msgstr "ด่วน"
+
+#: src/main.cpp
+#, c-format
+msgid "Slot %s"
+msgstr "ช่อง %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State saved: %s"
+msgstr "บันทึกสถานะแล้ว: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Save failed: %s"
+msgstr "บันทึกไม่สำเร็จ: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "State loaded: %s"
+msgstr "โหลดสถานะแล้ว: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Load failed: %s (empty or incompatible)"
+msgstr "โหลดไม่สำเร็จ: %s (ว่างหรือเข้ากันไม่ได้)"
+
+#: src/main.cpp
+#, c-format
+msgid "State deleted: %s"
+msgstr "ลบสถานะแล้ว: %s"
+
+#: src/main.cpp
+#, c-format
+msgid "Delete failed: %s"
+msgstr "ลบไม่สำเร็จ: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "File"
+msgstr "ไฟล์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide overlay"
+msgstr "ซ่อนโอเวอร์เลย์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "ออก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "การตั้งค่า"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "Vsync"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "เต็มหน้าจอ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "ตัวนับ FPS"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On-screen notifications"
+msgstr "การแจ้งเตือนบนหน้าจอ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light-gun mode"
+msgstr "โหมดปืนแสง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Video"
+msgstr "วิดีโอ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wait for vertical blank before presenting.\n"
+"Prevents tearing but adds up to one frame of latency."
+msgstr ""
+"รอช่วง vertical blank ก่อนแสดงภาพ\n"
+"ป้องกันภาพฉีกขาด แต่เพิ่มความหน่วงได้สูงสุดหนึ่งเฟรม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "การแจ้งเตือน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "อัตโนมัติ (ระบบ)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "ภาษา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU"
+msgstr "GPU"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto (best)"
+msgstr "อัตโนมัติ (ดีที่สุด)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Renderer"
+msgstr "ตัวเรนเดอร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software"
+msgstr "ซอฟต์แวร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Which renderer draws the game. Applies on the\n"
+"next launch - save settings and relaunch."
+msgstr ""
+"ตัวเรนเดอร์ที่ใช้วาดเกม มีผลเมื่อ\n"
+"เปิดครั้งถัดไป - บันทึกการตั้งค่าแล้วเปิดใหม่"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window size"
+msgstr "ขนาดหน้าต่าง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Width"
+msgstr "ความกว้าง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Height"
+msgstr "ความสูง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x (native)"
+msgstr "1x (ดั้งเดิม)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "8x (4K)"
+msgstr "8x (4K)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D render scale"
+msgstr "สเกลการเรนเดอร์ 3D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution. Higher is crisper 3D\n"
+"(2D/HUD stays sharp). GPU backends only; the software\n"
+"renderer stays native. Applies on the next launch - save\n"
+"settings and relaunch."
+msgstr ""
+"ความละเอียดการเรนเดอร์ 3D ภายใน ค่าสูงทำให้ภาพ 3D คมขึ้น\n"
+"(2D/HUD ยังคมเหมือนเดิม) ใช้ได้เฉพาะแบ็กเอนด์ GPU ส่วน\n"
+"ตัวเรนเดอร์ซอฟต์แวร์คงความละเอียดดั้งเดิม มีผลเมื่อเปิดครั้งถัดไป\n"
+"- บันทึกการตั้งค่าแล้วเปิดใหม่"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bilinear"
+msgstr "Bilinear"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Integer"
+msgstr "จำนวนเต็ม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Nearest"
+msgstr "Nearest"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sharp-bilinear"
+msgstr "Sharp-bilinear"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D scaling"
+msgstr "การปรับขนาด 2D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How the frame is magnified to the window.\n"
+"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+"nearest shows at non-integer window sizes. Integer snaps\n"
+"to a whole multiple (pixel-perfect, with black bars).\n"
+"Applies live."
+msgstr ""
+"วิธีขยายเฟรมให้พอดีกับหน้าต่าง\n"
+"Sharp-bilinear ทำให้ข้อความ 2D คมโดยไม่มีอาการ\n"
+"ภาพสั่นแบบ nearest เมื่อหน้าต่างไม่ใช่ขนาดเท่าตัว จำนวนเต็ม\n"
+"จะปรับเป็นผลคูณเต็ม (พิกเซลตรงเป๊ะ มีแถบดำ)\n"
+"มีผลทันที"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3 (arcade)"
+msgstr "4:3 (อาร์เคด)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Square pixels"
+msgstr "พิกเซลจัตุรัส"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stretch"
+msgstr "ยืดเต็ม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aspect"
+msgstr "อัตราส่วน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape (the default).\n"
+"Square pixels shows the raw 496x384 (slightly narrow).\n"
+"Stretch fills the whole window. Applies live."
+msgstr ""
+"4:3 คือรูปทรงจออาร์เคด (ค่าเริ่มต้น)\n"
+"พิกเซลจัตุรัสแสดงภาพดิบ 496x384 (แคบลงเล็กน้อย)\n"
+"ยืดเต็มจะเติมทั้งหน้าต่าง มีผลทันที"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CRT filter"
+msgstr "ฟิลเตอร์ CRT"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A cosmetic arcade-monitor look over the finished frame:\n"
+"scanlines, an RGB shadow mask, glow and optional screen\n"
+"curvature. Purely visual; applies live."
+msgstr ""
+"ลุคจออาร์เคดเพื่อความสวยงามทับบนเฟรมที่เสร็จแล้ว:\n"
+"เส้นสแกน, shadow mask แบบ RGB, แสงเรือง และความโค้ง\n"
+"ของจอ (เลือกได้) เป็นเพียงภาพ มีผลทันที"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines"
+msgstr "เส้นสแกน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Mask"
+msgstr "มาสก์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Glow"
+msgstr "แสงเรือง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Curvature"
+msgstr "ความโค้ง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enhancement (cosmetic, beyond the original hardware)"
+msgstr "การปรับปรุง (เพื่อความสวยงาม เกินกว่าฮาร์ดแวร์ดั้งเดิม)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropic"
+msgstr "Anisotropic"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Faithful"
+msgstr "ตามต้นฉบับ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "3D texture filter"
+msgstr "ฟิลเตอร์เท็กซ์เจอร์ 3D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(unsupported)"
+msgstr "(ไม่รองรับ)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This GPU does not report anisotropic filtering."
+msgstr "GPU นี้ไม่รายงานการรองรับ anisotropic filtering"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Anisotropy"
+msgstr "Anisotropy"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "2D upscale"
+msgstr "อัปสเกล 2D"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+"Applies live."
+msgstr ""
+"ทำขอบเลเยอร์ 2D ให้เรียบ (HUD, ข้อความ, เมนู) xBR และ\n"
+"ScaleFX ทำเส้นทแยงให้มน ตามต้นฉบับคงพิกเซลคมชัด\n"
+"มีผลทันที"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Blended"
+msgstr "ผสมสี"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stipple"
+msgstr "ลายจุด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Translucency"
+msgstr "ความโปร่งแสง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass,\n"
+"shadows) as a checkerboard. Blended draws the 50%\n"
+"see-through surface it's trying to achieve. Applies live."
+msgstr ""
+"ฮาร์ดแวร์วาดพื้นผิวโปร่งแสง (ไฟ, กระจก,\n"
+"เงา) เป็นลายตารางหมากรุก ผสมสีจะวาดพื้นผิวโปร่งแสง 50%\n"
+"ตามที่ตั้งใจไว้ มีผลทันที"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Custom textures"
+msgstr "เท็กซ์เจอร์กำหนดเอง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Replace the game's 3D textures with images saved in\n"
+"saves/textures/<game>/load, named as dumped. GPU\n"
+"renderers only; Reload picks up edited files."
+msgstr ""
+"แทนที่เท็กซ์เจอร์ 3D ของเกมด้วยภาพที่บันทึกไว้ใน\n"
+"saves/textures/<game>/load โดยตั้งชื่อตามที่ดัมป์ไว้\n"
+"เฉพาะตัวเรนเดอร์ GPU กดโหลดใหม่เพื่ออ่านไฟล์ที่แก้ไข"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu loaded"
+msgstr "โหลดแล้ว %zu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload"
+msgstr "โหลดใหม่"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dump textures"
+msgstr "ดัมป์เท็กซ์เจอร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them,\n"
+"with an index.html to browse, to saves/textures/<game>/dump\n"
+"when the game exits or this is turned off."
+msgstr ""
+"เก็บเท็กซ์เจอร์ 3D ทุกอันที่เกมวาด แล้วเขียนลง\n"
+"saves/textures/<game>/dump พร้อม index.html สำหรับเรียกดู\n"
+"เมื่อออกจากเกมหรือปิดตัวเลือกนี้"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Audio"
+msgstr "เสียง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Paths"
+msgstr "พาธ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "เรียกดู..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Config directory"
+msgstr "ไดเรกทอรีการตั้งค่า"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where sm2-emu.ini is read from and saved to.\n"
+"Set with --config <dir>; cannot be changed here."
+msgstr ""
+"ตำแหน่งที่อ่านและบันทึก sm2-emu.ini\n"
+"ตั้งด้วย --config <dir> เปลี่ยนที่นี่ไม่ได้"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ROM directory"
+msgstr "ไดเรกทอรี ROM"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the ROM archives live. A game launched by name is\n"
+"loaded from here as <name>.zip or <name>.7z."
+msgstr ""
+"ตำแหน่งเก็บไฟล์ ROM เกมที่เปิดด้วยชื่อจะ\n"
+"โหลดจากที่นี่เป็น <name>.zip หรือ <name>.7z"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves directory"
+msgstr "ไดเรกทอรีเซฟ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+"(.eeprom) images -- high scores and operator settings."
+msgstr ""
+"เซฟที่ใช้แบตเตอรี่: อิมเมจ NVRAM (.nv) และ EEPROM\n"
+"(.eeprom) ของแต่ละเกม -- คะแนนสูงสุดและการตั้งค่าผู้ให้บริการ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots directory"
+msgstr "ไดเรกทอรีภาพหน้าจอ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where F12 screenshots are written."
+msgstr "ตำแหน่งที่บันทึกภาพหน้าจอจาก F12"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scrape artwork online"
+msgstr "ดึงภาพปกจากออนไลน์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game picker fetch box art and descriptions from\n"
+"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"picker still lists and launches every game, with placeholder\n"
+"tiles and no descriptions."
+msgstr ""
+"ให้ตัวเลือกเกมดึงภาพปกและคำอธิบายจาก\n"
+"ArcadeDB ผ่านเครือข่าย ปิดไว้ sm2-emu จะออฟไลน์:\n"
+"ตัวเลือกยังแสดงและเปิดได้ทุกเกม โดยใช้ภาพแทน\n"
+"และไม่มีคำอธิบาย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad"
+msgstr "เกมแพด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel"
+msgstr "พวงมาลัย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Light Gun"
+msgstr "ปืนแสง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network"
+msgstr "เครือข่าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "สถานะ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "เกี่ยวกับ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 2 arcade emulator"
+msgstr "อีมูเลเตอร์อาร์เคด Sega Model 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "BSD 3-Clause licence. See LICENSE."
+msgstr "สัญญาอนุญาต BSD 3-Clause ดู LICENSE"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "sm2-emu exists because of open source shared with the community."
+msgstr "sm2-emu เกิดขึ้นได้เพราะโอเพนซอร์สที่แบ่งปันกับชุมชน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to the projects whose code makes it possible:"
+msgstr "ขอบคุณโปรเจกต์ที่โค้ดทำให้สิ่งนี้เป็นไปได้:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The MAME project - Sega Model 2 emulation guidance"
+msgstr "โปรเจกต์ MAME - แนวทางการจำลอง Sega Model 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+msgstr "Musashi - คอร์ CPU Motorola 68000 (Karl Stenerud)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+msgstr "ymfm - คอร์เสียง FM ของ Yamaha (Aaron Giles)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SDL - windowing, input and audio"
+msgstr "SDL - หน้าต่าง อินพุต และเสียง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Dear ImGui - this user interface (Omar Cornut)"
+msgstr "Dear ImGui - ส่วนติดต่อผู้ใช้นี้ (Omar Cornut)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "pugixml - games.xml parsing"
+msgstr "pugixml - การอ่าน games.xml"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "miniz - ZIP archive decompression"
+msgstr "miniz - การแตกไฟล์ ZIP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+msgstr "LZMA SDK - การแตกไฟล์ 7-Zip (Igor Pavlov)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+msgstr "VulkanMemoryAllocator - หน่วยความจำ GPU (AMD / GPUOpen)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shaderc / glslang - shader compilation"
+msgstr "shaderc / glslang - การคอมไพล์เชเดอร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "stb_image - box-art image decoding (Sean Barrett)"
+msgstr "stb_image - การถอดรหัสภาพปก (Sean Barrett)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr "ภาพเกมแพด - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "libcurl - artwork scraping (optional)"
+msgstr "libcurl - การดึงภาพปก (ไม่บังคับ)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "HarfBuzz - text shaping for translations"
+msgstr "HarfBuzz - การจัดรูปข้อความสำหรับคำแปล"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr "SheenBidi - การจัดวางข้อความขวาไปซ้าย (Muhammad Tayyab Akram)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game artwork and descriptions from ArcadeDB"
+msgstr "ภาพและคำอธิบายเกมจาก ArcadeDB"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(adb.arcadeitalia.net, by Motoschifo)."
+msgstr "(adb.arcadeitalia.net โดย Motoschifo)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "See NOTICE for full per-component attribution."
+msgstr "ดู NOTICE สำหรับเครดิตของแต่ละส่วนโดยละเอียด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "If you'd like to support development:"
+msgstr "หากต้องการสนับสนุนการพัฒนา:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save settings"
+msgstr "บันทึกการตั้งค่า"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Saved to %s"
+msgstr "บันทึกไปที่ %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel connected."
+msgstr "เชื่อมต่อพวงมาลัยแล้ว"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "ไม่มีพวงมาลัยเชื่อมต่อ การตั้งค่าจะมีผลเมื่อเชื่อมต่อ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Force feedback"
+msgstr "Force feedback"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel force on driving games: centring and cornering\n"
+"forces decoded from the game's own drive-board commands,\n"
+"plus an impact jolt when you hit something."
+msgstr ""
+"แรงพวงมาลัยในเกมขับรถ: แรงดึงกลับศูนย์และแรงเข้าโค้ง\n"
+"ถอดรหัสจากคำสั่ง drive board ของเกมเอง\n"
+"พร้อมแรงกระแทกเมื่อชนสิ่งต่างๆ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Resistance"
+msgstr "แรงต้าน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "กลับทิศ force feedback"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls\n"
+"away from the centre instead of bringing it back, and\n"
+"the game's forces go the opposite way."
+msgstr ""
+"สำหรับพวงมาลัยที่ไดรเวอร์ดันผิดทิศ: ดึง\n"
+"ออกจากศูนย์แทนที่จะดึงกลับ และ\n"
+"แรงของเกมไปในทิศตรงข้าม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble"
+msgstr "การสั่น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force\n"
+"feedback. It never runs alongside force feedback."
+msgstr ""
+"สั่นเมื่อเกิดการกระแทกในเกม สำหรับพวงมาลัยที่ไม่มี force\n"
+"feedback จะไม่ทำงานพร้อมกับ force feedback"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "ความแรงการสั่น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "การสั่นของเครื่องยนต์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"การสั่นเพิ่มเติมที่แรงขึ้นตามคันเร่ง ไม่ได้มา\n"
+"จากเกม ปิดไว้เพื่อสัมผัสเฉพาะ force feedback ของเกม"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%u deg"
+msgstr "%u องศา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "ช่วงการหมุนพวงมาลัย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock\n"
+"angle below is mapped onto it, so matching your wheel\n"
+"gives arcade-like response."
+msgstr ""
+"ตั้งค่านี้ตามช่วงการหมุนของพวงมาลัยของคุณ มุมล็อก\n"
+"ด้านล่างจะถูกแมปลงบนช่วงนี้ การตั้งให้ตรงกับพวงมาลัย\n"
+"จะให้การตอบสนองแบบอาร์เคด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "มุมล็อก"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d deg"
+msgstr "%d องศา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total,\n"
+"so half each side of centre). Lower is more sensitive."
+msgstr ""
+"ต้องหมุนจริงเท่าไรจึงจะล็อกสุดในเกม (รวมทั้งหมด\n"
+"คือครึ่งหนึ่งแต่ละข้างจากศูนย์) ค่าต่ำจะไวกว่า"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "แกน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+msgstr "ตรวจพบอัตโนมัติ ปรับเทียบใหม่หากพวงมาลัยหรือแป้นเหยียบผิด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "พวงมาลัย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "คันเร่ง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "เบรก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "อัตโนมัติ"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "แกน %d (กลับทิศ)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "แกน %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "ขยับมัน..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "cancel"
+msgstr "ยกเลิก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Calibrate"
+msgstr "ปรับเทียบ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "ปุ่ม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the wheel button for that control."
+msgstr "กด ผูก แล้วกดปุ่มบนพวงมาลัยสำหรับการควบคุมนั้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Coin"
+msgstr "เหรียญ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "ปุ่ม 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "ปุ่ม 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "ปุ่ม 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "ปุ่ม 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "เพิ่มเกียร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "ลดเกียร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Test"
+msgstr "ทดสอบ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "เซอร์วิส"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu (F10)"
+msgstr "เมนู (F10)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "ไม่ได้ผูก"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "ปุ่ม %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "กดปุ่ม..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bind"
+msgstr "ผูก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "clear"
+msgstr "ล้าง"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "เชื่อมต่อเกมแพด %d ตัว"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "ไม่มีเกมแพดเชื่อมต่อ การตั้งค่าจะมีผลเมื่อเชื่อมต่อ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "ผู้เล่น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "รีเซ็ตเป็นค่าเริ่มต้นของ SDL"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Down"
+msgstr "ลดเกียร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Up"
+msgstr "ขึ้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Left"
+msgstr "ซ้าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Right"
+msgstr "ขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Move Down"
+msgstr "ลง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Up"
+msgstr "เพิ่มเกียร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer / Aim"
+msgstr "บังคับเลี้ยว / เล็ง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "คันโยกขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "สติกขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "สติกซ้าย"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (กลับทิศ)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then push a stick.\n"
+"Right-click to go back to the default."
+msgstr ""
+"คลิก แล้วดันสติก\n"
+"คลิกขวาเพื่อกลับเป็นค่าเริ่มต้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick\n"
+"or press a button. Right-click for the default."
+msgstr ""
+"คลิก แล้วบีบทริกเกอร์ ดันสติก\n"
+"หรือกดปุ่ม คลิกขวาเพื่อใช้ค่าเริ่มต้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press a button or pull a trigger.\n"
+"Right-click to unbind."
+msgstr ""
+"คลิก แล้วกดปุ่มหรือบีบทริกเกอร์\n"
+"คลิกขวาเพื่อยกเลิกการผูก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
+"is Virtual On's. Test and Service are Guide+Start and Guide+Back."
+msgstr "สติกซ้ายใช้เคลื่อนที่ได้ด้วย ปุ่มไหล่ทำหน้าที่เป็นปุ่ม 3/4 ด้วย คันโยกขวาใช้สำหรับ Virtual On ทดสอบและเซอร์วิสคือ Guide+Start และ Guide+Back"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick sensitivity"
+msgstr "ความไวของสติก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection\n"
+"is always full lock; under 100% the middle of the travel does\n"
+"less, over 100% it does more."
+msgstr ""
+"การตอบสนองของสติกเมื่อพ้น deadzone การดันสุด\n"
+"คือล็อกสุดเสมอ ต่ำกว่า 100% ช่วงกลางจะ\n"
+"ตอบสนองน้อยลง เกิน 100% จะตอบสนองมากขึ้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts in driving games.\n"
+"Other games stay quiet."
+msgstr ""
+"สั่นเมื่อเกิดการกระแทกในเกมขับรถ\n"
+"เกมอื่นจะไม่สั่น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering vibration"
+msgstr "การสั่นเมื่อบังคับเลี้ยว"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not\n"
+"from the game. Turn it off to feel only the game's force feedback."
+msgstr ""
+"การสั่นเพิ่มเติมที่แรงขึ้นเมื่อบังคับเลี้ยว ไม่ได้มา\n"
+"จากเกม ปิดไว้เพื่อสัมผัสเฉพาะ force feedback ของเกม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset"
+msgstr "รีเซ็ต"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Per-game volume"
+msgstr "ระดับเสียงแยกตามเกม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Raise or lower a game's volume from its default level.\n"
+"One slider covers every revision of a game. Off plays\n"
+"every game at its default, whatever the sliders say.\n"
+"\n"
+"Warning: above 100% loud effects can clip (audible\n"
+"distortion)."
+msgstr ""
+"เพิ่มหรือลดระดับเสียงของเกมจากระดับเริ่มต้น\n"
+"แถบเลื่อนเดียวใช้กับทุกเวอร์ชันของเกม ปิดไว้จะเล่น\n"
+"ทุกเกมที่ระดับเริ่มต้น ไม่ว่าแถบเลื่อนจะตั้งไว้เท่าไร\n"
+"\n"
+"คำเตือน: เกิน 100% เสียงดังอาจแตก (ได้ยิน\n"
+"เสียงผิดเพี้ยน)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Now playing: %s"
+msgstr "กำลังเล่น: %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Filter games"
+msgstr "กรองเกม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset all"
+msgstr "รีเซ็ตทั้งหมด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game"
+msgstr "เกม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "ระดับเสียง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Show the aiming crosshair and hide the mouse cursor,\n"
+"for the light-gun titles (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+msgstr ""
+"แสดงเป้าเล็งและซ่อนเคอร์เซอร์เมาส์\n"
+"สำหรับเกมปืนแสง (Virtua Cop 2, House of the\n"
+"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show crosshair"
+msgstr "แสดงเป้าเล็ง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"has its own sight (e.g. a Sinden). Positional-gun\n"
+"titles always draw their own regardless."
+msgstr ""
+"วาดเป้าเล็งของ sm2-emu เอง ปิดไว้หากปืน\n"
+"มีศูนย์เล็งของตัวเอง (เช่น Sinden) เกมปืน\n"
+"แบบระบุตำแหน่งจะวาดเป้าของตัวเองเสมอ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide shot flash"
+msgstr "ซ่อนแสงวาบเมื่อยิง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+"House of the Dead show on each shot."
+msgstr ""
+"ซ่อนแสงวาบสีขาวที่ Virtua Cop, Virtua Cop 2 และ\n"
+"House of the Dead แสดงทุกครั้งที่ยิง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Player 1 aims with the mouse; the left button fires and the right button "
+"reloads (shoot off screen)."
+msgstr "ผู้เล่น 1 เล็งด้วยเมาส์ ปุ่มซ้ายยิง ปุ่มขวาบรรจุกระสุน (ยิงนอกจอ)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Recoil"
+msgstr "แรงสะท้อน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Kick the gun's rumble motor on each shot, for guns\n"
+"that have one (Sinden and similar). No effect on a\n"
+"gun without a motor."
+msgstr ""
+"สั่งมอเตอร์สั่นของปืนทุกครั้งที่ยิง สำหรับปืน\n"
+"ที่มีมอเตอร์ (Sinden และรุ่นคล้ายกัน) ไม่มีผลกับ\n"
+"ปืนที่ไม่มีมอเตอร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enable recoil"
+msgstr "เปิดแรงสะท้อน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Strength"
+msgstr "ความแรง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "อุปกรณ์"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Gun %zu (player %zu): %s"
+msgstr "ปืน %zu (ผู้เล่น %zu): %s"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"in absolute mouse mode (GUN4IR, Sinden, AimTrak) before launching for "
+"independent per-player aiming."
+msgstr "ไม่พบปืนแสงเฉพาะ ผู้เล่น 1 เล็งด้วยเมาส์ ปุ่มซ้ายยิง ปุ่มขวาบรรจุกระสุน (ยิงนอกจอ) เสียบปืนในโหมด absolute mouse (GUN4IR, Sinden, AimTrak) ก่อนเปิดโปรแกรม เพื่อเล็งแยกกันสำหรับแต่ละผู้เล่น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No dedicated light guns detected. Player 1 aims with the mouse; the left "
+"button fires and the right button reloads (shoot off screen). Plug in guns "
+"tagged ID_INPUT_GUN for independent per-player aiming."
+msgstr "ไม่พบปืนแสงเฉพาะ ผู้เล่น 1 เล็งด้วยเมาส์ ปุ่มซ้ายยิง ปุ่มขวาบรรจุกระสุน (ยิงนอกจอ) เสียบปืนที่มีแท็ก ID_INPUT_GUN เพื่อเล็งแยกกันสำหรับแต่ละผู้เล่น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun buttons"
+msgstr "ปุ่มปืน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Press Bind, then press the button on that player's gun."
+msgstr "กด ผูก แล้วกดปุ่มบนปืนของผู้เล่นนั้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reload/Missile"
+msgstr "บรรจุกระสุน/มิสไซล์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "ไก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat down"
+msgstr "Hat ลง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat left"
+msgstr "Hat ซ้าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat right"
+msgstr "Hat ขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hat up"
+msgstr "Hat ขึ้น"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Player %d"
+msgstr "ผู้เล่น %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sinden border"
+msgstr "กรอบ Sinden"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"A bright frame around the game image that a Sinden\n"
+"gun's camera tracks for aiming. Only shown in\n"
+"light-gun mode."
+msgstr ""
+"กรอบสว่างรอบภาพเกมที่กล้องของปืน Sinden\n"
+"ใช้ติดตามเพื่อเล็ง แสดงเฉพาะใน\n"
+"โหมดปืนแสง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show border"
+msgstr "แสดงกรอบ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Colour"
+msgstr "สี"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Thickness"
+msgstr "ความหนา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "เชื่อมตู้ผ่านเครือข่าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same\n"
+"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+"this cabinet standalone. Takes effect on the next game launch."
+msgstr ""
+"แข่งแบบเชื่อมกับเครื่องอื่นใน LAN เดียวกันที่เล่นเกมเดียวกัน\n"
+"(Sega Rally, Daytona, Super GT 24h, Indy 500, ...) ปิดไว้\n"
+"ตู้นี้จะเล่นเดี่ยว มีผลเมื่อเปิดเกมครั้งถัดไป"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next cabinet. For two machines, point each at the other. The master/"
+"slave role is chosen in the game's own test menu, not here."
+msgstr "บอร์ดสื่อสารเป็นแบบวงแหวน: แต่ละตู้รับฟังที่แอดเดรสของตัวเองและส่งไปยังตู้ถัดไป สำหรับสองเครื่อง ให้ชี้แต่ละเครื่องไปยังอีกเครื่อง บทบาท master/slave เลือกในเมนูทดสอบของเกม ไม่ใช่ที่นี่"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "ตู้นี้"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "IP ภายใน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "ตรวจหา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank\n"
+"listens on every interface. Detect fills it from the\n"
+"primary network adapter."
+msgstr ""
+"แอดเดรสของเครื่องนี้ใน LAN ของตู้ เว้นว่าง\n"
+"จะรับฟังทุกอินเทอร์เฟซ ตรวจหาจะเติมค่าจาก\n"
+"อะแดปเตอร์เครือข่ายหลัก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "ซับเน็ตมาสก์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "พอร์ตรับฟัง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "หมายเลขตู้"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring (0-based).\n"
+"For your own bookkeeping; the game negotiates the\n"
+"actual link id from the ring."
+msgstr ""
+"ตำแหน่งของตู้นี้ในวงแหวน (เริ่มจาก 0)\n"
+"ใช้สำหรับจดบันทึกของคุณเอง เกมจะต่อรอง\n"
+"link id จริงจากวงแหวน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "ตู้ถัดไปในวงแหวน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "IP ถัดไป"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the\n"
+"other machine's IP. Blank means this cabinet does not\n"
+"forward (tail of a chain)."
+msgstr ""
+"ตู้ที่เครื่องนี้ส่งข้อมูลไป สำหรับสองเครื่องคือ\n"
+"IP ของอีกเครื่อง เว้นว่างหมายถึงตู้นี้ไม่\n"
+"ส่งต่อ (ปลายสุดของสาย)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "พอร์ตถัดไป"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "สถานะ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "ตั้งค่าการเชื่อมแล้ว เริ่มเมื่อเปิดเกมครั้งถัดไป"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "เล่นเดี่ยว (ไม่เชื่อมตู้)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "กำลังรอให้เกมเปิดบอร์ดเชื่อมต่อ..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "เชื่อมแล้ว: ตู้ %u จาก %u"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "กำลังสร้างวงแหวน..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This machine's interfaces:"
+msgstr "อินเทอร์เฟซของเครื่องนี้:"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "โหลดเกมเพื่อบันทึกและกู้คืนสถานะ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is F6, "
+"quick-load is F7."
+msgstr "บันทึกทั้งเครื่องลงช่องแล้วกู้คืนภายหลัง บันทึกด่วนคือ F6 โหลดด่วนคือ F7"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "ลบ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "โหลด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "บันทึก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "ว่าง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "CALIBRATING GUN - shoot each target"
+msgstr "กำลังปรับเทียบปืน - ยิงเป้าแต่ละอัน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Choose Directory"
+msgstr "เลือกไดเรกทอรี"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Up"
+msgstr "ขึ้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Refresh"
+msgstr "รีเฟรช"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannot list this directory (permission denied, or it doesn't exist)."
+msgstr "แสดงรายการไดเรกทอรีนี้ไม่ได้ (ไม่มีสิทธิ์ หรือไม่มีอยู่)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select This Folder"
+msgstr "เลือกโฟลเดอร์นี้"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel"
+msgstr "ยกเลิก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "F10: toggle overlay"
+msgstr "F10: เปิด/ปิดโอเวอร์เลย์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select a game"
+msgstr "เลือกเกม"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter: launch   F10: settings   F9: quit"
+msgstr "Enter: เปิดเกม   F10: การตั้งค่า   F9: ออก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"(F1) > Paths, then relaunch."
+msgstr "ไม่พบไฟล์ ROM ของ Model 2 ในไดเรกทอรี ROM ตั้งค่าได้ใน การตั้งค่า (F1) > พาธ แล้วเปิดใหม่"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetching description..."
+msgstr "กำลังดึงคำอธิบาย..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No description available."
+msgstr "ไม่มีคำอธิบาย"

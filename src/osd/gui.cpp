@@ -15,8 +15,10 @@
 #include "osd/gui.h"
 #include "core/log.h"
 #include "core/net.h"
+#include "osd/i18n.h"
 #include "osd/input.h"
 #include "osd/scraper.h"
+#include "osd/ui_text.h"
 #include "render/geometry.h"
 
 #include "assets/pad_xbox_outline.h"
@@ -34,11 +36,146 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <string_view>
 #include <system_error>
 
 namespace sm2::osd {
 
 namespace {
+
+using i18n::tr;
+using i18n::tr_id;
+using i18n::trf;
+
+template <size_t N>
+[[nodiscard]] std::array<const char*, N> tr_all(const std::array<const char*, N>& items)
+{
+    std::array<const char*, N> out{};
+    for (size_t i = 0; i < N; ++i) {
+        out[i] = tr(items[i]);
+    }
+    return out;
+}
+
+/// Lines of `text`, each pushed to the right edge of the widest; how right-to-
+/// left text lines up.
+void right_aligned_lines(std::string_view text)
+{
+    std::vector<std::string_view> lines;
+    float                         width = 0.0f;
+    for (size_t pos = 0; pos <= text.size();) {
+        size_t end = text.find('\n', pos);
+        if (end == std::string_view::npos) {
+            end = text.size();
+        }
+        lines.push_back(text.substr(pos, end - pos));
+        width = std::max(width, ImGui::CalcTextSize(lines.back().data(),
+                                                    lines.back().data() + lines.back().size()).x);
+        pos = end + 1;
+    }
+    const float x0 = ImGui::GetCursorPosX();
+    for (const std::string_view line : lines) {
+        const float w = ImGui::CalcTextSize(line.data(), line.data() + line.size()).x;
+        ImGui::SetCursorPosX(x0 + width - w);
+        ImGui::TextUnformatted(line.data(), line.data() + line.size());
+    }
+}
+
+/// A tooltip of already-translated text.
+void tooltip(const char* text)
+{
+    if (!i18n::right_to_left()) {
+        ImGui::SetTooltip("%s", text);
+        return;
+    }
+    if (ImGui::BeginTooltip()) {
+        right_aligned_lines(text);
+        ImGui::EndTooltip();
+    }
+}
+
+/// `msgid` translated and word-wrapped to the available width. Right-to-left
+/// text is broken into lines before shaping, since ImGui wraps after it.
+void text_wrapped(const char* msgid)
+{
+    if (!i18n::right_to_left()) {
+        ImGui::PushTextWrapPos(0.0f);
+        ImGui::TextUnformatted(tr(msgid));
+        ImGui::PopTextWrapPos();
+        return;
+    }
+    const float            width = ImGui::GetContentRegionAvail().x;
+    const std::string_view text  = i18n::translate(msgid);
+    std::string            lines;
+    std::string            line;
+    for (size_t pos = 0; pos <= text.size();) {
+        size_t end = text.find(' ', pos);
+        if (end == std::string_view::npos) {
+            end = text.size();
+        }
+        const std::string_view word = text.substr(pos, end - pos);
+        std::string candidate = line.empty() ? std::string(word) : line + " " + std::string(word);
+        if (!line.empty() && ImGui::CalcTextSize(i18n::shape(candidate).c_str()).x > width) {
+            lines += i18n::shape(line) + "\n";
+            candidate = std::string(word);
+        }
+        line = std::move(candidate);
+        pos  = end + 1;
+    }
+    lines += i18n::shape(line);
+    const float x0 = ImGui::GetCursorPosX();
+    ImGui::SetCursorPosX(x0 + std::max(0.0f, width - ImGui::CalcTextSize(lines.c_str()).x));
+    right_aligned_lines(lines);
+}
+
+/// `text` as an ImGui slider format that shows it verbatim, for a value whose
+/// text is already formatted (and translated).
+std::string verbatim_format(const std::string& text)
+{
+    std::string out;
+    for (const char c : text) {
+        out += c;
+        if (c == '%') {
+            out += '%';
+        }
+    }
+    return out;
+}
+
+/// The x at which values start in rows labelled with `names` (translated), so
+/// they line up after the widest label.
+template <typename Rows, typename Name>
+float value_column(const Rows& rows, Name name)
+{
+    float width = 0.0f;
+    for (const auto& row : rows) {
+        width = std::max(width, ImGui::CalcTextSize(tr(name(row))).x);
+    }
+    return ImGui::GetCursorPosX() + width + ImGui::GetStyle().ItemSpacing.x * 2.0f;
+}
+
+/// A language as the picker lists it: its own name when the overlay font can
+/// draw it, with the English name alongside.
+std::string language_label(const i18n::Language& language)
+{
+    // The language in use has its fonts and shaper loaded.
+    const bool           current  = language.code == i18n::current();
+    const std::string    shown    = current ? i18n::shape(language.name) : language.name;
+    const std::u32string name     = i18n::to_utf32(shown);
+    ImFont*              font     = ImGui::GetFont();
+    const bool           drawable = (current || !i18n::needs_shaping(name))
+                          && std::all_of(name.begin(), name.end(), [&](char32_t c) {
+                                 return c <= IM_UNICODE_CODEPOINT_MAX
+                                     && font->IsGlyphInFont(static_cast<ImWchar>(c));
+                             });
+    if (!drawable) {
+        return language.english_name;
+    }
+    if (language.name == language.english_name) {
+        return shown;
+    }
+    return shown + " (" + language.english_name + ")";
+}
 
 // Name an evdev key code for the gun-button UI; hex fallback for anything odd.
 [[nodiscard]] std::string evdev_button_name(u32 code)
@@ -72,7 +209,7 @@ Gui::~Gui()
     }
 }
 
-bool Gui::init(SDL_Window* window)
+bool Gui::init(SDL_Window* window, const std::string& language)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -98,6 +235,10 @@ bool Gui::init(SDL_Window* window)
         return false;
     }
 
+    i18n::init();
+    m_language = language;
+    apply_language();
+
     m_window      = window;
     m_initialised = true;
     SM2_INFO("gui: initialised (ImGui %s)", IMGUI_VERSION);
@@ -110,6 +251,7 @@ void Gui::shutdown()
     if (!m_initialised) return;
 
     ImGui_ImplSDL3_Shutdown();
+    ui_text::shutdown();
     ImGui::DestroyContext();
 
     m_initialised = false;
@@ -119,9 +261,24 @@ void Gui::shutdown()
 // Per-frame
 // ---------------------------------------------------------------------------
 
+void Gui::apply_language()
+{
+    const std::string code = i18n::set_language(m_language);
+    if (!ui_text::build_font()) {
+        SM2_WARN("gui: showing the overlay in English instead of %s", code.c_str());
+        i18n::set_language("en");
+        ui_text::build_font();
+    }
+    m_language_pending = false;
+}
+
 void Gui::new_frame()
 {
     if (!m_initialised) return;
+    // Fonts may only change between frames.
+    if (m_language_pending) {
+        apply_language();
+    }
     ImGui_ImplSDL3_NewFrame();
     // DisplaySize stays the SDL logical size (mouse arrives in that space, so
     // layout must too); correct DisplayFramebufferScale to the backend's real
@@ -173,6 +330,10 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
                float measured_hz, const char* renderer_label, Input* input)
 {
     apply_scale();
+    if (config.language != m_language) {
+        m_language         = config.language;
+        m_language_pending = true;
+    }
 
     // Cache this frame's present placement so the crosshair and Sinden-border
     // helpers frame the same rectangle the backend presents into.
@@ -267,24 +428,24 @@ void Gui::end_frame()
 void Gui::draw_menu_bar(Config& config)
 {
     if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Hide overlay", "F10")) {
+        if (ImGui::BeginMenu(tr_id("File"))) {
+            if (ImGui::MenuItem(tr_id("Hide overlay"), "F10")) {
                 m_visible = false;
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("Quit", "F9")) {
+            if (ImGui::MenuItem(tr_id("Quit"), "F9")) {
                 SDL_Event quit_event{};
                 quit_event.type = SDL_EVENT_QUIT;
                 SDL_PushEvent(&quit_event);
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Settings")) {
-            ImGui::MenuItem("Vsync", nullptr, &config.vsync);
-            ImGui::MenuItem("Fullscreen", nullptr, &config.fullscreen);
-            ImGui::MenuItem("FPS counter", "F8", &config.show_fps);
-            ImGui::MenuItem("On-screen notifications", nullptr, &config.show_notifications);
-            ImGui::MenuItem("Light-gun mode", nullptr, &config.lightgun);
+        if (ImGui::BeginMenu(tr_id("Settings"))) {
+            ImGui::MenuItem(tr_id("Vsync"), nullptr, &config.vsync);
+            ImGui::MenuItem(tr_id("Fullscreen"), nullptr, &config.fullscreen);
+            ImGui::MenuItem(tr_id("FPS counter"), "F8", &config.show_fps);
+            ImGui::MenuItem(tr_id("On-screen notifications"), nullptr, &config.show_notifications);
+            ImGui::MenuItem(tr_id("Light-gun mode"), nullptr, &config.lightgun);
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -316,7 +477,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
     // Zero WindowMinSize so apply_scale()'s scaled minimum cannot override the
     // explicit size above.
     ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0.0f, 0.0f));
-    const bool open = ImGui::Begin("Settings", &m_visible, flags);
+    const bool open = ImGui::Begin(tr_id("Settings"), &m_visible, flags);
     ImGui::PopStyleVar();
     if (!open) {
         ImGui::End();
@@ -325,23 +486,55 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
 
     if (ImGui::BeginTabBar("SettingsTabs")) {
         // -- Video tab -----------------------------------------------------
-        if (ImGui::BeginTabItem("Video")) {
-            ImGui::Checkbox("Vsync", &config.vsync);
+        if (ImGui::BeginTabItem(tr_id("Video"))) {
+            ImGui::Checkbox(tr_id("Vsync"), &config.vsync);
             ImGui::SameLine();
             ImGui::TextDisabled("(?)");
             if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Wait for vertical blank before presenting.\n"
-                                  "Prevents tearing but adds up to one frame of latency.");
+                tooltip(tr("Wait for vertical blank before presenting.\n"
+                           "Prevents tearing but adds up to one frame of latency."));
             }
 
-            ImGui::Checkbox("Fullscreen", &config.fullscreen);
-            ImGui::Checkbox("FPS counter", &config.show_fps);
+            ImGui::Checkbox(tr_id("Fullscreen"), &config.fullscreen);
+            ImGui::Checkbox(tr_id("FPS counter"), &config.show_fps);
             ImGui::SameLine();
-            ImGui::Checkbox("Notifications", &config.show_notifications);
+            ImGui::Checkbox(tr_id("Notifications"), &config.show_notifications);
+
+            // Overlay language; switches live.
+            {
+                const auto& languages = i18n::available();
+                std::string current   = tr("Automatic (system)");
+                if (config.language == "en") {
+                    current = "English";
+                }
+                for (const i18n::Language& language : languages) {
+                    if (language.code == config.language) {
+                        current = language_label(language);
+                    }
+                }
+                ImGui::SetNextItemWidth(220);
+                if (ImGui::BeginCombo(tr_id("Language"), current.c_str())) {
+                    if (ImGui::Selectable(tr("Automatic (system)"), config.language == "auto")) {
+                        config.language = "auto";
+                    }
+                    if (ImGui::Selectable("English", config.language == "en")) {
+                        config.language = "en";
+                    }
+                    for (const i18n::Language& language : languages) {
+                        ImGui::PushID(language.code.c_str());
+                        if (ImGui::Selectable(language_label(language).c_str(),
+                                              config.language == language.code)) {
+                            config.language = language.code;
+                        }
+                        ImGui::PopID();
+                    }
+                    ImGui::EndCombo();
+                }
+            }
 
             if (!gpu_names.empty()) {
                 ImGui::Separator();
-                ImGui::Text("GPU");
+                ImGui::TextUnformatted(tr("GPU"));
 
                 int current = 0;  // 0 is "Auto"
                 for (int i = 0; i < static_cast<int>(gpu_names.size()); ++i) {
@@ -351,8 +544,8 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     }
                 }
 
-                if (ImGui::BeginCombo("##gpu", current == 0 ? "Auto (best)" : gpu_names[current - 1].c_str())) {
-                    if (ImGui::Selectable("Auto (best)", current == 0)) {
+                if (ImGui::BeginCombo("##gpu", current == 0 ? tr("Auto (best)") : gpu_names[current - 1].c_str())) {
+                    if (ImGui::Selectable(tr("Auto (best)"), current == 0)) {
                         config.gpu.clear();
                     }
                     for (int i = 0; i < static_cast<int>(gpu_names.size()); ++i) {
@@ -371,10 +564,10 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             // Renderer, from the backends this build offers; takes effect next launch.
             if (!m_available_renderers.empty()) {
                 ImGui::Separator();
-                ImGui::Text("Renderer");
+                ImGui::TextUnformatted(tr("Renderer"));
 
                 const auto label_of = [](const std::string& name) -> const char* {
-                    if (name == "software") return "Software";
+                    if (name == "software") return tr("Software");
                     if (name == "vulkan")   return "Vulkan";
                     if (name == "opengl")   return "OpenGL";
                     return name.c_str();
@@ -398,21 +591,21 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("Which renderer draws the game. Applies on the\n"
-                                      "next launch - save settings and relaunch.");
+                    tooltip(tr("Which renderer draws the game. Applies on the\n"
+                               "next launch - save settings and relaunch."));
                 }
             }
 
             // Window size (only meaningful in windowed mode).
             if (!config.fullscreen) {
                 ImGui::Separator();
-                ImGui::Text("Window size");
+                ImGui::TextUnformatted(tr("Window size"));
                 int w = static_cast<int>(config.window_width);
                 int h = static_cast<int>(config.window_height);
                 ImGui::SetNextItemWidth(100);
-                ImGui::InputInt("Width", &w, 16, 64);
+                ImGui::InputInt(tr_id("Width"), &w, 16, 64);
                 ImGui::SetNextItemWidth(100);
-                ImGui::InputInt("Height", &h, 16, 64);
+                ImGui::InputInt(tr_id("Height"), &h, 16, 64);
                 config.window_width  = static_cast<u32>(std::max(496, w));
                 config.window_height = static_cast<u32>(std::max(384, h));
             }
@@ -422,23 +615,22 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::Separator();
             {
                 static constexpr std::array<const char*, 8> kScaleLabels = {
-                    "1x (native)", "2x", "3x", "4x", "5x", "6x", "7x", "8x (4K)"};
+                    N_("1x (native)"), "2x", "3x", "4x", "5x", "6x", "7x", N_("8x (4K)")};
                 int scale_index =
                     std::clamp(static_cast<int>(config.render_scale),
                                1, static_cast<int>(kScaleLabels.size())) - 1;
                 ImGui::SetNextItemWidth(140);
-                if (ImGui::Combo("3D render scale", &scale_index, kScaleLabels.data(),
+                if (ImGui::Combo(tr_id("3D render scale"), &scale_index, tr_all(kScaleLabels).data(),
                                  static_cast<int>(kScaleLabels.size()))) {
                     config.render_scale = static_cast<u32>(scale_index + 1);
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "Internal 3D rendering resolution. Higher is crisper 3D\n"
-                        "(2D/HUD stays sharp). GPU backends only; the software\n"
-                        "renderer stays native. Applies on the next launch - save\n"
-                        "settings and relaunch.");
+                    tooltip(tr("Internal 3D rendering resolution. Higher is crisper 3D\n"
+                               "(2D/HUD stays sharp). GPU backends only; the software\n"
+                               "renderer stays native. Applies on the next launch - save\n"
+                               "settings and relaunch."));
                 }
             }
 
@@ -448,81 +640,77 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::Separator();
             {
                 static constexpr std::array<const char*, 4> kMethodLabels = {
-                    "Nearest", "Bilinear", "Sharp-bilinear", "Integer"};
+                    N_("Nearest"), N_("Bilinear"), N_("Sharp-bilinear"), N_("Integer")};
                 int method_index =
                     std::clamp(static_cast<int>(config.scaling_method), 0, 3);
                 ImGui::SetNextItemWidth(160);
-                if (ImGui::Combo("2D scaling", &method_index, kMethodLabels.data(),
+                if (ImGui::Combo(tr_id("2D scaling"), &method_index, tr_all(kMethodLabels).data(),
                                  static_cast<int>(kMethodLabels.size()))) {
                     config.scaling_method = static_cast<ScalingMethod>(method_index);
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "How the frame is magnified to the window.\n"
-                        "Sharp-bilinear keeps 2D text crisp without the shimmer\n"
-                        "nearest shows at non-integer window sizes. Integer snaps\n"
-                        "to a whole multiple (pixel-perfect, with black bars).\n"
-                        "Applies live.");
+                    tooltip(tr("How the frame is magnified to the window.\n"
+                               "Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+                               "nearest shows at non-integer window sizes. Integer snaps\n"
+                               "to a whole multiple (pixel-perfect, with black bars).\n"
+                               "Applies live."));
                 }
 
                 static constexpr std::array<const char*, 3> kAspectLabels = {
-                    "4:3 (arcade)", "Square pixels", "Stretch"};
+                    N_("4:3 (arcade)"), N_("Square pixels"), N_("Stretch")};
                 int aspect_index =
                     std::clamp(static_cast<int>(config.aspect_mode), 0, 2);
                 ImGui::SetNextItemWidth(160);
-                if (ImGui::Combo("Aspect", &aspect_index, kAspectLabels.data(),
+                if (ImGui::Combo(tr_id("Aspect"), &aspect_index, tr_all(kAspectLabels).data(),
                                  static_cast<int>(kAspectLabels.size()))) {
                     config.aspect_mode = static_cast<AspectMode>(aspect_index);
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "4:3 is the arcade monitor's shape (the default).\n"
-                        "Square pixels shows the raw 496x384 (slightly narrow).\n"
-                        "Stretch fills the whole window. Applies live.");
+                    tooltip(tr("4:3 is the arcade monitor's shape (the default).\n"
+                               "Square pixels shows the raw 496x384 (slightly narrow).\n"
+                               "Stretch fills the whole window. Applies live."));
                 }
             }
 
             // CRT cosmetic filter. Off by default; all present-stage, live.
             ImGui::Separator();
             {
-                ImGui::Checkbox("CRT filter", &config.crt_enabled);
+                ImGui::Checkbox(tr_id("CRT filter"), &config.crt_enabled);
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "A cosmetic arcade-monitor look over the finished frame:\n"
-                        "scanlines, an RGB shadow mask, glow and optional screen\n"
-                        "curvature. Purely visual; applies live.");
+                    tooltip(tr("A cosmetic arcade-monitor look over the finished frame:\n"
+                               "scanlines, an RGB shadow mask, glow and optional screen\n"
+                               "curvature. Purely visual; applies live."));
                 }
                 if (config.crt_enabled) {
                     const auto pct_slider = [](const char* label, u32& value) {
                         int v = static_cast<int>(value);
                         ImGui::SetNextItemWidth(160);
-                        if (ImGui::SliderInt(label, &v, 0, 100)) {
+                        if (ImGui::SliderInt(tr_id(label), &v, 0, 100)) {
                             value = static_cast<u32>(std::clamp(v, 0, 100));
                         }
                     };
-                    pct_slider("Scanlines", config.crt_scanline_strength);
-                    pct_slider("Mask", config.crt_mask_strength);
-                    pct_slider("Glow", config.crt_glow_strength);
-                    pct_slider("Curvature", config.crt_curvature);
+                    pct_slider(N_("Scanlines"), config.crt_scanline_strength);
+                    pct_slider(N_("Mask"), config.crt_mask_strength);
+                    pct_slider(N_("Glow"), config.crt_glow_strength);
+                    pct_slider(N_("Curvature"), config.crt_curvature);
                 }
             }
 
             // Enhancement: opt-in quality beyond the original hardware, GPU-gated
             // and off by default. Applies live (main.cpp pushes it each frame).
             ImGui::Separator();
-            ImGui::TextDisabled(
-                "Enhancement (cosmetic, beyond the original hardware)");
+            ImGui::TextDisabled("%s", tr("Enhancement (cosmetic, beyond the original hardware)"));
             {
                 // 3D texture filter. Anisotropic needs GPU support; grey it out
                 // and force Faithful where the device reports none.
                 static constexpr std::array<const char*, 2> kTexLabels = {
-                    "Faithful", "Anisotropic"};
+                    N_("Faithful"), N_("Anisotropic")};
                 int tex_index = std::clamp(static_cast<int>(config.texture_filter), 0, 1);
                 if (!m_caps_anisotropy) {
                     config.texture_filter = TextureFilter::Faithful;
@@ -530,17 +718,16 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     ImGui::BeginDisabled();
                 }
                 ImGui::SetNextItemWidth(160);
-                if (ImGui::Combo("3D texture filter", &tex_index, kTexLabels.data(),
+                if (ImGui::Combo(tr_id("3D texture filter"), &tex_index, tr_all(kTexLabels).data(),
                                  static_cast<int>(kTexLabels.size()))) {
                     config.texture_filter = static_cast<TextureFilter>(tex_index);
                 }
                 if (!m_caps_anisotropy) {
                     ImGui::EndDisabled();
                     ImGui::SameLine();
-                    ImGui::TextDisabled("(unsupported)");
+                    ImGui::TextDisabled("%s", tr("(unsupported)"));
                     if (ImGui::IsItemHovered()) {
-                        ImGui::SetTooltip(
-                            "This GPU does not report anisotropic filtering.");
+                        tooltip(tr("This GPU does not report anisotropic filtering."));
                     }
                 }
 
@@ -567,7 +754,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                         }
                     }
                     ImGui::SetNextItemWidth(160);
-                    if (ImGui::Combo("Anisotropy", &sel, kLevelLabels.data(), count)) {
+                    if (ImGui::Combo(tr_id("Anisotropy"), &sel, tr_all(kLevelLabels).data(), count)) {
                         config.anisotropy =
                             static_cast<u32>(kLevels[static_cast<usize>(sel)]);
                     }
@@ -576,26 +763,25 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 // 2D upscale. xBR/ScaleFX need the GPU compute path the tilemap
                 // composite already relies on, so they are always available here.
                 static constexpr std::array<const char*, 3> kUpscaleLabels = {
-                    "Faithful", "xBR", "ScaleFX"};
+                    N_("Faithful"), "xBR", "ScaleFX"};
                 int up_index = std::clamp(static_cast<int>(config.upscale_2d), 0, 2);
                 ImGui::SetNextItemWidth(160);
-                if (ImGui::Combo("2D upscale", &up_index, kUpscaleLabels.data(),
+                if (ImGui::Combo(tr_id("2D upscale"), &up_index, tr_all(kUpscaleLabels).data(),
                                  static_cast<int>(kUpscaleLabels.size()))) {
                     config.upscale_2d = static_cast<Upscale2D>(up_index);
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
-                        "ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
-                        "Applies live.");
+                    tooltip(tr("Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+                               "ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+                               "Applies live."));
                 }
 
                 // Translucency. Blended needs a depth-capable fill mask; grey it
                 // out and force Stipple where the renderer has none.
                 static constexpr std::array<const char*, 2> kTranslucencyLabels = {
-                    "Stipple", "Blended"};
+                    N_("Stipple"), N_("Blended")};
                 int translucency = std::clamp(static_cast<int>(config.translucency), 0, 1);
                 if (!m_caps_blended) {
                     config.translucency = Translucency::Stipple;
@@ -603,7 +789,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     ImGui::BeginDisabled();
                 }
                 ImGui::SetNextItemWidth(160);
-                if (ImGui::Combo("Translucency", &translucency, kTranslucencyLabels.data(),
+                if (ImGui::Combo(tr_id("Translucency"), &translucency, tr_all(kTranslucencyLabels).data(),
                                  static_cast<int>(kTranslucencyLabels.size()))) {
                     config.translucency = static_cast<Translucency>(translucency);
                 }
@@ -613,38 +799,35 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "The hardware draws see-through surfaces (lights, glass,\n"
-                        "shadows) as a checkerboard. Blended draws the 50%%\n"
-                        "see-through surface it's trying to achieve. Applies live.");
+                    tooltip(tr("The hardware draws see-through surfaces (lights, glass,\n"
+                               "shadows) as a checkerboard. Blended draws the 50%\n"
+                               "see-through surface it's trying to achieve. Applies live."));
                 }
 
-                ImGui::Checkbox("Custom textures", &config.custom_textures);
+                ImGui::Checkbox(tr_id("Custom textures"), &config.custom_textures);
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "Replace the game's 3D textures with images saved in\n"
-                        "saves/textures/<game>/load, named as dumped. GPU\n"
-                        "renderers only; Reload picks up edited files.");
+                    tooltip(tr("Replace the game's 3D textures with images saved in\n"
+                               "saves/textures/<game>/load, named as dumped. GPU\n"
+                               "renderers only; Reload picks up edited files."));
                 }
                 if (config.custom_textures) {
                     ImGui::SameLine();
-                    ImGui::TextDisabled("%zu loaded", m_custom_texture_count);
+                    ImGui::TextDisabled("%s", trf("%zu loaded", m_custom_texture_count).c_str());
                     ImGui::SameLine();
-                    if (ImGui::SmallButton("Reload")) {
+                    if (ImGui::SmallButton(tr_id("Reload"))) {
                         m_texture_reload_requested = true;
                     }
                 }
 
-                ImGui::Checkbox("Dump textures", &config.dump_textures);
+                ImGui::Checkbox(tr_id("Dump textures"), &config.dump_textures);
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(
-                        "Collect every 3D texture the game draws and write them,\n"
-                        "with an index.html to browse, to saves/textures/<game>/dump\n"
-                        "when the game exits or this is turned off.");
+                    tooltip(tr("Collect every 3D texture the game draws and write them,\n"
+                               "with an index.html to browse, to saves/textures/<game>/dump\n"
+                               "when the game exits or this is turned off."));
                 }
             }
 
@@ -652,30 +835,30 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
         }
 
         // -- Audio tab -----------------------------------------------------
-        if (ImGui::BeginTabItem("Audio")) {
+        if (ImGui::BeginTabItem(tr_id("Audio"))) {
             draw_audio_tab(config);
             ImGui::EndTabItem();
         }
 
         // -- Paths tab -----------------------------------------------------
-        if (ImGui::BeginTabItem("Paths")) {
+        if (ImGui::BeginTabItem(tr_id("Paths"))) {
             const auto dir_field = [this](const char* label, const char* id,
                                          std::string& value, DirPickerTarget target,
                                          const char* help) {
-                ImGui::Text("%s", label);
+                ImGui::TextUnformatted(tr(label));
                 char buf[512];
                 std::snprintf(buf, sizeof(buf), "%s", value.c_str());
                 if (ImGui::InputText(id, buf, sizeof(buf))) {
                     value = buf;
                 }
                 ImGui::SameLine();
-                if (ImGui::Button((std::string("Browse...##browse") + id).c_str())) {
+                if (ImGui::Button((std::string(tr("Browse...")) + "###browse" + id).c_str())) {
                     open_dir_picker(target, value);
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("%s", help);
+                    tooltip(tr(help));
                 }
             };
 
@@ -686,81 +869,80 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     m_config_path.empty() ? default_config_path() : m_config_path;
                 const std::string dir =
                     std::filesystem::path(ini_path).parent_path().string();
-                ImGui::Text("Config directory");
+                ImGui::TextUnformatted(tr("Config directory"));
                 ImGui::TextDisabled("%s", dir.empty() ? "." : dir.c_str());
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("Where sm2-emu.ini is read from and saved to.\n"
-                                      "Set with --config <dir>; cannot be changed here.");
+                    tooltip(tr("Where sm2-emu.ini is read from and saved to.\n"
+                               "Set with --config <dir>; cannot be changed here."));
                 }
                 ImGui::Spacing();
             }
 
-            dir_field("ROM directory", "##romdir", config.rom_dir,
+            dir_field(N_("ROM directory"), "##romdir", config.rom_dir,
                       DirPickerTarget::RomDir,
-                      "Where the ROM archives live. A game launched by name is\n"
-                      "loaded from here as <name>.zip or <name>.7z.");
+                      N_("Where the ROM archives live. A game launched by name is\n"
+                         "loaded from here as <name>.zip or <name>.7z."));
             ImGui::Spacing();
-            dir_field("Saves directory", "##saves", config.nvram_dir,
+            dir_field(N_("Saves directory"), "##saves", config.nvram_dir,
                       DirPickerTarget::NvramDir,
-                      "Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
-                      "(.eeprom) images -- high scores and operator settings.");
+                      N_("Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+                         "(.eeprom) images -- high scores and operator settings."));
             ImGui::Spacing();
-            dir_field("Screenshots directory", "##shots", config.screenshot_dir,
+            dir_field(N_("Screenshots directory"), "##shots", config.screenshot_dir,
                       DirPickerTarget::ScreenshotDir,
-                      "Where F12 screenshots are written.");
+                      N_("Where F12 screenshots are written."));
 
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            ImGui::Checkbox("Scrape artwork online", &config.scrape_artwork);
+            ImGui::Checkbox(tr_id("Scrape artwork online"), &config.scrape_artwork);
             ImGui::SameLine();
             ImGui::TextDisabled("(?)");
             if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip(
-                    "Let the game picker fetch box art and descriptions from\n"
-                    "ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
-                    "picker still lists and launches every game, with placeholder\n"
-                    "tiles and no descriptions.");
+                tooltip(tr("Let the game picker fetch box art and descriptions from\n"
+                           "ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+                           "picker still lists and launches every game, with placeholder\n"
+                           "tiles and no descriptions."));
             }
 
             ImGui::EndTabItem();
         }
 
         // -- Gamepad tab ---------------------------------------------------
-        if (ImGui::BeginTabItem("Gamepad")) {
+        if (ImGui::BeginTabItem(tr_id("Gamepad"))) {
             draw_gamepad_tab(config, input);
             ImGui::EndTabItem();
         }
 
         // -- Wheel tab -----------------------------------------------------
-        if (ImGui::BeginTabItem("Wheel")) {
+        if (ImGui::BeginTabItem(tr_id("Wheel"))) {
             draw_wheel_tab(config, input);
             ImGui::EndTabItem();
         }
 
         // -- Light Gun tab -----------------------------------------------------
-        if (ImGui::BeginTabItem("Light Gun")) {
+        if (ImGui::BeginTabItem(tr_id("Light Gun"))) {
             draw_lightgun_tab(config, input);
             ImGui::EndTabItem();
         }
 
         // -- Network tab -----------------------------------------------------
-        if (ImGui::BeginTabItem("Network")) {
+        if (ImGui::BeginTabItem(tr_id("Network"))) {
             draw_network_tab(config);
             ImGui::EndTabItem();
         }
 
         // -- States tab ----------------------------------------------------
-        if (ImGui::BeginTabItem("States")) {
+        if (ImGui::BeginTabItem(tr_id("States"))) {
             draw_states_tab();
             ImGui::EndTabItem();
         }
 
         // -- About tab -----------------------------------------------------
         bool on_about_tab = false;
-        if (ImGui::BeginTabItem("About")) {
+        if (ImGui::BeginTabItem(tr_id("About"))) {
             on_about_tab = true;
             ImGui::Text(" ____  __  __  ____         _____ __  __ _   _");
             ImGui::Text("/ ___||  \\/  ||___ \\       | ____|  \\/  | | | |");
@@ -768,38 +950,40 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::Text(" ___) | |  | | / __/|_____|| |___| |  | | |_| |");
             ImGui::Text("|____/|_|  |_||_____|      |_____|_|  |_|\\___/");
             ImGui::Spacing();
-            ImGui::Text("A Sega Model 2 arcade emulator");
+            ImGui::TextUnformatted(tr("A Sega Model 2 arcade emulator"));
             ImGui::Spacing();
             ImGui::Text("Copyright (c) 2025+ Daniel Martin (dmanlfc)");
-            ImGui::Text("BSD 3-Clause licence. See LICENSE.");
+            ImGui::TextUnformatted(tr("BSD 3-Clause licence. See LICENSE."));
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            ImGui::Text("sm2-emu exists because of open source shared with the community.");
-            ImGui::Text("With thanks to the projects whose code makes it possible:");
+            ImGui::TextUnformatted(tr("sm2-emu exists because of open source shared with the community."));
+            ImGui::TextUnformatted(tr("With thanks to the projects whose code makes it possible:"));
             ImGui::Spacing();
-            ImGui::BulletText("The MAME project - Sega Model 2 emulation guidance");
-            ImGui::BulletText("Musashi - Motorola 68000 CPU core (Karl Stenerud)");
-            ImGui::BulletText("ymfm - Yamaha FM sound cores (Aaron Giles)");
-            ImGui::BulletText("SDL - windowing, input and audio");
-            ImGui::BulletText("Dear ImGui - this user interface (Omar Cornut)");
-            ImGui::BulletText("pugixml - games.xml parsing");
-            ImGui::BulletText("miniz - ZIP archive decompression");
-            ImGui::BulletText("LZMA SDK - 7-Zip archive decompression (Igor Pavlov)");
-            ImGui::BulletText("VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)");
-            ImGui::BulletText("shaderc / glslang - shader compilation");
-            ImGui::BulletText("stb_image - box-art image decoding (Sean Barrett)");
-            ImGui::BulletText("Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0");
-            ImGui::BulletText("libcurl - artwork scraping (optional)");
+            ImGui::BulletText("%s", tr("The MAME project - Sega Model 2 emulation guidance"));
+            ImGui::BulletText("%s", tr("Musashi - Motorola 68000 CPU core (Karl Stenerud)"));
+            ImGui::BulletText("%s", tr("ymfm - Yamaha FM sound cores (Aaron Giles)"));
+            ImGui::BulletText("%s", tr("SDL - windowing, input and audio"));
+            ImGui::BulletText("%s", tr("Dear ImGui - this user interface (Omar Cornut)"));
+            ImGui::BulletText("%s", tr("pugixml - games.xml parsing"));
+            ImGui::BulletText("%s", tr("miniz - ZIP archive decompression"));
+            ImGui::BulletText("%s", tr("LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"));
+            ImGui::BulletText("%s", tr("VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"));
+            ImGui::BulletText("%s", tr("shaderc / glslang - shader compilation"));
+            ImGui::BulletText("%s", tr("stb_image - box-art image decoding (Sean Barrett)"));
+            ImGui::BulletText("%s", tr("Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"));
+            ImGui::BulletText("%s", tr("libcurl - artwork scraping (optional)"));
+            ImGui::BulletText("%s", tr("HarfBuzz - text shaping for translations"));
+            ImGui::BulletText("%s", tr("SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"));
             ImGui::Spacing();
-            ImGui::Text("Game artwork and descriptions from ArcadeDB");
-            ImGui::Text("(adb.arcadeitalia.net, by Motoschifo).");
+            ImGui::TextUnformatted(tr("Game artwork and descriptions from ArcadeDB"));
+            ImGui::TextUnformatted(tr("(adb.arcadeitalia.net, by Motoschifo)."));
             ImGui::Spacing();
-            ImGui::Text("See NOTICE for full per-component attribution.");
+            ImGui::TextUnformatted(tr("See NOTICE for full per-component attribution."));
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            ImGui::Text("If you'd like to support development:");
+            ImGui::TextUnformatted(tr("If you'd like to support development:"));
             ImGui::Spacing();
             ImGui::Bullet();
             ImGui::SameLine();
@@ -822,7 +1006,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
         // Save button, on the tabs that carry settings but not on About.
         if (!on_about_tab) {
             ImGui::Separator();
-            if (ImGui::Button("Save settings")) {
+            if (ImGui::Button(tr_id("Save settings"))) {
                 const std::string path =
                     m_config_path.empty() ? default_config_path() : m_config_path;
                 if (save_config(path, config)) {
@@ -832,9 +1016,9 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 }
             }
             ImGui::SameLine();
-            ImGui::TextDisabled("Saved to %s", m_config_path.empty()
-                                    ? default_config_path().c_str()
-                                    : m_config_path.c_str());
+            ImGui::TextDisabled("%s", trf("Saved to %s", m_config_path.empty()
+                                                     ? default_config_path().c_str()
+                                                     : m_config_path.c_str()).c_str());
         }
     }
 
@@ -849,72 +1033,70 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
 {
     const bool connected = input != nullptr && input->wheel_connected();
     if (connected) {
-        ImGui::TextDisabled("Wheel connected.");
+        ImGui::TextDisabled("%s", tr("Wheel connected."));
     } else {
-        ImGui::TextDisabled("No wheel connected. Settings still apply once one is.");
+        ImGui::TextDisabled("%s", tr("No wheel connected. Settings still apply once one is."));
     }
     ImGui::Spacing();
 
     // -- feel ---------------------------------------------------------------
-    ImGui::Checkbox("Force feedback", &config.wheel_ffb);
+    ImGui::Checkbox(tr_id("Force feedback"), &config.wheel_ffb);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Wheel force on driving games: centring and cornering\n"
-                          "forces decoded from the game's own drive-board commands,\n"
-                          "plus an impact jolt when you hit something.");
+        tooltip(tr("Wheel force on driving games: centring and cornering\n"
+                   "forces decoded from the game's own drive-board commands,\n"
+                   "plus an impact jolt when you hit something."));
     }
 
     ImGui::BeginDisabled(!config.wheel_ffb);
     int resistance = static_cast<int>(config.wheel_ffb_strength);
-    if (ImGui::SliderInt("Resistance", &resistance, 0, 100, "%d%%")) {
+    if (ImGui::SliderInt(tr_id("Resistance"), &resistance, 0, 100, "%d%%")) {
         resistance = ((resistance + 5) / 10) * 10;  // snap to 10 % steps
         config.wheel_ffb_strength = static_cast<u32>(std::clamp(resistance, 0, 100));
     }
 
-    ImGui::Checkbox("Invert force feedback", &config.wheel_ffb_invert);
+    ImGui::Checkbox(tr_id("Invert force feedback"), &config.wheel_ffb_invert);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("For a wheel whose driver pushes the wrong way: it pulls\n"
-                          "away from the centre instead of bringing it back, and\n"
-                          "the game's forces go the opposite way.");
+        tooltip(tr("For a wheel whose driver pushes the wrong way: it pulls\n"
+                   "away from the centre instead of bringing it back, and\n"
+                   "the game's forces go the opposite way."));
     }
     ImGui::EndDisabled();
 
-    ImGui::Checkbox("Rumble", &config.wheel_rumble);
+    ImGui::Checkbox(tr_id("Rumble"), &config.wheel_rumble);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Vibrates on the game's impacts, for wheels without force\n"
-                          "feedback. It never runs alongside force feedback.");
+        tooltip(tr("Vibrates on the game's impacts, for wheels without force\n"
+                   "feedback. It never runs alongside force feedback."));
     }
     ImGui::BeginDisabled(!config.wheel_rumble);
     int rumble = static_cast<int>(config.wheel_rumble_strength);
-    if (ImGui::SliderInt("Rumble strength", &rumble, 0, 100, "%d%%")) {
+    if (ImGui::SliderInt(tr_id("Rumble strength"), &rumble, 0, 100, "%d%%")) {
         rumble = ((rumble + 5) / 10) * 10;
         config.wheel_rumble_strength = static_cast<u32>(std::clamp(rumble, 0, 100));
     }
-    ImGui::Checkbox("Engine vibration", &config.wheel_rumble_engine);
+    ImGui::Checkbox(tr_id("Engine vibration"), &config.wheel_rumble_engine);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("An added vibration that grows with the throttle. It is not\n"
-                          "from the game. Turn it off to feel only the game's force feedback.");
+        tooltip(tr("An added vibration that grows with the throttle. It is not\n"
+                   "from the game. Turn it off to feel only the game's force feedback."));
     }
     ImGui::EndDisabled();
 
     // Common wheel rotation ranges rather than a free slider: a wheel is set to
     // one of these, and 270 matches the Model 2 cabinet.
     static constexpr u32 kSteerRanges[] = {200, 240, 270, 360, 400, 540, 720, 900, 1080};
-    char current_range[16];
-    std::snprintf(current_range, sizeof(current_range), "%u deg", config.wheel_steer_degrees);
-    if (ImGui::BeginCombo("Steering range", current_range)) {
+    const std::string current_range = trf("%u deg", config.wheel_steer_degrees);
+    if (ImGui::BeginCombo(tr_id("Steering range"), current_range.c_str())) {
         for (const u32 range : kSteerRanges) {
-            char label[16];
-            std::snprintf(label, sizeof(label), "%u deg", range);
-            const bool selected = config.wheel_steer_degrees == range;
-            if (ImGui::Selectable(label, selected)) {
+            const std::string label    = trf("%u deg", range);
+            const bool        selected = config.wheel_steer_degrees == range;
+            if (ImGui::Selectable(label.c_str(), selected)) {
                 config.wheel_steer_degrees = range;
             }
             if (selected) {
@@ -926,48 +1108,53 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Set this to your wheel's own rotation range. The lock\n"
-                          "angle below is mapped onto it, so matching your wheel\n"
-                          "gives arcade-like response.");
+        tooltip(tr("Set this to your wheel's own rotation range. The lock\n"
+                   "angle below is mapped onto it, so matching your wheel\n"
+                   "gives arcade-like response."));
     }
 
     int lock = static_cast<int>(config.wheel_lock_degrees);
-    if (ImGui::SliderInt("Lock angle", &lock, 180, 270, "%d deg")) {
+    if (ImGui::SliderInt(tr_id("Lock angle"), &lock, 180, 270,
+                         verbatim_format(trf("%d deg", lock)).c_str())) {
         config.wheel_lock_degrees = static_cast<u32>(std::clamp(lock, 180, 270));
     }
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("How far to physically turn for full game lock (total,\n"
-                          "so half each side of centre). Lower is more sensitive.");
+        tooltip(tr("How far to physically turn for full game lock (total,\n"
+                   "so half each side of centre). Lower is more sensitive."));
     }
 
     // -- axis calibration ---------------------------------------------------
     ImGui::Separator();
-    ImGui::Text("Axes");
-    ImGui::TextDisabled("Auto-detected. Recalibrate if steering or a pedal is wrong.");
+    ImGui::TextUnformatted(tr("Axes"));
+    ImGui::TextDisabled("%s", tr("Auto-detected. Recalibrate if steering or a pedal is wrong."));
 
     struct AxisRow { const char* name; s32* axis; bool* invert; };
     const AxisRow axis_rows[] = {
-        {"Steering", &config.wheel_steer_axis, nullptr},
-        {"Accelerator", &config.wheel_accel_axis, &config.wheel_accel_invert},
-        {"Brake", &config.wheel_brake_axis, &config.wheel_brake_invert},
+        {N_("Steering"), &config.wheel_steer_axis, nullptr},
+        {N_("Accelerator"), &config.wheel_accel_axis, &config.wheel_accel_invert},
+        {N_("Brake"), &config.wheel_brake_axis, &config.wheel_brake_invert},
     };
+    const float axis_column = value_column(axis_rows, [](const AxisRow& r) { return r.name; });
 
     ImGui::BeginDisabled(!connected);
     for (int row = 0; row < 3; ++row) {
         const AxisRow& r = axis_rows[row];
         ImGui::PushID(row);
+        ImGui::TextUnformatted(tr(r.name));
+        ImGui::SameLine(axis_column);
         if (*r.axis < 0) {
-            ImGui::Text("%-12s auto", r.name);
+            ImGui::TextUnformatted(tr("auto"));
+        } else if (r.invert != nullptr && *r.invert) {
+            ImGui::TextUnformatted(trf("axis %d (inverted)", *r.axis).c_str());
         } else {
-            ImGui::Text("%-12s axis %d%s", r.name, *r.axis,
-                        (r.invert != nullptr && *r.invert) ? " (inverted)" : "");
+            ImGui::TextUnformatted(trf("axis %d", *r.axis).c_str());
         }
         ImGui::SameLine();
         const bool capturing = m_capture == Capture::Axis && m_capture_axis == row;
         if (capturing) {
-            ImGui::TextColored(ImVec4(1, 0.8f, 0.2f, 1), "operate it...");
+            ImGui::TextColored(ImVec4(1, 0.8f, 0.2f, 1), "%s", tr("operate it..."));
             if (input != nullptr) {
                 bool positive = true;
                 const s32 got = input->captured_axis(
@@ -986,10 +1173,10 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
                 }
             }
             ImGui::SameLine();
-            if (ImGui::SmallButton("cancel")) {
+            if (ImGui::SmallButton(tr_id("cancel"))) {
                 m_capture = Capture::None;
             }
-        } else if (ImGui::SmallButton("Calibrate")) {
+        } else if (ImGui::SmallButton(tr_id("Calibrate"))) {
             m_capture      = Capture::Axis;
             m_capture_axis = row;
             if (input != nullptr) {
@@ -1000,7 +1187,7 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
             }
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("auto")) {
+        if (ImGui::SmallButton(tr_id("auto"))) {
             *r.axis = -1;
             if (r.invert != nullptr) {
                 *r.invert = false;
@@ -1012,38 +1199,42 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
 
     // -- button binding -----------------------------------------------------
     ImGui::Separator();
-    ImGui::Text("Buttons");
-    ImGui::TextDisabled("Press Bind, then press the wheel button for that control.");
+    ImGui::TextUnformatted(tr("Buttons"));
+    ImGui::TextDisabled("%s", tr("Press Bind, then press the wheel button for that control."));
 
     struct ButtonRow { const char* name; Config::WheelRole role; };
     const ButtonRow button_rows[] = {
-        {"Start",      Config::WheelRole::Start},
-        {"Coin",       Config::WheelRole::Coin},
-        {"Button 1",   Config::WheelRole::Button1},
-        {"Button 2",   Config::WheelRole::Button2},
-        {"Button 3",   Config::WheelRole::Button3},
-        {"Button 4",   Config::WheelRole::Button4},
-        {"Shift up",   Config::WheelRole::GearUp},
-        {"Shift down", Config::WheelRole::GearDown},
-        {"Test",       Config::WheelRole::Test},
-        {"Service",    Config::WheelRole::Service},
-        {"Menu (F10)", Config::WheelRole::Menu},
+        {N_("Start"),      Config::WheelRole::Start},
+        {N_("Coin"),       Config::WheelRole::Coin},
+        {N_("Button 1"),   Config::WheelRole::Button1},
+        {N_("Button 2"),   Config::WheelRole::Button2},
+        {N_("Button 3"),   Config::WheelRole::Button3},
+        {N_("Button 4"),   Config::WheelRole::Button4},
+        {N_("Shift up"),   Config::WheelRole::GearUp},
+        {N_("Shift down"), Config::WheelRole::GearDown},
+        {N_("Test"),       Config::WheelRole::Test},
+        {N_("Service"),    Config::WheelRole::Service},
+        {N_("Menu (F10)"), Config::WheelRole::Menu},
     };
+    const float button_column =
+        value_column(button_rows, [](const ButtonRow& r) { return r.name; });
 
     ImGui::BeginDisabled(!connected);
     for (const ButtonRow& r : button_rows) {
         const u32 role_index = static_cast<u32>(r.role);
         ImGui::PushID(static_cast<int>(role_index));
         const s32 bound = config.wheel_buttons[role_index];
+        ImGui::TextUnformatted(tr(r.name));
+        ImGui::SameLine(button_column);
         if (bound < 0) {
-            ImGui::Text("%-11s unbound", r.name);
+            ImGui::TextUnformatted(tr("unbound"));
         } else {
-            ImGui::Text("%-11s button %d", r.name, bound);
+            ImGui::TextUnformatted(trf("button %d", bound).c_str());
         }
         ImGui::SameLine();
         const bool capturing = m_capture == Capture::Button && m_capture_role == role_index;
         if (capturing) {
-            ImGui::TextColored(ImVec4(1, 0.8f, 0.2f, 1), "press a button...");
+            ImGui::TextColored(ImVec4(1, 0.8f, 0.2f, 1), "%s", tr("press a button..."));
             if (input != nullptr) {
                 const s32 got = input->pressed_wheel_button();
                 if (got >= 0) {
@@ -1052,15 +1243,15 @@ void Gui::draw_wheel_tab(Config& config, Input* input)
                 }
             }
             ImGui::SameLine();
-            if (ImGui::SmallButton("cancel")) {
+            if (ImGui::SmallButton(tr_id("cancel"))) {
                 m_capture = Capture::None;
             }
-        } else if (ImGui::SmallButton("Bind")) {
+        } else if (ImGui::SmallButton(tr_id("Bind"))) {
             m_capture      = Capture::Button;
             m_capture_role = role_index;
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("clear")) {
+        if (ImGui::SmallButton(tr_id("clear"))) {
             config.wheel_buttons[role_index] = -1;
         }
         ImGui::PopID();
@@ -1200,21 +1391,22 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
 {
     const int pads = input != nullptr ? static_cast<int>(input->pad_count()) : 0;
     if (pads > 0) {
-        ImGui::TextDisabled("%d gamepad%s connected.", pads, pads == 1 ? "" : "s");
+        ImGui::TextDisabled("%s", i18n::trnf("%d gamepad connected.", "%d gamepads connected.",
+                                             static_cast<unsigned long>(pads), pads).c_str());
     } else {
-        ImGui::TextDisabled("No gamepad connected. Settings still apply once one is.");
+        ImGui::TextDisabled("%s", tr("No gamepad connected. Settings still apply once one is."));
     }
 
     int&       edit = m_pad_edit_player;
     const auto p    = static_cast<usize>(edit);
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Player");
+    ImGui::TextUnformatted(tr("Player"));
     ImGui::SameLine();
     if (ImGui::RadioButton("1", edit == 0)) { edit = 0; m_pad_capture_player = -1; m_pad_axis_capture_player = -1; }
     ImGui::SameLine();
     if (ImGui::RadioButton("2", edit == 1)) { edit = 1; m_pad_capture_player = -1; m_pad_axis_capture_player = -1; }
     ImGui::SameLine(0.0f, 24.0f);
-    if (ImGui::Button("Reset to SDL defaults")) {
+    if (ImGui::Button(tr_id("Reset to SDL defaults"))) {
         config.pad_bindings[p]    = Config{}.pad_bindings[p];
         config.pad_axes[p]         = Config{}.pad_axes[p];
         config.pad_axis_invert[p]  = Config{}.pad_axis_invert[p];
@@ -1233,22 +1425,22 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         int         column;  // 0 left of the picture, 1 right, 2 under the left stick, 3 under the right
     };
     static const Slot kSlots[] = {
-        {"Brake",       Kind::Pedal,  static_cast<u32>(Config::PadAxisRole::Brake), 0},
-        {"Gear Down",   Kind::Button, static_cast<u32>(Config::PadRole::GearDown),  0},
-        {"Move Up",     Kind::Button, static_cast<u32>(Config::PadRole::Up),        0},
-        {"Move Left",   Kind::Button, static_cast<u32>(Config::PadRole::Left),      0},
-        {"Move Right",  Kind::Button, static_cast<u32>(Config::PadRole::Right),     0},
-        {"Move Down",   Kind::Button, static_cast<u32>(Config::PadRole::Down),      0},
-        {"Coin",        Kind::Button, static_cast<u32>(Config::PadRole::Coin),      0},
-        {"Accelerator", Kind::Pedal,  static_cast<u32>(Config::PadAxisRole::Accel), 1},
-        {"Gear Up",     Kind::Button, static_cast<u32>(Config::PadRole::GearUp),    1},
-        {"Button 4",    Kind::Button, static_cast<u32>(Config::PadRole::Button4),   1},
-        {"Button 3",    Kind::Button, static_cast<u32>(Config::PadRole::Button3),   1},
-        {"Button 2",    Kind::Button, static_cast<u32>(Config::PadRole::Button2),   1},
-        {"Button 1",    Kind::Button, static_cast<u32>(Config::PadRole::Button1),   1},
-        {"Start",       Kind::Button, static_cast<u32>(Config::PadRole::Start),     1},
-        {"Steer / Aim", Kind::Stick,  static_cast<u32>(Config::PadAxisRole::AimX),   2},
-        {"Right Lever", Kind::Stick,  static_cast<u32>(Config::PadAxisRole::LeverX), 3},
+        {N_("Brake"),       Kind::Pedal,  static_cast<u32>(Config::PadAxisRole::Brake), 0},
+        {N_("Gear Down"),   Kind::Button, static_cast<u32>(Config::PadRole::GearDown),  0},
+        {N_("Move Up"),     Kind::Button, static_cast<u32>(Config::PadRole::Up),        0},
+        {N_("Move Left"),   Kind::Button, static_cast<u32>(Config::PadRole::Left),      0},
+        {N_("Move Right"),  Kind::Button, static_cast<u32>(Config::PadRole::Right),     0},
+        {N_("Move Down"),   Kind::Button, static_cast<u32>(Config::PadRole::Down),      0},
+        {N_("Coin"),        Kind::Button, static_cast<u32>(Config::PadRole::Coin),      0},
+        {N_("Accelerator"), Kind::Pedal,  static_cast<u32>(Config::PadAxisRole::Accel), 1},
+        {N_("Gear Up"),     Kind::Button, static_cast<u32>(Config::PadRole::GearUp),    1},
+        {N_("Button 4"),    Kind::Button, static_cast<u32>(Config::PadRole::Button4),   1},
+        {N_("Button 3"),    Kind::Button, static_cast<u32>(Config::PadRole::Button3),   1},
+        {N_("Button 2"),    Kind::Button, static_cast<u32>(Config::PadRole::Button2),   1},
+        {N_("Button 1"),    Kind::Button, static_cast<u32>(Config::PadRole::Button1),   1},
+        {N_("Start"),       Kind::Button, static_cast<u32>(Config::PadRole::Start),     1},
+        {N_("Steer / Aim"), Kind::Stick,  static_cast<u32>(Config::PadAxisRole::AimX),   2},
+        {N_("Right Lever"), Kind::Stick,  static_cast<u32>(Config::PadAxisRole::LeverX), 3},
     };
 
     const float         s      = m_ui_scale > 0.0f ? m_ui_scale : 1.0f;
@@ -1313,7 +1505,7 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         bool        capturing;
         if (!is_axis) {
             const s32 bound = config.pad_bindings[p][slot.role];
-            value           = bound < 0 ? "unbound" : Input::pad_button_name(bound);
+            value           = bound < 0 ? tr("unbound") : Input::pad_button_name(bound);
             target          = art_binding_point(layout, bound);
             colour          = button_colour(bound);
             capturing       = m_pad_capture_player == edit && m_pad_capture_role == slot.role;
@@ -1323,14 +1515,14 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
             const s32  shown = bound >= 0 ? bound : default_pad_axis(role);
             if (slot.kind == Kind::Stick) {
                 value = shown == SDL_GAMEPAD_AXIS_RIGHTX || shown == SDL_GAMEPAD_AXIS_RIGHTY
-                            ? "Right Stick"
+                            ? tr("Right Stick")
                         : shown == SDL_GAMEPAD_AXIS_LEFTX || shown == SDL_GAMEPAD_AXIS_LEFTY
-                            ? "Left Stick"
+                            ? tr("Left Stick")
                                     : Input::pad_axis_name(shown);
             } else {
                 value = Input::pad_axis_name(shown);
                 if (config.pad_axis_invert[p][slot.role]) {
-                    value += " (inverted)";
+                    value = trf("%s (inverted)", value.c_str());
                 }
             }
             target = art_axis_point(layout, shown);
@@ -1348,12 +1540,12 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         ImGui::InvisibleButton("slot", ImVec2(slot_w, slot_h));
         const bool hovered = ImGui::IsItemHovered();
         if (hovered) {
-            ImGui::SetTooltip(slot.kind == Kind::Stick ? "Click, then push a stick.\n"
-                                                         "Right-click to go back to the default."
-                              : slot.kind == Kind::Pedal ? "Click, then pull the trigger, push a stick\n"
-                                                           "or press a button. Right-click for the default."
-                                                         : "Click, then press a button or pull a trigger.\n"
-                                                           "Right-click to unbind.");
+            tooltip(slot.kind == Kind::Stick ? tr("Click, then push a stick.\n"
+                                                  "Right-click to go back to the default.")
+                    : slot.kind == Kind::Pedal ? tr("Click, then pull the trigger, push a stick\n"
+                                                    "or press a button. Right-click for the default.")
+                                               : tr("Click, then press a button or pull a trigger.\n"
+                                                    "Right-click to unbind."));
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             if (capturing) {
@@ -1399,13 +1591,15 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         draw->AddRectFilled(pos, end, bg, 6.0f * s);
         draw->AddRect(pos, end, border, 6.0f * s, 0, 1.5f);
         const float text_y = pos.y + (slot_h - font) * 0.5f;
-        draw->AddText(ImVec2(pos.x + 10.0f * s, text_y), IM_COL32(230, 232, 236, 255), slot.name);
+        draw->PushClipRect(pos, end, true);
+        draw->AddText(ImVec2(pos.x + 10.0f * s, text_y), IM_COL32(230, 232, 236, 255), tr(slot.name));
         if (capturing) {
-            value = is_axis ? "operate it..." : "press a button...";
+            value = is_axis ? tr("operate it...") : tr("press a button...");
         }
         const ImU32 value_col = capturing ? IM_COL32(140, 190, 255, 255) : IM_COL32(170, 176, 186, 255);
         const float value_w   = ImGui::CalcTextSize(value.c_str()).x;
         draw->AddText(ImVec2(end.x - 10.0f * s - value_w, text_y), value_col, value.c_str());
+        draw->PopClipRect();
 
         if (target.x >= 0.0f) {
             const ImVec2 dot  = at(target);
@@ -1470,44 +1664,44 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         ImGui::PopID();
     }
     ImGui::SetCursorScreenPos(ImVec2(origin.x, below_y + slot_h + 10.0f * s));
-    ImGui::TextDisabled("The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
-                        "is Virtual On's. Test and Service are Guide+Start and Guide+Back.");
+    ImGui::TextDisabled("%s", tr("The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
+                        "is Virtual On's. Test and Service are Guide+Start and Guide+Back."));
 
     // -- sticks and rumble ---------------------------------------------------
     ImGui::Separator();
     int sensitivity = static_cast<int>(config.pad_stick_sensitivity);
-    if (ImGui::SliderInt("Stick sensitivity", &sensitivity, 25, 300, "%d%%")) {
+    if (ImGui::SliderInt(tr_id("Stick sensitivity"), &sensitivity, 25, 300, "%d%%")) {
         sensitivity = ((sensitivity + 2) / 5) * 5;
         config.pad_stick_sensitivity = static_cast<u32>(std::clamp(sensitivity, 25, 300));
     }
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Response of a stick's travel past its deadzone. Full deflection\n"
-                          "is always full lock; under 100%% the middle of the travel does\n"
-                          "less, over 100%% it does more.");
+        tooltip(tr("Response of a stick's travel past its deadzone. Full deflection\n"
+                   "is always full lock; under 100% the middle of the travel does\n"
+                   "less, over 100% it does more."));
     }
 
-    ImGui::Checkbox("Rumble", &config.pad_rumble);
+    ImGui::Checkbox(tr_id("Rumble"), &config.pad_rumble);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Vibrates on the game's impacts in driving games.\n"
-                          "Other games stay quiet.");
+        tooltip(tr("Vibrates on the game's impacts in driving games.\n"
+                   "Other games stay quiet."));
     }
 
     ImGui::BeginDisabled(!config.pad_rumble);
     int strength = static_cast<int>(config.pad_rumble_strength);
-    if (ImGui::SliderInt("Rumble strength", &strength, 0, 100, "%d%%")) {
+    if (ImGui::SliderInt(tr_id("Rumble strength"), &strength, 0, 100, "%d%%")) {
         strength = ((strength + 5) / 10) * 10;  // snap to 10 % steps
         config.pad_rumble_strength = static_cast<u32>(std::clamp(strength, 0, 100));
     }
-    ImGui::Checkbox("Steering vibration", &config.pad_rumble_cornering);
+    ImGui::Checkbox(tr_id("Steering vibration"), &config.pad_rumble_cornering);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("An added vibration that grows as you steer. It is not\n"
-                          "from the game. Turn it off to feel only the game's force feedback.");
+        tooltip(tr("An added vibration that grows as you steer. It is not\n"
+                   "from the game. Turn it off to feel only the game's force feedback."));
     }
     ImGui::EndDisabled();
 }
@@ -1533,7 +1727,7 @@ bool Gui::draw_volume_slider(Config& config, const VolumeFamily& family)
     }
     ImGui::SameLine();
     ImGui::BeginDisabled(current == Config::kDefaultGameVolume);
-    if (ImGui::Button("Reset")) {
+    if (ImGui::Button(tr_id("Reset"))) {
         percent = static_cast<int>(Config::kDefaultGameVolume);
         changed = true;
     }
@@ -1555,16 +1749,16 @@ bool Gui::draw_volume_slider(Config& config, const VolumeFamily& family)
 
 void Gui::draw_audio_tab(Config& config)
 {
-    ImGui::Checkbox("Per-game volume", &config.game_volume);
+    ImGui::Checkbox(tr_id("Per-game volume"), &config.game_volume);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Raise or lower a game's volume from its default level.\n"
-                          "One slider covers every revision of a game. Off plays\n"
-                          "every game at its default, whatever the sliders say.\n"
-                          "\n"
-                          "Warning: above 100%% loud effects can clip (audible\n"
-                          "distortion).");
+        tooltip(tr("Raise or lower a game's volume from its default level.\n"
+                   "One slider covers every revision of a game. Off plays\n"
+                   "every game at its default, whatever the sliders say.\n"
+                   "\n"
+                   "Warning: above 100% loud effects can clip (audible\n"
+                   "distortion)."));
     }
     ImGui::Spacing();
 
@@ -1579,7 +1773,7 @@ void Gui::draw_audio_tab(Config& config)
         }
     }
     if (playing != nullptr) {
-        ImGui::Text("Now playing: %s", playing->title.c_str());
+        ImGui::TextUnformatted(trf("Now playing: %s", playing->title.c_str()).c_str());
         draw_volume_slider(config, *playing);
         ImGui::Spacing();
         ImGui::Separator();
@@ -1587,12 +1781,12 @@ void Gui::draw_audio_tab(Config& config)
     }
 
     ImGui::SetNextItemWidth(260.0f);
-    ImGui::InputTextWithHint("##volume_filter", "Filter games", m_volume_filter,
+    ImGui::InputTextWithHint("##volume_filter", tr("Filter games"), m_volume_filter,
                              sizeof(m_volume_filter));
     ImGui::SameLine();
     const bool any_changed = !config.game_volumes.empty();
     ImGui::BeginDisabled(!any_changed);
-    if (ImGui::Button("Reset all")) {
+    if (ImGui::Button(tr_id("Reset all"))) {
         config.game_volumes.clear();
     }
     ImGui::EndDisabled();
@@ -1612,8 +1806,8 @@ void Gui::draw_audio_tab(Config& config)
                                      | ImGuiTableFlags_SizingStretchProp;
     if (ImGui::BeginTable("volumes", 2, kFlags, ImVec2(0.0f, height))) {
         ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Game", ImGuiTableColumnFlags_WidthStretch, 0.45f);
-        ImGui::TableSetupColumn("Volume", ImGuiTableColumnFlags_WidthStretch, 0.55f);
+        ImGui::TableSetupColumn(tr("Game"), ImGuiTableColumnFlags_WidthStretch, 0.45f);
+        ImGui::TableSetupColumn(tr("Volume"), ImGuiTableColumnFlags_WidthStretch, 0.55f);
         ImGui::TableHeadersRow();
 
         for (const VolumeFamily& family : m_volume_families) {
@@ -1646,32 +1840,32 @@ void Gui::draw_audio_tab(Config& config)
 
 void Gui::draw_lightgun_tab(Config& config, Input* input)
 {
-    ImGui::Checkbox("Light-gun mode", &config.lightgun);
+    ImGui::Checkbox(tr_id("Light-gun mode"), &config.lightgun);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Show the aiming crosshair and hide the mouse cursor,\n"
-                          "for the light-gun titles (Virtua Cop 2, House of the\n"
-                          "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines).");
+        tooltip(tr("Show the aiming crosshair and hide the mouse cursor,\n"
+                   "for the light-gun titles (Virtua Cop 2, House of the\n"
+                   "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."));
     }
 
     ImGui::BeginDisabled(!config.lightgun);
-    ImGui::Checkbox("Show crosshair", &config.lightgun_crosshair);
+    ImGui::Checkbox(tr_id("Show crosshair"), &config.lightgun_crosshair);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Draw sm2-emu's own crosshair. Turn off if the gun\n"
-                          "has its own sight (e.g. a Sinden). Positional-gun\n"
-                          "titles always draw their own regardless.");
+        tooltip(tr("Draw sm2-emu's own crosshair. Turn off if the gun\n"
+                   "has its own sight (e.g. a Sinden). Positional-gun\n"
+                   "titles always draw their own regardless."));
     }
     ImGui::EndDisabled();
 
-    ImGui::Checkbox("Hide shot flash", &config.lightgun_hide_flash);
+    ImGui::Checkbox(tr_id("Hide shot flash"), &config.lightgun_hide_flash);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
-                          "House of the Dead show on each shot.");
+        tooltip(tr("Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+                   "House of the Dead show on each shot."));
     }
 
     // Dedicated light guns (recoil motors, per-device buttons) need the evdev
@@ -1679,71 +1873,77 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
 #ifndef SM2_HAVE_LIGHTGUNS
     (void)input;
     ImGui::Separator();
-    ImGui::TextWrapped(
-        "Player 1 aims with the mouse; the left button fires and the right "
-        "button reloads (shoot off screen).");
+    text_wrapped("Player 1 aims with the mouse; the left button fires and the right "
+                 "button reloads (shoot off screen).");
 #else
     ImGui::Separator();
-    ImGui::TextUnformatted("Recoil");
+    ImGui::TextUnformatted(tr("Recoil"));
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Kick the gun's rumble motor on each shot, for guns\n"
-                          "that have one (Sinden and similar). No effect on a\n"
-                          "gun without a motor.");
+        tooltip(tr("Kick the gun's rumble motor on each shot, for guns\n"
+                   "that have one (Sinden and similar). No effect on a\n"
+                   "gun without a motor."));
     }
-    ImGui::Checkbox("Enable recoil", &config.lightgun_recoil);
+    ImGui::Checkbox(tr_id("Enable recoil"), &config.lightgun_recoil);
     ImGui::BeginDisabled(!config.lightgun_recoil);
     int strength = static_cast<int>(config.lightgun_recoil_strength);
-    if (ImGui::SliderInt("Strength", &strength, 0, 100)) {
+    if (ImGui::SliderInt(tr_id("Strength"), &strength, 0, 100)) {
         config.lightgun_recoil_strength = static_cast<u32>(std::clamp(strength, 0, 100));
     }
     ImGui::EndDisabled();
 
     ImGui::Separator();
-    ImGui::TextUnformatted("Devices");
+    ImGui::TextUnformatted(tr("Devices"));
     if (input != nullptr && input->gun_count() > 0) {
         for (usize i = 0; i < input->gun_count(); ++i) {
-            ImGui::BulletText("Gun %zu (player %zu): %s", i + 1, i + 1,
-                              input->gun_name(i).c_str());
+            ImGui::BulletText("%s", trf("Gun %zu (player %zu): %s", i + 1, i + 1,
+                                        input->gun_name(i).c_str()).c_str());
         }
     } else {
-        ImGui::TextWrapped(
-            "No dedicated light guns detected. Player 1 aims with the mouse; the "
-            "left button fires and the right button reloads (shoot off screen). "
 #ifdef _WIN32
-            "Plug in guns in absolute mouse mode (GUN4IR, Sinden, AimTrak) before "
-            "launching for independent per-player aiming.");
+        text_wrapped("No dedicated light guns detected. Player 1 aims with the mouse; the "
+                     "left button fires and the right button reloads (shoot off screen). "
+                     "Plug in guns in absolute mouse mode (GUN4IR, Sinden, AimTrak) before "
+                     "launching for independent per-player aiming.");
 #else
-            "Plug in guns tagged ID_INPUT_GUN for independent per-player aiming.");
+        text_wrapped("No dedicated light guns detected. Player 1 aims with the mouse; the "
+                     "left button fires and the right button reloads (shoot off screen). "
+                     "Plug in guns tagged ID_INPUT_GUN for independent per-player aiming.");
 #endif
     }
 
     ImGui::Separator();
-    ImGui::TextUnformatted("Gun buttons");
-    ImGui::TextDisabled("Press Bind, then press the button on that player's gun.");
+    ImGui::TextUnformatted(tr("Gun buttons"));
+    ImGui::TextDisabled("%s", tr("Press Bind, then press the button on that player's gun."));
     {
-        static const char* const kRoleNames[] = {
-            "Trigger", "Reload/Missile", "Coin", "Start",
-            "Hat up", "Hat down", "Hat left", "Hat right",
+        static constexpr std::array<const char*, 8> kRoleNames = {
+            N_("Trigger"), N_("Reload/Missile"), N_("Coin"), N_("Start"),
+            N_("Hat up"), N_("Hat down"), N_("Hat left"), N_("Hat right"),
         };
         const usize guns = input != nullptr ? input->gun_count() : 0;
+        const float indent = ImGui::GetFontSize();
+        ImGui::Indent(indent);
+        const float column = value_column(kRoleNames, [](const char* name) { return name; });
+        ImGui::Unindent(indent);
         for (int p = 0; p < 2; ++p) {
-            ImGui::Text("Player %d", p + 1);
+            ImGui::TextUnformatted(trf("Player %d", p + 1).c_str());
+            ImGui::Indent(indent);
             for (u32 r = 0; r < Config::kGunRoleCount; ++r) {
                 ImGui::PushID(p * 100 + static_cast<int>(r));
                 const u32 code = config.gun_buttons[static_cast<usize>(p)][r];
+                ImGui::TextUnformatted(tr(kRoleNames[r]));
+                ImGui::SameLine(column);
                 if (code == 0) {
-                    ImGui::Text("  %-14s unbound", kRoleNames[r]);
+                    ImGui::TextUnformatted(tr("unbound"));
                 } else {
-                    ImGui::Text("  %-14s %s", kRoleNames[r],
-                                evdev_button_name(code).c_str());
+                    ImGui::TextUnformatted(evdev_button_name(code).c_str());
                 }
                 ImGui::SameLine();
                 const bool capturing = m_gun_capture_player == p
                                        && m_gun_capture_role == r;
                 if (capturing) {
-                    ImGui::TextColored(ImVec4(1, 0.8f, 0.2f, 1), "press a button...");
+                    ImGui::TextColored(ImVec4(1, 0.8f, 0.2f, 1), "%s", tr("press a button..."));
                     u32 got = 0;
                     if (p < static_cast<int>(guns)) {
                         got = input->gun_take_last_pressed(static_cast<usize>(p));
@@ -1759,31 +1959,32 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
                         m_gun_capture_player = -1;
                     }
                     ImGui::SameLine();
-                    if (ImGui::SmallButton("cancel")) m_gun_capture_player = -1;
-                } else if (ImGui::SmallButton("Bind")) {
+                    if (ImGui::SmallButton(tr_id("cancel"))) m_gun_capture_player = -1;
+                } else if (ImGui::SmallButton(tr_id("Bind"))) {
                     m_gun_capture_player = p;
                     m_gun_capture_role   = r;
                 }
                 ImGui::SameLine();
-                if (ImGui::SmallButton("clear")) {
+                if (ImGui::SmallButton(tr_id("clear"))) {
                     config.gun_buttons[static_cast<usize>(p)][r] = 0;
                 }
                 ImGui::PopID();
             }
+            ImGui::Unindent(indent);
         }
     }
 #endif  // SM2_HAVE_LIGHTGUNS
 
     ImGui::Separator();
-    ImGui::TextUnformatted("Sinden border");
+    ImGui::TextUnformatted(tr("Sinden border"));
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("A bright frame around the game image that a Sinden\n"
-                          "gun's camera tracks for aiming. Only shown in\n"
-                          "light-gun mode.");
+        tooltip(tr("A bright frame around the game image that a Sinden\n"
+                   "gun's camera tracks for aiming. Only shown in\n"
+                   "light-gun mode."));
     }
-    ImGui::Checkbox("Show border", &config.sinden_border);
+    ImGui::Checkbox(tr_id("Show border"), &config.sinden_border);
 
     ImGui::BeginDisabled(!config.sinden_border);
     float rgb[3] = {
@@ -1791,14 +1992,14 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
         static_cast<float>((config.sinden_border_colour >> 8) & 0xff) / 255.0f,
         static_cast<float>(config.sinden_border_colour & 0xff) / 255.0f,
     };
-    if (ImGui::ColorEdit3("Colour", rgb, ImGuiColorEditFlags_NoInputs)) {
+    if (ImGui::ColorEdit3(tr_id("Colour"), rgb, ImGuiColorEditFlags_NoInputs)) {
         const u32 r = static_cast<u32>(std::clamp(rgb[0], 0.0f, 1.0f) * 255.0f + 0.5f);
         const u32 g = static_cast<u32>(std::clamp(rgb[1], 0.0f, 1.0f) * 255.0f + 0.5f);
         const u32 b = static_cast<u32>(std::clamp(rgb[2], 0.0f, 1.0f) * 255.0f + 0.5f);
         config.sinden_border_colour = (r << 16) | (g << 8) | b;
     }
     int thickness = static_cast<int>(config.sinden_border_thickness);
-    if (ImGui::SliderInt("Thickness", &thickness, 1, 64)) {
+    if (ImGui::SliderInt(tr_id("Thickness"), &thickness, 1, 64)) {
         config.sinden_border_thickness = static_cast<u32>(std::max(1, thickness));
     }
     ImGui::EndDisabled();
@@ -1814,33 +2015,31 @@ void Gui::draw_network_tab(Config& config)
         char buf[64];
         std::snprintf(buf, sizeof(buf), "%s", value.c_str());
         ImGui::SetNextItemWidth(width);
-        if (ImGui::InputText(label, buf, sizeof(buf))) {
+        if (ImGui::InputText(tr_id(label), buf, sizeof(buf))) {
             value = buf;
         }
     };
 
-    ImGui::Checkbox("Link cabinets over the network", &config.link_enabled);
+    ImGui::Checkbox(tr_id("Link cabinets over the network"), &config.link_enabled);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
-            "Race linked with other machines on the same LAN running the same\n"
-            "title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
-            "this cabinet standalone. Takes effect on the next game launch.");
+        tooltip(tr("Race linked with other machines on the same LAN running the same\n"
+                   "title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+                   "this cabinet standalone. Takes effect on the next game launch."));
     }
 
-    ImGui::TextWrapped(
-        "The comms board is a ring: each cabinet listens on its own address and "
-        "sends to the next cabinet. For two machines, point each at the other. "
-        "The master/slave role is chosen in the game's own test menu, not here.");
+    text_wrapped("The comms board is a ring: each cabinet listens on its own address and "
+                 "sends to the next cabinet. For two machines, point each at the other. "
+                 "The master/slave role is chosen in the game's own test menu, not here.");
 
     ImGui::BeginDisabled(!config.link_enabled);
 
-    ImGui::SeparatorText("This cabinet");
+    ImGui::SeparatorText(tr("This cabinet"));
 
-    text_field("Local IP", config.link_local_ip, 180.0f);
+    text_field(N_("Local IP"), config.link_local_ip, 180.0f);
     ImGui::SameLine();
-    if (ImGui::Button("Detect")) {
+    if (ImGui::Button(tr_id("Detect"))) {
         if (auto iface = net::primary_interface()) {
             config.link_local_ip    = iface->ipv4;
             config.link_subnet_mask = iface->subnet_mask;
@@ -1849,17 +2048,17 @@ void Gui::draw_network_tab(Config& config)
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("This machine's address on the cabinet LAN. Blank\n"
-                          "listens on every interface. Detect fills it from the\n"
-                          "primary network adapter.");
+        tooltip(tr("This machine's address on the cabinet LAN. Blank\n"
+                   "listens on every interface. Detect fills it from the\n"
+                   "primary network adapter."));
     }
 
-    text_field("Subnet mask", config.link_subnet_mask, 180.0f);
+    text_field(N_("Subnet mask"), config.link_subnet_mask, 180.0f);
 
     {
         int port = static_cast<int>(config.link_port);
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::InputInt("Listen port", &port)) {
+        if (ImGui::InputInt(tr_id("Listen port"), &port)) {
             config.link_port = static_cast<u32>(std::clamp(port, 1, 65535));
         }
     }
@@ -1867,33 +2066,33 @@ void Gui::draw_network_tab(Config& config)
     {
         int idx = static_cast<int>(config.link_cabinet_index);
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::InputInt("Cabinet number", &idx)) {
+        if (ImGui::InputInt(tr_id("Cabinet number"), &idx)) {
             config.link_cabinet_index = static_cast<u32>(std::max(0, idx));
         }
         ImGui::SameLine();
         ImGui::TextDisabled("(?)");
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Where this cabinet sits in the ring (0-based).\n"
-                              "For your own bookkeeping; the game negotiates the\n"
-                              "actual link id from the ring.");
+            tooltip(tr("Where this cabinet sits in the ring (0-based).\n"
+                       "For your own bookkeeping; the game negotiates the\n"
+                       "actual link id from the ring."));
         }
     }
 
-    ImGui::SeparatorText("Next cabinet in the ring");
+    ImGui::SeparatorText(tr("Next cabinet in the ring"));
 
-    text_field("Next IP", config.link_next_ip, 180.0f);
+    text_field(N_("Next IP"), config.link_next_ip, 180.0f);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("The cabinet this one sends to. For two machines, the\n"
-                          "other machine's IP. Blank means this cabinet does not\n"
-                          "forward (tail of a chain).");
+        tooltip(tr("The cabinet this one sends to. For two machines, the\n"
+                   "other machine's IP. Blank means this cabinet does not\n"
+                   "forward (tail of a chain)."));
     }
 
     {
         int port = static_cast<int>(config.link_next_port);
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::InputInt("Next port", &port)) {
+        if (ImGui::InputInt(tr_id("Next port"), &port)) {
             config.link_next_port = static_cast<u32>(std::clamp(port, 1, 65535));
         }
     }
@@ -1901,25 +2100,25 @@ void Gui::draw_network_tab(Config& config)
     ImGui::EndDisabled();
 
     // Live status from the running link board.
-    ImGui::SeparatorText("Status");
+    ImGui::SeparatorText(tr("Status"));
     if (!m_link_status.active) {
-        ImGui::TextDisabled(config.link_enabled
-                                ? "Link configured; starts at the next game launch."
-                                : "Standalone (no cabinet link).");
+        ImGui::TextDisabled("%s", config.link_enabled
+                                      ? tr("Link configured; starts at the next game launch.")
+                                      : tr("Standalone (no cabinet link)."));
     } else if (!m_link_status.enabled) {
-        ImGui::TextDisabled("Waiting for the game to switch the link board on...");
+        ImGui::TextDisabled("%s", tr("Waiting for the game to switch the link board on..."));
     } else if (m_link_status.alive) {
-        ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f),
-                           "Linked: cabinet %u of %u.", m_link_status.node,
-                           m_link_status.count);
+        ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "%s",
+                           trf("Linked: cabinet %u of %u.", m_link_status.node,
+                               m_link_status.count).c_str());
     } else {
-        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f),
-                           "Establishing the ring...");
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "%s",
+                           tr("Establishing the ring..."));
     }
 
     // Available interfaces, so the operator sees what to type.
     ImGui::Spacing();
-    ImGui::TextDisabled("This machine's interfaces:");
+    ImGui::TextDisabled("%s", tr("This machine's interfaces:"));
     for (const net::Interface& iface : net::interfaces()) {
         if (iface.loopback) continue;
         ImGui::BulletText("%s  %s / %s", iface.name.c_str(), iface.ipv4.c_str(),
@@ -1934,22 +2133,32 @@ void Gui::draw_network_tab(Config& config)
 void Gui::draw_states_tab()
 {
     if (!m_state_game_loaded) {
-        ImGui::TextDisabled("Load a game to save and restore its state.");
+        ImGui::TextDisabled("%s", tr("Load a game to save and restore its state."));
         return;
     }
 
-    ImGui::TextWrapped(
-        "Save the whole machine to a slot and restore it later. Quick-save is "
-        "F6, quick-load is F7.");
+    text_wrapped("Save the whole machine to a slot and restore it later. Quick-save is "
+                 "F6, quick-load is F7.");
     ImGui::Spacing();
 
     // A table so the three buttons always fit regardless of the overlay width,
     // rather than fixed SameLine() offsets that push them off the right edge.
     constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_SizingStretchProp;
+    // Fixed columns sized to the translated text, which can run longer.
+    const ImGuiStyle& style  = ImGui::GetStyle();
+    float             slot_w = 70.0f;
+    for (const StateSlot& s : m_state_slots) {
+        slot_w = std::max(slot_w, ImGui::CalcTextSize(s.label.c_str()).x);
+    }
+    float actions_w = style.ItemSpacing.x * 2.0f;
+    for (const char* action : {tr("Save"), tr("Load"), tr("Delete")}) {
+        actions_w += ImGui::CalcTextSize(action).x + style.FramePadding.x * 2.0f;
+    }
     if (ImGui::BeginTable("states", 3, kFlags)) {
-        ImGui::TableSetupColumn("slot", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+        ImGui::TableSetupColumn("slot", ImGuiTableColumnFlags_WidthFixed, slot_w);
         ImGui::TableSetupColumn("status", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("actions", ImGuiTableColumnFlags_WidthFixed, 190.0f);
+        ImGui::TableSetupColumn("actions", ImGuiTableColumnFlags_WidthFixed,
+                                std::max(190.0f, actions_w));
 
         for (const StateSlot& s : m_state_slots) {
             ImGui::PushID(s.slot.c_str());
@@ -1965,21 +2174,21 @@ void Gui::draw_states_tab()
                 ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "%s",
                                    s.timestamp.c_str());
             } else {
-                ImGui::TextDisabled("empty");
+                ImGui::TextDisabled("%s", tr("empty"));
             }
 
             ImGui::TableNextColumn();
-            if (ImGui::Button("Save")) {
+            if (ImGui::Button(tr_id("Save"))) {
                 m_pending_state_request = StateRequest{StateRequest::Action::Save, s.slot};
             }
             ImGui::SameLine();
             // Load and Delete only make sense on an occupied slot.
             ImGui::BeginDisabled(!s.occupied);
-            if (ImGui::Button("Load")) {
+            if (ImGui::Button(tr_id("Load"))) {
                 m_pending_state_request = StateRequest{StateRequest::Action::Load, s.slot};
             }
             ImGui::SameLine();
-            if (ImGui::Button("Delete")) {
+            if (ImGui::Button(tr_id("Delete"))) {
                 m_pending_state_request = StateRequest{StateRequest::Action::Delete, s.slot};
             }
             ImGui::EndDisabled();
@@ -2174,7 +2383,7 @@ void Gui::draw_calibration_markers(const Input* input)
         list->AddLine(ImVec2(cx, cy - radius * 1.8f), ImVec2(cx, cy + radius * 1.8f), white, 2.0f);
     }
     if (any) {
-        const char* text = "CALIBRATING GUN - shoot each target";
+        const char* text = tr("CALIBRATING GUN - shoot each target");
         const ImVec2 size = ImGui::CalcTextSize(text);
         const ImVec2 pos((io.DisplaySize.x - size.x) * 0.5f, io.DisplaySize.y * 0.08f);
         list->AddRectFilled(ImVec2(pos.x - 12.0f, pos.y - 6.0f),
@@ -2292,11 +2501,11 @@ void Gui::draw_dir_picker_popup(Config& config)
 
     if (m_dir_picker_request_open) {
         m_dir_picker_request_open = false;
-        ImGui::OpenPopup("Choose Directory");
+        ImGui::OpenPopup(tr_id("Choose Directory"));
     }
 
     ImGui::SetNextWindowSize(ImVec2(520, 420), ImGuiCond_Appearing);
-    if (!ImGui::BeginPopupModal("Choose Directory", nullptr,
+    if (!ImGui::BeginPopupModal(tr_id("Choose Directory"), nullptr,
                                 ImGuiWindowFlags_NoSavedSettings)) {
         return;
     }
@@ -2316,7 +2525,7 @@ void Gui::draw_dir_picker_popup(Config& config)
     if (!has_parent) {
         ImGui::BeginDisabled();
     }
-    if (ImGui::Button("Up")) {
+    if (ImGui::Button(tr_id("Up"))) {
         m_dir_picker_path = parent.string();
         refresh_dir_picker_entries();
     }
@@ -2324,16 +2533,16 @@ void Gui::draw_dir_picker_popup(Config& config)
         ImGui::EndDisabled();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Refresh")) {
+    if (ImGui::Button(tr_id("Refresh"))) {
         refresh_dir_picker_entries();
     }
 
     ImGui::Separator();
 
     if (m_dir_picker_unreadable) {
-        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                           "Cannot list this directory (permission denied, or it "
-                           "doesn't exist).");
+        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s",
+                           tr("Cannot list this directory (permission denied, or it "
+                              "doesn't exist)."));
     }
 
     if (ImGui::BeginChild("##dirlist",
@@ -2352,7 +2561,7 @@ void Gui::draw_dir_picker_popup(Config& config)
     if (!valid) {
         ImGui::BeginDisabled();
     }
-    if (ImGui::Button("Select This Folder")) {
+    if (ImGui::Button(tr_id("Select This Folder"))) {
         switch (m_dir_picker_target) {
             case DirPickerTarget::RomDir:        config.rom_dir        = m_dir_picker_path; break;
             case DirPickerTarget::NvramDir:      config.nvram_dir      = m_dir_picker_path; break;
@@ -2366,7 +2575,7 @@ void Gui::draw_dir_picker_popup(Config& config)
         ImGui::EndDisabled();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Cancel")) {
+    if (ImGui::Button(tr_id("Cancel"))) {
         m_dir_picker_target = DirPickerTarget::None;
         ImGui::CloseCurrentPopup();
     }
@@ -2396,7 +2605,7 @@ void Gui::draw_status_bar(float measured_hz)
     if (ImGui::Begin("##StatusBar", nullptr, flags)) {
         ImGui::Text("%.1f Hz", static_cast<double>(measured_hz));
         // Right-align by measured width so the hint never clips off the edge.
-        const char*  hint      = "F10: toggle overlay";
+        const char*  hint      = tr("F10: toggle overlay");
         const float  hint_w    = ImGui::CalcTextSize(hint).x;
         const float  right_pad = ImGui::GetStyle().WindowPadding.x;
         ImGui::SameLine(ImGui::GetWindowWidth() - hint_w - right_pad);
@@ -2555,9 +2764,9 @@ void Gui::draw_picker(Config& config)
         return;
     }
 
-    ImGui::TextUnformatted("Select a game");
+    ImGui::TextUnformatted(tr("Select a game"));
     // Right-align by measured width so the hint never clips off the edge
-    const char* hint      = "Enter: launch   F10: settings   F9: quit";
+    const char* hint      = tr("Enter: launch   F10: settings   F9: quit");
     const float hint_w    = ImGui::CalcTextSize(hint).x;
     const float right_pad = ImGui::GetStyle().WindowPadding.x;
     ImGui::SameLine(ImGui::GetWindowWidth() - hint_w - right_pad);
@@ -2566,9 +2775,8 @@ void Gui::draw_picker(Config& config)
 
     if (m_picker_entries.empty()) {
         ImGui::Spacing();
-        ImGui::TextWrapped(
-            "No Model 2 ROM archives were found in the ROM directory. Set it in "
-            "Settings (F1) > Paths, then relaunch.");
+        text_wrapped("No Model 2 ROM archives were found in the ROM directory. Set it in "
+                     "Settings (F1) > Paths, then relaunch.");
         ImGui::End();
         ImGui::PopStyleColor();
         ImGui::PopStyleVar();
@@ -2737,8 +2945,8 @@ void Gui::draw_picker(Config& config)
         const bool still_fetching =
             !cur.metadata_loaded && m_picker_scraper != nullptr
             && m_picker_scraper->scraping_available();
-        ImGui::TextDisabled(still_fetching ? "Fetching description..."
-                                           : "No description available.");
+        ImGui::TextDisabled("%s", still_fetching ? tr("Fetching description...")
+                                                 : tr("No description available."));
     } else {
         const float  avail_h = ImGui::GetContentRegionAvail().y;
         const float  wrap_w  = ImGui::GetContentRegionAvail().x;
