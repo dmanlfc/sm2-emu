@@ -1272,7 +1272,7 @@ inline s32 Scsp::UpdateSlot(SCSP_SLOT* slot)
 		0,   // PLFOS = 0 → no pitch modulation
 		2,   // PLFOS = 1 → ±7 cents
 		4,   // PLFOS = 2 → ±13.5 cents
-		6,   // PLFOS = 3 → ±27 cents
+		8,   // PLFOS = 3 → ±27 cents
 		10,  // PLFOS = 4 → ±55 cents
 		18,  // PLFOS = 5 → ±112 cents
 		30,  // PLFOS = 6 → ±230 cents
