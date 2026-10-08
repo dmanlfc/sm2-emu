@@ -691,7 +691,7 @@ std::u32string to_utf32(std::string_view text)
         } else if ((c & 0xf8) == 0xf0) {
             cp = c & 0x07; more = 3;
         } else {
-            out += U'�';
+            out += U'\uFFFD';
             ++i;
             continue;
         }
@@ -704,7 +704,7 @@ std::u32string to_utf32(std::string_view text)
             }
             cp = (cp << 6) | (static_cast<unsigned char>(text[i]) & 0x3f);
         }
-        out += ok ? cp : U'�';
+        out += ok ? cp : U'\uFFFD';
     }
     return out;
 }
