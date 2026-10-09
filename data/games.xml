@@ -13,7 +13,11 @@
         gearbox= drive_board= drive_protocol=>
     <title/> <version/> <manufacturer/> <year/>
     <inputs> <input type="..."/> ... </inputs>
-    <analog>   <channel index= control= min= max= rest= reverse=/> ... </analog>
+    <analog>
+      <channel index= control= min= max= rest= reverse=>
+        <point at= value=/>
+      </channel>
+    </analog>
     <lightgun> <axis name= min= max= rest=/> ... </lightgun>
     <roms>
       <region name= size= stride= chunk= byte_swap= fill= required=>
@@ -71,6 +75,11 @@
   `min`/`max`/`rest`/`reverse` mirror MAME's PORT_MINMAX, the PORT_BIT default
   value, and PORT_REVERSE. `rest` defaults to 0x00 for a pedal and 0x80 for
   everything else, matching how MAME declares them.
+
+  A positional gun's channel may hold `<point>` children. Each gives the raw
+  `value` the gun sends when it aims `at` a place across the picture, from 0
+  (left or top) to 1 (right or bottom), in increasing order. Values in between
+  are interpolated, and `min`, `max` and `reverse` are then not used.
 
   `<lightgun>` is a different piece of hardware: the gun interface board is
   10-bit and reaches the program over RS-422 channel 2, not through the mux, so
@@ -783,12 +792,54 @@
       <input type="gun2"/>
     </inputs>
 
-    <!-- Analogue mux wiring, from MAME's model2c_state::bel. -->
+    <!-- Analogue mux wiring, from MAME's model2c_state::bel. The game reads each gun value as an
+         angle. The points follow the way it places its sight for a gun using the full range,
+         which is what its gun calibration must store (MIN 00, DEL FF). -->
     <analog>
-      <channel index="0" control="p1x" min="0x69" rest="0xb1"/>
-      <channel index="1" control="p2x" max="0x96" rest="0x50"/>
-      <channel index="2" control="p1y" min="0x11" max="0xae" rest="0x5f"/>
-      <channel index="3" control="p2y" min="0x11" max="0xae" rest="0x5f"/>
+      <channel index="0" control="p1x" min="0x69" rest="0xb1">
+        <point at="0.0427" value="0x00"/>
+        <point at="0.1727" value="0x20"/>
+        <point at="0.2894" value="0x40"/>
+        <point at="0.3983" value="0x60"/>
+        <point at="0.5036" value="0x80"/>
+        <point at="0.6090" value="0xa0"/>
+        <point at="0.7181" value="0xc0"/>
+        <point at="0.8352" value="0xe0"/>
+        <point at="0.9613" value="0xff"/>
+      </channel>
+      <channel index="1" control="p2x" max="0x96" rest="0x50">
+        <point at="0.0427" value="0x00"/>
+        <point at="0.1727" value="0x20"/>
+        <point at="0.2894" value="0x40"/>
+        <point at="0.3983" value="0x60"/>
+        <point at="0.5036" value="0x80"/>
+        <point at="0.6090" value="0xa0"/>
+        <point at="0.7181" value="0xc0"/>
+        <point at="0.8352" value="0xe0"/>
+        <point at="0.9613" value="0xff"/>
+      </channel>
+      <channel index="2" control="p1y" min="0x11" max="0xae" rest="0x5f">
+        <point at="0.0435" value="0xff"/>
+        <point at="0.1634" value="0xe0"/>
+        <point at="0.2792" value="0xc0"/>
+        <point at="0.3899" value="0xa0"/>
+        <point at="0.4984" value="0x80"/>
+        <point at="0.6066" value="0x60"/>
+        <point at="0.7173" value="0x40"/>
+        <point at="0.8329" value="0x20"/>
+        <point at="0.9565" value="0x00"/>
+      </channel>
+      <channel index="3" control="p2y" min="0x11" max="0xae" rest="0x5f">
+        <point at="0.0435" value="0xff"/>
+        <point at="0.1634" value="0xe0"/>
+        <point at="0.2792" value="0xc0"/>
+        <point at="0.3899" value="0xa0"/>
+        <point at="0.4984" value="0x80"/>
+        <point at="0.6066" value="0x60"/>
+        <point at="0.7173" value="0x40"/>
+        <point at="0.8329" value="0x20"/>
+        <point at="0.9565" value="0x00"/>
+      </channel>
     </analog>
 
     <roms>
@@ -2409,13 +2460,13 @@
       <input type="gun2"/>
     </inputs>
 
-    <!-- Lightgun calibration, from MAME's hotdp input ports. The guns are 10-bit and arrive over RS-422
-         channel 2, not through the analogue mux. -->
+    <!-- The prototype has no gun calibration: a raw position is the pixel on the picture plus a
+         fixed offset of (140, 40). The guns are 10-bit and arrive over RS-422 channel 2. -->
     <lightgun>
-      <axis name="p1y" min="0x057" max="0x17c" rest="0x0e9"/>
-      <axis name="p1x" min="0x0ad" max="0x254" rest="0x180"/>
-      <axis name="p2y" min="0x057" max="0x17c" rest="0x0e9"/>
-      <axis name="p2x" min="0x0a3" max="0x254" rest="0x17b"/>
+      <axis name="p1y" min="0x027" max="0x1a9" rest="0x0e8"/>
+      <axis name="p1x" min="0x08b" max="0x27d" rest="0x184"/>
+      <axis name="p2y" min="0x027" max="0x1a9" rest="0x0e8"/>
+      <axis name="p2x" min="0x08b" max="0x27d" rest="0x184"/>
     </lightgun>
 
     <roms>
@@ -3794,12 +3845,32 @@
       <input type="gun2"/>
     </inputs>
 
-    <!-- Analogue mux wiring, from MAME's model2b_state::rchase2. -->
+    <!-- Analogue mux wiring and gun travel, from MAME's model2b_state::rchase2. The game puts the
+         value 0x80 at x = 186 (player 1) or 310 (player 2), y = 192, and the gun's lowest aim
+         144 lines below that. -->
     <analog>
-      <channel index="0" control="p2x" min="0x34" max="0xc7" rest="0x7d" reverse="true"/>
-      <channel index="1" control="p1x" min="0x3a" max="0xca" rest="0x82" reverse="true"/>
-      <channel index="2" control="p2y" min="0x1c" max="0xcb" rest="0x73" reverse="true"/>
-      <channel index="3" control="p1y" min="0x1c" max="0xcb" rest="0x73" reverse="true"/>
+      <channel index="0" control="p2x" min="0x34" max="0xc7" rest="0x7d" reverse="true">
+        <point at="0.0000" value="0xc7"/>
+        <point at="0.6250" value="0x80"/>
+        <point at="1.0000" value="0x34"/>
+      </channel>
+      <channel index="1" control="p1x" min="0x3a" max="0xca" rest="0x82" reverse="true">
+        <point at="0.0000" value="0xca"/>
+        <point at="0.3750" value="0x80"/>
+        <point at="1.0000" value="0x3a"/>
+      </channel>
+      <channel index="2" control="p2y" min="0x1c" max="0xcb" rest="0x73" reverse="true">
+        <point at="0.0000" value="0xcb"/>
+        <point at="0.5000" value="0x80"/>
+        <point at="0.8750" value="0x1c"/>
+        <point at="1.0000" value="0x1c"/>
+      </channel>
+      <channel index="3" control="p1y" min="0x1c" max="0xcb" rest="0x73" reverse="true">
+        <point at="0.0000" value="0xcb"/>
+        <point at="0.5000" value="0x80"/>
+        <point at="0.8750" value="0x1c"/>
+        <point at="1.0000" value="0x1c"/>
+      </channel>
     </analog>
 
     <roms>
@@ -3854,12 +3925,31 @@
       <input type="gun2"/>
     </inputs>
 
-    <!-- Analogue mux wiring, from MAME's model2b_state::rchase2. -->
+    <!-- Analogue mux wiring, from MAME's model2b_state::rchase2, with the full travel MAME gives
+         this set. Same places on screen as rchase2, but here the values run the other way. -->
     <analog>
-      <channel index="0" control="p2x" rest="0x80"/>
-      <channel index="1" control="p1x" rest="0x80"/>
-      <channel index="2" control="p2y" rest="0x80"/>
-      <channel index="3" control="p1y" rest="0x80"/>
+      <channel index="0" control="p2x" rest="0x80">
+        <point at="0.0000" value="0x00"/>
+        <point at="0.6250" value="0x80"/>
+        <point at="1.0000" value="0xff"/>
+      </channel>
+      <channel index="1" control="p1x" rest="0x80">
+        <point at="0.0000" value="0x00"/>
+        <point at="0.3750" value="0x80"/>
+        <point at="1.0000" value="0xff"/>
+      </channel>
+      <channel index="2" control="p2y" rest="0x80">
+        <point at="0.0000" value="0x00"/>
+        <point at="0.5000" value="0x80"/>
+        <point at="0.8750" value="0xff"/>
+        <point at="1.0000" value="0xff"/>
+      </channel>
+      <channel index="3" control="p1y" rest="0x80">
+        <point at="0.0000" value="0x00"/>
+        <point at="0.5000" value="0x80"/>
+        <point at="0.8750" value="0xff"/>
+        <point at="1.0000" value="0xff"/>
+      </channel>
     </analog>
 
     <roms>

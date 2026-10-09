@@ -268,8 +268,9 @@ in the settings overlay (`F10`):
   used, and guns with a motor get recoil. Windows is covered below. A Sinden
   border is available if the gun needs one, and the mouse remains the fallback
   aiming device on every platform. A gun calibrated to the whole screen is
-  mapped onto the game image, so no 4:3 mode is needed; shooting a side bar or
-  past the screen edge counts as off screen, but the picture's own edge does not.
+  mapped onto the game image, so no 4:3 mode is needed; shooting a side bar,
+  past the screen edge or at the picture's very edge counts as off screen, so
+  a gun that cannot aim past an edge can still reload.
   With the Sinden border on, the gun aims against that border instead. A host
   calibration tool that holds `KEY_CONFIG` (Batocera's gun calibrators) gets
   its targets drawn on screen, so a gun can be recalibrated without leaving

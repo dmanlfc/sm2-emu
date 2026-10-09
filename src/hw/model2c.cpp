@@ -585,45 +585,6 @@ void Model2C::run_frame()
     m_frame_start += kCyclesPerFrame;
     ++m_frames;
 
-    // bel gun calibration seed. Its aim reads center/scale floats the in-game
-    // two-point calibration derives from calibration bytes at 0x5a8607/09/0b/0d.
-    // Those power on at 0xff (off-screen center) and the interactive calibration
-    // is impractical, so while the bytes are still 0xff we manufacture a working
-    // calibration for both guns, writing both the bytes and the derived floats.
-    // yscale is negative because the Y targets run top->bottom in raw analog.
-    if (m_game.gun_missile) {
-        auto rb = [this](u32 a) -> u8 {
-            const u32 o = a - 0x00500000;
-            return o < m_work_ram.size()
-                       ? reinterpret_cast<u8*>(m_work_ram.data())[o] : 0;
-        };
-        const bool uncalibrated = rb(0x5a8607) == 0xff && rb(0x5a8609) == 0xff
-                                  && rb(0x5a860b) == 0xff && rb(0x5a860d) == 0xff;
-        if (uncalibrated) {
-            auto wb = [this](u32 addr, u8 v) {
-                const u32 o = addr - 0x00500000;
-                if (o < m_work_ram.size())
-                    reinterpret_cast<u8*>(m_work_ram.data())[o] = v;
-            };
-            auto wf = [this](u32 addr, float v) {
-                const u32 o = addr - 0x00500000;
-                if (o + 4 > m_work_ram.size()) return;
-                u32 bits; std::memcpy(&bits, &v, 4);
-                u8* p = reinterpret_cast<u8*>(m_work_ram.data()) + o;
-                p[0] = bits; p[1] = bits >> 8; p[2] = bits >> 16; p[3] = bits >> 24;
-            };
-            wb(0x5a8607, 0x76); wb(0x5a860b, 0x7e);  // P1 X center 118, dX 126
-            wb(0x5a8609, 0x95); wb(0x5a860d, 0x86);  // P1 Y center 149, dY 134
-            wb(0x5a8608, 0x0d); wb(0x5a860c, 0x7e);  // P2 X center 13,  dX 126
-            wb(0x5a860a, 0x95); wb(0x5a860e, 0x86);  // P2 Y center 149, dY 134
-            const float ycenter = 175.0f, yscale = -75.0f;
-            wf(0x5a17d4 + 0, 118.0f);     wf(0x5a021c + 0, 63.0f);     // P1 X
-            wf(0x5a2230 + 0, ycenter);    wf(0x5a0224 + 0, yscale);    // P1 Y
-            wf(0x5a17d4 + 4, 13.0f);      wf(0x5a021c + 4, 63.0f);     // P2 X
-            wf(0x5a2230 + 4, ycenter);    wf(0x5a0224 + 4, yscale);    // P2 Y
-        }
-    }
-
     m_in_frame = false;
 }
 

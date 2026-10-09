@@ -102,6 +102,13 @@ enum class AnalogControl : u8 {
     Bat2,
 };
 
+/// The raw value a positional gun sends when it aims at one place across the
+/// picture (0 = left or top, 1 = right or bottom).
+struct AnalogPoint {
+    float at    = 0.0f;
+    u8    value = 0;
+};
+
 /// One analogue mux channel, mirroring the fields of MAME's PORT_BIT for an
 /// analogue input: the value at rest, the travel limits from PORT_MINMAX, and
 /// PORT_REVERSE.
@@ -111,6 +118,12 @@ struct AnalogChannel {
     u8            maximum = 0xff;
     u8            rest    = 0x80;
     bool          reverse = false;
+
+    /// Optional, for a positional gun: its value at places across the picture,
+    /// in increasing `at` order. When present they replace the straight line
+    /// from minimum to maximum.
+    std::array<AnalogPoint, 16> points{};
+    u8                          point_count = 0;
 };
 
 /// One axis of the lightgun interface board.

@@ -484,6 +484,35 @@ bool GameDatabase::load(const std::string& path)
             channel.minimum = static_cast<u8>(minimum);
             channel.maximum = static_cast<u8>(maximum);
             channel.rest    = static_cast<u8>(rest);
+
+            // A positional gun's raw value at places across the picture, left to
+            // right or top to bottom. A missing attribute reads as out of range.
+            const bool gun = channel.control == AnalogControl::Gun1X
+                          || channel.control == AnalogControl::Gun1Y
+                          || channel.control == AnalogControl::Gun2X
+                          || channel.control == AnalogControl::Gun2Y;
+            for (const pugi::xml_node point_node : channel_node.children("point")) {
+                u32         value = 0;
+                const float at    = point_node.attribute("at").as_float(-1.0f);
+                if (!attribute_integer(point_node, "value", 0x100, &value, context.c_str())) {
+                    return false;
+                }
+                const bool ordered = channel.point_count == 0
+                                  || at > channel.points[channel.point_count - 1].at;
+                if (!gun || channel.point_count == channel.points.size() || at < 0.0f
+                    || at > 1.0f || !ordered || value > 0xff) {
+                    SM2_ERROR("%s: analog channel %u has a bad point (at=\"%s\" value=\"%s\")",
+                              context.c_str(), index, point_node.attribute("at").value(),
+                              point_node.attribute("value").value());
+                    return false;
+                }
+                channel.points[channel.point_count++] = {at, static_cast<u8>(value)};
+            }
+            if (channel.point_count == 1) {
+                SM2_ERROR("%s: analog channel %u needs at least two points", context.c_str(),
+                          index);
+                return false;
+            }
         }
 
         for (const pugi::xml_node axis_node :

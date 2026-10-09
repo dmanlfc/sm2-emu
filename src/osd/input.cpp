@@ -1700,6 +1700,20 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
             }
             const rom::AnalogChannel& c = game.analog[static_cast<usize>(idx)];
             fraction         = std::clamp(fraction, 0.0f, 1.0f);
+            if (c.point_count >= 2) {
+                // Interpolate between the two points around the aim.
+                usize next = 1;
+                while (next + 1 < c.point_count && fraction > c.points[next].at) {
+                    ++next;
+                }
+                const rom::AnalogPoint& a = c.points[next - 1];
+                const rom::AnalogPoint& b = c.points[next];
+                const float t     = std::clamp((fraction - a.at) / (b.at - a.at), 0.0f, 1.0f);
+                const float value = std::lerp(static_cast<float>(a.value),
+                                              static_cast<float>(b.value), t);
+                inputs->analog[static_cast<usize>(idx)] = static_cast<u8>(value + 0.5f);
+                return;
+            }
             const float f    = c.reverse ? 1.0f - fraction : fraction;
             const float span = static_cast<float>(c.maximum - c.minimum);
             inputs->analog[static_cast<usize>(idx)] =
@@ -1710,6 +1724,21 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         write_channel(pos_gun_ch[2], p2.x);
         write_channel(pos_gun_ch[3], p2.y);
     } else {
+        // The picture's very edge counts as off screen, so a gun that cannot
+        // aim past it can still reload.
+        constexpr float kReloadZone = 0.01f;
+        const auto reload_zone = [](float& aim) {
+            if (aim < kReloadZone) {
+                aim = -1.0f;
+            } else if (aim > 1.0f - kReloadZone) {
+                aim = 2.0f;
+            }
+        };
+        reload_zone(p1.x);
+        reload_zone(p1.y);
+        reload_zone(p2.x);
+        reload_zone(p2.y);
+
         // RS-422 lightgun: off-screen reload snaps the aim past the corner.
         if (p1.reload) { p1.x = -1.0f; p1.y = -1.0f; }
         if (p2.reload) { p2.x = -1.0f; p2.y = -1.0f; }
