@@ -717,6 +717,57 @@ msgstr "المقاومة"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "100 % = the force of the arcade cabinet."
+msgstr "100 % = قوة الكابينة الأصلية."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Panel spring"
+msgstr "نابض اللوحة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The centring spring of the Sega Rally Championship and\n"
+"Daytona USA cabinets: very light, it brings the wheel\n"
+"back and is barely felt when held against. A share of\n"
+"the resistance above. The other games' cabinets drive\n"
+"the wheel with no spring, and ignore this setting."
+msgstr ""
+"نابض التوسيط في كابينتي Sega Rally Championship و\n"
+"Daytona USA: خفيف جدًا، يعيد المقود ولا يكاد يُحس\n"
+"عند مقاومته. جزء من المقاومة أعلاه. كابينات الألعاب\n"
+"الأخرى تحرك المقود بلا نابض، وتتجاهل هذا الإعداد."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Rally Championship and Daytona USA only, all versions."
+msgstr "Sega Rally Championship و Daytona USA فقط، جميع الإصدارات."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Drive board DIP strength"
+msgstr "قوة DIP للوحة الدفع"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The motor strength set on the drive board's DIP switches,\n"
+"the switches ON counted in binary: 0 all OFF, as from the\n"
+"factory. Sega Rally: switches 1-3, 0 to 7 added to every\n"
+"torque. Daytona USA: switches 1-3, 4 times that. Indy 500,\n"
+"Touring Car, Over Rev, Super GT 24h: switches 1-1 to 1-3,\n"
+"0 to 7 added to every force."
+msgstr ""
+"قوة المحرك المضبوطة بمفاتيح DIP في لوحة الدفع، والمفاتيح\n"
+"في وضع ON تُعد بالنظام الثنائي: 0 الكل OFF كما من المصنع.\n"
+"Sega Rally: المفاتيح 1-3، من 0 إلى 7 تُضاف إلى كل عزم.\n"
+"Daytona USA: المفاتيح 1-3، أربعة أضعاف ذلك. Indy 500 و\n"
+"Touring Car و Over Rev و Super GT 24h: المفاتيح 1-1 إلى 1-3،\n"
+"من 0 إلى 7 تُضاف إلى كل قوة."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Invert force feedback"
 msgstr "عكس ردّ فعل القوة"
 

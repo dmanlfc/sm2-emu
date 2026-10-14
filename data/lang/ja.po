@@ -721,6 +721,57 @@ msgstr "抵抗"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "100 % = the force of the arcade cabinet."
+msgstr "100 % = アーケード筐体の力。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Panel spring"
+msgstr "パネルのスプリング"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The centring spring of the Sega Rally Championship and\n"
+"Daytona USA cabinets: very light, it brings the wheel\n"
+"back and is barely felt when held against. A share of\n"
+"the resistance above. The other games' cabinets drive\n"
+"the wheel with no spring, and ignore this setting."
+msgstr ""
+"Sega Rally Championship と Daytona USA の筐体のセンタリング\n"
+"スプリング: ごく軽く、ハンドルを戻し、押さえてもほとんど\n"
+"感じません。上の抵抗に対する割合です。ほかのゲームの筐体は\n"
+"スプリングなしでハンドルを駆動するため、この設定は無視\n"
+"されます。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Rally Championship and Daytona USA only, all versions."
+msgstr "Sega Rally Championship と Daytona USA のみ、全バージョン。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Drive board DIP strength"
+msgstr "ドライブボードの DIP 強度"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The motor strength set on the drive board's DIP switches,\n"
+"the switches ON counted in binary: 0 all OFF, as from the\n"
+"factory. Sega Rally: switches 1-3, 0 to 7 added to every\n"
+"torque. Daytona USA: switches 1-3, 4 times that. Indy 500,\n"
+"Touring Car, Over Rev, Super GT 24h: switches 1-1 to 1-3,\n"
+"0 to 7 added to every force."
+msgstr ""
+"ドライブボードの DIP スイッチで設定するモーターの強さ。ON の\n"
+"スイッチを 2 進数で数えます: 0 は全部 OFF（工場出荷時）。\n"
+"Sega Rally: スイッチ 1-3、各トルクに 0〜7 を加算。Daytona USA:\n"
+"スイッチ 1-3、その 4 倍。Indy 500、Touring Car、Over Rev、\n"
+"Super GT 24h: スイッチ 1-1〜1-3、各フォースに 0〜7 を加算。"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Invert force feedback"
 msgstr "フォースフィードバックを反転"
 

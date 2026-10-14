@@ -22,8 +22,6 @@
 namespace sm2::osd {
 namespace {
 
-/// The operator's strength, (~DIP switches 1-3) * 4: switches left off.
-constexpr int kDipPower = 0;
 
 /// The motor's power is 6 bits.
 constexpr int kMaxPower = 0x3f;
@@ -54,7 +52,7 @@ int DaytonaBoard::spring_power(int off, int dead_zone, int full_at, int base) co
 {
     // Strength 2n plus the operator's; slope 2 per count, 3 from a strength of
     // $1e; from the dead zone's edge, stopped at the strength from `full_at`.
-    const int strength = 2 * (m_effect & 0x07) + kDipPower;
+    const int strength = 2 * (m_effect & 0x07) + m_dip_power;
     const int slope    = strength >= 0x1e ? 3 : 2;
     int       power    = strength;
     if (off < full_at) {
@@ -129,7 +127,7 @@ DaytonaBoard::Output DaytonaBoard::step(int counts, double ticks, int breakaway)
             m_power = 0;  // a push changing way starts again from nothing
         }
         m_way  = way;
-        target = 2 * n + kDipPower + base + 10;
+        target = 2 * n + m_dip_power + base + 10;
     };
 
     if (!m_enabled) {
@@ -138,7 +136,7 @@ DaytonaBoard::Output DaytonaBoard::step(int counts, double ticks, int breakaway)
         switch (m_effect & 0xf8) {
             case 0x20:  // a power and no way: the clutch holds the wheel to the standing motor
                 m_way  = Way::None;
-                target = 2 * n + kDipPower + base;
+                target = 2 * n + m_dip_power + base;
                 break;
             case 0x30:  // centring spring, +-2 counts
                 if (side == 0) {

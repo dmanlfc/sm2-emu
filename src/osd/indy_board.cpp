@@ -22,9 +22,6 @@
 namespace sm2::osd {
 namespace {
 
-/// The operator's strength, DIP switches 1-6..8: left off.
-constexpr int kDipPower = 0;
-
 /// The motor's powers are 6 bits.
 constexpr int kMaxPower = 63;
 
@@ -65,7 +62,7 @@ void IndyBoard::command(u8 value)
 
 int IndyBoard::strength() const
 {
-    return (2 * (m_effect & 0x07) + m_base) * 2 + kDipPower;
+    return (2 * (m_effect & 0x07) + m_base) * 2 + m_dip_power;
 }
 
 void IndyBoard::spring(int position, int shift, bool damp_other_side_below)

@@ -719,6 +719,58 @@ msgstr "Resistência"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "100 % = the force of the arcade cabinet."
+msgstr "100 % = a força da máquina arcade."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Panel spring"
+msgstr "Mola do painel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The centring spring of the Sega Rally Championship and\n"
+"Daytona USA cabinets: very light, it brings the wheel\n"
+"back and is barely felt when held against. A share of\n"
+"the resistance above. The other games' cabinets drive\n"
+"the wheel with no spring, and ignore this setting."
+msgstr ""
+"A mola de centragem das máquinas Sega Rally Championship e\n"
+"Daytona USA: muito leve, traz o volante de volta e mal se\n"
+"sente quando se lhe faz força. Uma parte da resistência\n"
+"acima. As máquinas dos outros jogos movem o volante sem\n"
+"mola e ignoram esta definição."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Rally Championship and Daytona USA only, all versions."
+msgstr "Só Sega Rally Championship e Daytona USA, todas as versões."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Drive board DIP strength"
+msgstr "Força DIP da placa motriz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The motor strength set on the drive board's DIP switches,\n"
+"the switches ON counted in binary: 0 all OFF, as from the\n"
+"factory. Sega Rally: switches 1-3, 0 to 7 added to every\n"
+"torque. Daytona USA: switches 1-3, 4 times that. Indy 500,\n"
+"Touring Car, Over Rev, Super GT 24h: switches 1-1 to 1-3,\n"
+"0 to 7 added to every force."
+msgstr ""
+"A força do motor definida pelos interruptores DIP da placa\n"
+"motriz, os que estão em ON contados em binário: 0 todos OFF,\n"
+"como de fábrica. Sega Rally: interruptores 1-3, 0 a 7 somado\n"
+"a cada binário. Daytona USA: interruptores 1-3, 4 vezes isso.\n"
+"Indy 500, Touring Car, Over Rev, Super GT 24h: interruptores\n"
+"1-1 a 1-3, 0 a 7 somado a cada força."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Invert force feedback"
 msgstr "Inverter force feedback"
 
