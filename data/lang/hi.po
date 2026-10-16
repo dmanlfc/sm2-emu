@@ -721,6 +721,58 @@ msgstr "प्रतिरोध"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "100 % = the force of the arcade cabinet."
+msgstr "100 % = आर्केड कैबिनेट का बल।"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Panel spring"
+msgstr "पैनल स्प्रिंग"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The centring spring of the Sega Rally Championship and\n"
+"Daytona USA cabinets: very light, it brings the wheel\n"
+"back and is barely felt when held against. A share of\n"
+"the resistance above. The other games' cabinets drive\n"
+"the wheel with no spring, and ignore this setting."
+msgstr ""
+"Sega Rally Championship और Daytona USA कैबिनेट का\n"
+"सेंटरिंग स्प्रिंग: बहुत हल्का, यह व्हील को वापस लाता है और\n"
+"रोकने पर मुश्किल से महसूस होता है। ऊपर वाले प्रतिरोध का एक\n"
+"हिस्सा। दूसरे गेम के कैबिनेट बिना स्प्रिंग के व्हील चलाते हैं\n"
+"और इस सेटिंग को अनदेखा करते हैं।"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Rally Championship and Daytona USA only, all versions."
+msgstr "केवल Sega Rally Championship और Daytona USA, सभी संस्करण।"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Drive board DIP strength"
+msgstr "ड्राइव बोर्ड की DIP शक्ति"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The motor strength set on the drive board's DIP switches,\n"
+"the switches ON counted in binary: 0 all OFF, as from the\n"
+"factory. Sega Rally: switches 1-3, 0 to 7 added to every\n"
+"torque. Daytona USA: switches 1-3, 4 times that. Indy 500,\n"
+"Touring Car, Over Rev, Super GT 24h: switches 1-1 to 1-3,\n"
+"0 to 7 added to every force."
+msgstr ""
+"ड्राइव बोर्ड के DIP स्विच से तय मोटर की शक्ति, ON स्विच बाइनरी\n"
+"में गिने जाते हैं: 0 यानी सब OFF, फ़ैक्टरी जैसा। Sega Rally:\n"
+"स्विच 1-3, हर टॉर्क में 0 से 7 जोड़ा जाता है। Daytona USA:\n"
+"स्विच 1-3, उसका 4 गुना। Indy 500, Touring Car, Over Rev,\n"
+"Super GT 24h: स्विच 1-1 से 1-3, हर बल में 0 से 7 जोड़ा\n"
+"जाता है।"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Invert force feedback"
 msgstr "फ़ोर्स फ़ीडबैक उलटें"
 

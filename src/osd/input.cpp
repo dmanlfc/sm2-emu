@@ -234,10 +234,6 @@ int centring_spring(int deflection, int full)
 constexpr double kDriveBoardIrqHz = 1000.0;
 constexpr double kMachineHz       = 57.5245;
 
-/// The Sega Rally / Daytona panel spring, as a percentage of the wheel's
-/// strength. It is very light on a cabinet.
-constexpr int kPanelSpringPercent = 20;
-
 /// Sega Rally's start-up calibration finds the power that holds the wheel this
 /// many counts (out of 128) off centre each way, against the panel spring.
 constexpr int kRallyCalibCountsRight = 30;
@@ -1304,15 +1300,18 @@ void Input::update_force_feedback(const rom::GameSpec& game)
             return stiction * std::clamp(velocity, -kFullSpeed, kFullSpeed) / kFullSpeed;
         };
 
-        // The Sega Rally and Daytona panel has a light spring. The EPR-18261
-        // panels are direct drive and have none.
+        // The Sega Rally and Daytona panel has a light spring, the user's share
+        // of the strength. The EPR-18261 panels are direct drive and have none.
         const bool panel_spring = game.drive_protocol == rom::DriveProtocol::Rally
                                || game.drive_protocol == rom::DriveProtocol::Daytona;
-        const int  panel_full   = ceiling * kPanelSpringPercent / 100;
+        const int  panel_full =
+            ceiling * static_cast<int>(std::min(m_wheel_settings.panel_spring, 100u)) / 100;
         const int  baseline     = panel_spring ? spring(panel_full) : 0;
 
         // Positive levels push the wheel left, as WheelForce::set_force takes them.
         int game_force = 0;
+        m_daytona.set_dip(static_cast<int>(m_wheel_settings.drive_dip));
+        m_indy.set_dip(static_cast<int>(m_wheel_settings.drive_dip));
         if (game.drive_protocol == rom::DriveProtocol::Daytona) {
             // The board's start-up calibration is run against the simulated
             // spring.
@@ -1379,6 +1378,8 @@ void Input::update_force_feedback(const rom::GameSpec& game)
             const int dir   = push_direction(command, pot);
             int       force = mag;
             if (game.drive_protocol == rom::DriveProtocol::Rally) {
+                // The operator's strength, DIP switches 1-3: 0..7 more power.
+                force += static_cast<int>(m_wheel_settings.drive_dip) * ceiling / kBoardFullPower;
                 // An outward push also gets the calibration power, capped at the
                 // spring's force at that point, since a PC wheel has no gear drag.
                 const bool outward = dir > 0 ? deflection < 0 : deflection >= 0;

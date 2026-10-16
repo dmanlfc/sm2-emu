@@ -723,6 +723,58 @@ msgstr "Weerstand"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "100 % = the force of the arcade cabinet."
+msgstr "100 % = de kracht van de arcadekast."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Panel spring"
+msgstr "Paneelveer"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The centring spring of the Sega Rally Championship and\n"
+"Daytona USA cabinets: very light, it brings the wheel\n"
+"back and is barely felt when held against. A share of\n"
+"the resistance above. The other games' cabinets drive\n"
+"the wheel with no spring, and ignore this setting."
+msgstr ""
+"De centreerveer van de Sega Rally Championship- en\n"
+"Daytona USA-kasten: heel licht, hij brengt het stuur terug\n"
+"en is nauwelijks te voelen als je tegenhoudt. Een deel van\n"
+"de weerstand hierboven. De kasten van de andere spellen\n"
+"drijven het stuur aan zonder veer en negeren deze instelling."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Rally Championship and Daytona USA only, all versions."
+msgstr "Alleen Sega Rally Championship en Daytona USA, alle versies."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Drive board DIP strength"
+msgstr "DIP-sterkte van de aandrijfprint"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The motor strength set on the drive board's DIP switches,\n"
+"the switches ON counted in binary: 0 all OFF, as from the\n"
+"factory. Sega Rally: switches 1-3, 0 to 7 added to every\n"
+"torque. Daytona USA: switches 1-3, 4 times that. Indy 500,\n"
+"Touring Car, Over Rev, Super GT 24h: switches 1-1 to 1-3,\n"
+"0 to 7 added to every force."
+msgstr ""
+"De motorsterkte ingesteld met de DIP-schakelaars van de\n"
+"aandrijfprint, de schakelaars op ON binair geteld: 0 alle\n"
+"OFF, zoals af fabriek. Sega Rally: schakelaars 1-3, 0 tot 7\n"
+"opgeteld bij elk koppel. Daytona USA: schakelaars 1-3, 4 keer\n"
+"zoveel. Indy 500, Touring Car, Over Rev, Super GT 24h:\n"
+"schakelaars 1-1 tot 1-3, 0 tot 7 opgeteld bij elke kracht."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Invert force feedback"
 msgstr "Force feedback omkeren"
 

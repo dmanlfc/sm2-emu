@@ -39,7 +39,16 @@ public:
     };
 
     /// As at power-up: the centre at $80, base 2, effect stop, no vibration.
-    void reset() { *this = IndyBoard{}; }
+    void reset()
+    {
+        const int dip = m_dip_power;
+        *this         = IndyBoard{};
+        m_dip_power   = dip;
+    }
+
+    /// The operator's strength, DIP switches 1-1..1-3 ON counting 0 to 7, added
+    /// to every strength.
+    void set_dip(int switches) { m_dip_power = switches; }
 
     /// A byte the game wrote to the board.
     void command(u8 value);
@@ -66,6 +75,7 @@ private:
     int m_base       = 2;     ///< $7x: x/2 + 2. 1 after an idle centring.
     int m_vib_period = 0;     ///< $Ax & 7: half period in 16 NMIs; 0 none.
     int m_vib_amp    = 0;     ///< $Bx & 7; 0 none.
+    int m_dip_power  = 0;     ///< DIP switches 1-1..1-3, 0..7.
 
     // The two powers the effect asks for, kept when it leaves them be.
     int m_up   = 0;

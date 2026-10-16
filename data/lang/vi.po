@@ -716,6 +716,57 @@ msgstr "Lực cản"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "100 % = the force of the arcade cabinet."
+msgstr "100 % = lực của máy arcade."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Panel spring"
+msgstr "Lò xo bảng điều khiển"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The centring spring of the Sega Rally Championship and\n"
+"Daytona USA cabinets: very light, it brings the wheel\n"
+"back and is barely felt when held against. A share of\n"
+"the resistance above. The other games' cabinets drive\n"
+"the wheel with no spring, and ignore this setting."
+msgstr ""
+"Lò xo hồi tâm của máy Sega Rally Championship và\n"
+"Daytona USA: rất nhẹ, kéo vô lăng về và gần như không\n"
+"cảm thấy khi giữ lại. Một phần của lực cản ở trên. Máy của\n"
+"các trò khác điều khiển vô lăng không có lò xo và bỏ qua\n"
+"thiết lập này."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Rally Championship and Daytona USA only, all versions."
+msgstr "Chỉ Sega Rally Championship và Daytona USA, mọi phiên bản."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Drive board DIP strength"
+msgstr "Độ mạnh DIP của bo dẫn động"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The motor strength set on the drive board's DIP switches,\n"
+"the switches ON counted in binary: 0 all OFF, as from the\n"
+"factory. Sega Rally: switches 1-3, 0 to 7 added to every\n"
+"torque. Daytona USA: switches 1-3, 4 times that. Indy 500,\n"
+"Touring Car, Over Rev, Super GT 24h: switches 1-1 to 1-3,\n"
+"0 to 7 added to every force."
+msgstr ""
+"Độ mạnh mô-tơ đặt bằng công tắc DIP của bo dẫn động, các\n"
+"công tắc ON đếm theo nhị phân: 0 là tất cả OFF, như xuất xưởng.\n"
+"Sega Rally: công tắc 1-3, cộng 0 đến 7 vào mỗi mô-men. Daytona\n"
+"USA: công tắc 1-3, gấp 4 lần. Indy 500, Touring Car, Over Rev,\n"
+"Super GT 24h: công tắc 1-1 đến 1-3, cộng 0 đến 7 vào mỗi lực."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Invert force feedback"
 msgstr "Đảo ngược phản hồi lực"
 

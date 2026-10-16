@@ -36,7 +36,16 @@ public:
     };
 
     /// As at power-up: forces off, no effect.
-    void reset() { *this = DaytonaBoard{}; }
+    void reset()
+    {
+        const int dip = m_dip_power;
+        *this         = DaytonaBoard{};
+        m_dip_power   = dip;
+    }
+
+    /// The operator's strength, DIP switches 1-3 ON counting 0 to 7: 4 a step
+    /// added to every power.
+    void set_dip(int switches) { m_dip_power = 4 * switches; }
 
     /// A byte the game wrote to the board.
     void command(u8 value);
@@ -59,6 +68,7 @@ private:
 
     bool m_enabled = false;  ///< $0x: forces on or off.
     u8   m_effect  = 0;      ///< The last $1x-$6x command.
+    int  m_dip_power = 0;    ///< (~DIP switches 1-3) * 4, 0..28.
     int  m_boost   = 0;      ///< 2..9 from $7x, 0 after a disabling $0x.
 
     Way    m_way      = Way::None;  ///< Kept from one interrupt to the next.
