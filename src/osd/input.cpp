@@ -430,6 +430,7 @@ bool Input::init(const WheelSettings& wheel)
     // Open any per-device light guns. If none are present the pointer stays the
     // gun source, so this failing to find anything is not an error.
     m_guns = std::make_unique<LightGuns>();
+    m_guns->set_preferred_devices(m_gun_devices);
     if (!m_guns->init() || m_guns->count() == 0) {
         m_guns.reset();
     }

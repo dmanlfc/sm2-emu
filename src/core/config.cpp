@@ -900,6 +900,8 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->wheel_brake_half)) {
                 bad_value();
             }
+        } else if (key == "gun1_device" || key == "gun2_device") {
+            out->gun_devices[key[3] == '2' ? 1 : 0] = value;
         } else if (key.rfind("gun1_button_", 0) == 0 || key.rfind("gun2_button_", 0) == 0) {
             const usize player = key[3] == '2' ? 1 : 0;
             const std::string role = key.substr(std::strlen("gun1_button_"));
@@ -1120,6 +1122,8 @@ bool save_config(const std::string& path, const Config& config)
                 << config.gun_buttons[p][r] << "\n";
         }
     }
+    out << "gun1_device = " << config.gun_devices[0] << "\n"
+        << "gun2_device = " << config.gun_devices[1] << "\n";
     out << "\n[network]\n"
         << "link_enabled = " << bool_text(config.link_enabled) << "\n"
         << "link_local_ip = " << config.link_local_ip << "\n"

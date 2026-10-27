@@ -22,6 +22,7 @@
 #include <array>
 #include <cctype>
 #include <cstring>
+#include <unordered_map>
 #include <vector>
 
 #include <fcntl.h>
@@ -196,12 +197,21 @@ bool LightGuns::init()
         std::erase_if(candidates, [](const Candidate& c) { return !c.tagged; });
     }
 
+    // A pinned gun (gun1_device / gun2_device) comes first, whichever of its
+    // nodes matched, so every node of a device keeps the same rank.
+    std::unordered_map<std::string, int> rank;
+    for (const Candidate& c : candidates) {
+        const int r = preferred_rank(m_preferred, c.node);
+        const auto it = rank.find(c.phys);
+        rank[c.phys] = it == rank.end() ? r : std::min(it->second, r);
+    }
     std::sort(candidates.begin(), candidates.end(),
-              [](const Candidate& a, const Candidate& b) {
-                  if (a.phys != b.phys) return a.phys < b.phys;
-                  if (a.prio != b.prio) return a.prio < b.prio;
-                  return a.node < b.node;
-              });
+        [&rank](const Candidate& a, const Candidate& b) {
+            if (rank[a.phys] != rank[b.phys]) return rank[a.phys] < rank[b.phys];
+            if (a.phys != b.phys) return a.phys < b.phys;
+            if (a.prio != b.prio) return a.prio < b.prio;
+            return a.node < b.node;
+        });
     std::string last_phys;
     for (const Candidate& c : candidates) {
         if (m_impl->guns.size() >= kMaxGuns) {

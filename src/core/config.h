@@ -470,6 +470,13 @@ struct Config {
         {0x110u,   0x111u,  0x101u,  0x102u,  0x105u,  0x106u,  0x107u,  0x108u},
     }};
 
+    /// The light gun that plays player 1 / player 2, or empty for the default
+    /// order (sorted by device path). Any part of the device path, ignoring
+    /// case: the Raw Input path on Windows (e.g. "VID_16C0&PID_0F38&MI_00"),
+    /// the evdev node (/dev/input/eventN) on Linux. On Windows a pinned mouse
+    /// is used as a gun even when its product name does not say so.
+    std::array<std::string, 2> gun_devices;
+
     // -- audio -------------------------------------------------------------
 
     /// Per-game volume; off plays every game at its default level.

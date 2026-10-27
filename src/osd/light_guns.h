@@ -30,7 +30,9 @@
 #pragma once
 
 #include "core/types.h"
-
+#include <algorithm>
+#include <array>
+#include <cctype>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -66,6 +68,32 @@ public:
     LightGuns(const LightGuns&)            = delete;
     LightGuns& operator=(const LightGuns&) = delete;
 
+    /// The guns to put first, as player 1 / player 2 (Config::gun_devices): any
+    /// part of the device path, ignoring case. Call before init().
+    void set_preferred_devices(const std::array<std::string, 2>& devices)
+    {
+        m_preferred = devices;
+    }
+
+    /// 0 or 1 when `path` contains preferred entry 0 or 1 (ignoring case), 2
+    /// otherwise: the sort key that puts the pinned guns first.
+    [[nodiscard]] static int preferred_rank(const std::array<std::string, 2>& preferred,
+        std::string path)
+    {
+        const auto lower = [](std::string text) {
+            std::transform(text.begin(), text.end(), text.begin(),
+                [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            return text;
+            };
+        path = lower(path);
+        for (int i = 0; i < 2; ++i) {
+            if (!preferred[i].empty() && path.find(lower(preferred[i])) != std::string::npos) {
+                return i;
+            }
+        }
+        return 2;
+    }
+
     /// Discover and open every light gun. Safe to call when no guns are
     /// present; count() is then zero and the caller uses its fallback.
     /// Returns false only if the platform's input layer will not start.
@@ -93,6 +121,7 @@ public:
 private:
     struct Impl;
     std::unique_ptr<Impl> m_impl;
+    std::array<std::string, 2> m_preferred;
 };
 
 }  // namespace sm2::osd

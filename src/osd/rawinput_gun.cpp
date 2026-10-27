@@ -228,7 +228,10 @@ bool LightGuns::init()
             continue;
         }
         std::string name = product_name(path);
-        if (!is_gun_name(name)) {
+        // A device pinned with gun1_device / gun2_device is a gun whatever its
+        // product string (a Wiimote adapter, a gun without "gun" in its name).
+        const bool pinned = preferred_rank(m_preferred, narrow(path.c_str())) < 2;
+        if (!is_gun_name(name) && !pinned) {
             continue;
         }
         const int prio = contains_ci(name, "mouse") ? 1 : 0;
@@ -248,6 +251,12 @@ bool LightGuns::init()
     }
     std::sort(chosen.begin(), chosen.end(),
               [](const Candidate& a, const Candidate& b) { return a.path < b.path; });
+
+    // Pinned guns (gun1_device / gun2_device) first, the others keep the path order.
+    std::stable_sort(chosen.begin(), chosen.end(), [this](const Candidate& a, const Candidate& b) {
+        return preferred_rank(m_preferred, narrow(a.path.c_str()))
+            < preferred_rank(m_preferred, narrow(b.path.c_str()));
+        });
 
     for (const Candidate& c : chosen) {
         if (m_impl->guns.size() >= kMaxGuns) {

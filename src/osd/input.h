@@ -161,6 +161,11 @@ public:
 
     /// The device path each player's pad must have; set before init().
     void set_pad_devices(const std::array<std::string, 2>& paths) { m_pad_devices = paths; }
+
+    /// Any part of the device path of each player's light gun
+    /// (Config::gun_devices); set before init(). Empty keeps the path order.
+    void set_gun_devices(const std::array<std::string, 2>& paths) { m_gun_devices = paths; }
+
     void shutdown();
 
     /// Offer an SDL event. Consumes connection and disconnection only; everything
@@ -529,6 +534,7 @@ private:
 
     std::vector<Pad> m_pads;
     std::array<std::string, 2> m_pad_devices;
+    std::array<std::string, 2> m_gun_devices;
     Wheel            m_wheel;
     WheelSettings    m_wheel_settings;
 
