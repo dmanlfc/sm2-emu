@@ -48,6 +48,9 @@ public:
 
     void reset();
 
+    /// Output level in 1/256 units, for a host board that trims its whole mix.
+    void set_gain(u16 gain) { m_gain = gain; }
+
     /// A serial byte from the host's i8251, the same one the SCSP receives.
     void write_txd(u8 value);
 
@@ -112,6 +115,7 @@ private:
     u32 m_mp_start = 0, m_mp_end = 0, m_mp_vol = 0x7f, m_mp_pan = 0, m_mp_state = 0;
     u32 m_lp_start = 0, m_lp_end = 0, m_start = 0, m_end = 0;
     s32 m_mp_pos = 0, m_audio_pos = 0, m_audio_avail = 0;
+    s32 m_gain   = 256;
 
     // Host-clock to Z80-clock conversion, carried like the other boards.
     u64 m_cycle_debt = 0;

@@ -516,6 +516,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "ROM-mapp för Model 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Var Model 1-ROM-arkiven finns.\n"
+"Tom betyder ROM-mappen."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Mapp för sparfiler"
 
@@ -2056,3 +2070,78 @@ msgstr "Ingen beskrivning tillgänglig."
 #~ "spelet, och dess knappar och axlar kan tilldelas nedan utan att\n"
 #~ "klicka tillbaka i det här fönstret. Tangentbord och mus kräver\n"
 #~ "fortfarande fönstret längst fram."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "Laser"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Torped"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Vy"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Gas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "Mer gas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "Mindre gas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Styrspak"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Kulspruta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Rök"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Spak"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "Fälten är namngivna efter spelets kontroller; nedtonade används inte. Visa genvägar listar Guide-kombinationerna."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Vy 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Vy 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Vy 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Vy 4"

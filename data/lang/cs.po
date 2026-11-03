@@ -510,6 +510,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Adresář ROM pro Model 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Kde jsou archivy ROM pro Model 1.\n"
+"Prázdné znamená adresář ROM."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Adresář uložených pozic"
 
@@ -2048,3 +2062,78 @@ msgstr "Popis není k dispozici."
 #~ "panel automatu přes vJoy) dál řídí hru a jeho tlačítka a osy\n"
 #~ "lze přiřadit níže bez kliknutí zpět do tohoto okna.\n"
 #~ "Klávesnice a myš stále potřebují okno vpředu."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "Laser"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Torpédo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Pohled"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Plyn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "Přidat plyn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "Ubrat plyn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Knipl"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Kulomet"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Kouř"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Páčka"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "Pole jsou pojmenována podle ovládání této hry; ztlumená se nepoužívají. Ukázat zkratky vypíše kombinace s Guide."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Pohled 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Pohled 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Pohled 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Pohled 4"

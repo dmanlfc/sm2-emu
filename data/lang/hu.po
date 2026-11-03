@@ -510,6 +510,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM-mappa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Hol vannak a Model 1 ROM-archívumok.\n"
+"Az üres a ROM-mappát jelenti."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Mentések mappája"
 
@@ -2060,3 +2074,78 @@ msgstr "Nincs elérhető leírás."
 #~ "irányítja a játékot, gombjai és tengelyei pedig lent\n"
 #~ "hozzárendelhetők anélkül, hogy visszakattintana ebbe az ablakba.\n"
 #~ "A billentyűzethez és az egérhez továbbra is elöl kell lennie az ablaknak."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "Lézer"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Torpedó"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Nézet"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Gáz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "Több gáz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "Kevesebb gáz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Kormány"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Géppuska"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Füst"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Kar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "A mezők a játék kezelőszerveiről kapták nevüket; a halványak nincsenek használatban. A Gyorsgombok mutatása listázza a Guide-kombinációkat."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Nézet 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Nézet 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Nézet 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Nézet 4"

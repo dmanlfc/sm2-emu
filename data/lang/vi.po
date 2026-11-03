@@ -510,6 +510,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Thư mục ROM Model 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Nơi chứa các tệp ROM Model 1.\n"
+"Để trống nghĩa là thư mục ROM."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Thư mục lưu"
 
@@ -2045,3 +2059,78 @@ msgstr "Không có mô tả."
 #~ "chơi, và có thể gán nút và trục của nó bên dưới mà không cần\n"
 #~ "nhấp lại vào cửa sổ này. Bàn phím và chuột vẫn cần cửa sổ ở\n"
 #~ "phía trước."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "Laser"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Ngư lôi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Góc nhìn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Ga"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "Tăng ga"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "Giảm ga"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Cần lái"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Súng máy"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Khói"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Cần"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "Các ô được đặt theo điều khiển của trò này; ô mờ không dùng. Hiện phím tắt liệt kê các tổ hợp Guide."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Góc nhìn 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Góc nhìn 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Góc nhìn 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Góc nhìn 4"

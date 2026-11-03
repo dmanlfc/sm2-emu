@@ -96,6 +96,10 @@ struct RenderPolygon {
     s16 scissor[4] = {0, 0, 0, 0};
 
     u8 window = 0;
+
+    /// Bit 31 set: a flat polygon already coloured, 0x00rrggbb in the low bits,
+    /// that skips the palette and tone curve. Model 1 resolves its own colours.
+    u32 direct_rgb = 0;
 };
 
 /// Why the geometry stage discarded what it discarded, and the register state it

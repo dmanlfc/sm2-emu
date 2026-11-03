@@ -510,6 +510,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Dossier des ROM Model 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Où se trouvent les archives ROM Model 1.\n"
+"Vide signifie le dossier des ROM."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Dossier des sauvegardes"
 
@@ -2059,3 +2073,78 @@ msgstr "Aucune description disponible."
 #~ "vJoy, par exemple) conduit toujours le jeu, et ses boutons et\n"
 #~ "axes s'assignent ci-dessous sans recliquer dans cette fenêtre.\n"
 #~ "Le clavier et la souris demandent toujours la fenêtre devant."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "Laser"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Torpille"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Vue"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Gaz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "Plus de gaz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "Moins de gaz"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Manche"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Mitrailleuse"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Fumée"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Stick"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "Les cases portent le nom des commandes de ce jeu ; celles grisées ne servent pas. Afficher les raccourcis liste les combinaisons Guide."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Vue 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Vue 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Vue 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Vue 4"

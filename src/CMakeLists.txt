@@ -153,6 +153,7 @@ add_library(sm2_cpu STATIC
     cpu/mb86233/mb86233.cpp
     cpu/mb86235/mb86235.cpp
     cpu/sharc/sharc.cpp
+    cpu/v60/v60.cpp
     cpu/z80/z80.cpp
 )
 target_link_libraries(sm2_cpu
@@ -235,6 +236,7 @@ add_library(sm2_hw STATIC
     hw/i8251.cpp
     hw/io_315_5649.cpp
     hw/m1audio.cpp
+    hw/m1comm.cpp
     hw/m2comm.cpp
     hw/machine_factory.cpp
     hw/mb8421.cpp
@@ -244,6 +246,9 @@ add_library(sm2_hw STATIC
     hw/model2b.cpp
     hw/model2c.cpp
     hw/model2_debug.cpp
+    hw/model1.cpp
+    hw/model1_geometry.cpp
+    hw/model1_tgp.cpp
     hw/model2_original.cpp
     hw/model2_sound.cpp
     hw/model2_softrender.cpp

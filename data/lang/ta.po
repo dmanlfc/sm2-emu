@@ -515,6 +515,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM அடைவு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Model 1 ROM காப்பகங்கள் இருக்கும் இடம்.\n"
+"காலியெனில் ROM அடைவு."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "சேமிப்பு அடைவு"
 
@@ -2054,3 +2068,78 @@ msgstr "விளக்கம் இல்லை."
 #~ "இயக்கும்; இந்தச் சாளரத்தில் மீண்டும் கிளிக் செய்யாமல் கீழே\n"
 #~ "அதன் பொத்தான்களையும் அச்சுகளையும் இணைக்கலாம். விசைப்பலகையும்\n"
 #~ "சுட்டியும் சாளரம் முன்னால் இருக்க வேண்டும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "லேசர்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "டார்பிடோ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "காட்சி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "த்ராட்டில்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "த்ராட்டில் கூட்டு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "த்ராட்டில் குறை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "யோக்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "இயந்திரத் துப்பாக்கி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "புகை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "ஸ்டிக்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "இடங்கள் இந்த விளையாட்டின் கட்டுப்பாடுகளின் பெயரில் உள்ளன; மங்கியவை பயன்படுத்தப்படாது. குறுக்குவழிகளைக் காட்டு Guide சேர்க்கைகளைப் பட்டியலிடும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "காட்சி 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "காட்சி 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "காட்சி 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "காட்சி 4"

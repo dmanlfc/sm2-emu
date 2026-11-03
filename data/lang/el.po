@@ -514,6 +514,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Φάκελος ROM Model 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Πού βρίσκονται τα αρχεία ROM του Model 1.\n"
+"Κενό σημαίνει τον φάκελο ROM."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Φάκελος αποθηκεύσεων"
 
@@ -2064,3 +2078,78 @@ msgstr "Δεν υπάρχει διαθέσιμη περιγραφή."
 #~ "να οδηγεί το παιχνίδι, και τα κουμπιά και οι άξονές του\n"
 #~ "αντιστοιχίζονται παρακάτω χωρίς κλικ πίσω σε αυτό το παράθυρο.\n"
 #~ "Το πληκτρολόγιο και το ποντίκι θέλουν ακόμα το παράθυρο μπροστά."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "Λέιζερ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Τορπίλη"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Οπτική"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Γκάζι"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "Περισσότερο γκάζι"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "Λιγότερο γκάζι"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Χειριστήριο πτήσης"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Πολυβόλο"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Καπνός"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Μοχλίσκος"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "Οι θέσεις έχουν το όνομα των χειριστηρίων αυτού του παιχνιδιού· οι αχνές δεν χρησιμοποιούνται. Η Εμφάνιση συντομεύσεων δείχνει τους συνδυασμούς με Guide."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Οπτική 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Οπτική 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Οπτική 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Οπτική 4"

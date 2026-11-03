@@ -147,7 +147,9 @@ void M1Audio::reset()
         if (m_rxd_handler) {
             m_rxd_handler(value);
         }
+        m_dsb.write_txd(value);
     });
+    m_dsb.reset();
 
     // Last, because the 68000 fetches its stack pointer and PC from the first
     // eight bytes of ROM as part of reset.
@@ -165,6 +167,9 @@ void M1Audio::serialize(Archive& ar)
     ar.raw(m_cpu_debt);
     ar.raw(m_sample_debt);
     ar.raw(m_cycle_overshoot);
+    if (m_dsb.present()) {
+        m_dsb.serialize(ar);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -355,6 +360,9 @@ void M1Audio::generate_audio(u32 host_cycles)
         m_pending[before + i] =
             static_cast<s16>(std::clamp(accum[i] * m_gain >> 8, -32768, 32767));
     }
+    if (m_dsb.present()) {
+        m_dsb.mix(m_pending.data() + before, static_cast<u32>(frames), kOutputRate);
+    }
 
     // Nothing is draining in a headless run, so drop the oldest rather than grow.
     if (m_pending.size() > kMaxPendingFrames * 2) {
@@ -382,6 +390,9 @@ void M1Audio::run(u32 host_cycles)
     // its sequencer clock, so it has to happen before the CPU polls for them.
     generate_audio(host_cycles);
     uart_tick(host_cycles);
+    if (m_dsb.present()) {
+        m_dsb.run(host_cycles);
+    }
 
     m_cpu_debt += static_cast<u64>(host_cycles) * kCpuNumerator;
     u64 owed = m_cpu_debt / kCpuDenominator;

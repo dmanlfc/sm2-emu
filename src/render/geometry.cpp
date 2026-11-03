@@ -54,6 +54,16 @@ PolyParams describe_polygon(const hw::RenderPolygon& poly, const hw::Model2Video
 {
     PolyParams params{};
 
+    if ((poly.direct_rgb & 0x80000000u) != 0) {
+        const u32 rgb = poly.direct_rgb;
+        params.colour = ((rgb >> 16) & 0xff) | (rgb & 0xff00) | ((rgb & 0xff) << 16);
+        params.flags  = kFlagDirect;
+        if ((poly.texheader[0] & kHeaderChecker) != 0) {
+            params.flags |= kFlagChecker;
+        }
+        return params;
+    }
+
     // Ten bits of colour base against the 3D half of palette RAM. The
     // components rather than a resolved colour, because the shade is a
     // per-pixel matter.

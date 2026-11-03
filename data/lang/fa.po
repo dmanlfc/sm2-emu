@@ -510,6 +510,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "پوشه ROM برای Model 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"محل آرشیوهای ROM مربوط به Model 1.\n"
+"خالی یعنی پوشه ROM."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "پوشه ذخیره‌ها"
 
@@ -2047,3 +2061,78 @@ msgstr "توضیحی موجود نیست."
 #~ "دستگاه از طریق vJoy) همچنان بازی را هدایت می‌کند و دکمه‌ها و\n"
 #~ "محورهایش را می‌توان پایین‌تر بدون کلیک دوباره روی این پنجره\n"
 #~ "تنظیم کرد. صفحه‌کلید و ماوس همچنان پنجره را در جلو می‌خواهند."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "لیزر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "اژدر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "نما"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "گاز"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "گاز بیشتر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "گاز کمتر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "فرمان پرواز"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "مسلسل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "دود"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "استیک"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "خانه‌ها به نام کنترل‌های این بازی‌اند؛ کم‌رنگ‌ها استفاده نمی‌شوند. نمایش میان‌برها ترکیب‌های Guide را فهرست می‌کند."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "نما 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "نما 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "نما 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "نما 4"

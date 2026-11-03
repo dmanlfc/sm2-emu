@@ -113,6 +113,8 @@ enum : u32 {
     kFlagTranslucent = 1u << 12,
     /// Stipple drawn instead as a 50% blend (Translucency::Blended).
     kFlagBlended     = 1u << 13,
+    /// PolyParams::colour is the final colour, 0x00bbggrr.
+    kFlagDirect      = 1u << 14,
 };
 
 /// A backend-neutral screen-space rectangle: a Vulkan `VkRect2D`'s twin, so a

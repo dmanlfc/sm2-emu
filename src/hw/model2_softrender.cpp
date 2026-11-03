@@ -317,6 +317,11 @@ void SoftRenderer::draw_scanline_solid(s32 scanline, const Extent& extent,
 
     const u8 luma = static_cast<u8>(object.luma >> 2);
 
+    u32 resolved = 0;
+    if ((object.direct_rgb & 0x80000000u) != 0) {
+        const u32 rgb = object.direct_rgb;
+        resolved      = pack_rgba((rgb >> 16) & 0xff, (rgb >> 8) & 0xff, rgb & 0xff);
+    } else {
     u32 color = object.colorbase;
     color     = (color + 0x1000) < m_palram.size() ? (m_palram[color + 0x1000] & 0xffffu) : 0u;
 
@@ -329,9 +334,10 @@ void SoftRenderer::draw_scanline_solid(s32 scanline, const Extent& extent,
         return index < m_colorxlat.size() ? (m_colorxlat[index] & 0xffu) : 0u;
     };
 
-    const u32 resolved = pack_rgba(m_gamma[table(red_base, luma)],
-                                   m_gamma[table(green_base, luma)],
-                                   m_gamma[table(blue_base, luma)]);
+    resolved = pack_rgba(m_gamma[table(red_base, luma)],
+                         m_gamma[table(green_base, luma)],
+                         m_gamma[table(blue_base, luma)]);
+    }
 
     s32       x  = extent.startx;
     const s32 dx = object.checker != 0 ? 2 : 1;
@@ -675,6 +681,7 @@ void SoftRenderer::draw_polygon(const RenderPolygon& poly, const Rect& cliprect,
     extra.colorbase = (poly.texheader[3] >> 6) & 0x3ff;
     extra.luma      = poly.luma;
     extra.texlod    = poly.texlod;
+    extra.direct_rgb = poly.direct_rgb;
 
     PolyVertex work[8];
     for (u32 index = 0; index < poly.num_vertices; ++index) {

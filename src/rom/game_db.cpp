@@ -241,6 +241,7 @@ constexpr u32 kWorkRamSize = 0x00100000;
     if (text == "model2a") { *out = Board::Model2A; return true; }
     if (text == "model2b") { *out = Board::Model2B; return true; }
     if (text == "model2c") { *out = Board::Model2C; return true; }
+    if (text == "model1")  { *out = Board::Model1;  return true; }
     return false;
 }
 
@@ -279,6 +280,7 @@ constexpr u32 kWorkRamSize = 0x00100000;
     if (text == "indy")    { *out = DriveProtocol::Indy;    return true; }
     if (text == "stcc")    { *out = DriveProtocol::Indy;    return true; }  // Indy 500's board
     if (text == "rally")   { *out = DriveProtocol::Rally;   return true; }
+    if (text == "vr")      { *out = DriveProtocol::Vr;      return true; }
     return false;
 }
 
@@ -308,6 +310,8 @@ constexpr u32 kWorkRamSize = 0x00100000;
         {"inclining", AnalogControl::Inclining},
         {"bat1",      AnalogControl::Bat1},
         {"bat2",      AnalogControl::Bat2},
+        {"stick2x",   AnalogControl::Stick2X},
+        {"stick2y",   AnalogControl::Stick2Y},
     };
     for (const Entry& entry : kEntries) {
         if (text == entry.name) {
@@ -488,6 +492,34 @@ bool GameDatabase::load(const std::string& path)
             SM2_ERROR("%s: unrecognised protection '%s'", context.c_str(),
                       protection_attribute.value());
             return false;
+        }
+
+        if (const pugi::xml_attribute spread = game_node.attribute("hud_spread")) {
+            unsigned left = 0, right = 0, layers = 0;
+            if (std::sscanf(spread.value(), "%u,%u,%u", &left, &right, &layers) != 3 || left == 0
+                || right <= left || right >= 496 || layers == 0 || layers > 0xf) {
+                SM2_ERROR("%s: hud_spread '%s' is not left,right,layers", context.c_str(),
+                          spread.value());
+                return false;
+            }
+            game.hud_spread_left  = static_cast<u16>(left);
+            game.hud_spread_right = static_cast<u16>(right);
+            game.hud_layers       = static_cast<u8>(layers);
+
+            // Eight left:right pairs, a band of 48 rows each.
+            const char* text = game_node.attribute("hud_bands").value();
+            for (u32 band = 0; band < 8; ++band) {
+                unsigned reach = 0, start = 0;
+                int      used  = 0;
+                if (std::sscanf(text, "%u:%u%n", &reach, &start, &used) != 2 || reach >= 496
+                    || start >= 496) {
+                    SM2_ERROR("%s: hud_bands needs eight left:right pairs", context.c_str());
+                    return false;
+                }
+                text += used;
+                if (*text == ',') ++text;
+                game.hud_bands[band / 2] |= ((reach / 2) | (start / 2) << 8) << (16 * (band % 2));
+            }
         }
 
         const pugi::xml_attribute side_fill_attribute = game_node.attribute("side_fill");
@@ -743,7 +775,16 @@ bool GameDatabase::load(const std::string& path)
                     return false;
                 }
                 if (!attribute_integer(file_node, "offset", 0, &file.offset,
-                                       region_context.c_str())) {
+                                       region_context.c_str())
+                    || !attribute_integer(file_node, "stride", 0, &file.stride,
+                                          region_context.c_str())
+                    || !attribute_integer(file_node, "chunk", 0, &file.chunk,
+                                          region_context.c_str())) {
+                    return false;
+                }
+                if ((file.stride == 0) != (file.chunk == 0) || file.chunk > file.stride) {
+                    SM2_ERROR("%s: file '%s' needs both stride and chunk, chunk <= stride",
+                              region_context.c_str(), file.name.c_str());
                     return false;
                 }
 
@@ -755,6 +796,14 @@ bool GameDatabase::load(const std::string& path)
                         return false;
                     }
                     file.has_crc = true;
+                }
+                if (const pugi::xml_attribute alt = file_node.attribute("alt_crc")) {
+                    if (!parse_integer(alt.value(), &file.alt_crc)) {
+                        SM2_ERROR("%s: file '%s' has an invalid alt_crc '%s'",
+                                  region_context.c_str(), file.name.c_str(), alt.value());
+                        return false;
+                    }
+                    file.has_alt_crc = true;
                 }
 
                 region.files.push_back(std::move(file));
@@ -919,6 +968,12 @@ bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
         if (game.texture_wait == 0)    { game.texture_wait = parent.texture_wait; }
         if (!game.shift_buttons)       { game.shift_buttons = parent.shift_buttons; }
         if (game.side_fill == SideFill::Mirror) { game.side_fill = parent.side_fill; }
+        if (game.hud_spread_right == 0) {
+            game.hud_spread_left  = parent.hud_spread_left;
+            game.hud_spread_right = parent.hud_spread_right;
+            game.hud_layers       = parent.hud_layers;
+            game.hud_bands        = parent.hud_bands;
+        }
         if (!game.drive_board)         { game.drive_board = parent.drive_board; }
         if (game.drive_protocol == DriveProtocol::Daytona) {
             game.drive_protocol = parent.drive_protocol;

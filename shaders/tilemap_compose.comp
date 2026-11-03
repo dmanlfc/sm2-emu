@@ -112,7 +112,8 @@ layout(push_constant) uniform Push {
     // side columns too, mirroring the screen edge as a last resort (1),
     // leaving black where only a mirror would do (2), or only where that
     // mirror is of a menu panel, a row-scroll layer's foreground tile (3). The layers in front stay on the
-    // 4:3 screen: they are the HUD.
+    // 4:3 screen: they are the HUD. Bits 28-31, when set, are the layers a
+    // HUD drawn on them spreads to the edges, by `hud`.
     uint wideBelow;
     // Per layer (see render::PanoramaTracker): whether the panorama applies,
     // the world column of the screen's left edge, and the live epoch.
@@ -127,6 +128,10 @@ layout(push_constant) uniform Push {
     // Per layer, a bit per map row that loops without being rewritten.
     uvec4 wrapLow;
     uvec4 wrapHigh;
+    // A spread HUD, per band of 48 rows (two to a word, 16 bits each): the
+    // column the left-hand HUD reaches to and the one the right-hand HUD
+    // starts at, both halved; 0 where that side has none.
+    uvec4 hud;
 } pc;
 
 /// What each layer has shown, by layer, world column and world row, as pairs:
@@ -476,7 +481,8 @@ uint compositeSide(uint mirrorDx, int sx, uint dy, out bool refused)
     refused = false;
     for (uint layer = 0u; layer < 4u; ++layer) {
         if (evalLayerSide(layer, 0u, layer >= 2u, mirrorDx, sx, dy, pen, mirrored)) {
-            refused = mirrored && (pc.wideBelow == 2u || (pc.wideBelow == 3u && menuTile(layer, mirrorDx, dy)));
+            uint mode = pc.wideBelow & 0xffu;
+            refused = mirrored && (mode == 2u || (mode == 3u && menuTile(layer, mirrorDx, dy)));
             return uPens[pen];
         }
     }
@@ -506,6 +512,28 @@ void compositeLayers(uint dx, uint dy, out uint below, out uint above)
         uint pen, category;
         bool opaqueTexel;
         if (!sampleLayerAt(layer, dx, dx, dy, pen, category, opaqueTexel)) {
+            continue;
+        }
+        if (opaqueTexel && category == 1u) {
+            above = uPens[pen];
+            return;
+        }
+        if (layer >= 2u || (opaqueTexel && category == 0u)) {
+            below = uPens[pen];
+            return;
+        }
+    }
+}
+
+/// compositeLayers() over only the layers in `mask`.
+void compositeMasked(uint dx, uint dy, uint mask, out uint below, out uint above)
+{
+    below = 0u;
+    above = 0u;
+    for (uint layer = 0u; layer < 4u; ++layer) {
+        uint pen, category;
+        bool opaqueTexel;
+        if (((mask >> layer) & 1u) == 0u || !sampleLayerAt(layer, dx, dx, dy, pen, category, opaqueTexel)) {
             continue;
         }
         if (opaqueTexel && category == 1u) {
@@ -591,17 +619,23 @@ void main()
 #endif
     // Without 3D to widen, the side columns are plain black bars.
     const uint kOpaqueBlack = 0xff000000u;
+    uint mode        = pc.wideBelow & 0xffu;
+    uint spreadMask  = pc.wideBelow >> 28u;
     if (onScreen) {
         if (pc.columns != 0u) {
             recordPanorama(dx, dy);
         }
         uint below, above;
-        compositeLayers(dx, dy, below, above);
+        if (spreadMask != 0u) {
+            compositeMasked(dx, dy, ~spreadMask & 0xfu, below, above);
+        } else {
+            compositeLayers(dx, dy, below, above);
+        }
         uBelow[index] = below;
         uAbove[index] = above;
     } else {
         uint below = kOpaqueBlack;
-        if (pc.wideBelow != 0u) {
+        if (mode != 0u) {
             bool refused;
             below = compositeSide(dx, sx, dy, refused);
             if (refused) {
@@ -609,6 +643,40 @@ void main()
             }
         }
         uBelow[index] = below;
-        uAbove[index] = pc.wideBelow != 0u ? aboveSide(sx < 0, dy) : 0u;
+        uAbove[index] = mode != 0u && spreadMask == 0u ? aboveSide(sx < 0, dy) : 0u;
+    }
+
+    // The spread HUD. An output column can show screen column ox (the left
+    // part, moved out), ox - c (staying in the middle) or ox - 2c (the right
+    // part). What lies within a band's bounds is HUD and moves; anything else,
+    // a centred message, stays. The HUD layers' pixels behind the 3D move too.
+    if (spreadMask != 0u) {
+        uint band       = min(dy / 48u, 7u);
+        uint bounds     = (pc.hud[band >> 1u] >> (16u * (band & 1u))) & 0xffffu;
+        uint leftReach  = 2u * (bounds & 0xffu);
+        uint rightStart = 2u * (bounds >> 8u);
+        uint c          = pc.columns;
+        uvec2 left   = uvec2(0u);  // below, above
+        uvec2 middle = uvec2(0u);
+        uvec2 right  = uvec2(0u);
+        if (ox < leftReach) {
+            compositeMasked(ox, dy, spreadMask, left.x, left.y);
+        }
+        uint src = ox - c;
+        if (ox >= c && src < kScreenWidth && src >= leftReach && (rightStart == 0u || src < rightStart)) {
+            compositeMasked(src, dy, spreadMask, middle.x, middle.y);
+        }
+        if (rightStart != 0u && ox >= 2u * c + rightStart && ox < 2u * c + kScreenWidth) {
+            compositeMasked(ox - 2u * c, dy, spreadMask, right.x, right.y);
+        }
+        uvec2 shown = (left.x | left.y) != 0u     ? left
+                    : (right.x | right.y) != 0u   ? right
+                                                  : middle;
+        if (shown.x != 0u) {
+            uBelow[index] = shown.x;
+        }
+        if (shown.y != 0u) {
+            uAbove[index] = shown.y;
+        }
     }
 }

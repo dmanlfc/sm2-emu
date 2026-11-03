@@ -513,6 +513,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM 目录"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Model 1 ROM 压缩包所在的位置。\n"
+"留空表示 ROM 目录。"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "存档目录"
 
@@ -2036,3 +2050,78 @@ msgstr "暂无简介。"
 #~ "的方向盘或面板（例如通过 vJoy 的街机面板）仍能操控游戏，\n"
 #~ "其按键和轴也可在下方绑定，无需再点回此窗口。\n"
 #~ "键盘和鼠标仍需窗口在前台。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "激光"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "鱼雷"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "视角"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "油门"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "加油门"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "减油门"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "操纵杆"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "机枪"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "烟雾"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "摇杆"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "槽位按本游戏的操作命名；变暗的槽位不使用。显示快捷键会列出 Guide 组合键。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "视角 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "视角 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "视角 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "视角 4"

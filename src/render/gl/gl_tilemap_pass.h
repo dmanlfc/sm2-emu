@@ -23,6 +23,7 @@
 #include "render/gl/gl_common.h"
 #include "render/geometry.h"
 
+#include <array>
 #include <span>
 #include <vector>
 
@@ -54,6 +55,7 @@ public:
     /// resort; 2: fill the sides, black where only a mirror would do; 3: as 2,
     /// but only for a menu panel (a row-scroll layer's foreground tile).
     void set_wide_below(u32 mode) { m_wide_below = mode; }
+    void set_hud_bands(const std::array<u32, 4>& bands) { m_hud_bands = bands; }
     void shutdown();
 
     /// As render::vk::TilemapPass::compute(): dispatch the compose shader
@@ -106,6 +108,7 @@ private:
 
     u32  m_columns         = 0;
     u32  m_wide_below      = 0;
+    std::array<u32, 4> m_hud_bands{};
     u32  m_composed_wide   = 0;      ///< m_wide_below at the last dispatch
     u32  m_compute_ubo     = 0;
 

@@ -469,6 +469,18 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr ""
 
@@ -1837,4 +1849,79 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "No description available."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
 msgstr ""

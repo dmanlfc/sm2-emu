@@ -162,8 +162,8 @@ void MultiPcm::serialize(Archive& ar)
         ar.raw(slot.prev_sample);
         ar.raw(slot.envelope);
         ar.raw(slot.lfo_frequency);
-        // The two LFOs' table/scale pointers are re-derived below; only their
-        // phase/phase_step are durable.
+        // The two LFOs' table/scale pointers are re-derived below; their
+        // phase/phase_step are kept as saved.
         ar.raw(slot.pitch_lfo.phase);
         ar.raw(slot.pitch_lfo.phase_step);
         ar.raw(slot.vibrato);
@@ -173,8 +173,12 @@ void MultiPcm::serialize(Archive& ar)
     }
     if (ar.loading() && !ar.failed()) {
         for (Slot& slot : m_slots) {
+            const u32 pitch_step     = slot.pitch_lfo.phase_step;
+            const u32 amplitude_step = slot.amplitude_lfo.phase_step;
             lfo_compute_step(slot.pitch_lfo, slot.lfo_frequency, slot.vibrato, false);
             lfo_compute_step(slot.amplitude_lfo, slot.lfo_frequency, slot.tremolo, true);
+            slot.pitch_lfo.phase_step     = pitch_step;
+            slot.amplitude_lfo.phase_step = amplitude_step;
         }
     }
 }

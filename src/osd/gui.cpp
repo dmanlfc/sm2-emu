@@ -36,6 +36,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <span>
 #include <string_view>
@@ -938,6 +939,11 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                       DirPickerTarget::RomDir,
                       N_("Where the ROM archives live. A game launched by name is\n"
                          "loaded from here as <name>.zip or <name>.7z."));
+            ImGui::Spacing();
+            dir_field(N_("Model 1 ROM directory"), "##model1romdir", config.model1_rom_dir,
+                      DirPickerTarget::Model1RomDir,
+                      N_("Where the Model 1 ROM archives live.\n"
+                         "Empty means the ROM directory."));
             ImGui::Spacing();
             dir_field(N_("Saves directory"), "##saves", config.nvram_dir,
                       DirPickerTarget::NvramDir,
@@ -2065,7 +2071,38 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
                  : gun_family->missile                                       ? N_("Missile")
                                                                               : N_("Gun Reload");
         }
-        draw->AddText(ImVec2(pos.x + 10.0f * s, text_y), IM_COL32(230, 232, 236, 255), tr(name));
+        // Titles with their own cabinet controls name each slot after what it
+        // does there; a slot the title has no use for is dimmed.
+        struct Named {
+            const char* family;
+            const char* slot;
+            const char* name;  // nullptr: not used
+        };
+        static const Named kNamed[] = {
+            {"swa", "Brake", N_("Laser")},          {"swa", "Accelerator", N_("Torpedo")},
+            {"swa", "Button 1", N_("Laser")},       {"swa", "Button 2", N_("Torpedo")},
+            {"swa", "Button 3", N_("View")},        {"swa", "Button 4", nullptr},
+            {"swa", "Move Up", N_("Throttle Up")},  {"swa", "Move Down", N_("Throttle Down")},
+            {"swa", "Move Left", nullptr},          {"swa", "Move Right", nullptr},
+            {"swa", "Gear Up", nullptr},            {"swa", "Gear Down", nullptr},
+            {"swa", "Steer / Aim", N_("Yoke")},     {"swa", "Right Lever", N_("Throttle")},
+            {"wingwar", "Button 1", N_("Machine Gun")}, {"wingwar", "Button 2", N_("Missile")},
+            {"wingwar", "Button 3", N_("Smoke")},   {"wingwar", "Button 4", nullptr},
+            {"wingwar", "Move Up", N_("View 1")},   {"wingwar", "Move Right", N_("View 2")},
+            {"wingwar", "Move Down", N_("View 3")}, {"wingwar", "Move Left", N_("View 4")},
+            {"wingwar", "Brake", nullptr},          {"wingwar", "Accelerator", nullptr},
+            {"wingwar", "Gear Up", nullptr},        {"wingwar", "Gear Down", nullptr},
+            {"wingwar", "Steer / Aim", N_("Stick")}, {"wingwar", "Right Lever", nullptr},
+        };
+        bool unused = false;
+        for (const Named& named : kNamed) {
+            if (m_pad_family == named.family && std::strcmp(slot.name, named.slot) == 0) {
+                name   = named.name != nullptr ? named.name : slot.name;
+                unused = named.name == nullptr;
+            }
+        }
+        draw->AddText(ImVec2(pos.x + 10.0f * s, text_y),
+                      unused ? IM_COL32(120, 124, 132, 255) : IM_COL32(230, 232, 236, 255), tr(name));
         if (capturing) {
             value = is_axis ? tr("operate it...") : tr("press a button...");
         }
@@ -2203,6 +2240,9 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         ImGui::TextDisabled("%s", tr("Hold Guide, then press the other button; the game does not see "
                             "them. Exit goes back to the games when there are some. Service and Test "
                             "always work."));
+    } else if (m_pad_family == "swa" || m_pad_family == "wingwar") {
+        ImGui::TextDisabled("%s", tr("Slots are named for this game's controls; dimmed ones are not "
+                            "used. Show shortcuts lists the Guide combinations."));
     } else {
         ImGui::TextDisabled("%s", tr("The left stick also moves; the shoulders also act as Button 3/4. "
                             "Right Lever is Virtual On's. Show shortcuts lists the Guide combinations."));
@@ -3346,6 +3386,7 @@ void Gui::draw_dir_picker_popup(Config& config)
     if (ImGui::Button(tr_id("Select This Folder"))) {
         switch (m_dir_picker_target) {
             case DirPickerTarget::RomDir:        config.rom_dir        = m_dir_picker_path; break;
+            case DirPickerTarget::Model1RomDir:  config.model1_rom_dir = m_dir_picker_path; break;
             case DirPickerTarget::NvramDir:      config.nvram_dir      = m_dir_picker_path; break;
             case DirPickerTarget::ScreenshotDir: config.screenshot_dir = m_dir_picker_path; break;
             case DirPickerTarget::BezelDir: config.bezel_dir = m_dir_picker_path; break;

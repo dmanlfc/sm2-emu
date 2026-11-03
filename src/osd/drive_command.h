@@ -20,6 +20,8 @@
 #include "core/types.h"
 #include "rom/game.h"
 
+#include <optional>
+
 namespace sm2::osd {
 
 /// Full strength of a decoded command: the strongest push a board can be asked for.
@@ -63,5 +65,18 @@ struct DriveCommand {
 };
 
 [[nodiscard]] DriveCommand decode_drive_command(rom::DriveProtocol protocol, u8 value);
+
+/// Whether the protocol is played on DaytonaBoard.
+[[nodiscard]] inline bool daytona_board(rom::DriveProtocol protocol)
+{
+    return protocol == rom::DriveProtocol::Daytona || protocol == rom::DriveProtocol::Vr;
+}
+
+/// Virtua Racing's byte as Daytona's board takes it, or nullopt for one that is
+/// not for the wheel. Per SailorSat's DriveTranslation.bas, which drives a
+/// Daytona board from it: strengths are halved, 0x3x takes the wider
+/// deadzone, 0x7x is the seat's air bags and 0x9x the meter. 0x20-0x24 are the
+/// handle modes the game's own drive board test names.
+[[nodiscard]] std::optional<u8> vr_to_daytona(u8 value);
 
 }  // namespace sm2::osd

@@ -512,6 +512,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM-ide kaust"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Kus asuvad Model 1 ROM-arhiivid.\n"
+"Tühi tähendab ROM-ide kausta."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Salvestuste kaust"
 
@@ -2050,3 +2064,78 @@ msgstr "Kirjeldus puudub."
 #~ "automaadi paneel vJoy kaudu) juhib endiselt mängu ning selle\n"
 #~ "nuppe ja telgi saab allpool määrata ilma sellesse aknasse\n"
 #~ "tagasi klõpsamata. Klaviatuur ja hiir vajavad endiselt akent ees."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "Laser"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Torpeedo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Vaade"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Gaas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "Rohkem gaasi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "Vähem gaasi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Juhtrool"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Kuulipilduja"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Suits"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Juhtkang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "Lahtrid on nimetatud selle mängu juhtnuppude järgi; tuhmid pole kasutusel. Näita otseteid loetleb Guide'i kombinatsioonid."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Vaade 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Vaade 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Vaade 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Vaade 4"

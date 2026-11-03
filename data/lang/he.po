@@ -510,6 +510,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "תיקיית ROM של Model 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"היכן נמצאים ארכיוני ה-ROM של Model 1.\n"
+"ריק פירושו תיקיית ה-ROM."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "תיקיית שמירות"
 
@@ -2041,3 +2055,78 @@ msgstr "אין תיאור זמין."
 #~ "vJoy) ממשיך לנהוג במשחק, ואפשר לשייך את הכפתורים והצירים\n"
 #~ "שלו למטה בלי ללחוץ שוב על החלון הזה. המקלדת והעכבר עדיין\n"
 #~ "דורשים שהחלון יהיה בחזית."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "לייזר"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "טורפדו"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "תצוגה"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "מצערת"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "הגבר מצערת"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "הנמך מצערת"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "הגה טיסה"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "מקלע"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "עשן"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "סטיק"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "המשבצות נקראות לפי הפקדים של משחק זה; המעומעמות אינן בשימוש. הצגת קיצורים מציגה את צירופי Guide."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "תצוגה 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "תצוגה 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "תצוגה 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "תצוגה 4"

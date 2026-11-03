@@ -126,9 +126,38 @@ DriveCommand decode_rally(u8 value)
 
 }  // namespace
 
+std::optional<u8> vr_to_daytona(u8 value)
+{
+    const u8 group = value & 0xf0;
+    const u8 low   = value & 0x0f;
+    switch (value) {
+        // The handle modes, as the game's DRIVE BD TEST labels them.
+        case 0x20:
+        case 0x21: return u8{0x33};  // centering
+        case 0x22: return u8{0x53};  // roll left
+        case 0x23: return u8{0x63};  // roll right
+        case 0x24: return u8{0x10};  // free
+        default:   break;
+    }
+    switch (group) {
+        case 0x20:
+        case 0x40:
+        case 0x50:
+        case 0x60: return static_cast<u8>(group | (low >> 1));
+        case 0x30: return static_cast<u8>(0x38 | (low >> 1));
+        case 0x70:
+        case 0x90: return std::nullopt;
+        default:   return value;
+    }
+}
+
 DriveCommand decode_drive_command(rom::DriveProtocol protocol, u8 value)
 {
     switch (protocol) {
+        case rom::DriveProtocol::Vr: {
+            const std::optional<u8> board = vr_to_daytona(value);
+            return board ? decode_daytona(*board) : DriveCommand{Effect::Other};
+        }
         case rom::DriveProtocol::Indy:  return decode_indy(value);
         case rom::DriveProtocol::Rally: return decode_rally(value);
         case rom::DriveProtocol::Daytona:

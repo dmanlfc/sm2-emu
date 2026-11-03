@@ -35,6 +35,7 @@
 #include "core/types.h"
 #include "cpu/bus.h"
 #include "cpu/m68000/m68000.h"
+#include "hw/dsbz80.h"
 #include "hw/i8251.h"
 #include "hw/multipcm.h"
 #include "hw/sound_board.h"
@@ -67,9 +68,18 @@ public:
                 std::span<const u8> pcm1,
                 std::span<const u8> pcm2);
 
-    /// Output level in 1/256 units. The two MultiPCMs and the YM3438 can sum
-    /// well past full scale, so each set is brought under the final clamp.
-    void set_gain(u16 gain) { m_gain = gain; }
+    /// Output level in 1/256 units, music board included. The two MultiPCMs and
+    /// the YM3438 can sum well past full scale, so each set is brought under the
+    /// final clamp.
+    void set_gain(u16 gain)
+    {
+        m_gain = gain;
+        m_dsb.set_gain(gain);
+    }
+
+    /// The MPEG music board some Model 1 sets add (Star Wars). It listens to
+    /// what this board sends back to the host and mixes into this board's output.
+    void attach_dsb(std::span<const u8> program, std::span<const u8> mpeg) { m_dsb.attach(program, mpeg); }
 
     void reset();
 
@@ -160,6 +170,7 @@ private:
 
     MultiPcm m_pcm[2];
     Ym3438   m_ym;
+    DsbZ80   m_dsb;
 
     std::span<const u8> m_program_rom;
 

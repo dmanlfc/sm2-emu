@@ -510,6 +510,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM ڈائریکٹری"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Model 1 ROM آرکائیوز کی جگہ۔\n"
+"خالی کا مطلب ROM ڈائریکٹری ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "سیو ڈائریکٹری"
 
@@ -2046,3 +2060,78 @@ msgstr "کوئی تفصیل دستیاب نہیں۔"
 #~ "(مثلاً vJoy کے ذریعے کیبنٹ پینل) پھر بھی گیم چلاتا ہے، اور اس\n"
 #~ "ونڈو میں دوبارہ کلک کیے بغیر نیچے اس کے بٹن اور محور جوڑے جا\n"
 #~ "سکتے ہیں۔ کی بورڈ اور ماؤس کے لیے ونڈو کا سامنے ہونا ضروری ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "لیزر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "تارپیڈو"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "منظر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "تھروٹل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "تھروٹل بڑھائیں"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "تھروٹل گھٹائیں"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "یوک"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "مشین گن"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "دھواں"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "اسٹک"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "خانوں کے نام اس گیم کے کنٹرولز پر ہیں؛ مدھم خانے استعمال نہیں ہوتے۔ شارٹ کٹس دکھائیں Guide کے مجموعے دکھاتا ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "منظر 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "منظر 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "منظر 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "منظر 4"

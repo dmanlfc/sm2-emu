@@ -516,6 +516,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 -ROM-kansio"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Missä Model 1 -ROM-arkistot ovat.\n"
+"Tyhjä tarkoittaa ROM-kansiota."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Tallennuskansio"
 
@@ -2059,3 +2073,78 @@ msgstr "Kuvausta ei ole saatavilla."
 #~ "pelikoneen paneeli vJoyn kautta) ohjaa yhä peliä, ja sen\n"
 #~ "painikkeet ja akselit voi määrittää alla napsauttamatta takaisin\n"
 #~ "tähän ikkunaan. Näppäimistö ja hiiri vaativat yhä ikkunan eteen."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "Laser"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Torpedo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Näkymä"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Kaasu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "Lisää kaasua"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "Vähemmän kaasua"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Ohjaussauva"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Konekivääri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Savu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Tikku"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "Paikat on nimetty tämän pelin ohjainten mukaan; himmennettyjä ei käytetä. Näytä pikavalinnat listaa Guide-yhdistelmät."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Näkymä 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Näkymä 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Näkymä 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Näkymä 4"

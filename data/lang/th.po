@@ -515,6 +515,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "ไดเรกทอรี ROM ของ Model 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"ตำแหน่งที่เก็บไฟล์ ROM ของ Model 1\n"
+"เว้นว่างหมายถึงไดเรกทอรี ROM"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "ไดเรกทอรีเซฟ"
 
@@ -2040,3 +2054,78 @@ msgstr "ไม่มีคำอธิบาย"
 #~ "ผ่าน vJoy) ยังบังคับเกมได้ และกำหนดปุ่มกับแกนของมันได้ด้านล่าง\n"
 #~ "โดยไม่ต้องคลิกกลับมาที่หน้าต่างนี้ คีย์บอร์ดและเมาส์ยังต้องให้\n"
 #~ "หน้าต่างอยู่ด้านหน้า"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "เลเซอร์"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "ตอร์ปิโด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "มุมมอง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "คันเร่ง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "เร่งขึ้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "ลดคันเร่ง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "คันบังคับ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "ปืนกล"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "ควัน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "สติก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "ช่องตั้งชื่อตามปุ่มของเกมนี้ ช่องที่จางไม่ได้ใช้ แสดงทางลัด จะแสดงรายการชุดปุ่ม Guide"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "มุมมอง 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "มุมมอง 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "มุมมอง 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "มุมมอง 4"

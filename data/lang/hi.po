@@ -515,6 +515,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM डायरेक्टरी"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Model 1 ROM आर्काइव जहाँ रखे हैं।\n"
+"खाली का अर्थ है ROM डायरेक्टरी।"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "सेव डायरेक्टरी"
 
@@ -2047,3 +2061,78 @@ msgstr "कोई विवरण उपलब्ध नहीं।"
 #~ "vJoy से कैबिनेट पैनल) फिर भी गेम चलाता है, और इस विंडो में\n"
 #~ "वापस क्लिक किए बिना नीचे उसके बटन और अक्ष जोड़े जा सकते हैं।\n"
 #~ "कीबोर्ड और माउस के लिए विंडो सामने होनी चाहिए।"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "लेज़र"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "टॉरपीडो"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "व्यू"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "थ्रॉटल"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "थ्रॉटल बढ़ाएँ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "थ्रॉटल घटाएँ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "योक"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "मशीन गन"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "धुआँ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "स्टिक"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "स्लॉट इस गेम के कंट्रोल के नाम पर हैं; धुंधले वाले इस्तेमाल नहीं होते। बायाँ स्टिक भी चलाता है; शोल्डर बटन Button 3/4 का भी काम करते हैं। दायाँ लीवर Virtual On के लिए है। शॉर्टकट दिखाएँ Guide संयोजनों की सूची देता है।"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "व्यू 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "व्यू 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "व्यू 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "व्यू 4"

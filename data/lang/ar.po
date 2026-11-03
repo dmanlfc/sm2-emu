@@ -511,6 +511,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "مجلد ROM لـ Model 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"مكان أرشيفات ROM لـ Model 1.\n"
+"الفارغ يعني مجلد ROM."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "مجلد الحفظ"
 
@@ -2048,3 +2062,78 @@ msgstr "لا يتوفر وصف."
 #~ "يبقى يوجّه اللعبة، ويمكن ربط أزرارها ومحاورها أدناه دون\n"
 #~ "العودة بالنقر إلى هذه النافذة. أما لوحة المفاتيح والفأرة\n"
 #~ "فتحتاجان إلى النافذة في المقدمة."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "ليزر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "طوربيد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "العرض"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "دواسة الوقود"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "زيادة السرعة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "خفض السرعة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "مقود الطيران"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "رشاش"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "دخان"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "عصا"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "الخانات مسماة حسب أزرار هذه اللعبة؛ الباهتة غير مستخدمة. عرض الاختصارات يسرد تركيبات Guide."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "العرض 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "العرض 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "العرض 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "العرض 4"

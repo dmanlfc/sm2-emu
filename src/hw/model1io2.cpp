@@ -438,9 +438,17 @@ u8 Model1io2::io_read8(u16 port)
     }
     if (low >= kSioBase && low < kSioBase + 4) {
         // Nothing is connected to either channel, so the receiver never has a
-        // character and the transmitter is always free. This firmware never reads
-        // the SIO at all; the value is here so that a read cannot look like data.
-        return 0x00;
+        // character and the transmitter is always free. Wing War's firmware
+        // writes to channel A and waits on Tx buffer empty before each byte.
+        // MAME's cd_ba layout: A data, A control, B data, B control.
+        const u32 offset  = low - kSioBase;
+        const u32 channel = (offset >> 1) & 1;
+        if ((offset & 1) == 0) {
+            return 0x00;
+        }
+        const u8 reg = m_sio_pointer[channel];
+        m_sio_pointer[channel] = 0;
+        return reg == 1 ? u8{0x01} : u8{0x04};  // RR1 all sent; RR0 Tx empty
     }
     if (low == kWdtmrPort) {
         return 0xff;
@@ -467,9 +475,11 @@ void Model1io2::io_write8(u16 port, u8 value)
         // Track the register pointer so a data byte written to a control port
         // cannot be mistaken for a command. Nothing else needs modelling: the
         // firmware only configures a terminal that is not plugged in.
-        const u32 channel = (low - kSioBase) & 1;
-        if ((low - kSioBase) >= 2) {
-            m_sio_pointer[channel] = static_cast<u8>(value & 0x07);
+        const u32 offset  = low - kSioBase;
+        const u32 channel = (offset >> 1) & 1;
+        if ((offset & 1) != 0) {
+            // WR0 selects the next register; any other write returns to WR0.
+            m_sio_pointer[channel] = m_sio_pointer[channel] == 0 ? static_cast<u8>(value & 0x07) : u8{0};
         }
         return;
     }

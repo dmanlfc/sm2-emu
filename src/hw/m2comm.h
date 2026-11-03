@@ -35,6 +35,7 @@
 #pragma once
 
 #include "core/types.h"
+#include "hw/comm_board.h"
 #include "hw/comm_transport.h"
 
 #include <array>
@@ -47,7 +48,7 @@ class Archive;
 
 namespace sm2::hw {
 
-class M2Comm {
+class M2Comm final : public CommBoard {
 public:
     /// The shared RAM the i960 sees at 0x01a00000. The board does not own it:
     /// the i960 reaches it as a burst-capable memory window, so it lives with
@@ -67,7 +68,7 @@ public:
 
     /// Swap the frame transport (takes ownership); nullptr restores the default
     /// loopback. A LAN transport (comm_udp.h) is injected when linking is on.
-    void set_transport(std::unique_ptr<CommTransport> transport);
+    void set_transport(std::unique_ptr<CommTransport> transport) override;
 
     /// `comm_framesync`. MAME defaults it off, so the board does not make the
     /// host wait for the ring before finishing a frame.
@@ -92,10 +93,10 @@ public:
 
     // -- diagnostics ------------------------------------------------------
 
-    [[nodiscard]] bool link_alive() const { return m_linkalive == 0x01; }
-    [[nodiscard]] u8   link_id() const { return m_linkid; }
-    [[nodiscard]] u8   link_count() const { return m_linkcount; }
-    [[nodiscard]] bool enabled() const { return m_linkenable != 0; }
+    [[nodiscard]] bool link_alive() const override { return m_linkalive == 0x01; }
+    [[nodiscard]] u8   link_id() const override { return m_linkid; }
+    [[nodiscard]] u8   link_count() const override { return m_linkcount; }
+    [[nodiscard]] bool enabled() const override { return m_linkenable != 0; }
 
     /// Whether the underlying transport still believes it can carry frames.
     /// Always true for the loopback; a socket transport reports the peer state.

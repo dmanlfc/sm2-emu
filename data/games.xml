@@ -123,12 +123,19 @@
   `gearbox="true"` marks a title whose IN1 bits 0x70 read a gear selector
   rather than buttons (MAME's daytona_gearbox_r). `drive_board="true"` marks
   one that latches force-feedback commands on port E. `drive_protocol` says how
-  to read them: "daytona" (the default), "indy" or "rally"; "stcc" reads as
-  "indy", Touring Car's board being Indy 500's.
+  to read them: "daytona" (the default), "indy", "rally" or "vr"; "stcc" reads
+  as "indy", Touring Car's board being Indy 500's.
 
   `shift_buttons="true"` marks a title that shifts with two momentary buttons,
   Shift Up on IN1 0x10 and Shift Down on IN1 0x20, rather than the 0x70 gate
   (Indy 500, Manx TT and family).
+
+  `hud_spread="L,R,layers"` spreads the HUD in widescreen: a 3D HUD object
+  wholly left of screen column L moves to the left edge, wholly right of R to
+  the right edge; `layers` is a bit per tile layer the 2D HUD is drawn on.
+  `hud_bands` then gives the 2D HUD's bounds, eight left:right pairs for bands
+  of 48 rows: what lies left of the first moves left, from the second on moves
+  right, 0 for none.
 
   `vr_buttons="inN:0xMM,..."` places the four wheel action buttons (which a
   driving cabinet's view/VR buttons land on) when they are not player one's
@@ -6208,6 +6215,699 @@
       <region name="samples" size="0x400000" stride="2" chunk="2" byte_swap="true">
         <file name="mpr-20303.32" offset="0x000000" crc="0xc040973f"/>
         <file name="mpr-20304.33" offset="0x200000" crc="0x6decfe83"/>
+      </region>
+    </roms>
+  </game>
+
+  <!-- Sega Model 1. ROM layouts from MAME's src/mame/sega/model1.cpp. -->
+
+  <game name="vr" board="model1" shift_buttons="true" drive_board="true" drive_protocol="vr" vr_buttons="in0:0x20,in0:0x40,in0:0x80,in1:0x01" hud_spread="160,336,1"
+        hud_bands="160:360,140:360,100:360,100:0,0:0,0:0,160:360,160:360">
+    <title>Virtua Racing</title>
+    <manufacturer>Sega</manufacturer>
+    <year>1992</year>
+    <devices>
+      <device name="model1io"/>
+    </devices>
+
+    <inputs>
+      <input type="common"/>
+      <input type="vehicle"/>
+    </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model1_state::vr; travel from the
+         owner's manual's input test. -->
+    <analog>
+      <channel index="0" control="steer" min="0x30" max="0xd0" rest="0x80"/>
+      <channel index="1" control="accel" min="0x30" max="0xcd" rest="0x30"/>
+      <channel index="2" control="brake" min="0x30" max="0xa7" rest="0x30"/>
+    </analog>
+
+    <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-14869.25" offset="0x000000" crc="0x6187cd7a"/>
+      </region>
+      <region name="copro_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr14742.bin" offset="0x000000" crc="0x446a1085"/>
+        <file name="opr14743.bin" offset="0x000002" crc="0xe8953554"/>
+      </region>
+      <region name="maincpu" size="0x2000000" stride="2" chunk="1" fill="0xff">
+        <file name="epr-14882.14" offset="0x200000" crc="0x547d75ad"/>
+        <file name="epr-14883.15" offset="0x200001" crc="0x6bfad8b1"/>
+        <file name="epr-14878a.4" offset="0xfc0000" crc="0x6d69e695" stride="1" chunk="1"/>
+        <file name="epr-14879a.5" offset="0xfe0000" crc="0xd45af9dd" stride="1" chunk="1"/>
+        <file name="mpr-14880.6" offset="0x1000000" crc="0xadc7c208"/>
+        <file name="mpr-14881.7" offset="0x1000001" crc="0xe5ab89df"/>
+        <file name="mpr-14884.8" offset="0x1100000" crc="0x6cf9c026"/>
+        <file name="mpr-14885.9" offset="0x1100001" crc="0xf65c9262"/>
+        <file name="mpr-14886.10" offset="0x1200000" crc="0x92868734"/>
+        <file name="mpr-14887.11" offset="0x1200001" crc="0x10c7c636"/>
+        <file name="mpr-14888.12" offset="0x1300000" crc="0x04bfdc5b"/>
+        <file name="mpr-14889.13" offset="0x1300001" crc="0xc49f0486"/>
+      </region>
+      <region name="tgp_copro" size="0x2000">
+        <file name="315-5573.bin" offset="0x000000" crc="0x3335a19b"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-14870a.7" offset="0x000000" crc="0x919d9b75"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-14873.32" offset="0x000000" crc="0xb1965190"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-14876.4" offset="0x000000" crc="0xba6b2327"/>
+      </region>
+      <region name="polygons" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-14890.26" offset="0x000000" crc="0xdcbe006b"/>
+        <file name="mpr-14891.27" offset="0x000002" crc="0x25832b38"/>
+        <file name="mpr-14892.28" offset="0x400000" crc="0x5136f3ba"/>
+        <file name="mpr-14893.29" offset="0x400002" crc="0x1c531ada"/>
+        <file name="mpr-14894.30" offset="0x800000" crc="0x830a71bc"/>
+        <file name="mpr-14895.31" offset="0x800002" crc="0xaf027ac5"/>
+        <file name="mpr-14896.32" offset="0xc00000" crc="0x382091dc"/>
+        <file name="mpr-14897.33" offset="0xc00002" crc="0x74873195"/>
+      </region>
+      <region name="copro_data" size="0x200000" stride="4" chunk="1">
+        <file name="mpr-14898.39" offset="0x000000" crc="0x61da2bb6"/>
+        <file name="mpr-14899.40" offset="0x000001" crc="0x2cd58bee"/>
+        <file name="mpr-14900.41" offset="0x000002" crc="0xaa7c017d"/>
+        <file name="mpr-14901.42" offset="0x000003" crc="0x175b7a9a"/>
+      </region>
+      <region name="eeprom" size="0x80" required="false">
+        <file name="93c45.bin" offset="0x000000" crc="0x65aac303"/>
+      </region>
+    </roms>
+  </game>
+
+  <game name="vformula" parent="vr" board="model1" shift_buttons="true" drive_board="true" drive_protocol="vr" vr_buttons="in0:0x20,in0:0x40,in0:0x80,in1:0x01">
+    <title>Virtua Formula</title>
+    <manufacturer>Sega</manufacturer>
+    <year>1993</year>
+    <devices>
+      <device name="model1io"/>
+    </devices>
+
+    <inputs>
+      <input type="common"/>
+      <input type="vehicle"/>
+    </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model1_state::vr; travel from the
+         owner's manual's input test. -->
+    <analog>
+      <channel index="0" control="steer" min="0x30" max="0xd0" rest="0x80"/>
+      <channel index="1" control="accel" min="0x30" max="0xcd" rest="0x30"/>
+      <channel index="2" control="brake" min="0x30" max="0xa7" rest="0x30"/>
+    </analog>
+
+    <roms>
+      <region name="copro_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr14742.bin" offset="0x000000" crc="0x446a1085"/>
+        <file name="opr14743.bin" offset="0x000002" crc="0xe8953554"/>
+      </region>
+      <region name="maincpu" size="0x2000000" stride="2" chunk="1" fill="0xff">
+        <file name="epr-15638.14" offset="0x200000" crc="0xb9db21a2"/>
+        <file name="epr-15639.15" offset="0x200001" crc="0x4c3796f5"/>
+        <file name="epr-15623.4" offset="0xfc0000" crc="0x155fa5be" stride="1" chunk="1"/>
+        <file name="epr-15622.5" offset="0xfe0000" crc="0x18007f6f" stride="1" chunk="1"/>
+        <file name="epr-15641.6" offset="0x1000000" crc="0xbf01e4d5"/>
+        <file name="epr-15640.7" offset="0x1000001" crc="0x3e6d83dc"/>
+        <file name="mpr-14884.8" offset="0x1100000" crc="0x6cf9c026"/>
+        <file name="mpr-14885.9" offset="0x1100001" crc="0xf65c9262"/>
+        <file name="mpr-14886.10" offset="0x1200000" crc="0x92868734"/>
+        <file name="mpr-14887.11" offset="0x1200001" crc="0x10c7c636"/>
+        <file name="mpr-14888.12" offset="0x1300000" crc="0x04bfdc5b"/>
+        <file name="mpr-14889.13" offset="0x1300001" crc="0xc49f0486"/>
+      </region>
+      <region name="tgp_copro" size="0x2000">
+        <file name="315-5573.bin" offset="0x000000" crc="0x3335a19b"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-14870a.7" offset="0x000000" crc="0x919d9b75"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-14873.32" offset="0x000000" crc="0xb1965190"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-14876.4" offset="0x000000" crc="0xba6b2327"/>
+      </region>
+      <region name="polygons" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-14890.26" offset="0x000000" crc="0xdcbe006b"/>
+        <file name="mpr-14891.27" offset="0x000002" crc="0x25832b38"/>
+        <file name="mpr-14892.28" offset="0x400000" crc="0x5136f3ba"/>
+        <file name="mpr-14893.29" offset="0x400002" crc="0x1c531ada"/>
+        <file name="mpr-14894.30" offset="0x800000" crc="0x830a71bc"/>
+        <file name="mpr-14895.31" offset="0x800002" crc="0xaf027ac5"/>
+        <file name="mpr-14896.32" offset="0xc00000" crc="0x382091dc"/>
+        <file name="mpr-14897.33" offset="0xc00002" crc="0x74873195"/>
+      </region>
+      <region name="copro_data" size="0x200000" stride="4" chunk="1">
+        <file name="mpr-14898.39" offset="0x000000" crc="0x61da2bb6"/>
+        <file name="mpr-14899.40" offset="0x000001" crc="0x2cd58bee"/>
+        <file name="mpr-14900.41" offset="0x000002" crc="0xaa7c017d"/>
+        <file name="mpr-14901.42" offset="0x000003" crc="0x175b7a9a"/>
+      </region>
+    </roms>
+  </game>
+
+  <game name="vf" board="model1">
+    <title>Virtua Fighter</title>
+    <manufacturer>Sega</manufacturer>
+    <year>1993</year>
+    <devices>
+      <device name="model1io"/>
+    </devices>
+
+    <inputs>
+      <input type="common"/>
+      <input type="joystick1"/>
+      <input type="joystick2"/>
+      <input type="buttons3"/>
+    </inputs>
+
+    <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-14869b.25" offset="0x000000" crc="0x2d093304"/>
+      </region>
+      <region name="copro_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr14742.bin" offset="0x000000" crc="0x446a1085"/>
+        <file name="opr14743.bin" offset="0x000002" crc="0xe8953554"/>
+      </region>
+      <region name="maincpu" size="0x2000000" stride="2" chunk="1" fill="0xff">
+        <file name="epr-16082.14" offset="0x200000" crc="0xb23f22ee"/>
+        <file name="epr-16083.15" offset="0x200001" crc="0xd12c77f8"/>
+        <file name="epr-16080.4" offset="0xfc0000" crc="0x3662e1a5" stride="1" chunk="1"/>
+        <file name="epr-16081.5" offset="0xfe0000" crc="0x6dec06ce" stride="1" chunk="1"/>
+        <file name="mpr-16084.6" offset="0x1000000" crc="0x483f453b"/>
+        <file name="mpr-16085.7" offset="0x1000001" crc="0x5fa01277"/>
+        <file name="mpr-16086.8" offset="0x1100000" crc="0xdeac47a1"/>
+        <file name="mpr-16087.9" offset="0x1100001" crc="0x7a64daac"/>
+        <file name="mpr-16088.10" offset="0x1200000" crc="0xfcda2d1e"/>
+        <file name="mpr-16089.11" offset="0x1200001" crc="0x39befbe0"/>
+        <file name="mpr-16090.12" offset="0x1300000" crc="0x90c76831"/>
+        <file name="mpr-16091.13" offset="0x1300001" crc="0x53115448"/>
+      </region>
+      <region name="tgp_copro" size="0x2000">
+        <file name="315-5724.bin" offset="0x000000" crc="0x4b4f330e"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-16120.7" offset="0x000000" crc="0x2bff8378"/>
+        <file name="epr-16121.8" offset="0x020000" crc="0xff6723f9"/>
+        <copy from="0x020000" to="0x080000" size="0x20000"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-16122.32" offset="0x000000" crc="0x568bc64e"/>
+        <file name="mpr-16123.33" offset="0x200000" crc="0x15d78844"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-16124.4" offset="0x000000" crc="0x45520ba1"/>
+        <file name="mpr-16125.5" offset="0x200000" crc="0x9b4998b6"/>
+      </region>
+      <region name="polygons" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-16096.26" offset="0x000000" crc="0xa92b0bf3"/>
+        <file name="mpr-16097.27" offset="0x000002" crc="0x0232955a"/>
+        <file name="mpr-16098.28" offset="0x400000" crc="0xcf2e1b84"/>
+        <file name="mpr-16099.29" offset="0x400002" crc="0x20e46854"/>
+        <file name="mpr-16100.30" offset="0x800000" crc="0xe13e983d"/>
+        <file name="mpr-16101.31" offset="0x800002" crc="0x0dbed94d"/>
+        <file name="mpr-16102.32" offset="0xc00000" crc="0x4cb41fb6"/>
+        <file name="mpr-16103.33" offset="0xc00002" crc="0x526d1c76"/>
+      </region>
+    </roms>
+  </game>
+
+  <game name="swa" board="model1">
+    <title>Star Wars Arcade</title>
+    <version>US</version>
+    <manufacturer>Sega</manufacturer>
+    <year>1994</year>
+    <devices>
+      <device name="model1io"/>
+    </devices>
+
+    <inputs>
+      <input type="common"/>
+      <input type="buttons3"/>
+    </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model1_state::swa. -->
+    <analog>
+      <channel index="0" control="stickx" min="27" max="227" rest="0x7f" reverse="true"/>
+      <channel index="1" control="sticky" min="27" max="227" rest="0x7f"/>
+      <channel index="2" control="throttle" min="28" max="200" rest="0x7f" reverse="true"/>
+      <channel index="4" control="stick2x" min="27" max="227" rest="0x7f" reverse="true"/>
+      <channel index="5" control="stick2y" min="27" max="227" rest="0x7f"/>
+    </analog>
+
+    <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-14869b.25" offset="0x000000" crc="0x2d093304"/>
+      </region>
+      <region name="copro_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr14742.bin" offset="0x000000" crc="0x446a1085"/>
+        <file name="opr14743.bin" offset="0x000002" crc="0xe8953554"/>
+      </region>
+      <region name="maincpu" size="0x2000000" stride="2" chunk="1" fill="0xff">
+        <file name="epr-16669.14" offset="0x200000" crc="0x52e5e7e4"/>
+        <file name="epr-16670.15" offset="0x200001" crc="0x1e7ecabd"/>
+        <file name="epr-16668.5" offset="0xf80000" crc="0x9e112425" stride="1" chunk="1"/>
+        <copy from="0xf80000" to="0x000000" size="0x80000"/>
+        <copy from="0xf80000" to="0x080000" size="0x80000"/>
+      </region>
+      <region name="tgp_copro" size="0x2000">
+        <file name="315-5711.bin" offset="0x000000" crc="0x6a21f304" alt_crc="0xc5ddb8fc"/>
+        <!-- The older dump has two bit-1 faults; MAME #15649 repairs them. -->
+        <patch offset="0x22c" value="0xbf60059c"/>
+        <patch offset="0x19f8" value="0x39000000"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-16470.7" offset="0x000000" crc="0x7da18cf7"/>
+        <copy from="0x000000" to="0x080000" size="0x20000"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-16486.32" offset="0x000000" crc="0x7df50533"/>
+        <file name="mpr-16487.33" offset="0x200000" crc="0x31b28dfa"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-16484.4" offset="0x000000" crc="0x9d4c334d"/>
+        <file name="mpr-16485.5" offset="0x200000" crc="0x95aadcad"/>
+      </region>
+      <region name="dsbz80:mpegcpu" size="0x20000">
+        <file name="epr-16471.2" offset="0x000000" crc="0xf4ee84a4"/>
+      </region>
+      <region name="dsbz80:mpeg" size="0x800000">
+        <file name="mpr-16514.57" offset="0x000000" crc="0x3175b0be"/>
+        <file name="mpr-16515.58" offset="0x200000" crc="0x3114d748"/>
+      </region>
+      <region name="polygons" size="0xc00000" stride="4" chunk="2">
+        <file name="mpr-16476.26" offset="0x000000" crc="0xd48609ae"/>
+        <file name="mpr-16477.27" offset="0x000002" crc="0xb979b082"/>
+        <file name="mpr-16478.28" offset="0x400000" crc="0x80c780f7"/>
+        <file name="mpr-16479.29" offset="0x400002" crc="0xe43183b3"/>
+        <file name="mpr-16480.30" offset="0x800000" crc="0x3185547a"/>
+        <file name="mpr-16481.31" offset="0x800002" crc="0xce8d76fe"/>
+      </region>
+      <region name="copro_data" size="0x200000" stride="4" chunk="1">
+        <file name="mpr-16472.39" offset="0x000000" crc="0x5a0d7553"/>
+        <file name="mpr-16473.40" offset="0x000001" crc="0x876c5399"/>
+        <file name="mpr-16474.41" offset="0x000002" crc="0x5864a26f"/>
+        <file name="mpr-16475.42" offset="0x000003" crc="0xb9266be9"/>
+      </region>
+    </roms>
+  </game>
+
+  <game name="wingwar" board="model1" vr_buttons="in0:0x20,in0:0x40,in0:0x80,in1:0x01">
+    <title>Wing War</title>
+    <version>World</version>
+    <manufacturer>Sega</manufacturer>
+    <year>1994</year>
+    <devices>
+      <device name="model1io2"/>
+    </devices>
+
+    <inputs>
+      <input type="common"/>
+      <input type="joystick1"/>
+      <input type="buttons3"/>
+    </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model1_state::wingwar. -->
+    <analog>
+      <channel index="0" control="stickx" rest="0x80" reverse="true"/>
+      <channel index="1" control="sticky" rest="0x80"/>
+      <channel index="2" control="throttle" min="0x01" rest="0x01"/>
+    </analog>
+
+    <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-16891.6" offset="0x000000" crc="0xa33f84d1"/>
+      </region>
+      <region name="copro_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr14742.bin" offset="0x000000" crc="0x446a1085"/>
+        <file name="opr14743.bin" offset="0x000002" crc="0xe8953554"/>
+      </region>
+      <region name="maincpu" size="0x2000000" stride="2" chunk="1" fill="0xff">
+        <file name="epr-16729.14" offset="0x200000" crc="0x7edec2cc"/>
+        <file name="epr-16730.15" offset="0x200001" crc="0xbab24dee"/>
+        <file name="epr-16953.4" offset="0xfc0000" crc="0xc821a920" stride="1" chunk="1"/>
+        <file name="epr-16952.5" offset="0xfe0000" crc="0x03a3ecc5" stride="1" chunk="1"/>
+        <file name="mpr-16738.6" offset="0x1000000" crc="0x51518ffa"/>
+        <file name="mpr-16737.7" offset="0x1000001" crc="0x37b1379c"/>
+        <file name="mpr-16736.8" offset="0x1100000" crc="0x10b6a025"/>
+        <file name="mpr-16735.9" offset="0x1100001" crc="0xc82fd198"/>
+        <file name="mpr-16734.10" offset="0x1200000" crc="0xf76371c1"/>
+        <file name="mpr-16733.11" offset="0x1200001" crc="0xe105847b"/>
+        <copy from="0xfc0000" to="0x000000" size="0x20000"/>
+        <copy from="0xfe0000" to="0x020000" size="0x20000"/>
+      </region>
+      <region name="tgp_copro" size="0x2000">
+        <file name="315-5711.bin" offset="0x000000" crc="0x6a21f304" alt_crc="0xc5ddb8fc"/>
+        <!-- The older dump has two bit-1 faults; MAME #15649 repairs them. -->
+        <patch offset="0x22c" value="0xbf60059c"/>
+        <patch offset="0x19f8" value="0x39000000"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-17126.7" offset="0x000000" crc="0x50178e40"/>
+        <file name="epr-16752.8" offset="0x020000" crc="0x6541c48f"/>
+        <copy from="0x020000" to="0x080000" size="0x20000"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-16753.32" offset="0x000000" crc="0x324a8333"/>
+        <file name="mpr-16754.33" offset="0x200000" crc="0x144f3cf5"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-16755.4" offset="0x000000" crc="0x4baaf878"/>
+        <file name="mpr-16756.5" offset="0x200000" crc="0xd9c40672"/>
+      </region>
+      <region name="polygons" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-16743.26" offset="0x000000" crc="0xa710d33c"/>
+        <file name="mpr-16744.27" offset="0x000002" crc="0xde796e1f"/>
+        <file name="mpr-16745.28" offset="0x400000" crc="0x905b689c"/>
+        <file name="mpr-16746.29" offset="0x400002" crc="0x163b312e"/>
+        <file name="mpr-16747.30" offset="0x800000" crc="0x7353bb12"/>
+        <file name="mpr-16748.31" offset="0x800002" crc="0x8ce98d3a"/>
+        <file name="mpr-16749.32" offset="0xc00000" crc="0x0e36dc1a"/>
+        <file name="mpr-16750.33" offset="0xc00002" crc="0xe4f0b98d"/>
+      </region>
+      <region name="copro_data" size="0x200000" stride="4" chunk="1">
+        <file name="mpr-16741.39" offset="0x000000" crc="0x84b2ffd8"/>
+        <file name="mpr-16742.40" offset="0x000001" crc="0xe9cc12bb"/>
+        <file name="mpr-16739.41" offset="0x000002" crc="0x6c73e98f"/>
+        <file name="mpr-16740.42" offset="0x000003" crc="0x44b31007"/>
+      </region>
+    </roms>
+  </game>
+
+  <game name="wingwaru" parent="wingwar" board="model1" vr_buttons="in0:0x20,in0:0x40,in0:0x80,in1:0x01">
+    <title>Wing War</title>
+    <version>US</version>
+    <manufacturer>Sega</manufacturer>
+    <year>1994</year>
+    <devices>
+      <device name="model1io2"/>
+    </devices>
+
+    <inputs>
+      <input type="common"/>
+      <input type="joystick1"/>
+      <input type="buttons3"/>
+    </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model1_state::wingwar. -->
+    <analog>
+      <channel index="0" control="stickx" rest="0x80" reverse="true"/>
+      <channel index="1" control="sticky" rest="0x80"/>
+      <channel index="2" control="throttle" min="0x01" rest="0x01"/>
+    </analog>
+
+    <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-16891.6" offset="0x000000" crc="0xa33f84d1"/>
+      </region>
+      <region name="copro_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr14742.bin" offset="0x000000" crc="0x446a1085"/>
+        <file name="opr14743.bin" offset="0x000002" crc="0xe8953554"/>
+      </region>
+      <region name="maincpu" size="0x2000000" stride="2" chunk="1" fill="0xff">
+        <file name="epr-16729.14" offset="0x200000" crc="0x7edec2cc"/>
+        <file name="epr-16730.15" offset="0x200001" crc="0xbab24dee"/>
+        <file name="epr-16951.4" offset="0xfc0000" crc="0xfbe12d15" stride="1" chunk="1"/>
+        <file name="epr-16950.5" offset="0xfe0000" crc="0x841e2195" stride="1" chunk="1"/>
+        <file name="mpr-16738.6" offset="0x1000000" crc="0x51518ffa"/>
+        <file name="mpr-16737.7" offset="0x1000001" crc="0x37b1379c"/>
+        <file name="mpr-16736.8" offset="0x1100000" crc="0x10b6a025"/>
+        <file name="mpr-16735.9" offset="0x1100001" crc="0xc82fd198"/>
+        <file name="mpr-16734.10" offset="0x1200000" crc="0xf76371c1"/>
+        <file name="mpr-16733.11" offset="0x1200001" crc="0xe105847b"/>
+        <copy from="0xfc0000" to="0x000000" size="0x20000"/>
+        <copy from="0xfe0000" to="0x020000" size="0x20000"/>
+      </region>
+      <region name="tgp_copro" size="0x2000">
+        <file name="315-5711.bin" offset="0x000000" crc="0x6a21f304" alt_crc="0xc5ddb8fc"/>
+        <!-- The older dump has two bit-1 faults; MAME #15649 repairs them. -->
+        <patch offset="0x22c" value="0xbf60059c"/>
+        <patch offset="0x19f8" value="0x39000000"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-16751.7" offset="0x000000" crc="0x23ba5ebc"/>
+        <file name="epr-16752.8" offset="0x020000" crc="0x6541c48f"/>
+        <copy from="0x020000" to="0x080000" size="0x20000"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-16753.32" offset="0x000000" crc="0x324a8333"/>
+        <file name="mpr-16754.33" offset="0x200000" crc="0x144f3cf5"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-16755.4" offset="0x000000" crc="0x4baaf878"/>
+        <file name="mpr-16756.5" offset="0x200000" crc="0xd9c40672"/>
+      </region>
+      <region name="polygons" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-16743.26" offset="0x000000" crc="0xa710d33c"/>
+        <file name="mpr-16744.27" offset="0x000002" crc="0xde796e1f"/>
+        <file name="mpr-16745.28" offset="0x400000" crc="0x905b689c"/>
+        <file name="mpr-16746.29" offset="0x400002" crc="0x163b312e"/>
+        <file name="mpr-16747.30" offset="0x800000" crc="0x7353bb12"/>
+        <file name="mpr-16748.31" offset="0x800002" crc="0x8ce98d3a"/>
+        <file name="mpr-16749.32" offset="0xc00000" crc="0x0e36dc1a"/>
+        <file name="mpr-16750.33" offset="0xc00002" crc="0xe4f0b98d"/>
+      </region>
+      <region name="copro_data" size="0x200000" stride="4" chunk="1">
+        <file name="mpr-16741.39" offset="0x000000" crc="0x84b2ffd8"/>
+        <file name="mpr-16742.40" offset="0x000001" crc="0xe9cc12bb"/>
+        <file name="mpr-16739.41" offset="0x000002" crc="0x6c73e98f"/>
+        <file name="mpr-16740.42" offset="0x000003" crc="0x44b31007"/>
+      </region>
+    </roms>
+  </game>
+
+  <game name="wingwarj" parent="wingwar" board="model1" vr_buttons="in0:0x20,in0:0x40,in0:0x80,in1:0x01">
+    <title>Wing War</title>
+    <version>Japan</version>
+    <manufacturer>Sega</manufacturer>
+    <year>1994</year>
+    <devices>
+      <device name="model1io2"/>
+    </devices>
+
+    <inputs>
+      <input type="common"/>
+      <input type="joystick1"/>
+      <input type="buttons3"/>
+    </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model1_state::wingwar. -->
+    <analog>
+      <channel index="0" control="stickx" rest="0x80" reverse="true"/>
+      <channel index="1" control="sticky" rest="0x80"/>
+      <channel index="2" control="throttle" min="0x01" rest="0x01"/>
+    </analog>
+
+    <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-16891.6" offset="0x000000" crc="0xa33f84d1"/>
+      </region>
+      <region name="copro_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr14742.bin" offset="0x000000" crc="0x446a1085"/>
+        <file name="opr14743.bin" offset="0x000002" crc="0xe8953554"/>
+      </region>
+      <region name="maincpu" size="0x2000000" stride="2" chunk="1" fill="0xff">
+        <file name="epr-16729.14" offset="0x200000" crc="0x7edec2cc"/>
+        <file name="epr-16730.15" offset="0x200001" crc="0xbab24dee"/>
+        <file name="epr-16728.4" offset="0xfc0000" crc="0x194d58ff" stride="1" chunk="1"/>
+        <file name="epr-16727.5" offset="0xfe0000" crc="0x430380eb" stride="1" chunk="1"/>
+        <file name="mpr-16738.6" offset="0x1000000" crc="0x51518ffa"/>
+        <file name="mpr-16737.7" offset="0x1000001" crc="0x37b1379c"/>
+        <file name="mpr-16736.8" offset="0x1100000" crc="0x10b6a025"/>
+        <file name="mpr-16735.9" offset="0x1100001" crc="0xc82fd198"/>
+        <file name="mpr-16734.10" offset="0x1200000" crc="0xf76371c1"/>
+        <file name="mpr-16733.11" offset="0x1200001" crc="0xe105847b"/>
+        <copy from="0xfc0000" to="0x000000" size="0x20000"/>
+        <copy from="0xfe0000" to="0x020000" size="0x20000"/>
+      </region>
+      <region name="tgp_copro" size="0x2000">
+        <file name="315-5711.bin" offset="0x000000" crc="0x6a21f304" alt_crc="0xc5ddb8fc"/>
+        <!-- The older dump has two bit-1 faults; MAME #15649 repairs them. -->
+        <patch offset="0x22c" value="0xbf60059c"/>
+        <patch offset="0x19f8" value="0x39000000"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-16751.7" offset="0x000000" crc="0x23ba5ebc"/>
+        <file name="epr-16752.8" offset="0x020000" crc="0x6541c48f"/>
+        <copy from="0x020000" to="0x080000" size="0x20000"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-16753.32" offset="0x000000" crc="0x324a8333"/>
+        <file name="mpr-16754.33" offset="0x200000" crc="0x144f3cf5"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-16755.4" offset="0x000000" crc="0x4baaf878"/>
+        <file name="mpr-16756.5" offset="0x200000" crc="0xd9c40672"/>
+      </region>
+      <region name="polygons" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-16743.26" offset="0x000000" crc="0xa710d33c"/>
+        <file name="mpr-16744.27" offset="0x000002" crc="0xde796e1f"/>
+        <file name="mpr-16745.28" offset="0x400000" crc="0x905b689c"/>
+        <file name="mpr-16746.29" offset="0x400002" crc="0x163b312e"/>
+        <file name="mpr-16747.30" offset="0x800000" crc="0x7353bb12"/>
+        <file name="mpr-16748.31" offset="0x800002" crc="0x8ce98d3a"/>
+        <file name="mpr-16749.32" offset="0xc00000" crc="0x0e36dc1a"/>
+        <file name="mpr-16750.33" offset="0xc00002" crc="0xe4f0b98d"/>
+      </region>
+      <region name="copro_data" size="0x200000" stride="4" chunk="1">
+        <file name="mpr-16741.39" offset="0x000000" crc="0x84b2ffd8"/>
+        <file name="mpr-16742.40" offset="0x000001" crc="0xe9cc12bb"/>
+        <file name="mpr-16739.41" offset="0x000002" crc="0x6c73e98f"/>
+        <file name="mpr-16740.42" offset="0x000003" crc="0x44b31007"/>
+      </region>
+    </roms>
+  </game>
+
+  <game name="wingwar360" parent="wingwar" board="model1" vr_buttons="in0:0x20,in0:0x40,in0:0x80,in1:0x01">
+    <title>Wing War R360</title>
+    <version>US</version>
+    <manufacturer>Sega</manufacturer>
+    <year>1994</year>
+    <devices>
+      <device name="model1io2"/>
+    </devices>
+
+    <inputs>
+      <input type="common"/>
+      <input type="joystick1"/>
+      <input type="buttons3"/>
+    </inputs>
+
+    <!-- Analogue mux wiring, from MAME's model1_state::wingwar360. -->
+    <analog>
+      <channel index="0" control="stickx" rest="0x80"/>
+      <channel index="1" control="sticky" rest="0x80" reverse="true"/>
+      <!-- Read through the motion base (0xaf), not the mux. -->
+      <channel index="2" control="throttle" min="0x01" rest="0x01"/>
+    </analog>
+
+    <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-16891.6" offset="0x000000" crc="0xa33f84d1"/>
+      </region>
+      <region name="copro_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr14742.bin" offset="0x000000" crc="0x446a1085"/>
+        <file name="opr14743.bin" offset="0x000002" crc="0xe8953554"/>
+      </region>
+      <region name="maincpu" size="0x2000000" stride="2" chunk="1" fill="0xff">
+        <file name="epr-16729.14" offset="0x200000" crc="0x7edec2cc"/>
+        <file name="epr-16730.15" offset="0x200001" crc="0xbab24dee"/>
+        <file name="epr-17052.4" offset="0xfc0000" crc="0x0f4743e7" stride="1" chunk="1"/>
+        <file name="epr-17053.5" offset="0xfe0000" crc="0x83af2415" stride="1" chunk="1"/>
+        <file name="epr-17056.6" offset="0x1000000" crc="0x5216de4d"/>
+        <file name="epr-17057.7" offset="0x1000001" crc="0xb21aa2db"/>
+        <file name="mpr-16736.8" offset="0x1100000" crc="0x10b6a025"/>
+        <file name="mpr-16735.9" offset="0x1100001" crc="0xc82fd198"/>
+        <file name="mpr-16734.10" offset="0x1200000" crc="0xf76371c1"/>
+        <file name="mpr-16733.11" offset="0x1200001" crc="0xe105847b"/>
+        <copy from="0xfc0000" to="0x000000" size="0x20000"/>
+        <copy from="0xfe0000" to="0x020000" size="0x20000"/>
+      </region>
+      <region name="tgp_copro" size="0x2000">
+        <file name="315-5711.bin" offset="0x000000" crc="0x6a21f304" alt_crc="0xc5ddb8fc"/>
+        <!-- The older dump has two bit-1 faults; MAME #15649 repairs them. -->
+        <patch offset="0x22c" value="0xbf60059c"/>
+        <patch offset="0x19f8" value="0x39000000"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-17126.7" offset="0x000000" crc="0x50178e40"/>
+        <file name="epr-16752.8" offset="0x020000" crc="0x6541c48f"/>
+        <copy from="0x020000" to="0x080000" size="0x20000"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-16753.32" offset="0x000000" crc="0x324a8333"/>
+        <file name="mpr-16754.33" offset="0x200000" crc="0x144f3cf5"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-16755.4" offset="0x000000" crc="0x4baaf878"/>
+        <file name="mpr-16756.5" offset="0x200000" crc="0xd9c40672"/>
+      </region>
+      <region name="polygons" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-16743.26" offset="0x000000" crc="0xa710d33c"/>
+        <file name="mpr-16744.27" offset="0x000002" crc="0xde796e1f"/>
+        <file name="mpr-16745.28" offset="0x400000" crc="0x905b689c"/>
+        <file name="mpr-16746.29" offset="0x400002" crc="0x163b312e"/>
+        <file name="mpr-16747.30" offset="0x800000" crc="0x7353bb12"/>
+        <file name="mpr-16748.31" offset="0x800002" crc="0x8ce98d3a"/>
+        <file name="mpr-16749.32" offset="0xc00000" crc="0x0e36dc1a"/>
+        <file name="mpr-16750.33" offset="0xc00002" crc="0xe4f0b98d"/>
+      </region>
+      <region name="copro_data" size="0x200000" stride="4" chunk="1">
+        <file name="mpr-16741.39" offset="0x000000" crc="0x84b2ffd8"/>
+        <file name="mpr-16742.40" offset="0x000001" crc="0xe9cc12bb"/>
+        <file name="mpr-16739.41" offset="0x000002" crc="0x6c73e98f"/>
+        <file name="mpr-16740.42" offset="0x000003" crc="0x44b31007"/>
+      </region>
+    </roms>
+  </game>
+
+  <game name="netmerc" board="model1" preliminary="true">
+    <title>NetMerc</title>
+    <version>World</version>
+    <manufacturer>Sega</manufacturer>
+    <year>1993</year>
+    <devices>
+      <device name="model1io2"/>
+    </devices>
+
+    <inputs>
+      <input type="common"/>
+      <input type="joystick1"/>
+      <input type="buttons3"/>
+    </inputs>
+
+    <!-- Analogue mux wiring, from MAME's netmerc_state::netmerc. -->
+    <analog>
+      <channel index="0" control="stickx" rest="0x7f"/>
+      <channel index="2" control="sticky" rest="0x7f" reverse="true"/>
+    </analog>
+
+    <roms>
+      <region name="ioboard" size="0x10000">
+        <file name="epr-18021.6" offset="0x000000" crc="0x5551837e"/>
+      </region>
+      <region name="copro_tables" size="0x40000" stride="4" chunk="2">
+        <file name="opr14742.bin" offset="0x000000" crc="0x446a1085"/>
+        <file name="opr14743.bin" offset="0x000002" crc="0xe8953554"/>
+      </region>
+      <region name="maincpu" size="0x2000000" stride="2" chunk="1" fill="0xff">
+        <file name="epr-18120.ic5" offset="0xf80000" crc="0xde489762" stride="1" chunk="1"/>
+        <file name="epr-18122.ic6" offset="0x1000000" crc="0x10581ab3"/>
+        <file name="epr-18123.ic7" offset="0x1000001" crc="0x27e0d848"/>
+        <file name="epr-18124.ic8" offset="0x1100000" crc="0x5a0e5618"/>
+        <file name="epr-18125.ic9" offset="0x1100001" crc="0xbd47284f"/>
+        <file name="epr-18126.ic10" offset="0x1200000" crc="0x43dc5ca8"/>
+        <file name="epr-18127.ic11" offset="0x1200001" crc="0xd307a4ca"/>
+        <copy from="0xf80000" to="0x000000" size="0x80000"/>
+      </region>
+      <region name="tgp_copro" size="0x2000">
+        <file name="315-5711.bin" offset="0x000000" crc="0x6a21f304" alt_crc="0xc5ddb8fc"/>
+        <!-- The older dump has two bit-1 faults; MAME #15649 repairs them. -->
+        <patch offset="0x22c" value="0xbf60059c"/>
+        <patch offset="0x19f8" value="0x39000000"/>
+      </region>
+      <region name="m1audio:sndcpu" size="0xc0000" stride="2" chunk="2" byte_swap="true">
+        <file name="epr-18121.ic7" offset="0x000000" crc="0x113285b5"/>
+        <copy from="0x000000" to="0x080000" size="0x20000"/>
+      </region>
+      <region name="m1audio:pcm1" size="0x400000">
+        <file name="mpr-18134.ic32" offset="0x000000" crc="0x9a4109e5"/>
+        <file name="mpr-18135.ic33" offset="0x200000" crc="0x291d17e4"/>
+      </region>
+      <region name="m1audio:pcm2" size="0x400000">
+        <file name="mpr-18136.ic4" offset="0x000000" crc="0x2a9c0aaf"/>
+      </region>
+      <region name="polygons" size="0x1000000" stride="4" chunk="2">
+        <file name="mpr-18128.ic26" offset="0x000000" crc="0x70d8028c"/>
+        <file name="mpr-18129.ic27" offset="0x000002" crc="0x134feea3"/>
+        <file name="mpr-18130.ic28" offset="0x400000" crc="0xc7aeae3e"/>
+        <file name="mpr-18131.ic29" offset="0x400002" crc="0x32683b33"/>
+        <file name="mpr-18132.ic30" offset="0x800000" crc="0xa17e3ac2"/>
+        <file name="mpr-18133.ic31" offset="0x800002" crc="0xf56354dd"/>
       </region>
     </roms>
   </game>

@@ -38,6 +38,7 @@ enum class Board {
     Model2A,  ///< 2A-CRX. TGP + 68000/SCSP.
     Model2B,  ///< 2B-CRX. ADSP-21062 SHARC + 68000/SCSP.
     Model2C,  ///< 2C-CRX. MB86235 TGPx4 + 68000/SCSP.
+    Model1,   ///< V60 + TGP + Model 1 sound board.
 };
 
 [[nodiscard]] const char* board_name(Board board);
@@ -101,6 +102,8 @@ enum class AnalogControl : u8 {
     Inclining,
     Bat1,       ///< Dynamite Baseball bat swing.
     Bat2,
+    Stick2X,    ///< A second player's stick: the Star Wars gunner.
+    Stick2Y,
 };
 
 /// The raw value a positional gun sends when it aims at one place across the
@@ -230,6 +233,7 @@ enum class DriveProtocol : u8 {
     Daytona,  ///< Daytona's board (EPR-16488A): it works out the forces itself.
     Indy,     ///< Indy 500's board (EPR-18261), Touring Car's, Over Rev's, Super GT's.
     Rally,    ///< Sega Rally's own board program.
+    Vr,       ///< Virtua Racing's, a Daytona board taking 0..15 strengths.
 };
 
 enum class Protection {
@@ -245,6 +249,10 @@ struct FileSpec {
     u32         offset  = 0;      ///< Destination byte offset within the region.
     u32         crc32   = 0;      ///< Expected CRC32.
     bool        has_crc = false;  ///< False means identify by name alone.
+    u32         alt_crc = 0;      ///< An older dump the region's patches repair.
+    bool        has_alt_crc = false;
+    u32         stride  = 0;      ///< Overrides the region's when non-zero.
+    u32         chunk   = 0;
 };
 
 /// A word of an assembled region overwritten after loading.
@@ -399,6 +407,19 @@ struct GameSpec {
     /// the screen edge: none, all of them, or only menu panels; or keep the
     /// game 4:3 altogether (a 2D cockpit frame around the 3D).
     SideFill side_fill = SideFill::Mirror;
+
+    /// In widescreen, the screen columns the HUD splits at: what lies left of
+    /// the first moves to the left edge, right of the second to the right
+    /// edge. Zero for a HUD that stays on the 4:3 screen. `hud_layers` is a
+    /// bit per tile layer the HUD is drawn on.
+    u16 hud_spread_left  = 0;
+    u16 hud_spread_right = 0;
+    u8  hud_layers       = 0;
+
+    /// The spread HUD's 2D bounds per band of 48 rows, two bands to a word:
+    /// the column the left-hand HUD reaches to and the one the right-hand HUD
+    /// starts at, both halved, 8 bits each; 0 where that side has none.
+    std::array<u32, 4> hud_bands{};
 
     /// True when shifting is two momentary buttons (shift up / shift down) on
     /// IN1 bits 0x10 and 0x20 rather than the 0x70 sequential gate. Indy 500 and

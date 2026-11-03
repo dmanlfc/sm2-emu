@@ -516,6 +516,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM ফোল্ডার"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Model 1 ROM আর্কাইভগুলি যেখানে থাকে।\n"
+"খালি থাকলে ROM ফোল্ডার।"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "সেভ ফোল্ডার"
 
@@ -2048,3 +2062,78 @@ msgstr "কোনো বিবরণ নেই।"
 #~ "দিয়ে ক্যাবিনেট প্যানেল) তবুও গেম চালায়, আর এই উইন্ডোতে\n"
 #~ "ফিরে ক্লিক না করেই নিচে এর বোতাম ও অক্ষ বাঁধা যায়।\n"
 #~ "কীবোর্ড ও মাউসের জন্য উইন্ডো সামনে থাকতে হয়।"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "লেজার"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "টর্পেডো"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "ভিউ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "থ্রটল"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "থ্রটল বাড়ান"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "থ্রটল কমান"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "ইয়োক"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "মেশিন গান"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "ধোঁয়া"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "স্টিক"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "স্লটগুলোর নাম এই গেমের কন্ট্রোল অনুযায়ী; ঝাপসাগুলো ব্যবহৃত হয় না। বাম স্টিকও নড়ায়; শোল্ডার বোতামগুলোও Button 3/4 হিসেবে কাজ করে। ডান লিভার Virtual On-এর জন্য। শর্টকাট দেখান Guide-এর কম্বিনেশনগুলো তালিকা করে।"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "ভিউ 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "ভিউ 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "ভিউ 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "ভিউ 4"

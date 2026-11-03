@@ -15,6 +15,7 @@
 #include "hw/machine_factory.h"
 
 #include "core/log.h"
+#include "hw/model1.h"
 #include "hw/model2.h"
 #include "hw/model2_original.h"
 #include "hw/model2b.h"
@@ -66,6 +67,17 @@ std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game, rom
                 break;
             }
             auto machine = std::make_unique<Model2Original>();
+            if (!machine->init(game, std::move(roms))) {
+                return nullptr;
+            }
+            return machine;
+        }
+
+        case rom::Board::Model1: {
+            if (!rom::board_implemented(game.board)) {
+                break;
+            }
+            auto machine = std::make_unique<Model1>();
             if (!machine->init(game, std::move(roms))) {
                 return nullptr;
             }

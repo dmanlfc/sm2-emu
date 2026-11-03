@@ -21,6 +21,7 @@
 #pragma once
 
 #include "core/types.h"
+#include "hw/geometrizer.h"
 #include "hw/segaic24.h"
 
 #include <span>
@@ -75,6 +76,10 @@ public:
     /// gamma tables. Cheap enough to do whenever the machine reports a change.
     void refresh_pens();
 
+    /// Model 1: tile pens are the palette's xBGR555 straight, bit 15 clear
+    /// halving the entry, with no colour translation.
+    void set_direct_palette(bool direct) { m_direct_palette = direct; }
+
     /// Compose one frame's tilemap layers.
     ///
     /// Produces `below()` and `above()`. Call refresh_pens() first if the
@@ -84,7 +89,21 @@ public:
 
     /// compose() in two halves, so compose_into() can run on another thread
     /// from a copy of the tile RAM. The next prepare_compose() must wait for it.
-    void prepare_compose() { m_tiles.update(); }
+    void prepare_compose()
+    {
+        m_tiles.update();
+        m_overlay_shown = m_overlay;
+    }
+
+    /// Flat polygons drawn over the top tile layers where those are clear or
+    /// near black, as Model 1 draws its radar blips. Taken up by the next
+    /// prepare_compose(), so a compose on another thread never sees it change.
+    void set_overlay(const std::vector<RenderPolygon>& polygons, s32 x_offset)
+    {
+        m_overlay          = polygons;
+        m_overlay_x_offset = x_offset;
+    }
+    [[nodiscard]] bool has_overlay() const { return !m_overlay.empty(); }
     void compose_into(std::span<const u8> tile_ram, bool mask_a_hidden,
                       std::span<const u32> pens, std::vector<u32>& below,
                       std::vector<u32>& above, std::vector<u8>& front) const;
@@ -198,7 +217,14 @@ private:
     std::span<const u16> m_colour_translate;
 
     /// Converted palette, RGBA8 with alpha 0xff.
+    void draw_overlay(u32* above, u32 row_begin, u32 row_end) const;
+
+    std::vector<RenderPolygon> m_overlay;
+    std::vector<RenderPolygon> m_overlay_shown;
+    s32                        m_overlay_x_offset = 0;
+
     std::vector<u32> m_pens;
+    bool             m_direct_palette = false;
 
     /// Colour space correction. MAME's comment records that a bias of 64 and a
     /// gain of 51 suits vf2, fvipers and schamp; real cabinets were calibrated

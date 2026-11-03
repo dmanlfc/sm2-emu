@@ -25,6 +25,7 @@ const char* board_name(Board board)
         case Board::Model2A: return "Model 2A-CRX";
         case Board::Model2B: return "Model 2B-CRX";
         case Board::Model2C: return "Model 2C-CRX";
+        case Board::Model1:  return "Model 1";
     }
     return "unknown";
 }
@@ -36,6 +37,7 @@ bool board_implemented(Board board)
         case Board::Model2A: return true;
         case Board::Model2B: return true;
         case Board::Model2C: return true;
+        case Board::Model1:  return true;
     }
     return false;
 }

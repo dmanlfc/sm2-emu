@@ -513,6 +513,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM ディレクトリ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Model 1 の ROM アーカイブの場所。\n"
+"空の場合は ROM ディレクトリ。"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "セーブディレクトリ"
 
@@ -2056,3 +2070,78 @@ msgstr "説明はありません。"
 #~ "このウィンドウをクリックし直さずに下でボタンや軸を割り当て\n"
 #~ "られます。キーボードとマウスはウィンドウが前面にある必要が\n"
 #~ "あります。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "レーザー"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "魚雷"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "視点"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "スロットル"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "スロットル上げ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "スロットル下げ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "操縦桿"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "機関銃"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "スモーク"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "スティック"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "枠はこのゲームの操作に合わせた名前です。薄い枠は使われません。ショートカットを表示で Guide の組み合わせを一覧できます。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "視点 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "視点 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "視点 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "視点 4"

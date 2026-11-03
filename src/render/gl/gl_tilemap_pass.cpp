@@ -160,7 +160,7 @@ bool TilemapPass::create_compute_resources()
     m_above_staging = create_persistent_buffer(surface_bytes(), GL_SHADER_STORAGE_BUFFER);
     GenBuffers(1, &m_compute_ubo);
     BindBuffer(GL_UNIFORM_BUFFER, m_compute_ubo);
-    BufferData(GL_UNIFORM_BUFFER, 112, nullptr, GL_DYNAMIC_DRAW);
+    BufferData(GL_UNIFORM_BUFFER, 128, nullptr, GL_DYNAMIC_DRAW);
 
     // Zeroed: an entry from epoch zero is empty. A game's sky panorama names
     // follow the cache.
@@ -283,7 +283,8 @@ void TilemapPass::dispatch_compose(const hw::Model2MachineBase& machine,
     BindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_below_staging.handle);
     BindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_above_staging.handle);
 
-    u32 push[28] = {width(), m_columns, m_wide_below, m_panorama_state.cacheable};
+    u32 push[32] = {width(), m_columns, m_wide_below, m_panorama_state.cacheable};
+    for (u32 i = 0; i < 4; ++i) push[28 + i] = m_hud_bands[i];
     if (sky != nullptr) {
         push[16] = sky->layer + 1;
         push[17] = sky->origin;

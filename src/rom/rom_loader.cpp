@@ -433,15 +433,18 @@ usize RomLoader::computed_region_size(const RegionSpec&         region,
         if (size == 0) {
             continue;
         }
-        const usize chunks = size / region.chunk;
+        const FileSpec& file   = region.files[index];
+        const u32       stride = file.stride != 0 ? file.stride : region.stride;
+        const u32       chunk  = file.chunk != 0 ? file.chunk : region.chunk;
+        const usize chunks = size / chunk;
         if (chunks == 0) {
             continue;
         }
         // Last chunk begins at offset + stride * (chunks - 1) and is chunk bytes
         // long, so the region must reach one past its end.
-        const usize end = region.files[index].offset
-                        + region.stride * (chunks - 1)
-                        + region.chunk;
+        const usize end = file.offset
+                        + stride * (chunks - 1)
+                        + chunk;
         required = std::max(required, end);
     }
     // A mirror can reach past the last chip, which is the whole point of it, so
@@ -491,16 +494,18 @@ std::optional<std::vector<u8>> RomLoader::assemble_region(
         if (contents.empty()) {
             continue;
         }
+        const u32 stride = file.stride != 0 ? file.stride : region.stride;
+        const u32 chunk  = file.chunk != 0 ? file.chunk : region.chunk;
 
-        if ((contents.size() % region.chunk) != 0) {
+        if ((contents.size() % chunk) != 0) {
             SM2_ERROR("region '%s': file '%s' is %zu bytes, which is not a "
                       "multiple of the %u-byte chunk size",
                       region.name.c_str(), file.name.c_str(), contents.size(),
-                      region.chunk);
+                      chunk);
             return std::nullopt;
         }
 
-        if (region.stride == region.chunk) {
+        if (stride == chunk) {
             // Contiguous: no interleaving to do.
             if (file.offset + contents.size() > data.size()) {
                 SM2_ERROR("region '%s': file '%s' at 0x%x overruns the region",
@@ -511,25 +516,25 @@ std::optional<std::vector<u8>> RomLoader::assemble_region(
             continue;
         }
 
-        const usize chunks = contents.size() / region.chunk;
+        const usize chunks = contents.size() / chunk;
         usize       destination = file.offset;
         usize       source      = 0;
 
         // Bounds-check once rather than per chunk: the inner loop runs up to two
         // million times per file.
-        const usize last_end = file.offset + region.stride * (chunks - 1) + region.chunk;
+        const usize last_end = file.offset + stride * (chunks - 1) + chunk;
         if (last_end > data.size()) {
             SM2_ERROR("region '%s': file '%s' at 0x%x with stride %u overruns "
                       "the region (needs 0x%zx, have 0x%zx)",
                       region.name.c_str(), file.name.c_str(), file.offset,
-                      region.stride, last_end, data.size());
+                      stride, last_end, data.size());
             return std::nullopt;
         }
 
-        for (usize chunk = 0; chunk < chunks; ++chunk) {
-            std::memcpy(data.data() + destination, contents.data() + source, region.chunk);
-            destination += region.stride;
-            source      += region.chunk;
+        for (usize piece = 0; piece < chunks; ++piece) {
+            std::memcpy(data.data() + destination, contents.data() + source, chunk);
+            destination += stride;
+            source      += chunk;
         }
     }
 
@@ -787,6 +792,11 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
         for (usize index = 0; index < region.files.size(); ++index) {
             const FileSpec& file  = region.files[index];
             const ZipEntry* entry = archives.find(file);
+            if (entry == nullptr && file.has_alt_crc) {
+                FileSpec older = file;
+                older.crc32    = file.alt_crc;
+                entry          = archives.find(older);
+            }
 
             if (entry == nullptr) {
                 if (region.required) {

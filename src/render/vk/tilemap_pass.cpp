@@ -41,6 +41,7 @@ struct ComputePush {
     u32 sky[4];
     u32 wrap_low[4];
     u32 wrap_high[4];
+    u32 hud[4];
 };
 
 constexpr VkDeviceSize kPanoramaBytes =
@@ -815,7 +816,8 @@ void TilemapPass::dispatch_compose()
                               | VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT);
 
     ComputePush push{width(), m_columns, m_wide_below, m_panorama_state.cacheable,
-                     {}, {}, {}, {}, {}, {}};
+                     {}, {}, {}, {}, {}, {}, {}};
+    std::copy(m_hud_bands.begin(), m_hud_bands.end(), push.hud);
     if (m_sky != nullptr) {
         push.sky[0] = m_sky->layer + 1;
         push.sky[1] = m_sky->origin;

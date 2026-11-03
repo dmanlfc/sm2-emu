@@ -30,7 +30,10 @@ components hang together, and later on it was genuinely helpful with the
 graphical quirks.
 
 **Status: playable.** All four boards run — original Model 2, 2A, 2B and 2C —
-with picture and sound. Of the 83 sets in the database, the majority draw full
+with picture and sound, and so does Model 1: Virtua Racing, Virtua Formula,
+Virtua Fighter, Star Wars Arcade and Wing War. NetMerc plays but is nearly
+silent, as one of its sample ROM dumps is blank. Of the 96 sets in the database,
+the majority draw full
 3D scenes and produce audio, across three renderers: Vulkan, OpenGL and OpenGL
 ES.
 
@@ -425,8 +428,8 @@ to show it.
 ## Networking (cabinet link)
 
 Several Model 2 titles support linking cabinets so multiple machines play
-together — Sega Rally, Daytona USA, Super GT 24h, Indy 500 and the other titles
-that carry the communication board. sm2-emu can link two or more instances over
+together — Sega Rally, Daytona USA, Super GT 24h, Indy 500, Virtua Racing and
+the other titles that carry the communication board. sm2-emu can link two or more instances over
 a LAN, so separate machines race against each other. Left off, a single
 instance still boots its network check and settles as a standalone cabinet, so
 nothing is required for solo play.
@@ -506,6 +509,7 @@ machine manages.
 | 8 | Accelerate performance with Vulkan, offloading to the GPU **(done)** |
 | 9 | OpenGL 4.3 desktop and OpenGL ES 3.1 backends **(done)** |
 | 10 | Release polish: settings GUI, game picker, present-stage scaling / aspect / CRT, opt-in 3D and 2D enhancement, wheels and light guns, controller config **(WIP)** |
+| 11 | Sega Model 1: V60, MB86233 TGP, flat-shaded 3D, link board **(done)** |
 
 ## Known gaps
 

@@ -513,6 +513,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM aplankas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Kur yra Model 1 ROM archyvai.\n"
+"Tuščias reiškia ROM aplanką."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Įrašų aplankas"
 
@@ -2059,3 +2073,78 @@ msgstr "Aprašymo nėra."
 #~ "automato pultas per vJoy) vis tiek valdo žaidimą, o jo mygtukus\n"
 #~ "ir ašis galima priskirti žemiau, nespaudžiant atgal į šį langą.\n"
 #~ "Klaviatūrai ir pelei langas vis tiek turi būti priekyje."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "Lazeris"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Torpeda"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Vaizdas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Droselis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "Daugiau dujų"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "Mažiau dujų"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Vairalazdė"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Kulkosvaidis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Dūmai"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Lazdelė"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "Laukai pavadinti pagal šio žaidimo valdiklius; blankūs nenaudojami. Rodyti trumpinius išvardija Guide derinius."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Vaizdas 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Vaizdas 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Vaizdas 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Vaizdas 4"

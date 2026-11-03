@@ -106,6 +106,8 @@ constexpr ControlBinding kControlBindings[] = {
 
     {rom::AnalogControl::Gun2X,     HostAxis::Pad2LeftX},
     {rom::AnalogControl::Gun2Y,     HostAxis::Pad2LeftY},
+    {rom::AnalogControl::Stick2X,   HostAxis::Pad2LeftX},
+    {rom::AnalogControl::Stick2Y,   HostAxis::Pad2LeftY},
 
     {rom::AnalogControl::Accel,     HostAxis::RightTrigger},
     {rom::AnalogControl::Throttle,  HostAxis::RightTrigger},
@@ -1282,14 +1284,25 @@ s32 Input::captured_axis(const s16* baseline, int count, bool* positive) const
 
 void Input::update_drive_board(const rom::GameSpec& game, std::span<const u8> writes)
 {
-    for (const u8 value : writes) {
-        SM2_TRACE("drive board: %02X", value);
-        if (game.drive_protocol == rom::DriveProtocol::Daytona) {
+    for (const u8 written : writes) {
+        SM2_TRACE("drive board: %02X", written);
+        u8 value = written;
+        if (game.drive_protocol == rom::DriveProtocol::Vr) {
+            const std::optional<u8> board = vr_to_daytona(written);
+            if (!board) {
+                continue;
+            }
+            value = *board;
+        }
+        if (daytona_board(game.drive_protocol)) {
             m_daytona.command(value);
         } else if (game.drive_protocol == rom::DriveProtocol::Indy) {
             m_indy.command(value);
         }
-        const DriveCommand command = decode_drive_command(game.drive_protocol, value);
+        const DriveCommand command = decode_drive_command(
+            game.drive_protocol == rom::DriveProtocol::Vr ? rom::DriveProtocol::Daytona
+                                                          : game.drive_protocol,
+            value);
         if (command.pulse >= 0) {
             m_drive_pulse = command.pulse;
         }
@@ -1416,7 +1429,7 @@ void Input::update_force_feedback(const rom::GameSpec& game)
         // The Sega Rally and Daytona panel has a light spring, the user's share
         // of the strength. The EPR-18261 panels are direct drive and have none.
         const bool panel_spring = game.drive_protocol == rom::DriveProtocol::Rally
-                               || game.drive_protocol == rom::DriveProtocol::Daytona;
+                               || daytona_board(game.drive_protocol);
         const int  panel_full   = command_full * static_cast<int>(m_wheel_settings.panel_spring) / 100;
         const int  baseline     = panel_spring ? spring(panel_full) : 0;
 
@@ -1424,7 +1437,7 @@ void Input::update_force_feedback(const rom::GameSpec& game)
         int game_force = 0;
         m_daytona.set_dip(static_cast<int>(m_wheel_settings.drive_dip));
         m_indy.set_dip(static_cast<int>(m_wheel_settings.drive_dip));
-        if (game.drive_protocol == rom::DriveProtocol::Daytona) {
+        if (daytona_board(game.drive_protocol)) {
             // The board's start-up calibration is run against the simulated
             // spring.
             const u32 steer       = m_wheel_settings.steer_degrees;
@@ -2233,6 +2246,12 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     // from the generic ones.
     const bool is_wski = game.name == "segawski" || game.parent == "segawski";
 
+    // Model 1 cabinets whose IN1 is not the generic layout: Virtua Racing's
+    // shift buttons and VR4, Wing War's weapons, Star Wars Arcade's buttons.
+    const bool is_vr      = game.name == "vr" || game.parent == "vr";
+    const bool is_wingwar = game.name == "wingwar" || game.parent == "wingwar";
+    const bool is_swa     = game.name == "swa" || game.parent == "swa";
+
     // Sky Target: fire buttons are Machine Gun (IN1 0x10) and Missile (IN1
     // 0x20), not the generic button nibble, so a pad never fired. Own map below.
     const bool is_skytgt = game.name == "skytargt" || game.parent == "skytargt";
@@ -2241,10 +2260,29 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     const bool* keys      = SDL_GetKeyboardState(&key_count);
     if (keys != nullptr) {
         gather_keys(&ports[0], keys, key_count, kOperatorKeys);
-        if (!is_ski && !is_wski && !is_skytgt) {
+        // These fly or steer on the arrows' analog driver and keep their own
+        // buttons.
+        if (!is_ski && !is_wski && !is_skytgt && !is_vr && !is_wingwar && !is_swa) {
             gather_keys(&ports[1], keys, key_count, kPlayerOneKeys);
         }
         gather_keys(&ports[2], keys, key_count, kPlayerTwoKeys);
+
+        // Z X C fire on Wing War and Star Wars Arcade, where their buttons sit.
+        const auto key = [&](SDL_Scancode sc, usize p, u8 bit) {
+            if (static_cast<int>(sc) < key_count && keys[sc]) ports[p] &= static_cast<u8>(~bit);
+        };
+        if (is_wingwar) {
+            key(SDL_SCANCODE_Z, 1, 0x10);
+            key(SDL_SCANCODE_X, 1, 0x20);
+            key(SDL_SCANCODE_C, 1, 0x40);
+        }
+        if (is_swa) {
+            key(SDL_SCANCODE_Z, 1, 0x01);
+            key(SDL_SCANCODE_X, 1, 0x02);
+            key(SDL_SCANCODE_C, 1, 0x10);
+            key(SDL_SCANCODE_G, 1, 0x04);
+            key(SDL_SCANCODE_H, 1, 0x08);
+        }
 
         // kOperatorKeys pressed the default start1 bit (kStart1 = 0x10); some
         // titles (Indy 500, Sky Target, Manx TT and Top Skater family) move
@@ -2295,6 +2333,10 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         }
         u8& port = ports[1 + pad.player];
 
+        // Virtua Racing, Wing War and Star Wars Arcade keep their own controls
+        // on IN1 where the generic layout puts directions and buttons.
+        const bool own_controls = is_vr || is_wingwar || is_swa;
+
         // Button 1-4 and the four directions read their bindings; Start and
         // Coin are handled with the Guide chord below.
         static constexpr u8 kPadRoleBit[] = {
@@ -2305,7 +2347,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         bool rb_bound = false;
         for (usize role = 0; role < std::size(kPadRoleBit); ++role) {
             const bool gun_role = is_gun && role <= static_cast<usize>(Config::PadRole::Button2);
-            if (!gun_role && binding_held(pad.handle, binds[role])) {
+            if (!gun_role && !own_controls && binding_held(pad.handle, binds[role])) {
                 port &= static_cast<u8>(~kPadRoleBit[role]);
             }
             lb_bound |= binds[role] == SDL_GAMEPAD_BUTTON_LEFT_SHOULDER;
@@ -2319,17 +2361,19 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         constexpr auto kB4 = static_cast<u32>(Config::PadRole::Button4);
         lb_bound |= binds[kB3] != kDefaults[kB3];
         rb_bound |= binds[kB4] != kDefaults[kB4];
-        if (!lb_bound && SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER)) {
+        if (!own_controls && !lb_bound
+            && SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER)) {
             port &= static_cast<u8>(~kButton3);
         }
-        if (!rb_bound && SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)) {
+        if (!own_controls && !rb_bound
+            && SDL_GetGamepadButton(pad.handle, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)) {
             port &= static_cast<u8>(~kButton4);
         }
 
         // Pad VR buttons: A/B/X/Y -> VR1-4 through the declared port/bit, for
         // titles that wire them off the default IN1 nibble (Daytona) where the
         // generic face-button mapping above cannot reach them. Player one only.
-        if (game.vr_buttons_declared && pad.player == 0) {
+        if (game.vr_buttons_declared && pad.player == 0 && !is_wingwar) {
             static constexpr SDL_GamepadButton kVrPadButtons[4] = {
                 SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST,
                 SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH,
@@ -2346,9 +2390,44 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
 
         // The left stick drives the same four switches as the d-pad, so either works
         // and holding both is harmless.
-        port &= static_cast<u8>(
-            ~stick_bits(SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTX),
-                        SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTY)));
+        if (!own_controls) {
+            port &= static_cast<u8>(
+                ~stick_bits(SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTX),
+                            SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTY)));
+        }
+
+        // Wing War: Button 1-3 fire the machine gun, missile and smoke, the
+        // four directions pick views 1-4. Star Wars Arcade: laser on Button 1
+        // or the brake trigger, torpedo on Button 2 or the accelerator
+        // trigger, the pilot's view on Button 3; the gunner's pair sit on IN1
+        // 0x04/0x08. The roles are the ones the Gamepad tab binds.
+        const auto press_role = [&](Config::PadRole r, usize p, u8 bit) {
+            if (binding_held(pad.handle, binds[static_cast<u32>(r)])) {
+                ports[p] &= static_cast<u8>(~bit);
+            }
+        };
+        if (is_wingwar && pad.player == 0) {
+            press_role(Config::PadRole::Button1, 1, 0x10);
+            press_role(Config::PadRole::Button2, 1, 0x20);
+            press_role(Config::PadRole::Button3, 1, 0x40);
+            press_role(Config::PadRole::Up, 0, 0x20);
+            press_role(Config::PadRole::Right, 0, 0x40);
+            press_role(Config::PadRole::Down, 0, 0x80);
+            press_role(Config::PadRole::Left, 1, 0x01);
+        }
+        if (is_swa) {
+            const u8 laser   = pad.player == 0 ? 0x01 : 0x04;
+            const u8 torpedo = pad.player == 0 ? 0x02 : 0x08;
+            press_role(Config::PadRole::Button1, 1, laser);
+            press_role(Config::PadRole::Button2, 1, torpedo);
+            if (pad_pedal_pressed(pad.handle, pad.player, Config::PadAxisRole::Brake)) {
+                ports[1] &= static_cast<u8>(~laser);
+            }
+            if (pad_pedal_pressed(pad.handle, pad.player, Config::PadAxisRole::Accel)) {
+                ports[1] &= static_cast<u8>(~torpedo);
+            }
+            if (pad.player == 0) press_role(Config::PadRole::Button3, 1, 0x10);
+        }
 
         // Start/coin; coin 2 is player 2's slot.
         const auto held = [&](Config::PadRole role) {
@@ -2531,14 +2610,37 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     // Analogue channels follow the title's own machine config: which channel a
     // control sits on, how far it travels and where it rests are all per-title.
     // An unconnected channel reads zero, as an unbound an_port_callback does.
-    // Top Skater wants fine carving; the rest are linear.
-    const bool  fine_stick = game.name == "topskatr" || game.parent == "topskatr";
+    // Top Skater wants fine carving and Virtua Racing fine steering; the rest
+    // are linear.
+    const bool  fine_stick = game.name == "topskatr" || game.parent == "topskatr"
+                          || game.name == "vr" || game.parent == "vr";
     const float curve      = fine_stick ? 2.0f : 1.0f;
     for (usize channel = 0; channel < inputs->analog.size(); ++channel) {
         const rom::AnalogChannel& wiring = game.analog[channel];
         inputs->analog[channel] = wiring.control == rom::AnalogControl::None
                                       ? 0x00
                                       : sample_channel(wiring, curve);
+    }
+
+    // Star Wars Arcade's throttle lever is the right stick, up fast; Move
+    // Up/Down push it to either end.
+    if (game.name == "swa" || game.parent == "swa") {
+        if (SDL_Gamepad* pad = pad_for(0)) {
+            const s32 bound = m_pad_axes[0][static_cast<u32>(Config::PadAxisRole::LeverY)];
+            const s16 raw   = SDL_GetGamepadAxis(
+                pad, bound >= 0 ? static_cast<SDL_GamepadAxis>(bound) : SDL_GAMEPAD_AXIS_RIGHTY);
+            float up = 1.0F - centred_fraction(raw, m_pad_stick_dead, 1.0F, m_pad_stick_response);
+            if (pad_role_held(0, Config::PadRole::Up))   up = 1.0F;
+            if (pad_role_held(0, Config::PadRole::Down)) up = 0.0F;
+            for (usize channel = 0; channel < inputs->analog.size(); ++channel) {
+                const rom::AnalogChannel& wiring = game.analog[channel];
+                if (wiring.control == rom::AnalogControl::Throttle) {
+                    const float span = static_cast<float>(wiring.maximum - wiring.minimum);
+                    inputs->analog[channel] = static_cast<u8>(
+                        static_cast<float>(wiring.minimum) + (1.0F - up) * span + 0.5F);
+                }
+            }
+        }
     }
 
     // Keyboard analog driver, so any analog title is playable without a pad:
@@ -3123,8 +3225,24 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             down |= role_held(Config::WheelRole::GearDown);
         }
 
-        if (up)   inputs->in1 &= static_cast<u8>(~0x10);
-        if (down) inputs->in1 &= static_cast<u8>(~0x20);
+        // Virtua Racing has them the other way round: Down on 0x10, Up on 0x20.
+        const bool vr = game.name == "vr" || game.parent == "vr";
+        if (up)   inputs->in1 &= static_cast<u8>(vr ? ~0x20 : ~0x10);
+        if (down) inputs->in1 &= static_cast<u8>(vr ? ~0x10 : ~0x20);
+    }
+
+    // What the game reads, for --log-level debug.
+    for (usize channel = 0; channel < inputs->analog.size(); ++channel) {
+        if (game.analog[channel].control != rom::AnalogControl::None
+            && inputs->analog[channel] != m_logged_analog[channel]) {
+            SM2_DEBUG("input: analog %zu %02X -> %02X", channel, m_logged_analog[channel],
+                      inputs->analog[channel]);
+            m_logged_analog[channel] = inputs->analog[channel];
+        }
+    }
+    if (inputs->in1 != m_logged_in1) {
+        SM2_DEBUG("input: in1 %02X -> %02X", m_logged_in1, inputs->in1);
+        m_logged_in1 = inputs->in1;
     }
 }
 

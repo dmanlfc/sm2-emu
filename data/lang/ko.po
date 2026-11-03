@@ -513,6 +513,20 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 1 ROM directory"
+msgstr "Model 1 ROM 디렉터리"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 1 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+"Model 1 ROM 아카이브가 있는 곳입니다.\n"
+"비워 두면 ROM 디렉터리를 사용합니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "세이브 디렉터리"
 
@@ -2047,3 +2061,78 @@ msgstr "설명이 없습니다."
 #~ "통한 기체 패널)로도 계속 게임을 조작하고, 이 창을 다시\n"
 #~ "클릭하지 않고 아래에서 버튼과 축을 지정할 수 있습니다.\n"
 #~ "키보드와 마우스는 여전히 창이 앞에 있어야 합니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Laser"
+msgstr "레이저"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "어뢰"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "시점"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "스로틀"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Up"
+msgstr "스로틀 올림"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle Down"
+msgstr "스로틀 내림"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "조종간"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "기관총"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "연막"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "스틱"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
+msgstr "칸 이름은 이 게임의 조작에 맞춘 것이며, 흐린 칸은 쓰이지 않습니다. 단축키 보기에서 Guide 조합을 볼 수 있습니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "시점 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "시점 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "시점 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "시점 4"

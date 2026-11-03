@@ -77,6 +77,7 @@ public:
     /// resort; 2: fill the sides, black where only a mirror would do; 3: as 2,
     /// but only for a menu panel (a row-scroll layer's foreground tile).
     void set_wide_below(u32 mode) { m_wide_below = mode; }
+    void set_hud_bands(const std::array<u32, 4>& bands) { m_hud_bands = bands; }
     void shutdown();
 
     /// Refresh this frame's copies of tile RAM, character RAM and the pen table
@@ -233,6 +234,7 @@ private:
 
     u32  m_columns    = 0;
     u32  m_wide_below = 0;
+    std::array<u32, 4> m_hud_bands{};
 
     /// Widescreen side columns for the layers behind the 3D; see PanoramaTracker.
     PanoramaTracker m_panorama;

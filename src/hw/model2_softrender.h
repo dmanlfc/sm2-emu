@@ -50,6 +50,7 @@ struct SoftPolyExtra {
     u32 utexy      = 0;
     s32 texlod     = 0;
     u8  luma       = 0;
+    u32 direct_rgb = 0;  ///< RenderPolygon::direct_rgb
 };
 
 /// Views of everything one frame of the software path reads, so a snapshot can

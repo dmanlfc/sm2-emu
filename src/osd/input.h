@@ -615,6 +615,8 @@ private:
 
     /// The burst currently playing, shared by every pad: one drive board, one car.
     int                              m_pad_rumble_level    = 0;
+    mutable std::array<u8, 8>        m_logged_analog{};    ///< last values logged at debug
+    mutable u8                       m_logged_in1          = 0xff;
     int                              m_pad_rumble_dir      = 0;  ///< last jolt direction
     int                              m_pad_rumble_hold     = 0;  ///< frames left in the burst
     bool                             m_pad_rumble_enabled  = true;

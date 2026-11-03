@@ -376,8 +376,13 @@ public:
     /// draws the 2D layers behind the 3D across the added columns: 0 leaves
     /// them black, 1 mirrors the screen edge where nothing better is known,
     /// 2 leaves such pixels black, 3 leaves them black only for a menu panel
-    /// (a row-scroll layer's foreground tile).
+    /// (a row-scroll layer's foreground tile). Bits 8-17 and 18-27, when set,
+    /// are unused and bits 28-31, when
+    /// set, are the tile layers a HUD spread by set_hud_bands() is drawn on.
     virtual void set_widescreen(u32 columns, u32 wide_background) = 0;
+
+    /// Where a spread HUD lies, per band of 48 rows (GameSpec::hud_bands).
+    virtual void set_hud_bands(const std::array<u32, 4>& bands) { static_cast<void>(bands); }
 
     /// Scale the finished native frame onto the window, letterboxed to the
     /// current aspect mode.

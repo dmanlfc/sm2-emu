@@ -27,6 +27,7 @@
 #include "hw/m2comm.h"
 #include "hw/machine_factory.h"
 #include "hw/model2.h"
+#include "hw/model1.h"
 #include "hw/model2_original.h"
 #include "hw/sound_board.h"
 #include "hw/model2b.h"
@@ -178,6 +179,7 @@ struct Options {
         bool log_level  = false;
         bool gpu        = false;
         bool rom_dir    = false;
+        bool model1_rom_dir = false;
         bool nvram_dir  = false;
         bool screenshot_dir = false;
         bool render_scale = false;
@@ -309,6 +311,8 @@ void print_usage()
         "                      software; auto-reduced if the GPU cannot allocate it\n"
         "      --rom-dir <dir> Where the ROM archives live; a game named with no\n"
         "                      path is loaded from <dir>/<name>.zip or .7z\n"
+        "      --model1-rom-dir <dir>  Where the Model 1 archives live, if not\n"
+        "                      in --rom-dir\n"
         "      --screenshot-dir <dir>  Where screenshots are written\n"
         "      --load-state <file>  Restore this save state before running, so a\n"
         "                      one-frame --screenshot captures that exact moment\n"
@@ -532,6 +536,8 @@ void print_usage()
             // handled
         } else if (takes_value("--rom-dir", &out->config.rom_dir)) {
             out->given.rom_dir = true;
+        } else if (takes_value("--model1-rom-dir", &out->config.model1_rom_dir)) {
+            out->given.model1_rom_dir = true;
         } else if (takes_value("--nvram", &out->config.nvram_dir)) {
             out->given.nvram_dir = true;
         } else if (takes_value("--screenshot-dir", &out->config.screenshot_dir)) {
@@ -676,19 +682,38 @@ struct LoadedMachine {
     sm2::hw::Model2B*        machine_2b   = nullptr;
     sm2::hw::Model2C*        machine_2c   = nullptr;
     sm2::hw::Model2Original* machine_orig = nullptr;
+    sm2::hw::Model1*         machine_m1   = nullptr;
 
     sm2::cpu::i960::I960* main_cpu    = nullptr;
     sm2::hw::SoundBoard*  sound_board = nullptr;
     const sm2::hw::I8251* sound_link  = nullptr;
 };
 
-/// The archive in `dir` that set `name` loads from: its own <name>.zip or .7z,
-/// else, for a clone, its parent's when that holds the clone as well, the way
-/// a merged romset keeps every revision in the parent's archive.
+/// The folder set `name` loads from: model1_rom_dir for a Model 1 set when one
+/// is given, else rom_dir.
+[[nodiscard]] const std::string& rom_dir_for(const sm2::rom::GameDatabase& database,
+                                             const sm2::Config& config,
+                                             const std::string& name)
+{
+    const sm2::rom::GameSpec* game = database.find(name);
+    if (game != nullptr && game->board == sm2::rom::Board::Model1
+        && !config.model1_rom_dir.empty()) {
+        return config.model1_rom_dir;
+    }
+    return config.rom_dir;
+}
+
+/// The archive that set `name` loads from: its own <name>.zip or .7z, else,
+/// for a clone, its parent's when that holds the clone as well, the way a
+/// merged romset keeps every revision in the parent's archive.
 [[nodiscard]] std::optional<std::filesystem::path> find_set_archive(
-    const sm2::rom::GameDatabase& database, const std::filesystem::path& dir,
+    const sm2::rom::GameDatabase& database, const sm2::Config& config,
     const std::string& name)
 {
+    const std::filesystem::path dir(rom_dir_for(database, config, name));
+    if (dir.empty()) {
+        return std::nullopt;
+    }
     const auto archive_named = [&dir](const std::string& stem)
         -> std::optional<std::filesystem::path> {
         for (const char* ext : {".zip", ".7z"}) {
@@ -749,6 +774,7 @@ struct LoadedMachine {
     out.machine_2b   = dynamic_cast<hw::Model2B*>(out.machine_iface.get());
     out.machine_2c   = dynamic_cast<hw::Model2C*>(out.machine_iface.get());
     out.machine_orig = dynamic_cast<hw::Model2Original*>(out.machine_iface.get());
+    out.machine_m1   = dynamic_cast<hw::Model1*>(out.machine_iface.get());
     if (out.machine != nullptr) {
         out.main_cpu    = &out.machine->cpu();
         out.sound_board = &out.machine->sound();
@@ -765,6 +791,9 @@ struct LoadedMachine {
         out.main_cpu    = &out.machine_orig->cpu();
         out.sound_board = &out.machine_orig->sound();
         out.sound_link  = &out.machine_orig->uart();
+    } else if (out.machine_m1 != nullptr) {
+        out.sound_board = &out.machine_m1->sound();
+        out.sound_link  = &out.machine_m1->uart();
     } else {
         SM2_ERROR("internal error: create_machine returned an unexpected machine type");
         return std::nullopt;
@@ -886,6 +915,9 @@ int main(int argc, char** argv)
     }
     if (!options.given.rom_dir) {
         options.config.rom_dir = from_file.rom_dir;
+    }
+    if (!options.given.model1_rom_dir) {
+        options.config.model1_rom_dir = from_file.model1_rom_dir;
     }
     if (!options.given.nvram_dir) {
         options.config.nvram_dir = from_file.nvram_dir;
@@ -1108,13 +1140,15 @@ int main(int argc, char** argv)
     // --game with no path: the archive is found in rom_dir once the database
     // says which parent a clone's merged archive is named after. A positional
     // path wins.
+    const bool any_rom_dir = !options.config.rom_dir.empty()
+                             || !options.config.model1_rom_dir.empty();
     const bool game_in_rom_dir = options.rom_path.empty() && !options.game.empty()
-                                 && !options.config.rom_dir.empty();
+                                 && any_rom_dir;
 
     // Show the picker when launched with no ROM but a rom_dir to browse, heading
     // for the windowed loop. The DB is then built unconditionally below.
     const bool will_show_picker = options.rom_path.empty() && options.game.empty()
-                                  && !options.config.rom_dir.empty()
+                                  && any_rom_dir
                                   && !options.list_games && options.boot_test == 0
                                   && options.savestate_test == 0;
 
@@ -1138,14 +1172,15 @@ int main(int argc, char** argv)
 
     if (game_in_rom_dir) {
         const std::optional<std::filesystem::path> archive =
-            find_set_archive(database, options.config.rom_dir, options.game);
+            find_set_archive(database, options.config, options.game);
         if (!archive.has_value()) {
             const rom::GameSpec* game   = database.find(options.game);
             const std::string    parent = game != nullptr && !game->parent.empty()
                                               ? ", or " + game->parent + ".zip/.7z holding it"
                                               : std::string();
-            SM2_ERROR("no archive for '%s' in rom_dir '%s' (looked for %s.zip and "
-                      "%s.7z%s)", options.game.c_str(), options.config.rom_dir.c_str(),
+            SM2_ERROR("no archive for '%s' in '%s' (looked for %s.zip and "
+                      "%s.7z%s)", options.game.c_str(),
+                      rom_dir_for(database, options.config, options.game).c_str(),
                       options.game.c_str(), options.game.c_str(), parent.c_str());
             return 1;
         }
@@ -1205,6 +1240,7 @@ int main(int argc, char** argv)
     hw::Model2B*        machine_2b   = loaded.has_value() ? loaded->machine_2b   : nullptr;
     hw::Model2C*        machine_2c   = loaded.has_value() ? loaded->machine_2c   : nullptr;
     hw::Model2Original* machine_orig = loaded.has_value() ? loaded->machine_orig : nullptr;
+    hw::Model1*         machine_m1   = loaded.has_value() ? loaded->machine_m1   : nullptr;
 
     cpu::i960::I960* main_cpu    = loaded.has_value() ? loaded->main_cpu    : nullptr;
     hw::SoundBoard*  sound_board = loaded.has_value() ? loaded->sound_board : nullptr;
@@ -1228,7 +1264,7 @@ int main(int argc, char** argv)
     // Headless save-state regression (see the block for what it checks). Runs
     // before the boot-test/windowed paths because it, too, needs only a machine.
     if (options.savestate_test != 0) {
-        if (main_cpu == nullptr) {
+        if (machine_iface == nullptr) {
             SM2_ERROR("--savestate-test needs a ROM");
             return 1;
         }
@@ -1439,7 +1475,7 @@ int main(int argc, char** argv)
     // No window, no Vulkan: just run the machine and report where it got to.
     // This is the fastest way to see whether a change moved the boot forward.
     if (options.boot_test != 0) {
-        if (main_cpu == nullptr) {
+        if (machine_iface == nullptr) {
             SM2_ERROR("--boot-test needs a ROM");
             return 1;
         }
@@ -1460,7 +1496,15 @@ int main(int argc, char** argv)
         // sound board is a pointer rather than a reference because a synthetic
         // machine in the tests may have none -- see the note where it is
         // resolved.
-        auto&            the_cpu   = *main_cpu;
+        struct CpuView {
+            hw::Model2MachineBase* machine;
+            [[nodiscard]] bool        faulted() const { return machine->main_cpu_status().faulted; }
+            [[nodiscard]] bool        halted() const { return machine->main_cpu_status().halted; }
+            [[nodiscard]] u64         instructions() const { return machine->main_cpu_status().instructions; }
+            [[nodiscard]] std::string fault_message() const { return machine->main_cpu_status().fault_message; }
+            [[nodiscard]] std::string state_string() const { return machine->main_cpu_status().state_string; }
+        };
+        const CpuView    the_cpu{machine_iface};
         hw::SoundBoard*  the_sound = sound_board;
         const auto&      the_uart  = *sound_link;
 
@@ -1644,7 +1688,16 @@ int main(int argc, char** argv)
                         (unsigned long long)io.unmapped_reads,
                         (unsigned long long)io.unmapped_writes,
                         (unsigned long long)io.io_port_accesses);
-        } else {
+        } else if (machine_m1 != nullptr) {
+            const hw::Model1Tgp& tgp = machine_m1->tgp();
+            std::printf("tgp instructions  : %llu\n",
+                        (unsigned long long)tgp.cpu().instructions());
+            std::printf("tgp state         : %s%s\n", tgp.cpu().state_string().c_str(),
+                        tgp.cpu().halted() ? " HALTED" : "");
+            std::printf("tgp fifos         : in %zu, out %zu\n", tgp.fifo_in().size(),
+                        tgp.fifo_out().size());
+            std::printf("polygons          : %zu\n", machine_iface->render_list().polygons.size());
+        } else if (machine_2c != nullptr) {
             const hw::CoproTgpx4& copro = machine_2c->copro();
             // Two host writes make one 64-bit program word, so both figures are
             // reported: a program that uploaded an odd number of halves has left
@@ -2024,11 +2077,10 @@ int main(int argc, char** argv)
         const auto show_picker = [&]() {
             // A set is launchable when it has an archive in rom_dir: its own
             // <name>.zip / .7z, or, for a clone, its parent's merged one.
-            const std::filesystem::path dir(options.config.rom_dir);
             std::vector<osd::Gui::PickerEntry> entries;
             std::vector<osd::Scraper::Entry>   scrape_list;
             for (const rom::GameSpec& game : database.games()) {
-                if (!find_set_archive(database, dir, game.name).has_value()) {
+                if (!find_set_archive(database, options.config, game.name).has_value()) {
                     continue;
                 }
                 osd::Gui::PickerEntry entry;
@@ -2297,6 +2349,7 @@ int main(int argc, char** argv)
             machine_2b    = loaded->machine_2b;
             machine_2c    = loaded->machine_2c;
             machine_orig  = loaded->machine_orig;
+            machine_m1    = loaded->machine_m1;
             main_cpu      = loaded->main_cpu;
             sound_board   = loaded->sound_board;
             sound_link    = loaded->sound_link;
@@ -2620,8 +2673,14 @@ int main(int argc, char** argv)
                     const rom::SideFill side_fill = loaded->game.side_fill;
                     const bool fill_sides  = columns != 0
                                           && std::any_of(polygons.begin(), polygons.end(), reaches_side);
-                    backend->set_widescreen(columns, fill_sides && side_fill != rom::SideFill::Pillarbox
-                                                         ? 1u + static_cast<u32>(side_fill) : 0u);
+                    const bool wide_below = fill_sides && side_fill != rom::SideFill::Pillarbox;
+                    // A race's HUD spreads to the edges; a menu stays whole.
+                    const u32 spread = wide_below && machine_iface->hud_spread()
+                                           ? u32{loaded->game.hud_layers} << 28
+                                           : 0u;
+                    backend->set_hud_bands(loaded->game.hud_bands);
+                    backend->set_widescreen(columns, wide_below ? (1u + static_cast<u32>(side_fill)) | spread
+                                                                : 0u);
                 }
                 {
                     auto scope = core::maybe_scope(stage_run_frame, profile_sample);
@@ -2683,9 +2742,8 @@ int main(int argc, char** argv)
                     sound_board->clear_pending_samples();
                 }
 
-                auto& cpu = *main_cpu;
-                if (cpu.faulted()) {
-                    SM2_ERROR("stopping: %s", cpu.fault_message().c_str());
+                if (const hw::CpuStatus cpu = machine_iface->main_cpu_status(); cpu.faulted) {
+                    SM2_ERROR("stopping: %s", cpu.fault_message.c_str());
                     exit_code = 1;
                     break;
                 }
@@ -2732,7 +2790,9 @@ int main(int argc, char** argv)
             // of the CPU-composited upload. Independent of need_cpu_compose
             // below: a --soft-render comparison run wants both the GPU path
             // exercised (this) and a fresh CPU oracle (that), in the same frame.
-            const bool use_gpu_tilemap = machine_iface && !use_software_renderer && !render_test;
+            const bool cpu_tilemap = machine_iface && machine_iface->needs_cpu_tilemap();
+            const bool use_gpu_tilemap =
+                machine_iface && !use_software_renderer && !render_test && !cpu_tilemap;
 
             // Whether Model2Video::compose(), the CPU tilemap composite, must
             // run this frame: whenever something reads video.below()/above()
@@ -2740,7 +2800,8 @@ int main(int argc, char** argv)
             // comparison capture later in this same frame (hw::dump_software_frame,
             // below), or render test mode's compose()-then-overlay sequence.
             const bool need_cpu_compose =
-                machine_iface && (use_software_renderer || options.soft_render || render_test);
+                machine_iface
+                && (use_software_renderer || options.soft_render || render_test || cpu_tilemap);
 
             // The async software path composes on its render thread.
             const bool compose_on_render_thread =
@@ -2946,7 +3007,7 @@ int main(int argc, char** argv)
             gui.new_frame();
             // Live link state for the Network tab.
             if (machine_iface != nullptr) {
-                const hw::M2Comm& comm = machine_iface->comm();
+                const hw::CommBoard& comm = machine_iface->comm();
                 gui.set_link_status(osd::Gui::LinkStatus{
                     options.config.link_enabled, comm.enabled(), comm.link_alive(),
                     comm.link_id(), comm.link_count()});
@@ -3035,6 +3096,7 @@ int main(int argc, char** argv)
                 machine_2b    = nullptr;
                 machine_2c    = nullptr;
                 machine_orig  = nullptr;
+                machine_m1    = nullptr;
                 main_cpu      = nullptr;
                 sound_board   = nullptr;
                 sound_link    = nullptr;
@@ -3059,7 +3121,7 @@ int main(int argc, char** argv)
                 std::optional<LoadedMachine> chosen;
                 rom::LoadError               load_error;
                 if (const std::optional<std::filesystem::path> archive =
-                        find_set_archive(database, options.config.rom_dir, *pick)) {
+                        find_set_archive(database, options.config, *pick)) {
                     chosen = load_game(database, archive->string(), *pick,
                                        options.config.nvram_dir, options.log_unmapped,
                                        &load_error);
