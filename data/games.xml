@@ -6222,7 +6222,7 @@
   <!-- Sega Model 1. ROM layouts from MAME's src/mame/sega/model1.cpp. -->
 
   <game name="vr" board="model1" shift_buttons="true" drive_board="true" drive_protocol="vr" vr_buttons="in0:0x20,in0:0x40,in0:0x80,in1:0x01" hud_spread="160,336,1"
-        hud_bands="160:360,140:360,100:360,100:0,0:0,0:0,160:360,160:360">
+        hud_bands="160:360,140:360,100:360,100:376,0:0,0:0,160:360,160:360">
     <title>Virtua Racing</title>
     <manufacturer>Sega</manufacturer>
     <year>1992</year>
