@@ -521,7 +521,7 @@ void Model2Original::service_timers()
 
 void Model2Original::on_vblank_start()
 {
-    m_video.latch_tile_ram();
+    if (m_video.latch_tile_ram()) ++m_tile_generation;
     // Bit 0 of the video control register selects 30 Hz geometry, which every
     // original Model 2 title uses -- MAME's render_mode_w notes desert among
     // them -- so this runs on even frames only and the renderer shows the

@@ -64,7 +64,8 @@ public:
     /// Take the tile RAM the display reads from. The beam scans the map during
     /// the picture, so a game writing through vblank and into the next frame's
     /// first lines still shows whole; call this at the start of vblank.
-    void latch_tile_ram();
+    /// True when the shown copy changed.
+    bool latch_tile_ram();
 
     /// The tile RAM as last latched.
     [[nodiscard]] std::span<const u8> tile_ram_shown() const { return m_tile_ram_shown; }

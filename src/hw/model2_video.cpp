@@ -76,8 +76,9 @@ void Model2Video::attach(std::span<const u8>  tile_ram,
     refresh_pens();
 }
 
-void Model2Video::latch_tile_ram()
+bool Model2Video::latch_tile_ram()
 {
+    bool        changed = false;
     const usize size = std::min(m_tile_ram_live.size(), m_tile_ram_shown.size());
     for (usize at = 0; at + 8 <= size; at += 8) {
         u64 live, shown;
@@ -92,7 +93,9 @@ void Model2Video::latch_tile_ram()
             }
         }
         std::memcpy(m_tile_ram_shown.data() + at, &live, 8);
+        changed = true;
     }
+    return changed;
 }
 
 void Model2Video::reset()

@@ -371,7 +371,7 @@ void Model1::run_frame()
 void Model1::on_vblank()
 {
     if (m_has_comm) m_comm.vblank();
-    m_video.latch_tile_ram();
+    if (m_video.latch_tile_ram()) ++m_tile_generation;
 
     const auto start = std::chrono::steady_clock::now();
     if ((m_listctl[1] & 0x1f) == 0x1f) {
