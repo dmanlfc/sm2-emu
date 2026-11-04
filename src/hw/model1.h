@@ -168,6 +168,7 @@ private:
     void              sync_tgp();
     void              step_tgp(u32 cycles);
     void              step_peripherals(u32 cycles);
+    void              flush_audio();
 
     void irq_raise(u32 level);
     void irq_update();
@@ -245,6 +246,7 @@ private:
     bool m_in_frame   = false;
     u64 m_tgp_debt    = 0;
     u64 m_peripheral_debt = 0;
+    u32 m_audio_pending   = 0;  ///< sound board host cycles not yet run
     bool m_in_tgp_sync = false;
 
     bool m_palette_dirty    = true;

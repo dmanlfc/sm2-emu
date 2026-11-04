@@ -51,6 +51,8 @@ constexpr u32 kGlue       = 0xe00000;
 /// Slices short enough that the TGP, the I/O board and the UART keep up with
 /// the V60 between their handshakes.
 constexpr u32 kInterleave = 64;
+// Sound board host cycles run per call; flushed at every line end too.
+constexpr u32 kAudioBatch = 1024;
 
 /// TGP instructions owed per V60 cycle: 40 MHz / 3 clocks against 16 MHz.
 constexpr u64 kTgpNumerator   = 5;
@@ -237,6 +239,7 @@ void Model1::reset()
     m_frames          = 0;
     m_tgp_debt        = 0;
     m_peripheral_debt = 0;
+    m_audio_pending   = 0;
     m_palette_dirty   = true;
 
     m_inputs.analog.fill(0);
@@ -311,7 +314,15 @@ void Model1::step_peripherals(u32 cycles)
         m_ioboard.run(host);
     }
     m_uart.run(host);
-    m_m1audio.run(host);
+    m_audio_pending += host;
+    if (m_audio_pending >= kAudioBatch) flush_audio();
+}
+
+void Model1::flush_audio()
+{
+    if (m_audio_pending == 0) return;
+    m_m1audio.run(m_audio_pending);
+    m_audio_pending = 0;
 }
 
 void Model1::run_frame()
@@ -343,6 +354,10 @@ void Model1::run_frame()
                 step_peripherals(static_cast<u32>(used));
             }
             service_timers();
+        }
+        {
+            CoreScope scope(m_core_profile, m_core_profile.sound_ns);
+            flush_audio();
         }
         sound_ready_w();
         if (line == kVisibleHeight) on_vblank();
