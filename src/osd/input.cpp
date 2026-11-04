@@ -2622,23 +2622,48 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                                       : sample_channel(wiring, curve);
     }
 
-    // Star Wars Arcade's throttle lever is the right stick, up fast; Move
-    // Up/Down push it to either end.
+    // Star Wars Arcade flies at full speed; pulling the right stick back
+    // brakes, and Move Down brakes fully.
     if (game.name == "swa" || game.parent == "swa") {
+        float brake = 0.0F;
         if (SDL_Gamepad* pad = pad_for(0)) {
             const s32 bound = m_pad_axes[0][static_cast<u32>(Config::PadAxisRole::LeverY)];
             const s16 raw   = SDL_GetGamepadAxis(
                 pad, bound >= 0 ? static_cast<SDL_GamepadAxis>(bound) : SDL_GAMEPAD_AXIS_RIGHTY);
-            float up = 1.0F - centred_fraction(raw, m_pad_stick_dead, 1.0F, m_pad_stick_response);
-            if (pad_role_held(0, Config::PadRole::Up))   up = 1.0F;
-            if (pad_role_held(0, Config::PadRole::Down)) up = 0.0F;
-            for (usize channel = 0; channel < inputs->analog.size(); ++channel) {
-                const rom::AnalogChannel& wiring = game.analog[channel];
-                if (wiring.control == rom::AnalogControl::Throttle) {
-                    const float span = static_cast<float>(wiring.maximum - wiring.minimum);
-                    inputs->analog[channel] = static_cast<u8>(
-                        static_cast<float>(wiring.minimum) + (1.0F - up) * span + 0.5F);
-                }
+            brake = std::max(0.0F, 2.0F * centred_fraction(raw, m_pad_stick_dead, 1.0F, m_pad_stick_response) - 1.0F);
+            if (pad_role_held(0, Config::PadRole::Down)) brake = 1.0F;
+        }
+        for (usize channel = 0; channel < inputs->analog.size(); ++channel) {
+            const rom::AnalogChannel& wiring = game.analog[channel];
+            if (wiring.control == rom::AnalogControl::Throttle) {
+                const float span = static_cast<float>(wiring.maximum - wiring.minimum);
+                inputs->analog[channel] = static_cast<u8>(
+                    static_cast<float>(wiring.minimum) + brake * span + 0.5F);
+            }
+        }
+    }
+
+    // Wing War flies at full throttle too; the brake trigger or the right
+    // stick pulled back brakes.
+    if (game.name == "wingwar" || game.parent == "wingwar") {
+        float brake = 0.0F;
+        if (SDL_Gamepad* pad = pad_for(0)) {
+            const s32 lever = m_pad_axes[0][static_cast<u32>(Config::PadAxisRole::LeverY)];
+            const s16 raw   = SDL_GetGamepadAxis(
+                pad, lever >= 0 ? static_cast<SDL_GamepadAxis>(lever) : SDL_GAMEPAD_AXIS_RIGHTY);
+            brake = std::max(0.0F, 2.0F * centred_fraction(raw, m_pad_stick_dead, 1.0F, m_pad_stick_response) - 1.0F);
+            const s32 pedal = m_pad_axes[0][static_cast<u32>(Config::PadAxisRole::Brake)];
+            const s16 lt    = SDL_GetGamepadAxis(
+                pad, pedal >= 0 ? static_cast<SDL_GamepadAxis>(pedal) : SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
+            brake = std::max(brake, std::clamp(static_cast<float>(lt) / 32767.0F, 0.0F, 1.0F));
+            if (binding_held(pad, m_pad_axis_buttons[0][static_cast<u32>(Config::PadAxisRole::Brake)])) brake = 1.0F;
+        }
+        for (usize channel = 0; channel < inputs->analog.size(); ++channel) {
+            const rom::AnalogChannel& wiring = game.analog[channel];
+            if (wiring.control == rom::AnalogControl::Throttle) {
+                const float span = static_cast<float>(wiring.maximum - wiring.minimum);
+                inputs->analog[channel] = static_cast<u8>(
+                    static_cast<float>(wiring.maximum) - brake * span + 0.5F);
             }
         }
     }
