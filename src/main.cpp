@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// A Sega Model 2 arcade emulator.
+// A Sega Model 1 & 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
@@ -287,7 +287,7 @@ struct Options {
 void print_usage()
 {
     std::printf(
-        "sm2-emu " SM2_VERSION " — Sega Model 2 arcade emulator\n"
+        "sm2-emu " SM2_VERSION " — Sega Model 1 & 2 arcade emulator\n"
         "\n"
         "Usage: sm2-emu [options] [rom.zip]\n"
         "\n"

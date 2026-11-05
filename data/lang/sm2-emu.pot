@@ -592,7 +592,7 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 2 arcade emulator"
+msgid "A Sega Model 1 & 2 arcade emulator"
 msgstr ""
 
 #: src/osd/gui.cpp

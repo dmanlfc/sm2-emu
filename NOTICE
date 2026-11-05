@@ -1,4 +1,4 @@
-sm2-emu — Sega Model 2 arcade emulator
+sm2-emu — Sega Model 1 & 2 arcade emulator
 ======================================
 
 Copyright (c) 2025+ Daniel Martin (dmanlfc) and the sm2-emu contributors.
@@ -43,12 +43,12 @@ object form.
 
 This project would not exist without the reverse-engineering work of the MAME
 team. Substantial portions of the hardware emulation are derived from MAME's
-Sega Model 2 driver and its supporting device cores, all of which the MAME
-authors released under the BSD 3-Clause License. Their copyright notices are
-preserved in the individual source files that carry derived code. Those files
-are marked "SPDX-License-Identifier: GPL-3.0-or-later AND BSD-3-Clause": the
-code taken from MAME remains under the BSD 3-Clause License (see
-LICENSES/BSD-3-Clause.txt), and sm2-emu's changes to it are under the GPL.
+Sega Model 1 and Model 2 drivers and their supporting device cores, all of
+which the MAME authors released under the BSD 3-Clause License. Their copyright
+notices are preserved in the individual source files that carry derived code.
+Those files are marked "SPDX-License-Identifier: GPL-3.0-or-later AND
+BSD-3-Clause": the code taken from MAME remains under the BSD 3-Clause License
+(see LICENSES/BSD-3-Clause.txt), and sm2-emu's changes to it are under the GPL.
 
 Derived from MAME (https://github.com/mamedev/mame), BSD-3-Clause
 -----------------------------------------------------------------
@@ -57,6 +57,33 @@ Derived from MAME (https://github.com/mamedev/mame), BSD-3-Clause
     src/mame/sega/model2.cpp, model2.h, model2_m.cpp, model2_v.cpp, model2rd.ipp
     Copyright (c) R. Belmont, Olivier Galibert, ElSemi, Angelo Salese,
                   Matthew Daniels
+
+  Sega Model 1 driver: memory map, interrupts, timers and display lists
+    src/mame/sega/model1.cpp, model1_v.cpp
+    Copyright (c) Olivier Galibert
+
+  Sega Model 1 sound board
+    src/mame/shared/segam1audio.cpp, segam1audio.h
+    Copyright (c) R. Belmont
+
+  Sega Model 1 and Model 2 link boards
+    src/mame/sega/m1comm.cpp, m1comm.h, m2comm.cpp, m2comm.h
+    Copyright (c) Ariane Fugmann
+
+  Sega 315-5338A and 315-5649 I/O controllers
+    src/mame/sega/315_5338a.cpp, 315_5338a.h, 315_5649.cpp, 315_5649.h
+    Copyright (c) Dirk Best
+
+  Sega 315-5881 decryption and 315-5838 decompression protection
+    src/mame/sega/315-5881_crypt.cpp, 315-5881_crypt.h
+    Copyright (c) Andreas Naive, Olivier Galibert, David Haywood
+    src/mame/sega/315-5838_317-0229_comp.cpp, 315-5838_317-0229_comp.h
+    Copyright (c) David Haywood, Samuel Neves, Peter Wilhelmsen,
+                  Morten Shearman Kirkegaard
+
+  Sega Model 1 I/O boards
+    src/mame/sega/model1io.cpp, model1io.h, model1io2.cpp, model1io2.h
+    Copyright (c) Dirk Best
 
   Sega System 24 tilemap chip
     src/mame/sega/segaic24.cpp, segaic24.h
@@ -70,9 +97,39 @@ Derived from MAME (https://github.com/mamedev/mame), BSD-3-Clause
     src/devices/cpu/i960/i960.cpp, i960.h, i960dis.cpp, i960dis.h
     Copyright (c) Farfetch'd, R. Belmont
 
+  NEC V60 CPU core
+    src/devices/cpu/v60/v60.cpp, v60.h and its .hxx opcode files
+    Copyright (c) Farfetch'd, R. Belmont
+
   Fujitsu MB86233 / MB86234 "TGP" geometry coprocessor
     src/devices/cpu/mb86233/mb86233.cpp, mb86233.h, mb86233d.cpp
     Copyright (c) Olivier Galibert
+
+  Fujitsu MB86235 "TGPx4" geometry coprocessor
+    src/devices/cpu/mb86235/
+    Copyright (c) Angelo Salese, ElSemi, Ville Linde, Matthew Daniels
+
+  Analog Devices ADSP-21062 SHARC
+    src/devices/cpu/sharc/
+    Copyright (c) Ville Linde
+
+  Zilog Z80 CPU core
+    src/devices/cpu/z80/
+    Copyright (c) Juergen Buchmueller, Andrei I. Holub
+
+  Zilog Z80 CTC and PIO
+    src/devices/machine/z80ctc.cpp, z80ctc.h
+    Copyright (c) Wilbert Pol
+    src/devices/machine/z80pio.cpp, z80pio.h
+    Copyright (c) Curt Coder
+
+  Fujitsu MB8421 dual-port RAM
+    src/devices/machine/mb8421.cpp, mb8421.h
+    Copyright (c) hap, AJR
+
+  OKI MSM6253 A/D converter
+    src/devices/machine/msm6253.cpp, msm6253.h
+    Copyright (c) AJR
 
   Inter-processor FIFO with flow control
     src/devices/machine/gen_fifo.cpp, gen_fifo.h
@@ -139,7 +196,7 @@ Third-party dependencies
     (optional, for the game picker's artwork scraping; linked from the
     system, not vendored under 3rdparty/)
 
-Sega, Model 2, Virtua Fighter, Virtua Cop and Daytona USA are trademarks of
-their respective owners. sm2-emu is an independent work and is not affiliated
-with or endorsed by Sega. No copyrighted game data is distributed with this
-software.
+Sega, Model 1, Model 2, Virtua Fighter, Virtua Cop and Daytona USA are
+trademarks of their respective owners. sm2-emu is an independent work and is
+not affiliated with or endorsed by Sega. No copyrighted game data is
+distributed with this software.

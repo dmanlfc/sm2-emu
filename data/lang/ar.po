@@ -652,8 +652,8 @@ msgstr "حول"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 2 arcade emulator"
-msgstr "محاكي آركيد لـ Sega Model 2"
+msgid "A Sega Model 1 & 2 arcade emulator"
+msgstr "محاكي آركيد لـ Sega Model 1 & 2"
 
 #: src/osd/gui.cpp
 #, no-c-format

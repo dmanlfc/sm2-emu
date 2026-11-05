@@ -651,8 +651,8 @@ msgstr "تعارف"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 2 arcade emulator"
-msgstr "ایک Sega Model 2 آرکیڈ ایمولیٹر"
+msgid "A Sega Model 1 & 2 arcade emulator"
+msgstr "ایک Sega Model 1 & 2 آرکیڈ ایمولیٹر"
 
 #: src/osd/gui.cpp
 #, no-c-format

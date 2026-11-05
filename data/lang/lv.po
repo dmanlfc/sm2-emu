@@ -654,8 +654,8 @@ msgstr "Par"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 2 arcade emulator"
-msgstr "Sega Model 2 arkādes automātu emulators"
+msgid "A Sega Model 1 & 2 arcade emulator"
+msgstr "Sega Model 1 & 2 arkādes automātu emulators"
 
 #: src/osd/gui.cpp
 #, no-c-format

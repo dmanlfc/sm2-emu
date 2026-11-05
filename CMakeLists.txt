@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.24)
 #  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 # |____/|_|  |_||_____|      |_____|_|  |_|\___/
 #
-# sm2-emu — A Sega Model 2 arcade emulator.
+# sm2-emu — A Sega Model 1 & 2 arcade emulator.
 # Copyright (c) 2025+ Daniel Martin (dmanlfc)
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -16,8 +16,8 @@ cmake_minimum_required(VERSION 3.24)
 #
 
 project(sm2-emu
-    VERSION     0.9.57
-    DESCRIPTION "Sega Model 2 arcade emulator"
+    VERSION     0.9.58
+    DESCRIPTION "Sega Model 1 & 2 arcade emulator"
     LANGUAGES   C CXX
 )
 

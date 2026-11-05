@@ -4,7 +4,7 @@
 #  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 # |____/|_|  |_||_____|      |_____|_|  |_|\___/
 #
-# sm2-emu — A Sega Model 2 arcade emulator.
+# sm2-emu — A Sega Model 1 & 2 arcade emulator.
 # Copyright (c) 2025+ Daniel Martin (dmanlfc)
 # SPDX-License-Identifier: GPL-3.0-or-later
 #

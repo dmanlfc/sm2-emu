@@ -657,8 +657,8 @@ msgstr "Over"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 2 arcade emulator"
-msgstr "Een Sega Model 2-arcade-emulator"
+msgid "A Sega Model 1 & 2 arcade emulator"
+msgstr "Een Sega Model 1 & 2-arcade-emulator"
 
 #: src/osd/gui.cpp
 #, no-c-format

@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// A Sega Model 2 arcade emulator.
+// A Sega Model 1 & 2 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
@@ -26,7 +26,7 @@
 // config work on either platform.
 //
 // The evdev technique follows Supermodel's evdev input system, but no code is
-// taken from it: Supermodel is GPL-3.0 and this tree is BSD-3-Clause.
+// taken from it.
 #pragma once
 
 #include "core/types.h"

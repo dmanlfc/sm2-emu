@@ -5,7 +5,7 @@
   ___) | |  | | / __/|_____|| |___| |  | | |_| |
  |____/|_|  |_||_____|      |_____|_|  |_|\___/
 
- A   S E G A   M O D E L   2   E M U L A T O R
+ A  S E G A  M O D E L  1  &  2  E M U L A T O R
 ```
 
 Background: I started this emulation journey back in February 2025 to look to
@@ -571,6 +571,6 @@ distribute its own name. See `LICENSE` and `NOTICE`.
 
 I'm standing on the shoulders of giants, and SM2-Emu exists because of the MAME
 project's reverse engineering of this hardware. The emulation is derived from
-MAME's Sega Model 2 driver and its device cores, which their authors released
-under the BSD 3-Clause licence; that code keeps its licence (see
-`LICENSES/BSD-3-Clause.txt`). See `NOTICE` for per-component attribution.
+MAME's Sega Model 1 and Model 2 drivers and their device cores, which their
+authors released under the BSD 3-Clause licence; that code keeps its licence
+(see `LICENSES/BSD-3-Clause.txt`). See `NOTICE` for per-component attribution.
