@@ -620,6 +620,13 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_aspect_mode(value, &out->aspect_mode)) {
                 bad_value();
             }
+        } else if (key == "brightness") {
+            u32 percent = 0;
+            if (parse_u32(value, &percent)) {
+                out->brightness = std::min<u32>(percent, 100);
+            } else {
+                bad_value();
+            }
         } else if (key == "crt_enabled") {
             if (!parse_bool(value, &out->crt_enabled)) {
                 bad_value();
@@ -1046,6 +1053,7 @@ bool save_config(const std::string& path, const Config& config)
         << "scaling_method = " << scaling_method_name(config.scaling_method) << "\n"
         << "aspect_mode = " << aspect_mode_name(config.aspect_mode) << "\n"
         << "bezel = " << bool_text(config.bezel) << "\n"
+        << "brightness = " << config.brightness << "\n"
         << "crt_enabled = " << bool_text(config.crt_enabled) << "\n"
         << "crt_scanline_strength = " << config.crt_scanline_strength << "\n"
         << "crt_mask_strength = " << config.crt_mask_strength << "\n"

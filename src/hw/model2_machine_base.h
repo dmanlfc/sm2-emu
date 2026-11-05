@@ -238,6 +238,9 @@ public:
     /// The music board's level in percent, for the sets that have one.
     virtual void set_music_volume(u32 /*percent*/) {}
 
+    /// The colour ramp's black level (Model2Video::set_black_level).
+    virtual void set_black_level(u32 /*bias*/) {}
+
     // -- per-core timing, for --profile --------------------------------------
     //
     // run_frame() interleaves the i960, coprocessor and sound board, so main.cpp

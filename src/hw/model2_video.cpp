@@ -55,12 +55,22 @@ Model2Video::Model2Video()
     , m_above(static_cast<usize>(kWidth) * kHeight, 0)
     , m_front(static_cast<usize>(kWidth) * kHeight, 0)
 {
-    // Black at 40, higher crushes shadow detail.
-    for (u32 index = 0; index < 256; ++index) {
-        const double raw =
-            std::max((static_cast<double>(index) - 40.0) * 255.0 / 215.0, 0.0);
-        m_gamma[index] = static_cast<u8>(raw);
+    build_gamma(m_black_level, m_gamma);
+}
+
+void Model2Video::build_gamma(u32 bias, std::span<u8> out)
+{
+    const double black = static_cast<double>(std::min<u32>(bias, 128));
+    for (usize index = 0; index < out.size(); ++index) {
+        out[index] = static_cast<u8>(
+            std::max((static_cast<double>(index) - black) * 255.0 / (255.0 - black), 0.0));
     }
+}
+
+void Model2Video::set_black_level(u32 bias)
+{
+    m_black_level = bias;
+    build_gamma(bias, m_gamma);
 }
 
 void Model2Video::attach(std::span<const u8>  tile_ram,

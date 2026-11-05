@@ -114,10 +114,14 @@ SoftRenderer::SoftRenderer()
     , m_destmap(static_cast<usize>(kTargetWidth) * kTargetHeight, 0)
     , m_fillmap(static_cast<usize>(kTargetWidth) * kTargetHeight, 0)
 {
-    for (u32 index = 0; index < 256; ++index) {
-        m_gamma[index] = static_cast<u8>(
-            std::max((static_cast<double>(index) - 40.0) * 255.0 / 215.0, 0.0));
-    }
+    Model2Video::build_gamma(Model2Video::kDefaultBlackLevel, m_gamma);
+}
+
+void SoftRenderer::set_black_level(u32 bias)
+{
+    if (bias == m_black_level) return;
+    m_black_level = bias;
+    Model2Video::build_gamma(bias, m_gamma);
 }
 
 SoftRenderer::~SoftRenderer()

@@ -281,6 +281,22 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Brightness"
+msgstr "明るさ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 2 picture's black sits. 50% is the default,\n"
+"matched to an arcade capture; lower is darker, higher is\n"
+"brighter. Applies live."
+msgstr ""
+"Model 2 の画面の黒の位置。50% が既定値で、\n"
+"アーケード実機の映像に合わせています。下げると暗く、上げると明るくなります。\n"
+"すぐに反映。"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "CRT filter"
 msgstr "CRT フィルター"
 

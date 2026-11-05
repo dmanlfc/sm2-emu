@@ -162,6 +162,10 @@ struct Config {
     u32  crt_glow_strength     = 20;
     u32  crt_curvature         = 0;
 
+    /// Model 2 picture brightness, 0..100: 50 is the arcade-fitted default,
+    /// lower darker. Live-switchable.
+    u32 brightness = 50;
+
     /// Bezel artwork in fullscreen.
     bool bezel = false;
 

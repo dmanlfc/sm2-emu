@@ -712,6 +712,21 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 }
             }
 
+            {
+                int brightness = static_cast<int>(config.brightness);
+                ImGui::SetNextItemWidth(220);
+                if (ImGui::SliderInt(tr_id("Brightness"), &brightness, 0, 100, "%d%%")) {
+                    config.brightness = static_cast<u32>(std::clamp(brightness, 0, 100));
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("(?)");
+                if (ImGui::IsItemHovered()) {
+                    tooltip(tr("Where the Model 2 picture's black sits. 50% is the default,\n"
+                               "matched to an arcade capture; lower is darker, higher is\n"
+                               "brighter. Applies live."));
+                }
+            }
+
             // CRT cosmetic filter. Off by default; all present-stage, live.
             ImGui::Separator();
             {

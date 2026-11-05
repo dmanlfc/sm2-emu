@@ -83,6 +83,13 @@ std::vector<std::string> enumerate_render_devices() { return {}; }
 
 namespace {
 
+/// The colour ramp's black level for the brightness setting: 50% is the
+/// default 40, 0% is 64 and 100% is 16.
+[[nodiscard]] sm2::u32 black_level_for(const sm2::Config& config)
+{
+    return 64 - (std::min<sm2::u32>(config.brightness, 100) * 48 + 50) / 100;
+}
+
 /// --graphics-backend's three values. Which GL flavour `Opengl` resolves to is
 /// a build-time fact (SM2_BUILD_OPENGL_DESKTOP vs SM2_BUILD_OPENGL_ES), not a
 /// fourth value here.
@@ -941,6 +948,7 @@ int main(int argc, char** argv)
     options.config.scaling_method        = from_file.scaling_method;
     options.config.aspect_mode           = from_file.aspect_mode;
     options.config.crt_enabled           = from_file.crt_enabled;
+    options.config.brightness            = from_file.brightness;
     options.config.crt_scanline_strength = from_file.crt_scanline_strength;
     options.config.crt_mask_strength     = from_file.crt_mask_strength;
     options.config.crt_glow_strength     = from_file.crt_glow_strength;
@@ -2653,6 +2661,7 @@ int main(int argc, char** argv)
 
                 machine_iface->set_draw_distance(options.config.extended_draw_distance);
                 machine_iface->set_music_volume(options.config.music_volume);
+                machine_iface->set_black_level(black_level_for(options.config));
                 {
                     // The geometry engine and the backend must agree on the
                     // width for the frame run_frame() builds.
@@ -2815,6 +2824,7 @@ int main(int argc, char** argv)
                     auto scope = core::maybe_scope(stage_software_wait, profile_sample);
                     async_soft.wait();
                 }
+                soft_renderer.set_black_level(black_level_for(options.config));
                 if (compose_on_render_thread) {
                     auto scope = core::maybe_scope(stage_compose, profile_sample);
                     if (machine_iface->palette_dirty()) {

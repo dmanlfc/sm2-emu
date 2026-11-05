@@ -77,6 +77,14 @@ public:
     /// gamma tables. Cheap enough to do whenever the machine reports a change.
     void refresh_pens();
 
+    /// The ramp index that shows as black: 40 by default, fitted to an arcade
+    /// capture. Call refresh_pens() after a change.
+    static constexpr u32 kDefaultBlackLevel = 40;
+    void set_black_level(u32 bias);
+    [[nodiscard]] u32 black_level() const { return m_black_level; }
+    /// The 256-entry ramp for a black level.
+    static void build_gamma(u32 bias, std::span<u8> out);
+
     /// Model 1: tile pens are the palette's xBGR555 straight, bit 15 clear
     /// halving the entry, with no colour translation.
     void set_direct_palette(bool direct) { m_direct_palette = direct; }
@@ -231,6 +239,7 @@ private:
     /// gain of 51 suits vf2, fvipers and schamp; real cabinets were calibrated
     /// per game, so a single curve can only be a good average.
     std::vector<u8> m_gamma;
+    u32             m_black_level = kDefaultBlackLevel;
 
     std::vector<u32> m_below;
     std::vector<u32> m_above;

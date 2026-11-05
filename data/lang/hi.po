@@ -283,6 +283,22 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Brightness"
+msgstr "चमक"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 2 picture's black sits. 50% is the default,\n"
+"matched to an arcade capture; lower is darker, higher is\n"
+"brighter. Applies live."
+msgstr ""
+"Model 2 तस्वीर का काला कहाँ बैठता है। 50% डिफ़ॉल्ट है,\n"
+"एक आर्केड कैप्चर से मिलाया गया; कम गहरा है, ज़्यादा उजला है।\n"
+"तुरंत लागू होता है।"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "CRT filter"
 msgstr "CRT फ़िल्टर"
 

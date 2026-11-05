@@ -175,6 +175,13 @@ public:
     }
     void set_draw_distance(bool extended) override;
     void set_music_volume(u32 percent) override { m_m1audio.set_music_volume(percent); }
+    void set_black_level(u32 bias) override
+    {
+        if (bias == m_video.black_level()) return;
+        m_video.set_black_level(bias);
+        m_palette_dirty = true;
+        ++m_table_generation;
+    }
     [[nodiscard]] u64 geometry_stage_nanoseconds() const override
     {
         return m_geometry.last_run_nanoseconds();
