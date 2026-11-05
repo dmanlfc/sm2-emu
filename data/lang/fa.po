@@ -1490,6 +1490,22 @@ msgstr "بازنشانی"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "بلندی موسیقی"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"فقط برای بازی‌هایی که برد موسیقی جداگانه دارند:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"جلوه‌های صوتی همان‌طور می‌مانند."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "حجم صدای هر بازی"
 

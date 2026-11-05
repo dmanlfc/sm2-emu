@@ -1496,6 +1496,22 @@ msgstr "リセット"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "音楽の音量"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"音楽専用ボードを持つゲームのみ:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater。\n"
+"効果音はそのままです。"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "ゲーム別音量"
 

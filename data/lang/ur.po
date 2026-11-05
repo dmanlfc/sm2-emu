@@ -1489,6 +1489,22 @@ msgstr "ری سیٹ"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "موسیقی کی آواز"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"صرف الگ میوزک بورڈ والی گیمز کے لیے:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater۔\n"
+"ساؤنڈ ایفیکٹس ویسے ہی رہتے ہیں۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "ہر گیم کا والیوم"
 

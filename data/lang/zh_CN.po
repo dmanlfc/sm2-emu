@@ -1487,6 +1487,22 @@ msgstr "重置"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "音乐音量"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"仅适用于带独立音乐板的游戏:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater。\n"
+"音效保持不变。"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "按游戏音量"
 

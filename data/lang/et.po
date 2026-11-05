@@ -1493,6 +1493,22 @@ msgstr "Lähtesta"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "Muusika helitugevus"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"Ainult eraldi muusikaplaadiga mängudele:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"Heliefektid jäävad samaks."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "Mängupõhine helitugevus"
 

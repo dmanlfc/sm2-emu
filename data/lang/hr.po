@@ -1495,6 +1495,22 @@ msgstr "Vrati"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "Glasnoća glazbe"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"Samo za igre s zasebnom glazbenom pločom:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"Zvučni efekti ostaju isti."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "Glasnoća po igri"
 

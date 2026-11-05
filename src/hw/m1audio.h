@@ -77,6 +77,8 @@ public:
         m_dsb.set_gain(gain);
     }
 
+    void set_music_volume(u32 percent) { m_dsb.set_music_volume(percent); }
+
     /// The MPEG music board some Model 1 sets add (Star Wars). It listens to
     /// what this board sends back to the host and mixes into this board's output.
     void attach_dsb(std::span<const u8> program, std::span<const u8> mpeg) { m_dsb.attach(program, mpeg); }

@@ -1492,6 +1492,22 @@ msgstr "إعادة ضبط"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "مستوى الموسيقى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"للألعاب التي لها لوحة موسيقى منفصلة فقط:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"تبقى المؤثرات الصوتية كما هي."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "مستوى الصوت لكل لعبة"
 

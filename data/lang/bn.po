@@ -1494,6 +1494,22 @@ msgstr "রিসেট"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "সঙ্গীতের ভলিউম"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"শুধু আলাদা মিউজিক বোর্ডওয়ালা গেমের জন্য:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater।\n"
+"সাউন্ড এফেক্ট যেমন আছে তেমনই থাকে।"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "প্রতি-গেম ভলিউম"
 

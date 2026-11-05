@@ -392,8 +392,8 @@ void Dsb2::mix(s16* dst, u32 frames, u32 out_rate)
                 r = static_cast<s32>(rraw) * static_cast<s32>(m_mp_vol);
                 break;
         }
-        l = (l >> 7) * m_gain >> 8;
-        r = (r >> 7) * m_gain >> 8;
+        l = ((l >> 7) * m_gain >> 8) * m_music >> 8;
+        r = ((r >> 7) * m_gain >> 8) * m_music >> 8;
 
         const s32 ol = static_cast<s32>(dst[i * 2]) + l;
         const s32 orr = static_cast<s32>(dst[i * 2 + 1]) + r;

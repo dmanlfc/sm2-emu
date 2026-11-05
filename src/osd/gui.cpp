@@ -2347,6 +2347,21 @@ bool Gui::draw_volume_slider(Config& config, const GameFamily& family)
 
 void Gui::draw_audio_tab(Config& config)
 {
+    int music = static_cast<int>(config.music_volume);
+    ImGui::SetNextItemWidth(260.0f);
+    if (ImGui::SliderInt(tr_id("Music volume"), &music, 0, 100, "%d%%")) {
+        config.music_volume = static_cast<u32>(std::clamp(music, 0, 100));
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        tooltip(tr("Only for games with a separate music board: Star Wars\n"
+                   "Arcade, Sega Touring Car Championship and Top Skater.\n"
+                   "Sound effects stay as they are."));
+    }
+    ImGui::Separator();
+    ImGui::Spacing();
+
     ImGui::Checkbox(tr_id("Per-game volume"), &config.game_volume);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");

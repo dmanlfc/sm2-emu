@@ -1498,6 +1498,22 @@ msgstr "Réinitialiser"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "Volume de la musique"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"Uniquement pour les jeux avec une carte musique séparée :\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"Les effets sonores restent inchangés."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "Volume par jeu"
 

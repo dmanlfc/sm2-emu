@@ -1499,6 +1499,22 @@ msgstr "Restableix"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "Volum de la música"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"Només per als jocs amb una placa de música separada:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"Els efectes de so es mantenen igual."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "Volum per joc"
 

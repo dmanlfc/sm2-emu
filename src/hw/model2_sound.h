@@ -66,6 +66,12 @@ public:
     /// most one. Empty regions leave it inert.
     void attach_dsb2(std::span<const u8> dsb_program, std::span<const u8> dsb_mpeg);
 
+    void set_music_volume(u32 percent)
+    {
+        m_dsb.set_music_volume(percent);
+        m_dsb2.set_music_volume(percent);
+    }
+
     void reset();
 
     /// Apply the per-set flat gain that levels loudness across the library.

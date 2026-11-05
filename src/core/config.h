@@ -485,6 +485,9 @@ struct Config {
     /// Percent per game family, keyed by parent set name; absent means 100.
     std::map<std::string, u32> game_volumes;
 
+    /// The music board's level in percent, for the games with one.
+    u32 music_volume = 100;
+
     static constexpr u32 kDefaultGameVolume = 100;
     static constexpr u32 kMaxGameVolume     = 150;
 

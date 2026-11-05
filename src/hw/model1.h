@@ -124,6 +124,7 @@ public:
     [[nodiscard]] u64 tilemap_compose_nanoseconds() const override { return m_video.last_compose_nanoseconds(); }
     void              compose_video() override;
     [[nodiscard]] bool needs_cpu_tilemap() const override { return m_video.has_overlay(); }
+    void set_music_volume(u32 percent) override { m_m1audio.set_music_volume(percent); }
 
     // -- cpu::Bus, the V60's program space ------------------------------------
 

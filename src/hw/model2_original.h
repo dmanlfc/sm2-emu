@@ -174,6 +174,7 @@ public:
         return m_sky.rows != 0 ? &m_sky : nullptr;
     }
     void set_draw_distance(bool extended) override;
+    void set_music_volume(u32 percent) override { m_m1audio.set_music_volume(percent); }
     [[nodiscard]] u64 geometry_stage_nanoseconds() const override
     {
         return m_geometry.last_run_nanoseconds();

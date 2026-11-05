@@ -1022,6 +1022,7 @@ int main(int argc, char** argv)
     options.config.pad_layouts           = from_file.pad_layouts;
     options.config.wheel_steer_deadzone  = from_file.wheel_steer_deadzone;
     options.config.game_volume           = from_file.game_volume;
+    options.config.music_volume          = from_file.music_volume;
     options.config.game_volumes          = from_file.game_volumes;
     options.config.outputs_network      = from_file.outputs_network;
     options.config.outputs_network_port = from_file.outputs_network_port;
@@ -2651,6 +2652,7 @@ int main(int argc, char** argv)
                 }
 
                 machine_iface->set_draw_distance(options.config.extended_draw_distance);
+                machine_iface->set_music_volume(options.config.music_volume);
                 {
                     // The geometry engine and the backend must agree on the
                     // width for the frame run_frame() builds.

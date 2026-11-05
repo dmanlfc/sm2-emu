@@ -1496,6 +1496,22 @@ msgstr "Нулирай"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "Сила на музиката"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"Само за игри с отделна музикална платка:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"Звуковите ефекти остават същите."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "Сила на звука по игри"
 

@@ -1498,6 +1498,22 @@ msgstr "Ponastavi"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "Glasnost glasbe"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"Samo za igre z ločeno glasbeno ploščo:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"Zvočni učinki ostanejo enaki."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "Glasnost po igrah"
 

@@ -1491,6 +1491,22 @@ msgstr "Obnoviť"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "Hlasitosť hudby"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"Len pre hry so samostatnou hudobnou doskou:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"Zvukové efekty zostávajú bez zmeny."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "Hlasitosť hier"
 

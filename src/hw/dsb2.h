@@ -61,6 +61,9 @@ public:
     /// share one 16-bit clamp.
     void set_gain(u16 gain) { m_gain = gain; }
 
+    /// The player's music level, in percent.
+    void set_music_volume(u32 percent) { m_music = static_cast<s32>(percent * 256 / 100); }
+
     // -- cpu::Bus (68000, big-endian) ---------------------------------------
 
     u8   read8(u32 address) override;
@@ -113,6 +116,7 @@ private:
 
     u32 m_mp_start = 0, m_mp_end = 0, m_mp_vol = 0x7f, m_mp_pan = 0;
     s32 m_gain = 256;
+    s32 m_music = 256;
     u32 m_start = 0, m_end = 0, m_rom_bank = 0;
     s32 m_mp_pos = 0, m_audio_pos = 0, m_audio_avail = 0;
     u8      m_mp_state = 0;  ///< 0 stopped, 1 playing, 2 looping to m_start/m_end

@@ -1493,6 +1493,22 @@ msgstr "रीसेट"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "संगीत वॉल्यूम"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"केवल अलग म्यूज़िक बोर्ड वाले गेम के लिए:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater।\n"
+"साउंड इफ़ेक्ट जैसे हैं वैसे ही रहते हैं।"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "प्रति-गेम वॉल्यूम"
 

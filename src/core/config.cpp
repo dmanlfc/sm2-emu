@@ -917,6 +917,13 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
                 problems->push_back(path + ":" + std::to_string(number)
                                     + ": unknown setting '" + key + "'");
             }
+        } else if (key == "music_volume") {
+            u32 percent = 0;
+            if (parse_u32(value, &percent)) {
+                out->music_volume = std::min<u32>(percent, 100);
+            } else {
+                bad_value();
+            }
         } else if (key == "game_volume") {
             if (!parse_bool(value, &out->game_volume)) {
                 bad_value();
@@ -1054,6 +1061,7 @@ bool save_config(const std::string& path, const Config& config)
         << "software_async = " << bool_text(config.software_async) << "\n"
         << "software_slow_cores = " << bool_text(config.software_slow_cores) << "\n"
         << "\n[audio]\n"
+        << "music_volume = " << config.music_volume << "\n"
         << "game_volume = " << bool_text(config.game_volume) << "\n";
     for (const auto& [family, percent] : config.game_volumes) {
         if (percent != Config::kDefaultGameVolume) {

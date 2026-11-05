@@ -170,6 +170,7 @@ public:
 
     /// Directory for the NVRAM and EEPROM images. Loaded now, saved on request.
     void set_nvram_directory(const std::string& directory) override;
+    void set_music_volume(u32 percent) override { m_sound.set_music_volume(percent); }
     void load_nvram() override;
     void save_nvram() const override;
 

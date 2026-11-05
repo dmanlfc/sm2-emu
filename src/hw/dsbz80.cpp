@@ -384,8 +384,8 @@ void DsbZ80::mix(s16* dst, u32 frames, u32 out_rate)
                 break;
         }
         // Down from the 32768*128 full-scale to 16 bits.
-        l = (l >> 7) * m_gain >> 8;
-        r = (r >> 7) * m_gain >> 8;
+        l = ((l >> 7) * m_gain >> 8) * m_music >> 8;
+        r = ((r >> 7) * m_gain >> 8) * m_music >> 8;
 
         const s32 ol = static_cast<s32>(dst[i * 2]) + l;
         const s32 or_ = static_cast<s32>(dst[i * 2 + 1]) + r;

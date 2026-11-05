@@ -1496,6 +1496,22 @@ msgstr "Скинути"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "Гучність музики"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"Лише для ігор з окремою музичною платою:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"Звукові ефекти не змінюються."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "Гучність ігор"
 

@@ -1495,6 +1495,22 @@ msgstr "மீட்டமை"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "இசை ஒலியளவு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"தனி இசைப் பலகை உள்ள விளையாட்டுகளுக்கு மட்டும்:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"ஒலி விளைவுகள் அப்படியே இருக்கும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "கேம்வாரி ஒலியளவு"
 

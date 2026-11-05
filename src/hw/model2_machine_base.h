@@ -235,6 +235,9 @@ public:
     /// Draw the scenery to the edge of the course, where a game supports it.
     virtual void set_draw_distance(bool /*extended*/) {}
 
+    /// The music board's level in percent, for the sets that have one.
+    virtual void set_music_volume(u32 /*percent*/) {}
+
     // -- per-core timing, for --profile --------------------------------------
     //
     // run_frame() interleaves the i960, coprocessor and sound board, so main.cpp

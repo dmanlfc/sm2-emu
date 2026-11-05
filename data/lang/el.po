@@ -1501,6 +1501,22 @@ msgstr "Επαναφορά"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "Ένταση μουσικής"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"Μόνο για παιχνίδια με ξεχωριστή πλακέτα μουσικής:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"Τα ηχητικά εφέ μένουν ως έχουν."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "Ένταση ανά παιχνίδι"
 

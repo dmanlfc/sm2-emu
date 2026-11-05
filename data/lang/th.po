@@ -1491,6 +1491,22 @@ msgstr "รีเซ็ต"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "ระดับเสียงเพลง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"เฉพาะเกมที่มีบอร์ดเพลงแยก:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater\n"
+"เสียงเอฟเฟกต์ยังคงเหมือนเดิม"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "ระดับเสียงแยกตามเกม"
 

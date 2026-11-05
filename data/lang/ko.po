@@ -1489,6 +1489,22 @@ msgstr "초기화"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "음악 볼륨"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"별도의 음악 보드가 있는 게임 전용:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"효과음은 그대로 유지됩니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "게임별 볼륨"
 

@@ -1486,6 +1486,22 @@ msgstr "איפוס"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Music volume"
+msgstr "עוצמת המוזיקה"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Only for games with a separate music board: Star Wars\n"
+"Arcade, Sega Touring Car Championship and Top Skater.\n"
+"Sound effects stay as they are."
+msgstr ""
+"רק למשחקים עם לוח מוזיקה נפרד:\n"
+"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+"אפקטי הקול נשארים כפי שהם."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Per-game volume"
 msgstr "עוצמה לכל משחק"
 
