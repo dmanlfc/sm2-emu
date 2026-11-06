@@ -8,164 +8,136 @@
  A  S E G A  M O D E L  1  &  2  E M U L A T O R
 ```
 
-Background: I started this emulation journey back in February 2025 to look to
-improve upon Model 2 emulation for Linux, since my favourite OS lacked a native
-emulator and at the time MAME had incompatibility issues and was just slow for
-small ARM-based SBCs. The mission was to look into what MAME did well and learn
-more from research and analysis of Supermodel (a Model 3 emulator) as
-inspiration. Supermodel actually led me to wire up OpenGL ES and Vulkan for
-that emulator, as I could get quicker results on the possibility of running
-Model 2 emulation on a Raspberry Pi 5 and bringing it to the emulation
-community.
+I started this project in February 2025 to improve Model 2 emulation on Linux.
+There was no native emulator, and MAME had compatibility problems and was too
+slow on small ARM boards. The plan was to learn from what MAME does well and
+from Supermodel (a Model 3 emulator). My work on Supermodel for Batocera is
+what led me to add OpenGL ES and Vulkan to that emulator, and it showed that
+Model 2 could run on a Raspberry Pi 5.
 
-Linux is the primary target. macOS is supported just because that's partly what
-I used for development and runs Vulkan through MoltenVK. I don't care for
-Windows... there, I said it but I have provided a port for the unfortunate :-)
+In November 2026, I added Sega Model 1 support.
 
-The journey included a lot of discussions with GenAI. I'm not going to lie, but
-its ability to really lean in and help tackle the hard parts was somewhat
-limited early on. Providing it bite-sized tasks sped up my part-time
-development from November 2025 onwards, especially around how all the
-components hang together, and later on it was genuinely helpful with the
-graphical quirks.
+Linux is the main target, with Batocera first, and there is an AppImage for
+other Linux distributions. macOS is supported because I partly develop on it,
+and it runs Vulkan through MoltenVK. I don't care for Windows... there, I said
+it, but there is a port for the unfortunate :-)
 
-**Status: playable.** All four boards run — original Model 2, 2A, 2B and 2C —
-with picture and sound, and so does Model 1: Virtua Racing, Virtua Formula,
-Virtua Fighter, Star Wars Arcade and Wing War. NetMerc plays but is nearly
-silent, as one of its sample ROM dumps is blank. Of the 96 sets in the database,
-the majority draw full
-3D scenes and produce audio, across three renderers: Vulkan, OpenGL and OpenGL
-ES.
+I used some GenAI along the way, but over 90% of the code is hand-written or
+reused. Giving GenAI small, focused tasks sped up my part-time work from
+November 2025 onwards, first with how the components fit together and later
+with the graphical quirks. GenAI used: Google Gemini for the initial GUI
+translations, and Claude for the Top Skater graphics problems.
 
-All three geometry coprocessors are there — the MB86234 TGP, the ADSP-21062
-SHARC and the MB86235 TGPx4 — along with the System 24 tilemap hardware, a
-textured renderer with the hardware's own colour chain evaluated per texel, and
-both sound boards: the 68000/SCSP the CRX family uses, and the Model 1 audio
-board (a 68000 with a YM3438 and two MultiPCMs) that Daytona USA, Desert Tank
-and Virtua Cop carry instead. Drive boards, lightguns, the link board and the
-protection devices are wired.
+**Status: playable.** All four Model 2 boards run (original, 2A, 2B and 2C), as
+does Model 1: Virtua Racing, Virtua Formula, Virtua Fighter, Star Wars Arcade
+and Wing War. NetMerc runs but is nearly silent, because one of its sample ROM
+dumps is blank. The database has 92 sets, and most of them play with full 3D
+and sound on all three GPU renderers (Vulkan, OpenGL and OpenGL ES) and the
+software renderer.
 
-Input comes from SDL gamepads with the keyboard live alongside them, and the
-machine is paced to its own 57.5245 Hz rather than to the display. The frame is
-composited at the hardware's 496x384 and magnified once at the end, so it runs
-on the hardware's pixels rather than on colours a filter has already blurred.
+Emulated hardware:
+
+- **CPUs:** the i960 (Model 2) and V60 (Model 1) main CPUs.
+- **Geometry coprocessors:** the MB86233/MB86234 TGP, the ADSP-21062 SHARC and
+  the MB86235 TGPx4.
+- **Video:** the System 24 tilemaps, and a textured renderer that applies the
+  hardware's colour chain per texel.
+- **Sound:** the 68000/SCSP board, the Model 1 sound board (68000, YM3438 and
+  two MultiPCMs), and the MPEG music boards.
+- **Other boards:** drive boards, light guns, the link board and the protection
+  chips.
+
+Input comes from SDL gamepads, with the keyboard always active alongside them.
+The machine runs at its own 57.5245 Hz rather than the display's rate. Each
+frame is built at the hardware's 496x384 and scaled once at the end.
 
 ## System requirements
 
-The honest short version: **this is CPU-bound, on a single fast core.** The
-emulated machine is an i960 main CPU plus a geometry coprocessor, and both run
-as interpreters on one thread. What decides whether a game holds full speed is
-almost entirely how fast *one* core can run that pair — not the GPU, not the
-core count, and not the clock rate on its own. The heaviest load is the Model
-2B (SHARC) and 2C (MB86235) sets; the original and 2A (MB86234 TGP) sets are
+**Speed depends on one fast CPU core.** The main CPU and the geometry
+coprocessor both run as interpreters on a single thread, so how fast one core
+runs decides whether a game holds full speed. The GPU, the number of cores and
+the clock speed on its own matter much less. The Model 2B (SHARC) and 2C
+(MB86235) sets are the heaviest; the original Model 2, 2A and Model 1 sets are
 noticeably lighter.
 
-### What the processor needs
+### Processor
 
-Single-thread performance provides the best outcome. I tried multi-threading
-the coprocessor work out, but that actually hindered performance.
+I tried moving the coprocessor onto its own thread, but it made things slower.
+What matters is a fast single core with:
 
-Concretely, a core wants:
+- **Out-of-order execution.** This matters more than clock speed. In-order cores
+  (ARM "little" cores such as the Cortex-A53/A55, older Atoms) take several
+  times longer for the same work.
+- **A modern design.** For full speed on the heavy 2B/2C sets, think a
+  Cortex-A76 at about 2.4 GHz, any x86-64 desktop or laptop core from 2015 on
+  (Intel i5 / AMD Ryzen class), or Apple Silicon.
+- **64-bit:** aarch64 or x86-64. There is no 32-bit build.
 
-- **Out-of-order execution.** This matters more than raw clock. The
-  interpreters are branchy, memory-dependent inner loops, and an out-of-order
-  core hides that latency where an in-order one stalls on it. An in-order core
-  (older ARM "little" cores such as Cortex-A53/A55, in-order Atom) is not
-  enough even at a similar clock — the same work takes several times longer.
-- **A high single-core clock and a modern architecture is better.** Roughly,
-  sustained full speed on the heavy 2B/2C ROM sets wants the per-core
-  throughput of a **Cortex-A76-class ARM core at ~2.4 GHz, or any post-2015
-  x86-64 desktop/laptop core (Intel i5 / AMD Ryzen class), or Apple Silicon.**
-- **64-bit.** aarch64 (ARMv8-A) or x86-64 with SSE2. There is currently no
-  32-bit target.
-- **NEON / SSE2** for the vectorised paths (present but not the main lever).
+Extra cores help little, except with the software renderer. It splits its
+drawing into bands, and by default (`software_async = true`) draws each frame
+on its own thread, one frame behind the emulation, at the cost of a frame of
+latency. On big.LITTLE chips (`software_slow_cores = true`) the drawing runs on
+the little cores and leaves the big cores to the emulation.
 
-As per above, cores beyond the first buy little improvement: the emulation is
-single-threaded by design, and the frame's cost is dominated by the one core
-running the two CPUs. A faster single core beats more cores every time here.
+### GPU
 
-The software renderer is the exception, and it uses the other cores two ways.
-It splits its rasteriser into bands, and by default (`software_async = true`
-in the ini) it draws each frame on its own thread one frame behind the
-emulation, so the draw overlaps the next frame's CPU work at the cost of a
-frame of latency. On a big.LITTLE part (`software_slow_cores = true`) that
-thread and its bands are pinned to the little cores, which are useless for
-the interpreters but fine for the rasteriser, leaving the big cores entirely
-to the emulation. Captures and comparisons force the synchronous path.
-
-### Renderer / GPU
-
-The hardware has no depth buffer — visibility is an order-based fill mask, so a
-GPU has to shade every hidden pixel — which means the built-in **software
-renderer is provided**, and it is the right default on machines without a
-strong GPU. GPU backends (Vulkan / OpenGL) pull ahead only on desktop-class
-GPUs. Dropping the window resolution does almost nothing, because the limit is
-the CPU rather than fill rate. The software renderer needs no GPU at all; the
-GPU backends need OpenGL 4.3 core (desktop), OpenGL ES 3.1 (ARM), or Vulkan 1.3
-(opt-in), the floor set by the renderer's compute/SSBO passes.
+The hardware has no depth buffer, so a GPU has to shade every hidden pixel.
+That makes the **software renderer** the right choice on machines without a
+strong GPU; the GPU renderers only pull ahead on desktop-class graphics. A
+smaller window barely helps, because the CPU is the limit. The GPU renderers
+need OpenGL 4.3, OpenGL ES 3.1 or Vulkan.
 
 ### By platform
 
 | Platform | Notes |
 |----------|-------|
-| **x86-64 (Linux)** | The primary target. Any modern desktop or laptop core clears every set with headroom on any backend. |
-| **x86-64 (Windows)** | Builds with MSVC and runs the software and OpenGL/Vulkan backends. CI builds it and boots it headless on every push; interactive in-game rendering has not been verified on Windows hardware yet, so treat the Windows build as provisional. |
-| **macOS** | Apple Silicon (recommended; runs everything far above full speed) or a 2015+ Intel Mac. The GPU path runs through MoltenVK (install the Vulkan SDK); the software path needs neither. |
-| **ARM (aarch64 SBC / handheld)** | Needs an out-of-order core. A **Raspberry Pi 5 (Cortex-A76 @ 2.4 GHz)** is the realistic entry point: it holds full speed on the lighter sets but **only sits around — or just below — full speed on the heavier SHARC/MB86235 games**, so it is not comfortable across the whole library. Anything with weaker or in-order cores is below playable on the demanding sets. |
+| **x86-64 Linux** | The main target. Any modern desktop or laptop runs every set at full speed on any renderer. |
+| **x86-64 Windows** | Built with MSVC, with the software, OpenGL and Vulkan renderers. Less tested than Linux. |
+| **macOS** | Apple Silicon (recommended) or a 2015+ Intel Mac. The release dmg includes MoltenVK and needs nothing else installed. |
+| **ARM (SBCs, handhelds)** | A **Raspberry Pi 5** or better. The Pi 5 runs most games at full speed; the heaviest Model 2B/2C games run just below it. |
 
-Measured on a Raspberry Pi 5 (Cortex-A76), software backend, in-game: the light
-sets run comfortably above 57.5 Hz (Virtua Fighter 2, Daytona, Sega Rally, Manx
-TT), while the heavy coprocessor sets land near or under it (House of the Dead,
-Fighting Vipers, Dead or Alive, Last Bronx). So the Pi 5 is the sensible floor
-for ARM, with the caveat that the most CPU-heavy titles do not yet hold a locked
-57.5 Hz there.
+On a Raspberry Pi 5 with the software renderer, Virtua Fighter 2, Daytona USA,
+Sega Rally and Manx TT run comfortably above 57.5 Hz. House of the Dead,
+Fighting Vipers, Dead or Alive and Last Bronx land at or below it.
 
-A big.LITTLE handheld does better than its two big cores suggest, because the
-little ones take the draw. Measured on an Anbernic RG 55G1 (Snapdragon 4 Gen
-2: 2x Cortex-A78 @ 2.4 GHz + 6x Cortex-A55), software backend, in-game and
-unthrottled, with the process pinned to the two A78s: Daytona 106, Virtua
-Fighter 2 109, Dead or Alive 84, House of the Dead 83, Fighting Vipers 74 and
-Last Bronx 68 fps, so every set holds 57.5 Hz with headroom. Leave the
-emulation to the scheduler and it lands on the A55s, where the same sets run
-at 40-60 fps; pin it (Batocera's CPU cores setting does this) or make sure
-the front end you use does.
+Handhelds with big.LITTLE chips do better than their big cores suggest, because
+the little cores take the drawing. On an Anbernic RG 55G1 (2x Cortex-A78 + 6x
+Cortex-A55), pinned to the A78s, every set holds full speed: Daytona 106 fps,
+Virtua Fighter 2 109, Dead or Alive 84, House of the Dead 83, Fighting Vipers
+74 and Last Bronx 68 (software renderer, unthrottled). Left to the scheduler,
+it lands on the A55s and drops to 40-60 fps, so pin it to the big cores
+(Batocera's CPU cores setting does this).
 
-**RAM** is undemanding: a loaded set is ~90–110 MiB of ROM regions plus working
-buffers, so a couple of hundred MB of headroom is plenty.
+**RAM:** a loaded set takes about 90-110 MB, so a couple of hundred MB free is
+plenty.
 
-## What Model 2 is, and why the renderer looks unusual
+## Why the renderer is unusual
 
-Model 2 is an i960KB paired with a geometry coprocessor (a Fujitsu MB86234
-"TGP" on Model 2 and 2A, an ADSP-21062 SHARC on 2B, an MB86235 on 2C), a custom
-Sega/Lockheed-Martin rasterizer, and Sega System 24 tilemap hardware for the 2D
-layers. Output is 496x384 at roughly 57.5 Hz.
+Model 2 pairs an i960KB with a geometry coprocessor (an MB86234 TGP on Model 2
+and 2A, a SHARC on 2B, an MB86235 on 2C), a custom Sega/Lockheed Martin
+rasteriser and System 24 tilemaps for the 2D layers. Output is 496x384 at about
+57.5 Hz. The rasteriser has no modern equivalent in four ways:
 
-Four properties of that rasterizer shape the whole design, because none has a
-direct modern equivalent:
+- **No depth buffer.** Polygons are sorted by depth and drawn front to back
+  against a one-bit mask: the first write wins. sm2-emu uses a stencil buffer
+  for this.
+- **No RGB textures.** A texel is a 4-bit intensity, coloured through a tone
+  curve, a base colour, a lookup table and a gamma ramp. The curve applies after
+  filtering, so the whole chain runs per texel in the fragment shader.
+- **No alpha blending.** See-through surfaces use an alpha test or a fixed
+  checkerboard stipple. Both drop pixels and leave the mask open, so whatever is
+  behind still draws.
+- **No per-vertex shading.** Each polygon has one 8-bit brightness value.
 
-- **No depth buffer.** Polygons are bucket-sorted by depth on the CPU and drawn
-  front to back against a one-bit fill mask: first writer wins. Reproduced with
-  a stencil attachment rather than a depth test.
-- **No RGB textures.** A texel is a 4-bit *intensity*; colour arrives through a
-  tone curve, a base colour, a translation table and a gamma ramp. The curve is
-  applied *after* filtering, so it cannot be baked in — the whole chain runs
-  per texel in the fragment shader.
-- **No alpha blending.** Translucency is an alpha test on one texel value, or a
-  screen-locked stipple. Both discard fragments, which leaves the fill mask
-  unclaimed so what is behind still gets the pixel.
-- **No per-vertex shading.** One 8-bit luminance scalar per polygon.
-
-So the geometry pipeline runs on the CPU as the hardware's did, and the GPU
-backend is handed pre-projected screen-space triangles. No vertex
-transformation on the GPU, no geometry shaders.
+So the geometry runs on the CPU, as on the hardware, and the GPU only receives
+finished screen-space triangles.
 
 ## Building
 
-See [BUILDING.md](BUILDING.md) for the full guide: dependencies, the CMake
-options, the three graphics backends, per-distro package lists, the macOS
-(MoltenVK) walkthrough and cross-compilation for ARM/embedded targets.
+See [BUILDING.md](BUILDING.md) for dependencies, CMake options, the three
+graphics backends, per-distro packages, macOS and cross-compiling for ARM.
 
-The short version, for a default Linux build (software + OpenGL, no Vulkan):
+A default Linux build (software + OpenGL):
 
 ```sh
 git clone --recurse-submodules https://github.com/dmanlfc/sm2-emu.git
@@ -181,63 +153,57 @@ ctest --test-dir build
 ./build/bin/sm2-emu --list-games
 ./build/bin/sm2-emu --list-gpus
 ./build/bin/sm2-emu [--graphics-backend <software|vulkan|opengl>] \
-                    [--render-scale <1-4>] \
+                    [--render-scale <1-8>] \
                     [--fullscreen] [--no-vsync] [--game <set>] vf2.zip
 ```
 
-No ROM data is distributed with this software. Games are identified by the
-CRC32 of their contents rather than by filename, so a merged archive holding
-several revisions resolves correctly and `--game <set>` picks one out of it —
-the four Virtua Fighter 2 revisions share a single file, as do the Virtua Cop
-and Sega Rally families. A clone declares only the chips it respins and
-inherits the rest from its parent, including out of the parent's archive if it
-has none of its own.
+No ROMs are included. Games are identified by the CRC32 of their contents, not
+by file name, so one merged archive can hold several revisions and `--game`
+picks one. For example, the four Virtua Fighter 2 revisions share one file:
 
 ```sh
 ./build/bin/sm2-emu --game vf2o vf2.zip
 ```
 
-A `.zip` or `.7z` dropped onto the window starts that game, from the picker or
-in place of the one running. If a set cannot start, a dialog says why and lists
-any chips that are missing.
+A clone lists only the chips it changes and takes the rest from its parent,
+even from the parent's archive. Model 1 archives can live in their own folder
+(`--model1-rom-dir` or the Paths tab).
 
-ROM layouts live in `data/games.xml`, so adding a game is a data edit. A region
-is a flat byte array and each chip contributes `chunk` bytes every `stride`
-bytes, which expresses every interleaving the hardware uses. The schema is
-documented at the top of that file.
+Dropping a `.zip` or `.7z` on the window starts that game. If a set can't
+start, a dialog says why and lists any missing chips.
+
+ROM layouts live in `data/games.xml`, so a game that isn't included can be
+added by editing it. The format is described at the top of that file.
 
 ## Controls
 
-Every game is playable with either a standard gamepad or keyboard.
-Wheels, light guns and a mouse are supported as the preferred devices for the
-driving and gun titles, but none is required. Gamepads are read through SDL's
-gamepad layer, so anything with a mapping works without configuration. The
-first pad to connect is player 1, pads can come and go while the game runs, and
-`--list-gamepads` shows what was recognised. Face buttons are read by position
-rather than by label.
+Every game can be played with a gamepad or the keyboard. Wheels, light guns and
+a mouse work for the driving and gun games, but aren't required. Any gamepad
+SDL knows works without setup. The first pad connected is player 1, pads can be
+plugged in or out while playing, and `--list-gamepads` shows what was found.
+Face buttons go by position, not label. The **Gamepad** tab sets each game's
+button layout.
 
 | Gamepad | Function |
 |---------|----------|
-| D-pad or left stick | Stick, steering and other centred analog axes |
-| A B X Y | Buttons 1 to 4 (also VR 1-4 on titles with view buttons) |
-| Left / right shoulder | Buttons 3/4; also gear/shift down/up on racers |
-| Left / right trigger | Brake / accelerate on driving titles |
-| Either stick | Aim on gun titles (no mouse needed); right trigger fires, left trigger reloads |
-| Start / Back | Start / insert a coin |
+| D-pad or left stick | Stick, steering and other centred controls |
+| A B X Y | Buttons 1 to 4 (also VR view buttons 1-4) |
+| Left / right shoulder | Buttons 3/4; gear down/up on racers |
+| Left / right trigger | Brake / accelerate on driving games |
+| Either stick | Aim on gun games; right trigger fires, left trigger reloads |
+| Start / Back | Start / insert coin |
 | Guide + L3 / R3 | Service / Test (operator menus) |
 | Guide + A | Settings menu |
-| Guide + X / Y | Quick-save / quick-load |
-| Guide + d-pad left / right (held) | Rewind (when turned on) / fast-forward |
+| Guide + X / Y | Quick save / quick load |
+| Guide + d-pad left / right (held) | Rewind (when on) / fast-forward |
 | Guide + LB | Screenshot |
-| Guide + Start | Back to the game picker, or quit when there is none |
+| Guide + Start | Back to the game picker, or quit |
 
-The Guide shortcuts follow Batocera's hotkey layout. A front end that maps its
-own hotkeys turns them off with `pad_shortcuts = false` in `sm2-emu.ini`, as
-Batocera does, so nothing fires twice; Service and Test stay on Guide + L3 /
-R3 either way.
+The Guide shortcuts follow Batocera's hotkey layout. Front ends with their own
+hotkeys can turn them off with `pad_shortcuts = false`, as Batocera does.
+Service and Test stay on Guide + L3 / R3 either way.
 
-The keyboard is live at the same time, so a second player can join on it and
-the operator controls stay reachable without a pad:
+The keyboard works at the same time, so a second player can use it:
 
 | Keys | Function |
 |------|----------|
@@ -246,215 +212,170 @@ the operator controls stay reachable without a pad:
 | `9` `0` | Service, test |
 | Arrows, `Z` `X` `C` `V` | Player 1 stick and buttons |
 | `W` `A` `S` `D`, `G` `H` `J` `K` | Player 2 stick and buttons |
-| Arrows | Steering and other centred analog axes |
-| `Left Ctrl` / `Left Alt` | Accelerate / brake (driving titles) |
-| `F1` / `F2` | Shift up / down (Indy 500, Manx TT family) |
-| `F1`–`F4`, `F5` | Gears 1 to 4, neutral (on gate-gearbox titles) |
-| `B` `N` `M` `,` | VR / view buttons 1 to 4 (on titles that have them) |
-| `Space` | Desert Tank forward/reverse shift |
-| Arrows + `Left Ctrl` | Aim + fire on gun titles (no mouse needed) |
-| `Escape` | Return to the game picker (quits if launched with no picker) |
+| `Left Ctrl` / `Left Alt` | Accelerate / brake |
+| `F1` / `F2` | Shift up / down (Indy 500, Manx TT) |
+| `F1`-`F4`, `F5` | Gears 1 to 4, neutral (H-gate games) |
+| `B` `N` `M` `,` | VR view buttons 1 to 4 |
+| `Space` | Desert Tank forward/reverse |
+| Arrows + `Left Ctrl` | Aim and fire on gun games |
+| `Escape` | Back to the game picker (quits if there is none) |
 | `P` | Pause |
-| `F6` / `F7` | Quick-save / quick-load the current game's state |
-| `F8` | Toggle the FPS counter |
+| `F6` / `F7` | Quick save / quick load |
+| `F8` | FPS counter |
 | `F9` | Quit |
-| `F10` | Toggle the settings menu |
-| `F11` | Toggle fullscreen (`Cmd+F` on macOS, where the OS reserves F11) |
-| `F12` | Save a screenshot |
+| `F10` | Settings menu |
+| `F11` | Fullscreen (`Cmd+F` on macOS) |
+| `F12` | Screenshot |
 | `Tab` (held) | Fast-forward |
-| `Backspace` (held) | Rewind, when turned on in the **System** tab |
+| `Backspace` (held) | Rewind, when on |
 
-**Virtual On** (a twin-stick cabinet) on the keyboard: `W`/`A`/`S`/`D` are the
-left lever, the arrow keys the right lever, `Q`/`E` the left shot/dash and
-`Right Shift`/`Right Ctrl` the right shot/dash. On a pad the two analog sticks
-are the levers, the triggers the shots and the bumpers the dashes.
+**Virtual On** on the keyboard: `W` `A` `S` `D` is the left lever, the arrows
+the right lever, `Q` / `E` the left shot / dash and `Right Shift` /
+`Right Ctrl` the right shot / dash. On a pad, the sticks are the levers, the
+triggers the shots and the bumpers the dashes.
 
-The renderer (GPU or software) is chosen at launch with `--graphics-backend`
-and cannot be switched at runtime.
+**Flying games:** Star Wars Arcade and Wing War fly at full speed; pull the
+right stick back (or use the brake) to slow down.
+
+The renderer is chosen at launch with `--graphics-backend` and can't be
+switched while running.
 
 ### Wheels and light guns
 
-Beyond the pad and keyboard, dedicated peripherals are supported and configured
-in the settings overlay (`F10`):
+Both are set up in the settings menu (`F10`):
 
-- **Wheels and pedals** with their own axis layout, calibrated in the **Wheel**
-  tab (steering range, pedal axes, button mapping). Synthesised centring
-  resistance and road/engine rumble are provided for wheels with a motor, since
-  the drive board's real force is not replayed.
-- **Light guns**, with one gun per player: the first gun found is player 1 and
-  the second is player 2. On Linux, any evdev device tagged `ID_INPUT_GUN` is
-  used, and guns with a motor get recoil. Windows is covered below. A Sinden
-  border is available if the gun needs one, and the mouse remains the fallback
-  aiming device on every platform. A gun calibrated to the whole screen is
-  mapped onto the game image, so no 4:3 mode is needed; shooting a side bar,
-  past the screen edge or at the picture's very edge counts as off screen, so
-  a gun that cannot aim past an edge can still reload.
-  With the Sinden border on, the gun aims against that border instead. A host
-  calibration tool that holds `KEY_CONFIG` (Batocera's gun calibrators) gets
-  its targets drawn on screen, so a gun can be recalibrated without leaving
-  the game.
-  The crosshairs can be your own PNGs: put them in the crosshairs directory
-  (Paths tab; by default a `crosshairs` folder beside `sm2-emu.ini`), named
-  `hotd-p1.png` and `hotd-p2.png` per player or `hotd.png` for both, with the
-  parent set's or `default.png` as the fallback. They are drawn at their own
-  size on a 1080-line picture and scale with it.
-- **Gamepad rumble** on the driving games, driven from the emulated drive board.
+- **Wheels and pedals** are calibrated in the **Wheel** tab. Wheels with force
+  feedback get the game's own drive board forces; others get rumble.
+- **Light guns:** the first gun found is player 1, the second player 2.
+  - **Linux:** any device tagged `ID_INPUT_GUN` works, and guns with a motor
+    get recoil.
+  - **Aim:** a gun calibrated to the whole screen is mapped onto the picture.
+    Shooting a side bar or past the edge counts as off screen, so it can
+    reload. A Sinden border is available, and the mouse always works as a
+    fallback.
+  - **Calibration:** Batocera's gun calibration tools draw their targets in
+    game.
+  - **Crosshairs:** custom PNGs go in the crosshairs folder (Paths tab), named
+    `hotd-p1.png` / `hotd-p2.png`, or `hotd.png` for both, with the parent set
+    or `default.png` as fallback.
+- **Gamepad rumble** follows the drive board in driving games.
 
 #### Light guns on Windows
 
-- **Detection:** a mouse counts as a gun if its HID product name contains
-  "gun" or "aimtrak", which is meant to cover GUN4IR, Sinden and AimTrak guns.
-- **Mode:** the guns must be in absolute mouse mode and plugged in before
-  sm2-emu starts.
-- **Aim:** the gun's position on the monitor is mapped onto the window, so
-  aim also works windowed.
-- **Buttons:** only the five mouse buttons are read. The default coin, start
-  and hat bindings do nothing, because the guns send those as keyboard or
-  gamepad input.
-- **Recoil:** there is no recoil on Windows.
+- **Detection:** a mouse whose name contains "gun" or "aimtrak" counts as a gun
+  (GUN4IR, Sinden, AimTrak).
+- **Setup:** guns must be in absolute mouse mode and plugged in before sm2-emu
+  starts. Aiming works windowed too.
+- **Buttons:** only the five mouse buttons are read.
+- **Recoil:** sm2-emu doesn't drive the motor on Windows. Turn on
+  `outputs_windows` or `outputs_network` and let MAMEHooker or Hook Of The
+  Reaper fire it.
 
 ### Save states
 
-A save state captures the entire machine so a later load resumes from the exact
-instant it was taken. Press `F6` to quick-save and `F7` to quick-load; both use a
-single reserved slot, and a new quick-save overwrites the previous quick-save.
-
-For more than one state per game, open the **States** tab in the settings overlay
-(`F10`). Each game has the quick slot plus four numbered slots, and every slot
-has **Save**, **Load** and **Delete** buttons alongside the time it was last
-written. Each save and load is confirmed by a brief message at the top of the
-screen, which can be turned off via the Notifications checkbox in the **Video** tab.
-
-Each slot is a file named `<game>.<slot>.sm2state`, kept in a `states`
-subdirectory of your saves directory, so relocating your saves (with `--nvram`
-or `nvram_dir`) moves the states with them. By default that is
-`~/Library/Application Support/sm2-emu/saves/states` on macOS and
-`$XDG_DATA_HOME/sm2-emu/saves/states` (usually under `~/.local/share`) on Linux.
+`F6` quick-saves and `F7` quick-loads, using one slot per game. The **States**
+tab has four more slots per game, each with Save, Load and Delete. States are
+stored as `<game>.<slot>.sm2state` in the `states` folder inside the saves
+folder, so they move with `--nvram` / `nvram_dir`.
 
 ### Rewind
 
 With **Rewind** on (System tab, or `rewind = true`), holding `Backspace` steps
-back through the last stretch of play at twice real time, silently, and play
-carries on from wherever it is let go. History is kept in memory, up to
-`rewind_buffer_mb` (128 MiB by default, about half a minute), and starts afresh
-when a game is loaded. Taking the snapshots costs a little speed on every frame,
-which is why it is off by default.
+back through recent play. History is kept in memory, up to `rewind_buffer_mb`
+(128 MB by default, about half a minute). It costs a little speed, so it's off
+by default.
 
 ## Settings
 
-Most settings live in the **settings overlay** (`F10`) and in `sm2-emu.ini`,
-which is created automatically on first run with every setting at its default.
-It is searched for in the working directory first or otherwise in the platform's
-config directory (`$XDG_CONFIG_HOME/sm2-emu` on Linux, `~/Library/Application
-Support/sm2-emu` on macOS); `--config <dir>` overrides both, and whichever file
-was used is named in the log. Changes made in the overlay are saved on exit. A
-command-line flag always beats the file, and an unparseable line is reported and
-skipped rather than refused.
+Most settings are in the settings menu (`F10`) and in `sm2-emu.ini`, which is
+created on first run. The file is looked for in the working directory, then in
+the config folder (`$XDG_CONFIG_HOME/sm2-emu` on Linux,
+`~/Library/Application Support/sm2-emu` on macOS); `--config <dir>` overrides
+both. Menu changes are saved on exit, and command-line options always win.
 
 ### Language
 
-The overlay follows the system's preferred language (`language = auto`), or
-whichever one is picked under **Video → Language** or set as `language` in
-`sm2-emu.ini` (`en`, `de`, `ja`, `pt_BR`, ...); it switches live. English is
-drawn in the built-in font, other languages in the fonts the system already
-has (fontconfig on Linux, CoreText on macOS, DirectWrite on Windows), and
-right-to-left and complex scripts are shaped with HarfBuzz and SheenBidi. If
-the system has no font for a language, the overlay stays in English.
+The menu follows the system language, or the one set under **Video → Language**
+or `language` in the ini (`en`, `de`, `ja`, `pt_BR`, ...). It switches live and
+uses the system's fonts for scripts the built-in font doesn't cover.
 
-The translations live in `data/lang/` as gettext `.po` files. The initial set
-was machine-translated, so corrections from native speakers are very welcome:
-edit the `.po` file (any PO editor such as Poedit works) and open a pull
-request. After changing overlay strings in the source, `data/lang/update-po.sh`
-refreshes the template and merges it into every catalog; its header explains
-how to start a new language.
+Translations live in `data/lang/` as gettext `.po` files. They started out
+machine-translated, so fixes from native speakers are very welcome: edit the
+`.po` file (Poedit works) and open a pull request. `data/lang/update-po.sh`
+updates every catalogue after the source strings change.
 
-### Video: scaling, aspect and CRT
+### Video
 
-The Video tab (and the config file) control how the finished frame is presented,
-all applied live:
+Set in the **Video** tab and applied live:
 
-- **2D scaling** — how the frame is magnified to the window: nearest, bilinear,
-  sharp-bilinear (the default; crisp 2D text without the shimmer nearest shows
-  at non-integer window sizes), or integer (whole-multiple, pixel-perfect).
-- **Aspect** — 4:3 (the arcade monitor), square pixels (the raw 496×384), or
-  stretch (fill the window).
-- **CRT filter** — an optional cosmetic arcade-monitor look (scanlines, shadow
-  mask, glow, curvature), off by default.
-- **Bezel** — frames the 4:3 picture with artwork. Put PNGs in the bezels
-  directory (Paths tab; by default a `bezels` folder beside `sm2-emu.ini`),
-  named after the set (`daytona.png`), its parent, or `default.png` for
-  everything else. The image needs a transparent window in its centre, and
-  the game is drawn inside it. A full-height 4:3 window (1440×1080 in a
-  1920×1080 image) leaves the game exactly where it is without a bezel.
-  Bezels only work in fullscreen, and obviously not when the aspect ratio is
-  16:9 or the picture is stretched.
+- **Scaling:** nearest, bilinear, sharp bilinear (default) or integer.
+- **Aspect:** 4:3 (the arcade monitor), square pixels, 16:9 or stretch. 16:9
+  draws the 3D wider and keeps the 2D in the middle (experimental).
+- **Render scale:** draws the 3D at up to 8x native (GPU renderers only). The
+  2D stays pixel-sharp.
+- **Brightness:** where the Model 2 picture's black sits; 50% is the default.
+- **Extended draw distance:** Daytona USA draws scenery to the edge of the
+  course instead of the arcade's short range.
+- **CRT filter:** optional scanlines, mask, glow and curvature.
+- **Bezels:** artwork around the 4:3 picture, fullscreen only. Put PNGs in the
+  bezels folder (Paths tab), named after the set (`daytona.png`), its parent,
+  or `default.png`. The image needs a transparent window in the middle; a
+  1440x1080 window in a 1920x1080 image keeps the game where it is.
 
-### Enhancement (optional, GPU-gated)
+### Enhancements
 
-Beyond the hardware-faithful default, the Video tab offers opt-in quality
-enhancements for capable GPUs — off by default, so a fresh install looks exactly
-like the arcade:
+Off by default, so a fresh install looks like the arcade. GPU renderers only:
 
-- **3D texture filter** — anisotropic filtering sharpens obliquely-viewed
-  surfaces (road, track, walls) that the hardware's isotropic filter leaves
-  blurry in the distance. The quality is clamped to what the GPU reports.
-- **2D upscale** — xBR or ScaleFX edge-smooth the 2D layers (HUD, text, menus)
-  so diagonals read as clean slopes rather than stairsteps.
-- **Translucency** — the hardware draws see-through surfaces (spotlights, glass,
-  shadows) as a checkerboard; Blended draws them as the 50% see-through
-  surface the checkerboard is trying to achieve. Overlapping ones build up
-  rather than hiding each other, which the hardware cannot do.
+- **3D texture filter:** anisotropic filtering sharpens roads and walls seen at
+  an angle.
+- **2D upscale:** xBR or ScaleFX smooth the 2D layers (HUD, text, menus).
+- **Translucency:** the hardware draws see-through surfaces as a checkerboard.
+  Blended draws them as the 50% see-through look it's aiming for.
+
+### Audio
+
+Volume, per-game volume, and **Music volume** for games with a separate music
+board (Star Wars Arcade, Sega Touring Car Championship and Top Skater), for
+example to mute copyrighted music in recordings.
 
 ### Custom textures
 
-The 3D textures can be dumped and replaced with higher-resolution versions
-(Vulkan and OpenGL renderers):
+The 3D textures can be dumped and replaced with sharper ones (GPU renderers):
 
-1. Turn on **Dump textures** in the Video tab (or `dump_textures = true`, or
-   `--dump-textures`) and play. When the game exits, every texture it drew is
-   written to `<saves>/textures/<game>/dump/`, upright and in colour, with an
-   `index.html` to browse them and see where each one appears.
-2. Improve any of them and save the result under the **same file name** in
-   `<saves>/textures/<game>/load/` (subfolders are fine), at any whole multiple
-   of the original size. Keep the image's orientation as dumped.
-3. With **Custom textures** on (the default), they replace the originals the
-   next time the game starts, or straight away with **Reload**. Other colour
-   variants of the same texture and the game's lighting are applied to the
-   replacement automatically.
+1. Turn on **Dump textures** in the Video tab and play. On exit, every texture
+   the game drew is saved to `<saves>/textures/<game>/dump/`, with an
+   `index.html` to browse them.
+2. Save your improved version under the **same file name** in
+   `<saves>/textures/<game>/load/`, at any whole multiple of the original size
+   and in the same orientation.
+3. With **Custom textures** on (the default), they load the next time the game
+   starts, or straight away with **Reload**.
 
-Raise the render scale to see the extra detail; at 1x there are too few pixels
-to show it.
+Raise the render scale to see the extra detail.
 
-## Networking (cabinet link)
+## Cabinet link
 
-Several Model 2 titles support linking cabinets so multiple machines play
-together — Sega Rally, Daytona USA, Super GT 24h, Indy 500, Virtua Racing and
-the other titles that carry the communication board. sm2-emu can link two or more instances over
-a LAN, so separate machines race against each other. Left off, a single
-instance still boots its network check and settles as a standalone cabinet, so
-nothing is required for solo play.
+Games with a link board (Daytona USA, Sega Rally, Indy 500, Super GT 24h,
+Virtua Racing and others) can race across a LAN, one sm2-emu per machine. With
+the link off, a game passes its network check and plays as a single cabinet.
 
-The comms board is wired as a **ring**: each cabinet listens on its own address
-and sends to the *next* cabinet in the ring. For the common two-machine case,
-you point each machine at the other. The master/slave role within the link is
-chosen in the game's own test menu (via the Test and Service inputs), not in
-these settings.
+Cabinets form a **ring**: each one listens on its own address and sends to the
+next. With two machines, point each at the other. Master/slave is chosen in the
+game's own test menu.
 
-Configure it from the **Network** tab in the settings overlay (`F10`), or in
-`sm2-emu.ini`. The keys are:
+Set it up in the **Network** tab or in `sm2-emu.ini`:
 
 | Setting | Meaning |
 |---------|---------|
-| `link_enabled` | Turn cabinet linking on. Off keeps the standalone loopback. |
-| `link_local_ip` | This machine's own address. Blank binds every interface. The GUI's **Detect** button fills it from the primary network adapter. |
-| `link_subnet_mask` | Informational, shown in the GUI. |
-| `link_port` | UDP port this cabinet listens on. Default `15112` (MAME's default). |
-| `link_next_ip` | The next cabinet in the ring, i.e. where this machine sends. For two machines, the other machine's IP. Blank disables sending. |
-| `link_next_port` | UDP port of the next cabinet. Default `15112`. |
-| `link_cabinet_index` | This cabinet's 0-based position in the ring, for your own bookkeeping. |
+| `link_enabled` | Turn the link on. |
+| `link_local_ip` | This machine's address. Blank listens on every interface. **Detect** in the GUI fills it in. |
+| `link_subnet_mask` | Shown in the GUI only. |
+| `link_port` | UDP port to listen on. Default `15112`, as in MAME. |
+| `link_next_ip` | The next cabinet's address; with two machines, the other one. |
+| `link_next_port` | The next cabinet's UDP port. Default `15112`. |
+| `link_cabinet_index` | This cabinet's position in the ring, for your reference. |
 
-A two-machine example, both running the same title, one at `192.168.1.10` and
-the other at `192.168.1.11`:
+Two machines at `192.168.1.10` and `192.168.1.11`:
 
 ```ini
 # Machine A (192.168.1.10)
@@ -468,109 +389,53 @@ link_local_ip = 192.168.1.11
 link_next_ip  = 192.168.1.10
 ```
 
-The link uses UDP, so make sure the chosen port is open between the machines.
-The transport is best-effort by design — the ring protocol re-sends its state
-every frame and tolerates the odd lost datagram — and a machine whose socket
-cannot bind simply stays standalone rather than failing to start. The Network
-tab shows the live link state (waiting, establishing, or linked as cabinet *N*
-of *M*), and enabling or changing the link takes effect on the next game launch.
-
-Note that these are separate instances of the emulator with independent frame
-clocks, not a rollback-netplay implementation; it links the emulated comms
-board the way real cabinets were linked on a shared LAN.
+Open the UDP port between the machines. Lost packets are fine, as the games
+resend their state every frame. A machine that can't open its port plays
+standalone. The Network tab shows the link state, and changes apply at the next
+game launch. This links the emulated boards the way real cabinets were linked;
+it isn't rollback netplay.
 
 ## Frame pacing
 
-The machine runs at 57.5245 Hz — 434600 cycles of a 25 MHz clock — which
-divides into no monitor's refresh rate. Presenting one emulated frame per
-display refresh would run the game four percent fast at 60 Hz, so it is paced
-against real time instead and every emulated frame is presented exactly once:
-nothing duplicated, nothing dropped, no input lost. On a 60 Hz display a frame
-is occasionally held for two refreshes, which is unavoidable at this rate
-without inventing frames.
-
-Vsync and pacing compose rather than conflict — whichever wants the longer
-frame wins. On a display slower than 57.5 Hz vsync would win and the game would
-run slow, which is what `--no-vsync` is for. Holding `Tab` runs as fast as the
-machine manages.
-
-## Roadmap
-
-| Phase | Milestone |
-|:-----:|-----------|
-| 0 | Window, Vulkan 1.3 device, swapchain, shader pipeline **(done)** |
-| 1 | ROM loader, i960KB core, Model 2A memory map, timers and interrupts **(done)** |
-| 2 | System 24 tilemaps — the first real picture **(done)** |
-| 3 | TGP coprocessor, geometry engine, flat-shaded 3D **(done)** |
-| 4 | Textures, the colour chain, translucency **(done)** |
-| 5 | Gamepad input, configuration, frame pacing, 68000 + SCSP sound **(done)** |
-| 6 | Presentation **(done)**, tilemap edge cases, accuracy, more games |
-| 7 | Expand compatibility to load and run more games; Model 1 audio board **(done)** |
-| 8 | Accelerate performance with Vulkan, offloading to the GPU **(done)** |
-| 9 | OpenGL 4.3 desktop and OpenGL ES 3.1 backends **(done)** |
-| 10 | Release polish: settings GUI, game picker, present-stage scaling / aspect / CRT, opt-in 3D and 2D enhancement, wheels and light guns, controller config **(WIP)** |
-| 11 | Sega Model 1: V60, MB86233 TGP, flat-shaded 3D, link board **(done)** |
+The machine runs at 57.5245 Hz, which no display matches. Showing one emulated
+frame per refresh would run 4% fast on a 60 Hz screen, so sm2-emu paces to
+real time and shows every frame exactly once. On a 60 Hz display a frame is
+sometimes held for two refreshes; that can't be avoided without making up
+frames. On a display slower than 57.5 Hz, vsync would slow the game down, so
+use `--no-vsync`. Hold `Tab` to run as fast as possible.
 
 ## Known gaps
 
-- **The geometry engine is a high-level model, not an emulation.** Its
-  microcode has never been dumped; what is emulated, following MAME, is what
-  that microcode does, reconstructed from the equivalent program later boards
-  upload. Results should match, timing does not.
-- **The tilemap sky repeats visibly** on some sets. The name table really does
-  repeat characters where the scenery is distant, so this is either a
-  perspective stretch working as intended or something upstream of the tile
-  chip. Unresolved.
-- **Neither sound board has been diffed sample for sample.** The Model 1 board
-  agrees with MAME's reference output on onset and roughly on level, but that
-  is an envelope, not a waveform. The SCSP, which MAME itself marks imperfect,
-  has not been checked to that depth.
+- **The geometry engine is a high-level model.** Its microcode has never been
+  dumped, so it follows MAME in reproducing what the microcode does. Results
+  should match, but its timing is tuned separately to match the arcade
+  hardware.
+- **The tilemap sky repeats visibly** on some sets. The tile data really does
+  repeat, so this may be correct. Unresolved.
+- **Sound isn't sample-exact.** Both sound boards have been compared against
+  arcade recordings for timing and level, not waveform by waveform.
+- **Manx TT Deluxe** carries a Model 1 sound board on top of its usual one.
+  That board works, but isn't fitted to the 2A machine yet, so its ROMs go
+  unused.
+- **Royal Ascot II** is marked as not working.
+- **Power Sled** may not run properly, as it's a complicated setup that needs
+  several linked machines.
 
-## Future work
+## Roadmap
 
-Roughly in order of increasing difficulty.
+Ideas being explored for the future:
 
-### Games with known issues
-
-Everything with a local ROM archive runs. The exceptions:
-
-- A handful of sets produce nothing here *and nothing in MAME*, because they
-  are marked not-working upstream: Manx TT (both DX sets), Motor Raid DX,
-  Virtual-On Relay, Royal Ascot II, and Sega Ski Super G (also unemulated
-  protection). There is no reference to work against for these.
-
-Separately, the Manx TT Deluxe cabinet carries a Model 1 audio board *on top
-of* the 68000/SCSP board every Model 2A has. The audio board itself works, but
-the machine has no slot for a second board yet, so those ROMs load unread.
-
-### Internal resolution scaling
-
-The 3D can be rendered above the native 496×384. `--render-scale <1-4>` (also a
-setting, and in the Video tab of the overlay) rasterises the 3D pass at N times
-native — 2× is 992×768, 4× is 1984×1536 — for crisper polygon edges and
-textures. The 2D tilemap and HUD are fixed ROM bitmaps that cannot gain detail,
-so they are upscaled nearest-neighbour and stay pixel-sharp; the whole frame is
-composited at the scaled resolution and fitted to the window at the end. GPU
-backends only (the software renderer stays native); 1× is the default and is
-byte-identical to the pre-feature output. Stipple transparency stays locked to
-the native grid, so translucent surfaces keep their hardware look at any scale.
-The extra cost is GPU fill-rate only — the emulated machine runs identically at
-every scale. This is separate from the present-stage 2D scaling and the optional
-xBR/ScaleFX 2D upscaling described under **Settings** above.
-
-### GUI and usability
-
-- **Expand the settings GUI** with input binding, per-game overrides and volume
-  control. (Wheel and gun buttons/axes already bind in the GUI.)
+- A libretro core for RetroArch
+- Sega Model 3 support
+- Mobile phones
 
 ## Licence and credits
 
-GNU GPL version 3 or later, with additional terms under section 7: keep the
-credits, mark modified versions as modified, and give a modified version you
-distribute its own name. See `LICENSE` and `NOTICE`.
+sm2-emu is licensed under the GNU General Public License v3.0 or later, with a
+few additional terms. See `LICENSE` and `NOTICE` for details.
 
-I'm standing on the shoulders of giants, and SM2-Emu exists because of the MAME
-project's reverse engineering of this hardware. The emulation is derived from
-MAME's Sega Model 1 and Model 2 drivers and their device cores, which their
-authors released under the BSD 3-Clause licence; that code keeps its licence
-(see `LICENSES/BSD-3-Clause.txt`). See `NOTICE` for per-component attribution.
+sm2-emu exists because of the MAME project's reverse engineering of this
+hardware. Much of the emulation is derived from MAME's Sega Model 1 and Model 2
+drivers and their device cores, released by their authors under the BSD
+3-Clause licence, which that code keeps (see `LICENSES/BSD-3-Clause.txt`). See
+`NOTICE` for per-component credits.
