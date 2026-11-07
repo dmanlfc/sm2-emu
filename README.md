@@ -5,17 +5,16 @@
   ___) | |  | | / __/|_____|| |___| |  | | |_| |
  |____/|_|  |_||_____|      |_____|_|  |_|\___/
 
- A  S E G A  M O D E L  1  &  2  E M U L A T O R
+ A  S E G A  M O D E L  1 ,  2  &  3  E M U L A T O R
 ```
 
 I started this project in February 2025 to improve Model 2 emulation on Linux.
 There was no native emulator, and MAME had compatibility problems and was too
-slow on small ARM boards. The plan was to learn from what MAME does well and
-from Supermodel (a Model 3 emulator). My work on Supermodel for Batocera is
-what led me to add OpenGL ES and Vulkan to that emulator, and it showed that
-Model 2 could run on a Raspberry Pi 5.
+slow on small ARM boards. The plan was to learn from what MAME does well. My
+earlier OpenGL ES and Vulkan work for Batocera showed that Model 2 could run
+on a Raspberry Pi 5.
 
-In November 2026, I added Sega Model 1 support.
+In November 2026, I added Sega Model 1 support, and then Sega Model 3.
 
 Linux is the main target, with Batocera first, and there is an AppImage for
 other Linux distributions. macOS is supported because I partly develop on it,
@@ -31,21 +30,32 @@ translations, and Claude for the Top Skater graphics problems.
 **Status: playable.** All four Model 2 boards run (original, 2A, 2B and 2C), as
 does Model 1: Virtua Racing, Virtua Formula, Virtua Fighter, Star Wars Arcade
 and Wing War. NetMerc runs but is nearly silent, because one of its sample ROM
-dumps is blank. The database has 92 sets, and most of them play with full 3D
-and sound on all three GPU renderers (Vulkan, OpenGL and OpenGL ES) and the
-software renderer.
+dumps is blank. The database has 164 sets (100 Model 1 and 2, 64 Model 3), and
+most of them play with full 3D and sound on all three GPU renderers (Vulkan,
+OpenGL and OpenGL ES); Model 1 and 2 also run on the software renderer.
+
+**Model 3:** of the 54 sets tried so far, 52 reach gameplay. The two Sega Rally
+2 prototypes can't run on any existing dump. The drive boards, the billboard,
+the net board (as a single cabinet) and the DSB1/DSB2 music boards all work.
+The PowerPC runs through a JIT on arm64; x86-64 uses the interpreter until its
+JIT lands. None of the sets need operator setup in the test menu. Star Wars
+Trilogy's flight-stick firmware isn't dumped, so the stick is simulated for the
+handshake and has no force feedback.
 
 Emulated hardware:
 
-- **CPUs:** the i960 (Model 2) and V60 (Model 1) main CPUs.
+- **CPUs:** the i960 (Model 2), V60 (Model 1) and PowerPC 603e/603ev (Model
+  3) main CPUs.
 - **Geometry coprocessors:** the MB86233/MB86234 TGP, the ADSP-21062 SHARC and
   the MB86235 TGPx4.
 - **Video:** the System 24 tilemaps, and a textured renderer that applies the
-  hardware's colour chain per texel.
-- **Sound:** the 68000/SCSP board, the Model 1 sound board (68000, YM3438 and
-  two MultiPCMs), and the MPEG music boards.
+  hardware's colour chain per texel; on Model 3, the Real3D Pro-1000 and the
+  tile generator.
+- **Sound:** the 68000/SCSP board (68000 + 2x SCSP on Model 3), the Model 1
+  sound board (68000, YM3438 and two MultiPCMs), and the MPEG music boards
+  (DSB1 and DSB2 on Model 3).
 - **Other boards:** drive boards, light guns, the link board and the protection
-  chips.
+  chips (315-5881); on Model 3, the 53C810 SCSI DMA and the MPC10x bridge.
 
 Input comes from SDL gamepads, with the keyboard always active alongside them.
 The machine runs at its own 57.5245 Hz rather than the display's rate. Each
@@ -166,8 +176,8 @@ picks one. For example, the four Virtua Fighter 2 revisions share one file:
 ```
 
 A clone lists only the chips it changes and takes the rest from its parent,
-even from the parent's archive. Model 1 archives can live in their own folder
-(`--model1-rom-dir` or the Paths tab).
+even from the parent's archive. Model 1 and Model 3 archives can live in their
+own folders (`--model1-rom-dir`, `--model3-rom-dir` or the Paths tab).
 
 Dropping a `.zip` or `.7z` on the window starts that game. If a set can't
 start, a dialog says why and lists any missing chips.
@@ -318,6 +328,13 @@ Set in the **Video** tab and applied live:
 - **Brightness:** where the Model 2 picture's black sits; 50% is the default.
 - **Extended draw distance:** Daytona USA draws scenery to the edge of the
   course instead of the arcade's short range.
+- **Fullscreen resolution:** `fullscreen_resolution = 1280x720` in the ini (or
+  `--fullscreen-resolution`) runs fullscreen at a lower mode the compositor
+  scales up. On a slow GPU (Raspberry Pi 5 with Vulkan) this is much faster, at
+  the cost of a slightly softer picture.
+
+Brightness, extended draw distance, the 3D texture filter and translucency are
+Model 1 and 2 settings; the menu greys them out while a Model 3 game runs.
 - **CRT filter:** optional scanlines, mask, glow and curvature.
 - **Bezels:** artwork around the 4:3 picture, fullscreen only. Put PNGs in the
   bezels folder (Paths tab), named after the set (`daytona.png`), its parent,
@@ -376,6 +393,7 @@ Set it up in the **Network** tab or in `sm2-emu.ini`:
 | `link_next_ip` | The next cabinet's address; with two machines, the other one. |
 | `link_next_port` | The next cabinet's UDP port. Default `15112`. |
 | `link_cabinet_index` | This cabinet's position in the ring, for your reference. |
+| `link_delay` | Model 3 only: frames by which the other cabinets are read late (default 6). Raise it if a race over Wi-Fi stutters; 2 or 3 suits a wired LAN. |
 
 Two machines at `192.168.1.10` and `192.168.1.11`:
 
@@ -396,6 +414,16 @@ resend their state every frame. A machine that can't open its port plays
 standalone. The Network tab shows the link state, and changes apply at the next
 game launch. This links the emulated boards the way real cabinets were linked;
 it isn't rollback netplay.
+
+Model 3 link games (Daytona USA 2, Scud Race, Sega Rally 2, Le Mans 24,
+Spikeout, Harley-Davidson, Ski Champ, Virtual On 2, Dirt Devils) use the same
+settings; set LINK ID (MASTER on one cabinet) in the game's test menu.
+Cabinets can start in any order. Every frame each one waits, if it must, for
+the others' last few frames, so a linked race runs at the slowest machine's
+speed. A lost packet is asked for again, so Wi-Fi works. Daytona USA 2 has been
+raced between a Mac and a Raspberry Pi 5, and three-way between a Mac and two
+Android-class handhelds running Batocera, with a third handheld as the LIVE
+monitor.
 
 ## Frame pacing
 
@@ -428,7 +456,6 @@ use `--no-vsync`. Hold `Tab` to run as fast as possible.
 Ideas being explored for the future:
 
 - A libretro core for RetroArch
-- Sega Model 3 support
 - Mobile phones
 
 ## Licence and credits
@@ -439,5 +466,6 @@ few additional terms. See `LICENSE` and `NOTICE` for details.
 sm2-emu exists because of the MAME project's reverse engineering of this
 hardware. Much of the emulation is derived from MAME's Sega Model 1 and Model 2
 drivers and their device cores, released by their authors under the BSD
-3-Clause licence, which that code keeps (see `LICENSES/BSD-3-Clause.txt`). See
-`NOTICE` for per-component credits.
+3-Clause licence, which that code keeps (see `LICENSES/BSD-3-Clause.txt`).
+
+See `NOTICE` for per-component credits and the list of ported files.
