@@ -51,6 +51,8 @@ enum class Board {
 
 /// Logical input groups a game uses, so the input layer can bind only what is
 /// relevant and the UI can hide the rest.
+///
+/// Bits 7 and up are Model 3 input groups with no Model 1/2 equivalent.
 enum class InputFlags : u32 {
     None      = 0,
     Common    = 1U << 0,  ///< Coins, service, test, start.
@@ -58,8 +60,30 @@ enum class InputFlags : u32 {
     Joystick2 = 1U << 2,
     Buttons3  = 1U << 3,  ///< Three attack buttons per player (fighting games).
     Vehicle   = 1U << 4,  ///< Steering, pedals, gear shift.
-    Gun1      = 1U << 5,
-    Gun2      = 1U << 6,
+    Gun1      = 1U << 5,  ///< Light gun, player 1 ("gun1").
+    Gun2      = 1U << 6,  ///< Light gun, player 2 ("gun2").
+
+    Fighting       = 1U << 7,   ///< "fighting": punch, kick, guard, escape per player
+                                ///< (Virtua Fighter 3, Fighting Vipers 2).
+    Shift4         = 1U << 8,   ///< "shift4": four-speed H-gate shifter.
+    ShiftUpDown    = 1U << 9,   ///< "shiftupdown": sequential shift up / down.
+    Vr4            = 1U << 10,  ///< "vr4": four VR view buttons (Daytona USA 2, Scud Race).
+    ViewChange     = 1U << 11,  ///< "viewchange": a single view-change button.
+    Handbrake      = 1U << 12,  ///< "handbrake": Sega Rally 2's handbrake.
+    Soccer         = 1U << 13,  ///< "soccer": short pass, long pass, shoot (Virtua Striker 2).
+    TwinJoysticks  = 1U << 14,  ///< "twin_joysticks": Virtual On's two sticks, each
+                                ///< with its turbo and shot buttons.
+    AnalogJoystick = 1U << 15,  ///< "analog_joystick": analogue flight stick with
+                                ///< trigger and event buttons (Star Wars Trilogy).
+    AnalogGun1     = 1U << 16,  ///< "analog_gun1": a positional gun read through the
+                                ///< analogue inputs, player 1 (Lost World, Ocean Hunter).
+    AnalogGun2     = 1U << 17,  ///< "analog_gun2": the same for player 2.
+    Fishing        = 1U << 18,  ///< "fishing": reel, rod lean and cast (Sega Bass Fishing).
+    Ski            = 1U << 19,  ///< "ski": Ski Champ's platform lean and swing, pole buttons.
+    MagTruck       = 1U << 20,  ///< "magtruck": Magical Truck Adventure's handles.
+    Harley         = 1U << 21,  ///< "harley": Harley-Davidson's handlebar, throttle,
+                                ///< brake, shifter and music selector.
+    SpikeOut       = 1U << 22,  ///< "spikeout": shift, beat, charge, jump per player.
 };
 
 [[nodiscard]] constexpr InputFlags operator|(InputFlags a, InputFlags b)
@@ -277,8 +301,7 @@ enum class Model3Audio : u8 {
     QuadMix,        ///< Four channels mixed down to stereo.
 };
 
-/// What a Model 3 game needs beyond the ROM regions. Filled from the
-/// <model3> element of games.xml; ignored for every other board.
+/// The <model3> element of games.xml. A clone without one takes its parent's.
 struct Model3Spec {
     Model3Step       step        = Model3Step::Step10;
     Model3MpegBoard  mpeg_board  = Model3MpegBoard::None;
@@ -323,9 +346,14 @@ struct FileSpec {
 ///
 /// This is a workaround, not emulation. Every patch names the MAME `init_`
 /// function it comes from, so none of them can quietly become folklore.
+///
+/// Big-endian patches (Model 3) may be any width and are applied after the
+/// region's byte swap; little-endian ones are applied before it.
 struct RegionPatch {
-    u32 offset = 0;  ///< Byte offset within the assembled region.
-    u32 value  = 0;  ///< Replacement 32-bit little-endian word.
+    u32  offset     = 0;      ///< Byte offset within the assembled region.
+    u64  value      = 0;      ///< Replacement value, `bits` wide.
+    u8   bits       = 32;     ///< 8, 16, 32 or 64.
+    bool big_endian = false;  ///< Most significant byte at `offset`.
 };
 
 /// A block of an assembled region mirrored to another offset within it.
@@ -508,8 +536,7 @@ struct GameSpec {
     /// main and drive boards reading NET_BAD.
     bool motion_base = false;
 
-    /// Model 3 hardware; only meaningful when board == Board::Model3. A Model 3
-    /// set's 315-5881 key, when it has one, is protection_key as for Model 2.
+    /// Only meaningful when board == Board::Model3.
     Model3Spec model3;
 
     /// True when the set is known not to run yet, so the loader can warn.

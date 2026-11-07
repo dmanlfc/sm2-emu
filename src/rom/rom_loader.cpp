@@ -557,29 +557,45 @@ std::optional<std::vector<u8>> RomLoader::assemble_region(
         std::memmove(data.data() + to, data.data() + from, span);
     }
 
-    // MAME's driver init patches, applied after the mirrors so a patched word
-    // cannot be overwritten by one.
+    // Bounds-check every patch up front, whichever side of the swap it lands.
     for (const RegionPatch& patch : region.patches) {
-        if (usize{patch.offset} + 4 > data.size()) {
+        if (usize{patch.offset} + patch.bits / 8 > data.size()) {
             SM2_ERROR("region '%s': patch at 0x%x is outside the region's 0x%zx bytes",
                       region.name.c_str(), patch.offset, data.size());
             return std::nullopt;
         }
-        data[patch.offset + 0] = static_cast<u8>(patch.value);
-        data[patch.offset + 1] = static_cast<u8>(patch.value >> 8);
-        data[patch.offset + 2] = static_cast<u8>(patch.value >> 16);
-        data[patch.offset + 3] = static_cast<u8>(patch.value >> 24);
-        SM2_DEBUG("region '%s': patched 0x%x = %08x", region.name.c_str(),
-                  patch.offset, patch.value);
     }
+    const auto apply_patches = [&](bool big_endian) {
+        for (const RegionPatch& patch : region.patches) {
+            if (patch.big_endian != big_endian) {
+                continue;
+            }
+            const u32 bytes = patch.bits / 8u;
+            for (u32 i = 0; i < bytes; ++i) {
+                const u32 shift = 8u * (big_endian ? bytes - 1 - i : i);
+                data[patch.offset + i] = static_cast<u8>(patch.value >> shift);
+            }
+            SM2_DEBUG("region '%s': patched %u bits at 0x%x = 0x%llx (%s-endian)",
+                      region.name.c_str(), static_cast<unsigned>(patch.bits), patch.offset,
+                      static_cast<unsigned long long>(patch.value), big_endian ? "big" : "little");
+        }
+    };
+
+    // MAME's driver init patches, applied after the mirrors so a patched word
+    // cannot be overwritten by one.
+    apply_patches(false);
 
     if (region.byte_swap) {
         // Reproduces MAME's ROM_LOAD16_WORD_SWAP: the big-endian 68000 sound
         // program and its samples are stored with each 16-bit word reversed.
+        // Model 3's 16-bit-chip regions are swapped the same way.
         for (usize offset = 0; offset + 1 < data.size(); offset += 2) {
             std::swap(data[offset], data[offset + 1]);
         }
     }
+
+    // Big-endian (Model 3) patches, after the swap.
+    apply_patches(true);
 
     return data;
 }
@@ -627,12 +643,14 @@ bool RomLoader::holds_clone(const GameDatabase& database, const std::string& arc
 std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
                                           const std::string&  archive_path,
                                           const std::string&  preferred_game,
-                                          LoadError*          load_error)
+                                          LoadError*          load_error,
+                                          const LoadOptions&  options)
 {
     LoadError  unused;
     LoadError& failure = load_error != nullptr ? *load_error : unused;
     failure            = {};
     const std::string file_name = std::filesystem::path(archive_path).filename().string();
+    const std::string archive_stem = std::filesystem::path(archive_path).stem().string();
 
     std::error_code error;
     if (!std::filesystem::exists(archive_path, error)) {
@@ -670,11 +688,17 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
                       score.found, score.missing);
 
             // A complete match always beats an incomplete one; between two of
-            // the same completeness, more matched chips wins.
+            // the same completeness, more matched chips wins. A tie goes to the
+            // set the archive is named after (srally2p / srally2pa).
+            const bool same  = score.complete() == best_score.complete()
+                            && score.found == best_score.found;
+            const bool named = candidate.name == archive_stem && best != nullptr
+                            && best->name != archive_stem;
             const bool better = best == nullptr
                              || (score.complete() && !best_score.complete())
                              || (score.complete() == best_score.complete()
-                                 && score.found > best_score.found);
+                                 && score.found > best_score.found)
+                             || (same && named);
             if (better) {
                 best       = &candidate;
                 best_score = score;
@@ -686,7 +710,7 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
                       archive_path.c_str());
             SM2_ERROR("Identification is by CRC32, so this means none of the "
                       "expected chips were found, not that the name is wrong.");
-            failure.message = file_name + " does not hold any Model 2 game sm2-emu "
+            failure.message = file_name + " does not hold any game sm2-emu "
                               "recognises. Games are matched by their chips' CRC32, "
                               "not by the file name.";
             return std::nullopt;
@@ -762,9 +786,9 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
         }
     }
 
-    if (!board_implemented(chosen->board)) {
-        SM2_ERROR("'%s' is a %s board, which is not implemented yet. The original "
-                  "Model 2 and the CRX boards (2A, 2B and 2C) are supported.",
+    if (!board_implemented(chosen->board) && !options.allow_unimplemented_board) {
+        SM2_ERROR("'%s' is a %s board, which is not implemented yet. Model 1, the "
+                  "original Model 2 and the CRX boards (2A, 2B and 2C) are supported.",
                   chosen->name.c_str(), board_name(chosen->board));
         failure.game    = chosen->name;
         failure.message = std::string("This is a ") + board_name(chosen->board)
@@ -819,6 +843,13 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
             }
         }
 
+        // An optional region with no chips and no size is left out (many dumps
+        // lack the drive board program).
+        if (!region.required && region.size == 0 && optional_missing == region.files.size()) {
+            SM2_INFO("optional region '%s' absent: none of its %zu file(s) found",
+                     region.name.c_str(), region.files.size());
+            continue;
+        }
         if (optional_missing != 0) {
             SM2_WARN("region '%s': %u optional file(s) absent; filling with 0x%02x",
                      region.name.c_str(), optional_missing, region.fill);

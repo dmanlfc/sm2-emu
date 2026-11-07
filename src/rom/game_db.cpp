@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
@@ -36,7 +37,8 @@ namespace sm2::rom {
 namespace {
 
 /// Parse a decimal or 0x-prefixed hexadecimal integer.
-[[nodiscard]] bool parse_integer(std::string_view text, u32* out)
+template <typename T>
+[[nodiscard]] bool parse_integer(std::string_view text, T* out)
 {
     // Hand-edited XML attributes pick up stray whitespace.
     while (!text.empty() && (text.front() == ' ' || text.front() == '\t')) {
@@ -55,7 +57,7 @@ namespace {
         text.remove_prefix(2);
     }
 
-    u32         value  = 0;
+    T           value  = 0;
     const char* begin  = text.data();
     const char* end    = text.data() + text.size();
     const auto  result = std::from_chars(begin, end, value, base);
@@ -66,11 +68,12 @@ namespace {
     return true;
 }
 
-[[nodiscard]] bool attribute_integer(const pugi::xml_node& node,
-                                    const char*           name,
-                                    u32                   fallback,
-                                    u32*                  out,
-                                    const char*           context)
+template <typename T>
+[[nodiscard]] bool attribute_integer(const pugi::xml_node&  node,
+                                    const char*            name,
+                                    std::type_identity_t<T> fallback,
+                                    T*                     out,
+                                    const char*            context)
 {
     const pugi::xml_attribute attribute = node.attribute(name);
     if (!attribute) {
@@ -242,23 +245,104 @@ constexpr u32 kWorkRamSize = 0x00100000;
     if (text == "model2b") { *out = Board::Model2B; return true; }
     if (text == "model2c") { *out = Board::Model2C; return true; }
     if (text == "model1")  { *out = Board::Model1;  return true; }
+    if (text == "model3")  { *out = Board::Model3;  return true; }
     return false;
 }
 
+/// An <input type> name, as games.xml spells it.
 [[nodiscard]] bool parse_input_type(std::string_view text, InputFlags* out)
 {
-    if (text == "common")    { *out = InputFlags::Common;    return true; }
-    if (text == "joystick1") { *out = InputFlags::Joystick1; return true; }
-    if (text == "joystick2") { *out = InputFlags::Joystick2; return true; }
-    if (text == "buttons3")  { *out = InputFlags::Buttons3;  return true; }
-    if (text == "vehicle")   { *out = InputFlags::Vehicle;   return true; }
-    if (text == "gun1")      { *out = InputFlags::Gun1;      return true; }
-    if (text == "gun2")      { *out = InputFlags::Gun2;      return true; }
+    struct Entry { std::string_view name; InputFlags flag; };
+    static constexpr Entry kEntries[] = {
+        {"common",          InputFlags::Common},
+        {"joystick1",       InputFlags::Joystick1},
+        {"joystick2",       InputFlags::Joystick2},
+        {"buttons3",        InputFlags::Buttons3},
+        {"vehicle",         InputFlags::Vehicle},
+        {"gun1",            InputFlags::Gun1},
+        {"gun2",            InputFlags::Gun2},
+        {"fighting",        InputFlags::Fighting},
+        {"shift4",          InputFlags::Shift4},
+        {"shiftupdown",     InputFlags::ShiftUpDown},
+        {"vr4",             InputFlags::Vr4},
+        {"viewchange",      InputFlags::ViewChange},
+        {"handbrake",       InputFlags::Handbrake},
+        {"soccer",          InputFlags::Soccer},
+        {"twin_joysticks",  InputFlags::TwinJoysticks},
+        {"analog_joystick", InputFlags::AnalogJoystick},
+        {"analog_gun1",     InputFlags::AnalogGun1},
+        {"analog_gun2",     InputFlags::AnalogGun2},
+        {"fishing",         InputFlags::Fishing},
+        {"ski",             InputFlags::Ski},
+        {"magtruck",        InputFlags::MagTruck},
+        {"harley",          InputFlags::Harley},
+        {"spikeout",        InputFlags::SpikeOut},
+    };
+    for (const Entry& entry : kEntries) {
+        if (text == entry.name) {
+            *out = entry.flag;
+            return true;
+        }
+    }
     return false;
 }
 
+/// The <model3> element: step="1.0|1.5|2.0|2.1" (required), mpeg_board=
+/// "dsb1|dsb2", drive_board="wheel|joystick|billboard|ski",
+/// audio="stereo|quad-front-rear|quad-mix", and netboard and centre_letterbox,
+/// both "true|false".
+[[nodiscard]] bool parse_model3(const pugi::xml_node& node, Model3Spec* out, const char* context)
+{
+    const std::string_view step = node.attribute("step").value();
+    if (step == "1.0")      { out->step = Model3Step::Step10; }
+    else if (step == "1.5") { out->step = Model3Step::Step15; }
+    else if (step == "2.0") { out->step = Model3Step::Step20; }
+    else if (step == "2.1") { out->step = Model3Step::Step21; }
+    else {
+        SM2_ERROR("%s: <model3> step '%s' is not 1.0, 1.5, 2.0 or 2.1", context,
+                  node.attribute("step").value());
+        return false;
+    }
+
+    const std::string_view mpeg = node.attribute("mpeg_board").as_string("none");
+    if (mpeg == "none")      { out->mpeg_board = Model3MpegBoard::None; }
+    else if (mpeg == "dsb1") { out->mpeg_board = Model3MpegBoard::Dsb1; }
+    else if (mpeg == "dsb2") { out->mpeg_board = Model3MpegBoard::Dsb2; }
+    else {
+        SM2_ERROR("%s: <model3> mpeg_board '%s' is not none, dsb1 or dsb2", context,
+                  node.attribute("mpeg_board").value());
+        return false;
+    }
+
+    const std::string_view drive = node.attribute("drive_board").as_string("none");
+    if (drive == "none")           { out->drive_board = Model3DriveBoard::None; }
+    else if (drive == "wheel")     { out->drive_board = Model3DriveBoard::Wheel; }
+    else if (drive == "joystick")  { out->drive_board = Model3DriveBoard::Joystick; }
+    else if (drive == "billboard") { out->drive_board = Model3DriveBoard::Billboard; }
+    else if (drive == "ski")       { out->drive_board = Model3DriveBoard::Ski; }
+    else {
+        SM2_ERROR("%s: <model3> drive_board '%s' is not none, wheel, joystick, billboard "
+                  "or ski", context, node.attribute("drive_board").value());
+        return false;
+    }
+
+    const std::string_view audio = node.attribute("audio").as_string("stereo");
+    if (audio == "stereo")               { out->audio = Model3Audio::Stereo; }
+    else if (audio == "quad-front-rear") { out->audio = Model3Audio::QuadFrontRear; }
+    else if (audio == "quad-mix")        { out->audio = Model3Audio::QuadMix; }
+    else {
+        SM2_ERROR("%s: <model3> audio '%s' is not stereo, quad-front-rear or quad-mix",
+                  context, node.attribute("audio").value());
+        return false;
+    }
+
+    return attribute_bool(node, "netboard", false, &out->netboard, context);
+}
+
+/// "none" lets a clone decline its parent's protection.
 [[nodiscard]] bool parse_protection(std::string_view text, Protection* out)
 {
+    if (text == "none")         { *out = Protection::None;             return true; }
     if (text == "315-5838-doa") { *out = Protection::Sega315_5838_Doa; return true; }
     if (text == "315-5881")     { *out = Protection::Sega315_5881;     return true; }
     if (text == "daytona-maxx") { *out = Protection::DaytonaMaxxPic;   return true; }
@@ -433,9 +517,9 @@ bool GameDatabase::load(const std::string& path)
         return false;
     }
 
-    // Clones that named no board of their own; filled in from the parent by
-    // merge_clones.
-    std::set<std::string> board_inherited;
+    // What each clone declared for itself, so merge_clones knows what to take
+    // from the parent.
+    Declarations declared;
 
     for (const pugi::xml_node game_node : root.children("game")) {
         GameSpec game;
@@ -456,11 +540,18 @@ bool GameDatabase::load(const std::string& path)
                 SM2_ERROR("%s: no board attribute", context.c_str());
                 return false;
             }
-            board_inherited.insert(game.name);
+            declared.board_inherited.insert(game.name);
         } else if (!parse_board(board_attribute.value(), &game.board)) {
-            SM2_ERROR("%s: unrecognised board '%s' (expected model2, model2a, "
-                      "model2b or model2c)", context.c_str(), board_attribute.value());
+            SM2_ERROR("%s: unrecognised board '%s' (expected model1, model2, model2a, "
+                      "model2b, model2c or model3)", context.c_str(), board_attribute.value());
             return false;
+        }
+
+        if (const pugi::xml_node model3_node = game_node.child("model3")) {
+            if (!parse_model3(model3_node, &game.model3, context.c_str())) {
+                return false;
+            }
+            declared.model3.insert(game.name);
         }
 
         game.title        = game_node.child_value("title");
@@ -493,6 +584,9 @@ bool GameDatabase::load(const std::string& path)
             SM2_ERROR("%s: unrecognised protection '%s'", context.c_str(),
                       protection_attribute.value());
             return false;
+        }
+        if (protection_attribute) {
+            declared.protection.insert(game.name);
         }
 
         if (const pugi::xml_attribute spread = game_node.attribute("hud_spread")) {
@@ -828,14 +922,38 @@ bool GameDatabase::load(const std::string& path)
 
             for (const pugi::xml_node patch_node : region_node.children("patch")) {
                 RegionPatch patch;
+                u32         bits = 32;
                 if (!attribute_integer(patch_node, "offset", 0, &patch.offset,
                                        region_context.c_str())
                     || !attribute_integer(patch_node, "value", 0, &patch.value,
+                                          region_context.c_str())
+                    || !attribute_integer(patch_node, "bits", 32, &bits,
                                           region_context.c_str())) {
                     return false;
                 }
-                if ((patch.offset % 4) != 0) {
-                    SM2_ERROR("%s: patch offset 0x%x is not word-aligned",
+                if (bits != 8 && bits != 16 && bits != 32 && bits != 64) {
+                    SM2_ERROR("%s: patch at 0x%x is %u bits wide (expected 8, 16, 32 or 64)",
+                              region_context.c_str(), patch.offset, bits);
+                    return false;
+                }
+                patch.bits = static_cast<u8>(bits);
+                if (bits < 64 && (patch.value >> bits) != 0) {
+                    SM2_ERROR("%s: patch value 0x%llx at 0x%x does not fit in %u bits",
+                              region_context.c_str(),
+                              static_cast<unsigned long long>(patch.value), patch.offset, bits);
+                    return false;
+                }
+                const std::string_view endian = patch_node.attribute("endian").as_string("little");
+                if (endian != "little" && endian != "big") {
+                    SM2_ERROR("%s: patch at 0x%x has endian '%s' (expected little or big)",
+                              region_context.c_str(), patch.offset,
+                              patch_node.attribute("endian").value());
+                    return false;
+                }
+                patch.big_endian = endian == "big";
+                // Narrow patches need only their own alignment.
+                if ((patch.offset % (bits < 32 ? bits / 8 : 4)) != 0) {
+                    SM2_ERROR("%s: patch offset 0x%x is not aligned to its width",
                               region_context.c_str(), patch.offset);
                     return false;
                 }
@@ -853,7 +971,7 @@ bool GameDatabase::load(const std::string& path)
         return false;
     }
 
-    if (!merge_clones(board_inherited)) {
+    if (!merge_clones(declared)) {
         return false;
     }
 
@@ -895,7 +1013,7 @@ bool GameDatabase::load_from_string(std::string_view xml, const char* origin)
 // Clone merging
 // ---------------------------------------------------------------------------
 
-bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
+bool GameDatabase::merge_clones(const Declarations& declared)
 {
     std::unordered_map<std::string, usize> index_by_name;
     for (usize index = 0; index < m_games.size(); ++index) {
@@ -929,16 +1047,18 @@ bool GameDatabase::merge_clones(const std::set<std::string>& board_inherited)
         }
 
         // Inherit metadata the child left blank.
-        if (board_inherited.count(game.name) != 0) { game.board = parent.board; }
+        if (declared.board_inherited.count(game.name) != 0) { game.board = parent.board; }
         if (game.title.empty())        { game.title = parent.title; }
         if (game.manufacturer.empty()) { game.manufacturer = parent.manufacturer; }
         if (game.year == 0)            { game.year = parent.year; }
         if (game.inputs == InputFlags::None) { game.inputs = parent.inputs; }
-        if (game.protection == Protection::None) {
+        // A clone that names a protection, "none" included, keeps its own.
+        if (game.protection == Protection::None && declared.protection.count(game.name) == 0) {
             game.protection     = parent.protection;
             game.protection_key = parent.protection_key;
         }
         if (game.start1_bit == 0) { game.start1_bit = parent.start1_bit; }
+        if (declared.model3.count(game.name) == 0) { game.model3 = parent.model3; }
 
         // Inherit the wheel action-button placement unless the clone gave its
         // own. The default (player one's IN1 nibble) reads as "not specified".

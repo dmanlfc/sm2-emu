@@ -47,10 +47,15 @@ private:
     /// Fold each clone's parent into it, so a child set need only list the
     /// chips that differ.
     ///
-    /// `board_inherited` names the clones that declared no board of their own, so
-    /// the merge can take the parent's. Passed in rather than stored on GameSpec
-    /// because it is a fact about the file, not about the hardware.
-    [[nodiscard]] bool merge_clones(const std::set<std::string>& board_inherited);
+    /// What each set declared itself, where the parsed value cannot tell.
+    struct Declarations {
+        std::set<std::string> board_inherited;  ///< Clones with no board attribute.
+        std::set<std::string> protection;       ///< Sets with a protection attribute,
+                                                ///< "none" included.
+        std::set<std::string> model3;           ///< Sets with a <model3> element.
+    };
+
+    [[nodiscard]] bool merge_clones(const Declarations& declared);
 
     std::vector<GameSpec> m_games;
 };

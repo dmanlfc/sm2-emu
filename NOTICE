@@ -183,7 +183,7 @@ the code taken from Supermodel.
 
   Files derived from Supermodel are listed here as they are ported:
 
-    (none yet)
+    data/games.xml        Model 3 game definitions, from Config/Games.xml
 
 Work by Daniel Martin first published in the dmanlfc/Supermodel fork -- the
 OpenGL ES and Wayland support, the Vulkan renderer, GPU API selection, the

@@ -38,6 +38,12 @@ struct LoadError {
     std::vector<std::string> missing;  ///< required chips not found
 };
 
+/// Knobs for RomLoader::load that only tools and tests turn.
+struct LoadOptions {
+    /// Assemble the regions even when the set's board cannot run yet.
+    bool allow_unimplemented_board = false;
+};
+
 /// Reads a zip archive and assembles the ROM regions for whichever game it
 /// holds.
 ///
@@ -61,7 +67,8 @@ public:
     [[nodiscard]] static std::optional<LoadResult> load(const GameDatabase& database,
                                                         const std::string&  archive_path,
                                                         const std::string&  preferred_game = {},
-                                                        LoadError*          error = nullptr);
+                                                        LoadError*          error = nullptr,
+                                                        const LoadOptions&  options = {});
 
     /// Whether `archive_path` holds the chips clone `clone_name` does not share
     /// with its parent: true of a merged archive, which keeps the clones beside
