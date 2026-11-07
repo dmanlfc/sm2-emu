@@ -7322,6 +7322,14 @@
       <input type="common"/>
       <input type="fishing"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky"/>
+      <channel index="1" control="stickx"/>
+      <channel index="2" control="slide"/>
+      <channel index="3" control="throttle"/>
+      <channel index="4" control="stick2y"/>
+      <channel index="5" control="stick2x"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20786.20" offset="0x000000" crc="0xb7c7cffb"/>
@@ -7384,6 +7392,14 @@
       <input type="common"/>
       <input type="fishing"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky"/>
+      <channel index="1" control="stickx"/>
+      <channel index="2" control="slide"/>
+      <channel index="3" control="throttle"/>
+      <channel index="4" control="stick2y"/>
+      <channel index="5" control="stick2x"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20837.20" offset="0x000000" crc="0x66fc2084"/>
@@ -7404,6 +7420,14 @@
       <input type="common"/>
       <input type="fishing"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky"/>
+      <channel index="1" control="stickx"/>
+      <channel index="2" control="slide"/>
+      <channel index="3" control="throttle"/>
+      <channel index="4" control="stick2y"/>
+      <channel index="5" control="stick2x"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20646.20" offset="0x000000" crc="0xd740ae06"/>
@@ -7430,6 +7454,14 @@
       <input type="common"/>
       <input type="fishing"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky"/>
+      <channel index="1" control="stickx"/>
+      <channel index="2" control="slide"/>
+      <channel index="3" control="throttle"/>
+      <channel index="4" control="stick2y"/>
+      <channel index="5" control="stick2x"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20312.20" offset="0x000000" crc="0x9d8b8b58"/>
@@ -7440,7 +7472,7 @@
     </roms>
   </game>
 
-  <game name="daytona2" board="model3" protection="315-5881" key="0x29250e16">
+  <game name="daytona2" board="model3" protection="315-5881" key="0x29250e16" gearbox="true" vr_buttons="in1:0x01,in1:0x02,in1:0x04,in1:0x08">
     <title>Daytona USA 2 - Battle on the Edge</title>
     <version>Japan, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -7452,6 +7484,11 @@
       <input type="shift4"/>
       <input type="vr4"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20864a.20" offset="0x000000" crc="0x5250f3a8"/>
@@ -7523,7 +7560,7 @@
     </roms>
   </game>
 
-  <game name="dayto2pe" parent="daytona2" board="model3" protection="315-5881" key="0x29222cc4">
+  <game name="dayto2pe" parent="daytona2" board="model3" protection="315-5881" key="0x29222cc4" gearbox="true" vr_buttons="in1:0x01,in1:0x02,in1:0x04,in1:0x08">
     <title>Daytona USA 2 - Power Edition</title>
     <version>Japan</version>
     <manufacturer>Sega</manufacturer>
@@ -7535,6 +7572,11 @@
       <input type="shift4"/>
       <input type="vr4"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21181.20" offset="0x000000" crc="0xbf0007ed"/>
@@ -7594,7 +7636,7 @@
     </roms>
   </game>
 
-  <game name="dirtdvls" board="model3" protection="315-5881" key="0x29290f17">
+  <game name="dirtdvls" board="model3" protection="315-5881" key="0x29290f17" shift_buttons="true">
     <title>Dirt Devils</title>
     <version>Export, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -7606,6 +7648,11 @@
       <input type="shiftupdown"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21065a.20" offset="0x000000" crc="0x3223db1a"/>
@@ -7658,7 +7705,7 @@
     </roms>
   </game>
 
-  <game name="dirtdvlsu" parent="dirtdvls" board="model3" protection="315-5881" key="0x29290f17">
+  <game name="dirtdvlsu" parent="dirtdvls" board="model3" protection="315-5881" key="0x29290f17" shift_buttons="true">
     <title>Dirt Devils</title>
     <version>USA, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -7670,6 +7717,11 @@
       <input type="shiftupdown"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21057a.20" offset="0x000000" crc="0x36065989"/>
@@ -7680,7 +7732,7 @@
     </roms>
   </game>
 
-  <game name="dirtdvlsau" parent="dirtdvls" board="model3" protection="315-5881" key="0x29290f17">
+  <game name="dirtdvlsau" parent="dirtdvls" board="model3" protection="315-5881" key="0x29290f17" shift_buttons="true">
     <title>Dirt Devils</title>
     <version>Australia, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -7692,6 +7744,11 @@
       <input type="shiftupdown"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21061a.20" offset="0x000000" crc="0x755ca612"/>
@@ -7702,7 +7759,7 @@
     </roms>
   </game>
 
-  <game name="dirtdvlsj" parent="dirtdvls" board="model3" protection="315-5881" key="0x29290f17">
+  <game name="dirtdvlsj" parent="dirtdvls" board="model3" protection="315-5881" key="0x29290f17" shift_buttons="true">
     <title>Dirt Devils</title>
     <version>Japan, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -7714,6 +7771,11 @@
       <input type="shiftupdown"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21053a.20" offset="0x000000" crc="0xade1826f"/>
@@ -7724,7 +7786,7 @@
     </roms>
   </game>
 
-  <game name="dirtdvlsg" parent="dirtdvls" board="model3" protection="315-5881" key="0x29290f17">
+  <game name="dirtdvlsg" parent="dirtdvls" board="model3" protection="315-5881" key="0x29290f17" shift_buttons="true">
     <title>Dirt Devils</title>
     <version>Export, Ver. G?</version>
     <manufacturer>Sega</manufacturer>
@@ -7736,6 +7798,11 @@
       <input type="shiftupdown"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="ic20.20" offset="0x000000" crc="0x345829b5"/>
@@ -7746,7 +7813,7 @@
     </roms>
   </game>
 
-  <game name="eca" board="model3" protection="315-5881" key="0x2923aa91">
+  <game name="eca" board="model3" protection="315-5881" key="0x2923aa91" shift_buttons="true">
     <title>Emergency Call Ambulance</title>
     <version>Export</version>
     <manufacturer>Sega</manufacturer>
@@ -7758,6 +7825,11 @@
       <input type="shiftupdown"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-22906.20" offset="0x000000" crc="0x7f6426fc"/>
@@ -7818,7 +7890,7 @@
     </roms>
   </game>
 
-  <game name="ecap" parent="eca" board="model3" protection="315-5881" key="0x2923aa91">
+  <game name="ecap" parent="eca" board="model3" protection="315-5881" key="0x2923aa91" shift_buttons="true">
     <title>Emergency Call Ambulance</title>
     <version>US location test?</version>
     <manufacturer>Sega</manufacturer>
@@ -7830,6 +7902,11 @@
       <input type="shiftupdown"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <!-- Hand written SEGA labels in this form:  TITLE: QQ  ROM NO: IC17  CHECK SUM: 551B  9/12-'99 -->
       <region name="crom" stride="8" chunk="2" byte_swap="true">
@@ -7865,7 +7942,7 @@
     </roms>
   </game>
 
-  <game name="ecau" parent="eca" board="model3" protection="315-5881" key="0x2923aa91">
+  <game name="ecau" parent="eca" board="model3" protection="315-5881" key="0x2923aa91" shift_buttons="true">
     <title>Emergency Call Ambulance</title>
     <version>USA</version>
     <manufacturer>Sega</manufacturer>
@@ -7877,6 +7954,11 @@
       <input type="shiftupdown"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-22898.20" offset="0x000000" crc="0xefb96701"/>
@@ -7891,7 +7973,7 @@
     </roms>
   </game>
 
-  <game name="ecaj" parent="eca" board="model3" protection="315-5881" key="0x2923aa91">
+  <game name="ecaj" parent="eca" board="model3" protection="315-5881" key="0x2923aa91" shift_buttons="true">
     <title>Emergency Call Ambulance</title>
     <version>Japan</version>
     <manufacturer>Sega</manufacturer>
@@ -7903,6 +7985,11 @@
       <input type="shiftupdown"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-22894.20" offset="0x000000" crc="0xcde48c5d"/>
@@ -8013,7 +8100,7 @@
     </roms>
   </game>
 
-  <game name="harley" board="model3">
+  <game name="harley" board="model3" shift_buttons="true">
     <title>Harley-Davidson and L.A. Riders</title>
     <version>Export, Revision B</version>
     <manufacturer>Sega</manufacturer>
@@ -8026,6 +8113,12 @@
       <input type="harley"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+      <channel index="3" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20396b.20" offset="0x000000" crc="0x9623dea7"/>
@@ -8080,7 +8173,7 @@
     </roms>
   </game>
 
-  <game name="harleya" parent="harley" board="model3">
+  <game name="harleya" parent="harley" board="model3" shift_buttons="true">
     <title>Harley-Davidson and L.A. Riders</title>
     <version>Export, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -8093,6 +8186,12 @@
       <input type="harley"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+      <channel index="3" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20396a.20" offset="0x000000" crc="0x16b0106b"/>
@@ -8114,6 +8213,12 @@
       <input type="analog_gun1"/>
       <input type="analog_gun2"/>
     </inputs>
+    <analog>
+      <channel index="0" control="p1x"/>
+      <channel index="1" control="p2x"/>
+      <channel index="2" control="p1y"/>
+      <channel index="3" control="p2y"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21486.20" offset="0x000000" crc="0x64de433f"/>
@@ -8168,7 +8273,7 @@
     </roms>
   </game>
 
-  <game name="lemans24" board="model3">
+  <game name="lemans24" board="model3" shift_buttons="true" vr_buttons="in1:0x01,in1:0x02,in1:0x04,in1:0x08">
     <title>Le Mans 24</title>
     <version>Japan, Revision B</version>
     <manufacturer>Sega</manufacturer>
@@ -8180,6 +8285,11 @@
       <input type="vr4"/>
       <input type="shiftupdown"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-19890b.20" offset="0x000000" crc="0x9c16c3cc"/>
@@ -8253,6 +8363,12 @@
       <input type="analog_gun1"/>
       <input type="analog_gun2"/>
     </inputs>
+    <analog>
+      <channel index="0" control="p1x"/>
+      <channel index="1" control="p1y" reverse="true"/>
+      <channel index="2" control="p2x"/>
+      <channel index="3" control="p2y" reverse="true"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-19936a.20" offset="0x000000" crc="0x2f1ca664"/>
@@ -8322,6 +8438,12 @@
       <input type="analog_gun1"/>
       <input type="analog_gun2"/>
     </inputs>
+    <analog>
+      <channel index="0" control="p1x"/>
+      <channel index="1" control="p1y" reverse="true"/>
+      <channel index="2" control="p2x"/>
+      <channel index="3" control="p2y" reverse="true"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="ic20.20" offset="0x000000" crc="0x50a5fd1d"/>
@@ -8346,6 +8468,10 @@
       <input type="common"/>
       <input type="magtruck"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky" reverse="true"/>
+      <channel index="1" control="stick2y" reverse="true"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21434.20" offset="0x000000" crc="0x18f8626a"/>
@@ -8407,6 +8533,10 @@
       <input type="common"/>
       <input type="magtruck"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky" reverse="true"/>
+      <channel index="1" control="stick2y" reverse="true"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21434.20" offset="0x000000" crc="0xe028d7ca"/>
@@ -8434,6 +8564,12 @@
       <input type="analog_gun1"/>
       <input type="analog_gun2"/>
     </inputs>
+    <analog>
+      <channel index="0" control="p1x"/>
+      <channel index="1" control="p2x"/>
+      <channel index="2" control="p1y"/>
+      <channel index="3" control="p2y"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21117a.20" offset="0x000000" crc="0x2ee5b67d"/>
@@ -8499,6 +8635,12 @@
       <input type="analog_gun1"/>
       <input type="analog_gun2"/>
     </inputs>
+    <analog>
+      <channel index="0" control="p1x"/>
+      <channel index="1" control="p2x"/>
+      <channel index="2" control="p1y"/>
+      <channel index="3" control="p2y"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21117.20" offset="0x000000" crc="0x58d985f1"/>
@@ -8509,7 +8651,7 @@
     </roms>
   </game>
 
-  <game name="scud" board="model3">
+  <game name="scud" board="model3" gearbox="true" vr_buttons="in1:0x01,in1:0x02,in1:0x04,in1:0x08">
     <title>Scud Race</title>
     <version>Export, Twin/DX</version>
     <manufacturer>Sega</manufacturer>
@@ -8521,6 +8663,11 @@
       <input type="shift4"/>
       <input type="vr4"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-19691.20" offset="0x000000" crc="0x83523b89"/>
@@ -8585,7 +8732,7 @@
     </roms>
   </game>
 
-  <game name="scudau" parent="scud" board="model3">
+  <game name="scudau" parent="scud" board="model3" gearbox="true" vr_buttons="in1:0x01,in1:0x02,in1:0x04,in1:0x08">
     <title>Scud Race</title>
     <version>Australia, Twin/DX</version>
     <manufacturer>Sega</manufacturer>
@@ -8597,6 +8744,11 @@
       <input type="shift4"/>
       <input type="vr4"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-19734.20" offset="0x000000" crc="0xbe897336"/>
@@ -8609,7 +8761,7 @@
     </roms>
   </game>
 
-  <game name="scuddx" parent="scud" board="model3">
+  <game name="scuddx" parent="scud" board="model3" gearbox="true" vr_buttons="in1:0x01,in1:0x02,in1:0x04,in1:0x08">
     <title>Scud Race</title>
     <version>Export, Deluxe, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -8621,6 +8773,11 @@
       <input type="shift4"/>
       <input type="vr4"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-19607a.20" offset="0x000000" crc="0x24301a12"/>
@@ -8673,7 +8830,7 @@
     </roms>
   </game>
 
-  <game name="scuddxo" parent="scud" board="model3">
+  <game name="scuddxo" parent="scud" board="model3" gearbox="true" vr_buttons="in1:0x01,in1:0x02,in1:0x04,in1:0x08">
     <title>Scud Race</title>
     <version>Export, Deluxe</version>
     <manufacturer>Sega</manufacturer>
@@ -8685,6 +8842,11 @@
       <input type="shift4"/>
       <input type="vr4"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-19607.20" offset="0x000000" crc="0x365ce059"/>
@@ -8737,7 +8899,7 @@
     </roms>
   </game>
 
-  <game name="scudplus" parent="scud" board="model3">
+  <game name="scudplus" parent="scud" board="model3" gearbox="true" vr_buttons="in1:0x01,in1:0x02,in1:0x04,in1:0x08">
     <title>Scud Race Plus</title>
     <version>Export, Twin/DX, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -8749,6 +8911,11 @@
       <input type="shift4"/>
       <input type="vr4"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20095a.20" offset="0x000000" crc="0x58c7e393"/>
@@ -8791,7 +8958,7 @@
     </roms>
   </game>
 
-  <game name="scudplusa" parent="scud" board="model3">
+  <game name="scudplusa" parent="scud" board="model3" gearbox="true" vr_buttons="in1:0x01,in1:0x02,in1:0x04,in1:0x08">
     <title>Scud Race Plus</title>
     <version>Export, Twin/DX</version>
     <manufacturer>Sega</manufacturer>
@@ -8803,6 +8970,11 @@
       <input type="shift4"/>
       <input type="vr4"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20095.20" offset="0x000000" crc="0x44467bc1"/>
@@ -8855,6 +9027,10 @@
       <input type="common"/>
       <input type="ski"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky" reverse="true"/>
+      <channel index="1" control="stickx" reverse="true"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20355.20" offset="0x000000" crc="0x7a784e67"/>
@@ -9070,7 +9246,7 @@
     </roms>
   </game>
 
-  <game name="srally2" board="model3">
+  <game name="srally2" board="model3" gearbox="true">
     <title>Sega Rally 2</title>
     <version>Export</version>
     <manufacturer>Sega</manufacturer>
@@ -9083,6 +9259,11 @@
       <input type="handbrake"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20635.20" offset="0x000000" crc="0x7937473f"/>
@@ -9147,7 +9328,7 @@
     </roms>
   </game>
 
-  <game name="srally2p" parent="srally2" board="model3">
+  <game name="srally2p" parent="srally2" board="model3" gearbox="true">
     <title>Sega Rally 2</title>
     <version>Prototype</version>
     <manufacturer>Sega</manufacturer>
@@ -9160,6 +9341,11 @@
       <input type="handbrake"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="ic20.20" offset="0x000000" crc="0x5cc4fea1"/>
@@ -9176,7 +9362,7 @@
     </roms>
   </game>
 
-  <game name="srally2pa" parent="srally2" board="model3">
+  <game name="srally2pa" parent="srally2" board="model3" gearbox="true">
     <title>Sega Rally 2</title>
     <version>Prototype Version A</version>
     <manufacturer>Sega</manufacturer>
@@ -9189,6 +9375,11 @@
       <input type="handbrake"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="prog0.20" offset="0x000000" crc="0xa904227d"/>
@@ -9205,11 +9396,7 @@
     </roms>
   </game>
 
-  <game name="srally2dx" parent="srally2" board="model3">
-    <!--
-      To get this running at full speed, set PowerPC frequency to 100 MHz on
-      command line or in INI file.
-    -->
+  <game name="srally2dx" parent="srally2" board="model3" gearbox="true">
     <title>Sega Rally 2</title>
     <version>Export, Deluxe</version>
     <manufacturer>Sega</manufacturer>
@@ -9222,6 +9409,11 @@
       <input type="handbrake"/>
       <input type="viewchange"/>
     </inputs>
+    <analog>
+      <channel index="0" control="steer"/>
+      <channel index="1" control="accel"/>
+      <channel index="2" control="brake"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-20505.20" offset="0x000000" crc="0xc24a5097"/>
@@ -9284,6 +9476,10 @@
       <input type="common"/>
       <input type="analog_joystick"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky"/>
+      <channel index="1" control="stickx"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21382a.20" offset="0x000000" crc="0x69baf117"/>
@@ -9359,6 +9555,10 @@
       <input type="common"/>
       <input type="analog_joystick"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky"/>
+      <channel index="1" control="stickx"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21382.20" offset="0x000000" crc="0x0b9c44a0"/>
@@ -9379,6 +9579,10 @@
       <input type="common"/>
       <input type="analog_joystick"/>
     </inputs>
+    <analog>
+      <channel index="0" control="sticky"/>
+      <channel index="1" control="stickx"/>
+    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-crom0.20" offset="0x000000" crc="0xda7d49fa"/>

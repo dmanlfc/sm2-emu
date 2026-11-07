@@ -567,6 +567,32 @@ CpuStatus Model3::main_cpu_status() const
 //   light guns    gun_p*; off-screen bits from set_gun_offscreen() (Inputs
 //                 is stored raw in Model 1/2 states, so no field there)
 
+// Gear shifter codes on G24-G26.
+u8 Model3::game_inputs_g2() const
+{
+    u8 data = m_inputs.in1;
+    if (m_game.gearbox) {
+        static constexpr u8 kGearBits[5] = {0x70, 0x20, 0x10, 0x60, 0x50};
+        u32 gear = 0;
+        for (u32 g = 0; g < 5; ++g) {
+            if ((m_inputs.gears & (1u << g)) != 0) gear = g;
+        }
+        data = static_cast<u8>((data & ~0x70u) | kGearBits[gear]);
+    } else if (m_game.shift_buttons) {
+        const bool up   = (data & 0x10) == 0;
+        const bool down = (data & 0x20) == 0;
+        data |= 0x70;
+        if (rom::has_input(m_game.inputs, rom::InputFlags::Harley)) {
+            if (up) data &= ~0x20;
+            else if (down) data &= ~0x10;
+        } else {
+            if (up) data &= ~0x50;
+            else if (down) data &= ~0x60;
+        }
+    }
+    return data;
+}
+
 u8 Model3::read_inputs(unsigned reg)
 {
     reg &= 0x3F;
@@ -577,7 +603,7 @@ u8 Model3::read_inputs(unsigned reg)
             if ((m_input_bank & 1) == 0) return m_inputs.in0;
             return static_cast<u8>((m_inputs.in3 & 0xC0) | 0x1F | (m_eeprom.data_out() ? 0x20 : 0));
 
-        case 0x08: return m_inputs.in1;
+        case 0x08: return game_inputs_g2();
 
         case 0x0C: {
             u8 data = 0xFF;

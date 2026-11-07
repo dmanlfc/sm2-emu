@@ -212,6 +212,7 @@ private:
 
     // I/O
     u8   read_inputs(unsigned reg);
+    [[nodiscard]] u8 game_inputs_g2() const;
     void write_inputs(unsigned reg, u8 data);
     u32  read_security(unsigned reg);
     void write_security(unsigned reg, u32 data);
