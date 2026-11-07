@@ -16,7 +16,11 @@
 
 #include "render/backend.h"
 #include "render/vk/context.h"
+#include "render/model3/model3_frame.h"
+#include "render/model3/model3_frame.h"
 #include "render/vk/frame_capture.h"
+#include "render/vk/model3_pass.h"
+#include "render/vk/model3_pass.h"
 #include "render/vk/poly3d_pass.h"
 #include "render/vk/present_pass.h"
 #include "render/vk/tilemap_pass.h"
@@ -107,10 +111,25 @@ public:
         *height = extent.height;
     }
 
+    [[nodiscard]] bool supports_model3() const override { return true; }
+    void submit_model3_frame(const hw::model3::VideoFrame& frame) override;
+    void render_model3() override;
+    void reset_model3() override { m_model3_frame.reset(); }
+    [[nodiscard]] model3::LineOfSight model3_line_of_sight() const override
+    {
+        return m_model3.line_of_sight().latest();
+    }
+
 private:
     /// The shader texture-quality value for the current enhancement options,
     /// clamped to the device's anisotropy limit. 0 = faithful single-tap.
     [[nodiscard]] u32 effective_texture_quality() const;
+    [[nodiscard]] bool ensure_model3();
+
+    // Model 3, created on the first Model 3 frame.
+    model3::FrameBuilder m_model3_frame;
+    Model3Pass           m_model3;
+    u32                  m_model3_width = 0;
 
     Context      m_context;
     TilemapPass  m_tilemaps;

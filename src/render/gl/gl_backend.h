@@ -20,6 +20,8 @@
 #include "render/gl/gl_poly3d_pass.h"
 #include "render/gl/gl_present_pass.h"
 #include "render/gl/gl_tilemap_pass.h"
+#include "render/gl/model3_pass.h"
+#include "render/model3/model3_frame.h"
 
 namespace sm2::render::gl {
 
@@ -93,7 +95,19 @@ public:
 
     void overlay_framebuffer_size(u32* width, u32* height) const override;
 
+    [[nodiscard]] bool supports_model3() const override { return true; }
+    void submit_model3_frame(const hw::model3::VideoFrame& frame) override;
+    void render_model3() override;
+    void reset_model3() override { m_model3_frame.reset(); }
+    [[nodiscard]] model3::LineOfSight model3_line_of_sight() const override
+    {
+        return m_model3.line_of_sight().latest();
+    }
+
 private:
+    /// Create (or resize) the Model 3 pass for the current scale and width.
+    [[nodiscard]] bool ensure_model3();
+
     /// Shader texture-quality value for the current enhancement options, clamped
     /// to the device's anisotropy limit. 0 = faithful single-tap.
     [[nodiscard]] u32 effective_texture_quality() const;
@@ -105,6 +119,11 @@ private:
     Poly3DPass   m_polygons;
     PresentPass  m_present;
     FrameCapture m_capture;
+
+    /// Created on the first Model 3 frame.
+    model3::FrameBuilder m_model3_frame;
+    Model3Pass           m_model3;
+    u32                  m_model3_width = 0;
 
     bool m_capture_requested = false;
     bool m_overlay_ready     = false;

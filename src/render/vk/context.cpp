@@ -723,6 +723,8 @@ bool Context::create_device()
     features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features2.pNext = core13 ? static_cast<void*>(&features13) : extension_features.chain(nullptr);
     features2.features.samplerAnisotropy = m_anisotropy_enabled ? VK_TRUE : VK_FALSE;
+    // The Model 3 pass indexes its two texture banks with a uniform.
+    features2.features.shaderSampledImageArrayDynamicIndexing = supported.shaderSampledImageArrayDynamicIndexing;
 
     VkDeviceCreateInfo create_info{};
     create_info.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

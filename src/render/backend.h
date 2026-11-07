@@ -4,7 +4,7 @@
 //  ___) | |  | | / __/|_____|| |___| |  | | |_| |
 // |____/|_|  |_||_____|      |_____|_|  |_|\___/
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
@@ -22,6 +22,7 @@
 
 #include "core/config.h"
 #include "core/types.h"
+#include "render/model3/line_of_sight.h"
 
 #include <array>
 #include <memory>
@@ -33,6 +34,10 @@ namespace sm2::hw {
 class Model2MachineBase;
 class Model2Video;
 }  // namespace sm2::hw
+
+namespace sm2::hw::model3 {
+struct VideoFrame;
+}  // namespace sm2::hw::model3
 
 namespace sm2::osd {
 class Window;
@@ -408,6 +413,23 @@ public:
     /// Required before destroying anything a submitted frame still refers
     /// to, and before save_capture() can trust a capture is complete.
     virtual void wait_idle() = 0;
+
+    // -- Sega Model 3 ---------------------------------------------------------
+    //
+    // Replaces steps 2-5 above: submit_model3_frame() (CPU only; the frame may
+    // be reused once it returns; may precede begin_frame()), then
+    // render_model3(). Both on the render thread. GPU backends only.
+
+    [[nodiscard]] virtual bool supports_model3() const { return false; }
+    virtual void submit_model3_frame(const hw::model3::VideoFrame& frame) { static_cast<void>(frame); }
+    virtual void render_model3() {}
+
+    /// Drop cached ROM models and texture state (new game).
+    virtual void reset_model3() {}
+
+    /// Line-of-sight results of the latest completed frame (frame_number 0 =
+    /// none yet). Any thread. Vulkan lags up to kFramesInFlight frames.
+    [[nodiscard]] virtual model3::LineOfSight model3_line_of_sight() const { return {}; }
 
     // -- GPU stage timing ----------------------------------------------------
 

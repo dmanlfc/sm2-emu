@@ -53,6 +53,9 @@ public:
     /// The texture begin_frame() bound, for reading back a capture.
     [[nodiscard]] u32 native_texture() const { return m_native_texture; }
 
+    /// The framebuffer begin_frame() binds, for passes that bind it themselves.
+    [[nodiscard]] u32 fbo() const { return m_fbo; }
+
     [[nodiscard]] u32 native_width() const { return m_native_width; }
     static constexpr u32 native_height() { return kHeight; }
 

@@ -133,6 +133,8 @@ void GlBackend::set_widescreen(u32 columns, u32 wide_background)
 
 void GlBackend::shutdown()
 {
+    m_model3.shutdown();
+    m_model3_width = 0;
     m_present.shutdown();
     m_polygons.shutdown();
     m_tilemaps.shutdown();
@@ -357,6 +359,41 @@ void GlBackend::shutdown_overlay()
     }
     ImGui_ImplOpenGL3_Shutdown();
     m_overlay_ready = false;
+}
+
+// ---------------------------------------------------------------------------
+// Sega Model 3
+// ---------------------------------------------------------------------------
+
+bool GlBackend::ensure_model3()
+{
+    const u32 width = frame_width(m_columns);
+    if (!m_model3.ready() || m_model3_width != width) {
+        if (!m_model3.init(m_render_scale, width)) {
+            return false;
+        }
+        m_model3_width = width;
+    }
+    m_model3_frame.set_geometry(model3::SceneGeometry{m_render_scale, m_columns});
+    m_model3.set_smooth_2d(m_enhancement_options.upscale_2d != Upscale2D::Faithful);
+    return true;
+}
+
+void GlBackend::submit_model3_frame(const hw::model3::VideoFrame& frame)
+{
+    m_model3_frame.set_geometry(model3::SceneGeometry{m_render_scale, m_columns});
+    // DEPTH32F_STENCIL8 is a float depth buffer: no depth remap needed.
+    m_model3_frame.submit(frame, false);
+}
+
+void GlBackend::render_model3()
+{
+    if (!ensure_model3()) {
+        return;
+    }
+    m_present.begin_frame();
+    m_model3.render(m_model3_frame, m_present.fbo());
+    m_present.begin_frame();
 }
 
 }  // namespace sm2::render::gl

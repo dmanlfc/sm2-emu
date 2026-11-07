@@ -86,6 +86,7 @@ typedef void     (APIENTRYP SM2_PFNGLREADBUFFERPROC)    (GLenum mode);
 typedef void     (APIENTRYP SM2_PFNGLGETINTEGERVPROC)   (GLenum pname, GLint* params);
 typedef GLenum   (APIENTRYP SM2_PFNGLGETERRORPROC)      (void);
 typedef void     (APIENTRYP SM2_PFNGLFINISHPROC)        (void);
+typedef void     (APIENTRYP SM2_PFNGLPIXELSTOREIPROC)   (GLenum pname, GLint param);
 // clang-format on
 
 // clang-format off
@@ -167,6 +168,13 @@ extern SM2_PFNGLGETINTEGERVPROC         GetIntegerv;
 extern PFNGLGETSTRINGIPROC              GetStringi;
 extern SM2_PFNGLGETERRORPROC            GetError;
 extern SM2_PFNGLFINISHPROC              Finish;
+// Used by the Model 3 passes (model3_pass.cpp).
+extern PFNGLBINDBUFFERRANGEPROC         BindBufferRange;
+extern PFNGLBLITFRAMEBUFFERPROC         BlitFramebuffer;
+extern PFNGLCLEARBUFFERFVPROC           ClearBufferfv;
+extern PFNGLCLEARBUFFERUIVPROC          ClearBufferuiv;
+extern PFNGLCLEARBUFFERFIPROC           ClearBufferfi;
+extern SM2_PFNGLPIXELSTOREIPROC         PixelStorei;
 
 /// Resolved by resolve_buffer_storage(), not load_gl_functions(). Null when
 /// the extension is absent; create_persistent_buffer() falls back to

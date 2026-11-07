@@ -104,7 +104,13 @@ namespace sm2::render::gl {
     F(GetIntegerv, SM2_PFNGLGETINTEGERVPROC) \
     F(GetStringi, PFNGLGETSTRINGIPROC) \
     F(GetError, SM2_PFNGLGETERRORPROC) \
-    F(Finish, SM2_PFNGLFINISHPROC)
+    F(Finish, SM2_PFNGLFINISHPROC) \
+    F(BindBufferRange, PFNGLBINDBUFFERRANGEPROC) \
+    F(BlitFramebuffer, PFNGLBLITFRAMEBUFFERPROC) \
+    F(ClearBufferfv, PFNGLCLEARBUFFERFVPROC) \
+    F(ClearBufferuiv, PFNGLCLEARBUFFERUIVPROC) \
+    F(ClearBufferfi, PFNGLCLEARBUFFERFIPROC) \
+    F(PixelStorei, SM2_PFNGLPIXELSTOREIPROC)
 // clang-format on
 
 #define SM2_GL_DEFINE(name, type) type name = nullptr;
@@ -225,6 +231,7 @@ std::string prepare_gl_source(const char* embedded_source, const char* version_d
                   "precision highp int;\n"
                   "precision highp sampler2D;\n"
                   "precision highp sampler2DArray;\n"
+                  "precision highp usampler2D;\n"
                   "precision highp usampler2DArray;\n"
                   "precision highp image2DArray;\n"
                   "precision highp uimage2DArray;\n";

@@ -97,6 +97,8 @@ void VulkanBackend::shutdown()
     // are torn down first and cannot rely on that happening before they run.
     m_context.wait_idle();
 
+    m_model3.shutdown();
+    m_model3_width = 0;
     m_capture.shutdown();
     m_present.shutdown();
     m_polygons.shutdown();
@@ -197,6 +199,36 @@ void VulkanBackend::composite_native_frame(u32 background_rgba, bool skip_3d)
 void VulkanBackend::submit_native_frame(std::span<const u32> pixels)
 {
     m_present.upload_from_host(pixels);
+}
+
+bool VulkanBackend::ensure_model3()
+{
+    const u32 width = frame_width(m_columns);
+    if (!m_model3.ready() || m_model3_width != width) {
+        if (!m_model3.init(m_context, m_render_scale, width)) {
+            return false;
+        }
+        m_model3_width = width;
+    }
+    m_model3.set_smooth_2d(m_enhancement_options.upscale_2d != Upscale2D::Faithful);
+    return true;
+}
+
+void VulkanBackend::submit_model3_frame(const hw::model3::VideoFrame& frame)
+{
+    if (!ensure_model3()) {
+        return;
+    }
+    m_model3_frame.set_geometry(model3::SceneGeometry{m_render_scale, m_columns});
+    m_model3_frame.submit(frame, m_model3.encode_depth());
+}
+
+void VulkanBackend::render_model3()
+{
+    if (!ensure_model3()) {
+        return;
+    }
+    m_model3.record(m_model3_frame, m_present.native_image(), m_native_view);
 }
 
 bool VulkanBackend::request_capture()

@@ -207,18 +207,26 @@ the code taken from Supermodel.
     src/hw/model3/real3d.cpp, real3d.h        Src/Model3/Real3D.cpp, Real3D.h
                                               (emulation side only)
 
-Work by Daniel Martin first published in the dmanlfc/Supermodel fork -- the
-OpenGL ES and Wayland support, the Vulkan renderer, GPU API selection, the
-configurable folder locations, the evdev light gun and steering wheel input,
-and the cross-compiling build -- is the author's own and carries the sm2-emu
-header. Where such a file still contains code translated from Supermodel's
-own (for example the New3D drawing logic in the Vulkan renderer), its header
-says so and keeps the Supermodel Team's notice for those portions.
+    Model 3 renderer (New3D by Ian Curtis, Copyright (c) 2003-2026 The
+    Supermodel Team; tile generator Copyright (c) 2011-2012 Bart
+    Trzynadlowski, Nik Henson)
+    src/render/model3/r3d_math.cpp, .h        Src/Graphics/New3D/Mat4.cpp, Mat4.h,
+                                              R3DFloat.cpp, R3DFloat.h, Vec.cpp
+    src/render/model3/r3d_model.cpp, .h       Src/Graphics/New3D/Model.h, Model.cpp,
+                                              PolyHeader.h, PolyHeader.cpp, R3DData.h
+    src/render/model3/tilegen.cpp, .h         Src/Model3/TileGen.cpp, TileGen.h,
+                                              Src/Graphics/Render2D.cpp (drawing)
+    Under the sm2-emu header, with portions of New3D (New3D.cpp, R3DShader.cpp,
+    R3DShaderCommon.h, R3DShaderTriangles.h, R3DFrameBuffers.cpp,
+    R3DScrollFog.cpp, TextureBank.cpp):
+    src/render/model3/scene.cpp, .h, frame_plan.cpp, .h, textures.cpp, .h
+    src/render/gl/model3_pass.cpp, .h
+    src/render/vk/model3_pass.cpp, .h
+    shaders/model3_r3d.vert, model3_r3d.frag, model3_scroll_fog.frag,
+            model3_composite_base.frag, model3_composite_trans.frag
 
-Code that reached Supermodel from MAME (the PowerPC core's origins and the
-315-5881 cipher) is credited under "Derived from MAME" above: the 315-5881 is
-already ported directly from MAME, and the PowerPC core is written for
-sm2-emu (see its header for what it draws on).
+The 315-5881 cipher is ported directly from MAME and is credited under
+"Derived from MAME" above. The PowerPC core is written for sm2-emu.
 
 Third-party dependencies
 ------------------------

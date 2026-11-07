@@ -42,6 +42,13 @@ endif()
 add_library(sm2_render STATIC
     render/geometry.cpp
     render/image_write.cpp
+    render/model3/frame_plan.cpp
+    render/model3/model3_frame.cpp
+    render/model3/r3d_math.cpp
+    render/model3/r3d_model.cpp
+    render/model3/scene.cpp
+    render/model3/textures.cpp
+    render/model3/tilegen.cpp
     render/panorama.cpp
     render/texture_dump.cpp
     render/texture_key.cpp
@@ -65,6 +72,7 @@ if(SM2_BUILD_VULKAN)
     add_library(sm2_render_vk STATIC
         render/vk/context.cpp
         render/vk/frame_capture.cpp
+        render/vk/model3_pass.cpp
         render/vk/poly3d_pass.cpp
         render/vk/present_pass.cpp
         render/vk/tilemap_pass.cpp
@@ -120,6 +128,7 @@ if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
         render/gl/gl_poly3d_pass.cpp
         render/gl/gl_present_pass.cpp
         render/gl/gl_tilemap_pass.cpp
+        render/gl/model3_pass.cpp
     )
     # sm2_hw is used through headers only (types forward-declared), so it is
     # not linked here -- sm2-emu's own link line supplies it. sm2_render (not
