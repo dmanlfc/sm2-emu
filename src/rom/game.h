@@ -39,6 +39,7 @@ enum class Board {
     Model2B,  ///< 2B-CRX. ADSP-21062 SHARC + 68000/SCSP.
     Model2C,  ///< 2C-CRX. MB86235 TGPx4 + 68000/SCSP.
     Model1,   ///< V60 + TGP + Model 1 sound board.
+    Model3,   ///< PowerPC + Real3D Pro-1000. The stepping is in GameSpec::model3.
 };
 
 [[nodiscard]] const char* board_name(Board board);
@@ -242,6 +243,62 @@ enum class Protection {
     Sega315_5881,      ///< 315-5881 stream cipher. Needs `protection_key`.
     DaytonaMaxxPic,    ///< Fan-hack's PIC simulation, MAME's model2o_maxx_state::maxx_r.
     DaytonaGtxBank,    ///< Fan-hack's banked data ROM, MAME's model2o_gtx_state::gtx_r.
+};
+
+/// Sega Model 3 board stepping. Each step is a different CPU board: the
+/// PowerPC's clock, the Real3D chip revision and parts of the memory map differ.
+enum class Model3Step : u8 {
+    Step10,  ///< PPC603e, 66 MHz.
+    Step15,  ///< PPC603e, 100 MHz.
+    Step20,  ///< PPC603ev, 166 MHz.
+    Step21,  ///< PPC603ev, 166 MHz, revised security and Real3D.
+};
+
+/// The MPEG music board a Model 3 cabinet carries, if any.
+enum class Model3MpegBoard : u8 {
+    None,
+    Dsb1,  ///< Z80 Digital Sound Board.
+    Dsb2,  ///< 68000 Digital Sound Board.
+};
+
+/// The cabinet's drive board, which the game talks to over the I/O board.
+enum class Model3DriveBoard : u8 {
+    None,
+    Wheel,      ///< Force-feedback steering wheel.
+    Joystick,   ///< Force-feedback flight stick (Star Wars Trilogy).
+    Billboard,  ///< Lamp and display board (Virtua Striker 2, Spikeout...).
+    Ski,        ///< Ski Champ's motion platform.
+};
+
+/// How the sound board's outputs reach the cabinet's speakers.
+enum class Model3Audio : u8 {
+    Stereo,
+    QuadFrontRear,  ///< Front pair from SCSP 1, rear pair from SCSP 2.
+    QuadMix,        ///< Four channels mixed down to stereo.
+};
+
+/// What a Model 3 game needs beyond the ROM regions. Filled from the
+/// <model3> element of games.xml; ignored for every other board.
+struct Model3Spec {
+    Model3Step       step        = Model3Step::Step10;
+    Model3MpegBoard  mpeg_board  = Model3MpegBoard::None;
+    Model3DriveBoard drive_board = Model3DriveBoard::None;
+    Model3Audio      audio       = Model3Audio::Stereo;
+
+    /// True when the cabinet has a network board for linked play.
+    bool netboard = false;
+
+    /// The PowerPC's clock for this step, in Hz.
+    [[nodiscard]] u32 cpu_hz() const
+    {
+        switch (step) {
+            case Model3Step::Step10: return 66'000'000;
+            case Model3Step::Step15: return 100'000'000;
+            case Model3Step::Step20: return 166'000'000;
+            case Model3Step::Step21: return 166'000'000;
+        }
+        return 66'000'000;
+    }
 };
 
 /// One ROM chip's contribution to a region.
@@ -450,6 +507,10 @@ struct GameSpec {
     /// checks". Without the acknowledgement the title stops on a diagram of the
     /// main and drive boards reading NET_BAD.
     bool motion_base = false;
+
+    /// Model 3 hardware; only meaningful when board == Board::Model3. A Model 3
+    /// set's 315-5881 key, when it has one, is protection_key as for Model 2.
+    Model3Spec model3;
 
     /// True when the set is known not to run yet, so the loader can warn.
     bool preliminary = false;

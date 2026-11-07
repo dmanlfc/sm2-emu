@@ -83,6 +83,10 @@ std::unique_ptr<Machine> create_machine(const rom::GameSpec& game, rom::RomSet r
             }
             return machine;
         }
+
+        case rom::Board::Model3:
+            // hw::model3::Model3 is constructed here once it can boot.
+            break;
     }
 
     SM2_ERROR("'%s' is a %s board, which is not implemented yet. The original "
