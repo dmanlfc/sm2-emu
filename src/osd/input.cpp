@@ -3419,6 +3419,15 @@ Input::ScriptedPress Input::scripted_press(u32 frame, u32 coin_frame, u8 start1_
             press.in1 |= event.in1;
         }
     }
+    // Keep tapping start for slow menus that ignore the early presses.
+    constexpr u32 kLateFirst = 10 * kStep;
+    constexpr u32 kLateCount = 40;
+    if (frame >= coin_frame + kLateFirst) {
+        const u32 since = frame - coin_frame - kLateFirst;
+        if (since < kLateCount * 2 * kStep && since % (2 * kStep) < kPulse) {
+            press.in0 |= start1_bit;
+        }
+    }
     return press;
 }
 
