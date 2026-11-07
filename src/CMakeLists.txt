@@ -280,20 +280,55 @@ target_link_libraries(sm2_hw
 )
 
 # ---------------------------------------------------------------------------
-# sm2_hw_model3 — Sega Model 3: the sound board
+# sm2_hw_model3 — the Sega Model 3 machine and its chips (machine section)
 # ---------------------------------------------------------------------------
-# The Model 3 machine's chips live here. The sound board reuses sm2_hw's SCSP,
-# 68000 and DSBs, so it links sm2_hw rather than the other way round.
+# The machine's own files. The sound board (hw/model3/model3_sound.*) adds its
+# files to this target from its own section; keep this list to the machine's.
+#
+# sm2_hw and sm2_hw_model3 depend on each other (create_machine constructs a
+# Model3; the machine uses the EEPROM, 315-5881 and link-board code in sm2_hw).
+# CMake links mutually dependent static libraries correctly.
 
 add_library(sm2_hw_model3 STATIC
+    hw/model3/jtag.cpp
+    hw/model3/model3.cpp
     hw/model3/model3_sound.cpp
+    hw/model3/model3_cpu_ppc.cpp
+    hw/model3/mpc10x.cpp
+    hw/model3/real3d.cpp
+    hw/model3/rtc72421.cpp
+    hw/model3/scheduler.cpp
+    hw/model3/scsi_53c810.cpp
+    hw/model3/tilegen.cpp
 )
 target_link_libraries(sm2_hw_model3
     PUBLIC
+        sm2_core
         sm2_hw
+        sm2_rom
     PRIVATE
         sm2_warnings
 )
+target_link_libraries(sm2_hw PRIVATE sm2_hw_model3)
+
+# The PowerPC core: model3_cpu_ppc.cpp is always compiled (against
+# cpu/ppc/ppc.h) but only referenced, and so only linked, once a library named
+# sm2_cpu_ppc exists. The check is deferred to the end of this directory so it
+# does not depend on where that library's section sits in this file.
+function(sm2_model3_link_ppc)
+    if(TARGET sm2_cpu_ppc)
+        target_compile_definitions(sm2_hw_model3 PRIVATE SM2_MODEL3_HAVE_PPC=1)
+        target_link_libraries(sm2_hw_model3 PUBLIC sm2_cpu_ppc)
+    endif()
+endfunction()
+cmake_language(DEFER CALL sm2_model3_link_ppc)
+
+# The sound board: hw/model3/model3_sound_port.cpp defines create_sound_port()
+# over the sound board's own class. Until it exists the machine runs silent.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/hw/model3/model3_sound_port.cpp")
+    target_sources(sm2_hw_model3 PRIVATE hw/model3/model3_sound_port.cpp)
+    target_compile_definitions(sm2_hw_model3 PRIVATE SM2_MODEL3_HAVE_SOUND=1)
+endif()
 
 # ---------------------------------------------------------------------------
 # sm2_osd — window, input, audio, config

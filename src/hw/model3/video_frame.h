@@ -21,16 +21,13 @@
 #include <span>
 #include <vector>
 
-// What a Model 3 machine hands the renderer once per frame.
+// What a Model 3 machine hands the renderer once per frame; the renderer reads
+// nothing else. Double-buffered: a frame stays intact until the end of the
+// run_frame() after next. Real3D memories are host-native words.
 //
-// This is the whole contract between emulation and drawing: the renderer reads
-// nothing else of the machine. The machine publishes one of these at the end of
-// run_frame() and keeps it unchanged until the next run_frame() has finished,
-// so the renderer can draw frame N on its own thread while frame N+1 is being
-// emulated into the other buffer.
-//
-// The Real3D memories are host-native 32-bit words; the machine converts the
-// PowerPC's big-endian stores as they arrive.
+// The renderer must apply every frame's texture_uploads, and treat texture RAM
+// as wholly changed if frame_number skips. Line-of-sight goes back through
+// Model3::set_line_of_sight() between frames only.
 
 namespace sm2::hw::model3 {
 
@@ -40,6 +37,16 @@ struct TextureRect {
     u32 y      = 0;
     u32 width  = 0;
     u32 height = 0;
+    /// Mipmap level (0 = base).
+    u32 level  = 0;
+};
+
+/// Tile generator registers latched at the start of an active line.
+struct TileGenLine {
+    u32 reg20 = 0;                ///< Layer priority / colour depth (0x20).
+    u32 reg40 = 0;                ///< Layer A/A' colour offset (0x40).
+    u32 reg44 = 0;                ///< Layer B/B' colour offset (0x44).
+    std::array<u32, 4> scroll{};  ///< Layer enable + scroll (0x60-0x6C).
 };
 
 struct VideoFrame {
@@ -50,6 +57,7 @@ struct VideoFrame {
 
     static constexpr u32 kTileGenVramBytes = 0x120000;  ///< VRAM, then palette at 0x100000.
     static constexpr u32 kTileGenRegs      = 64;
+    static constexpr u32 kActiveLines      = 384;
 
     rom::Model3Step step = rom::Model3Step::Step10;
 
@@ -64,16 +72,25 @@ struct VideoFrame {
     std::span<const u32> vrom;         ///< Constant after load; shared, not copied.
     std::span<const u16> texture_ram;  ///< kTextureSize * kTextureSize texels.
 
-    /// Texture RAM rectangles changed since the previous published frame, so a
-    /// renderer re-decodes only those. When `texture_reset` is set the whole of
-    /// texture RAM must be treated as changed (after a load or a save-state).
+    /// Changed since the previous frame; `texture_reset` means all of it.
     std::vector<TextureRect> texture_uploads;
     bool                     texture_reset = false;
+
+    /// False when Mars's modeword bit 0x40000 is set.
+    bool sun_clamp = true;
+
+    /// Mercury modeword bit 2, latched at trigger: draw no 3D.
+    bool block_culling = false;
+
+    /// Mercury, Venus, Earth, Mars, Jupiter.
+    std::array<u32, 5> modewords{};
 
     // -- Tile generator ---------------------------------------------------------
 
     std::span<const u8>             tilegen_vram;  ///< kTileGenVramBytes, as the PowerPC wrote it.
     std::array<u32, kTileGenRegs>   tilegen_regs{};
+
+    std::array<TileGenLine, kActiveLines> tilegen_lines{};
 };
 
 }  // namespace sm2::hw::model3

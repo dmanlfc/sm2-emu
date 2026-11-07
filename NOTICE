@@ -195,6 +195,17 @@ the code taken from Supermodel.
       src/hw/dsb2.cpp, dsb2.h (otherwise derived from MAME, above)
       from Src/Model3/DSB.cpp, Copyright (c) 2003-2026 The Supermodel Team;
       based on code donated by R. Belmont
+    src/hw/model3/model3.cpp, model3.h        Src/Model3/Model3.cpp, Model3.h
+    src/hw/model3/irq.h                       Src/Model3/IRQ.cpp, IRQ.h
+    src/hw/model3/mpc10x.cpp, mpc10x.h        Src/Model3/MPC10x.cpp, MPC10x.h,
+                                              PCI.cpp, PCI.h
+    src/hw/model3/scsi_53c810.cpp, .h         Src/Model3/53C810.cpp, 53C810.h
+    src/hw/model3/rtc72421.cpp, rtc72421.h    Src/Model3/RTC72421.cpp, RTC72421.h
+    src/hw/model3/jtag.cpp, jtag.h            Src/Model3/JTAG.cpp, JTAG.h
+    src/hw/model3/tilegen.cpp, tilegen.h      Src/Model3/TileGen.cpp, TileGen.h
+                                              (emulation side only)
+    src/hw/model3/real3d.cpp, real3d.h        Src/Model3/Real3D.cpp, Real3D.h
+                                              (emulation side only)
 
 Work by Daniel Martin first published in the dmanlfc/Supermodel fork -- the
 OpenGL ES and Wayland support, the Vulkan renderer, GPU API selection, the
