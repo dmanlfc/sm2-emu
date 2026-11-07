@@ -202,6 +202,26 @@ target_link_libraries(sm2_cpu_jit
 )
 
 # ---------------------------------------------------------------------------
+# sm2_cpu_ppc — the Model 3 PowerPC 603e / 603ev
+# ---------------------------------------------------------------------------
+# Written here (decoder, block IR, IR interpreter) rather than ported, so it is
+# held to the strict warning profile. The JIT backends that consume its IR live
+# alongside it as ppc_jit_*.cpp.
+
+add_library(sm2_cpu_ppc STATIC
+    cpu/ppc/ppc.cpp
+    cpu/ppc/ppc_decode.cpp
+    cpu/ppc/ppc_helper.cpp
+    cpu/ppc/ppc_interp.cpp
+)
+target_link_libraries(sm2_cpu_ppc
+    PUBLIC
+        sm2_core
+    PRIVATE
+        sm2_warnings
+)
+
+# ---------------------------------------------------------------------------
 # sm2_rom — game database and ROM loading
 # ---------------------------------------------------------------------------
 
