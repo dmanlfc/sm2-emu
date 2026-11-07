@@ -182,6 +182,26 @@ target_link_libraries(sm2_cpu_m68000
 )
 
 # ---------------------------------------------------------------------------
+# sm2_cpu_jit — JIT infrastructure shared by the dynamically recompiled cores
+# ---------------------------------------------------------------------------
+# Both emitters are built on every host, whichever one it runs.
+
+add_library(sm2_cpu_jit STATIC
+    cpu/jit/arm64_emitter.cpp
+    cpu/jit/block_cache.cpp
+    cpu/jit/code_buffer.cpp
+    cpu/jit/dispatcher.cpp
+    cpu/jit/guest_memory.cpp
+    cpu/jit/x64_emitter.cpp
+)
+target_link_libraries(sm2_cpu_jit
+    PUBLIC
+        sm2_core
+    PRIVATE
+        sm2_warnings
+)
+
+# ---------------------------------------------------------------------------
 # sm2_rom — game database and ROM loading
 # ---------------------------------------------------------------------------
 
@@ -286,8 +306,7 @@ target_link_libraries(sm2_hw
 # files to this target from its own section; keep this list to the machine's.
 #
 # sm2_hw and sm2_hw_model3 depend on each other (create_machine constructs a
-# Model3; the machine uses the EEPROM, 315-5881 and link-board code in sm2_hw).
-# CMake links mutually dependent static libraries correctly.
+# Model3; the machine uses sm2_hw's EEPROM, 315-5881 and link board).
 
 add_library(sm2_hw_model3 STATIC
     hw/model3/jtag.cpp
@@ -311,10 +330,7 @@ target_link_libraries(sm2_hw_model3
 )
 target_link_libraries(sm2_hw PRIVATE sm2_hw_model3)
 
-# The PowerPC core: model3_cpu_ppc.cpp is always compiled (against
-# cpu/ppc/ppc.h) but only referenced, and so only linked, once a library named
-# sm2_cpu_ppc exists. The check is deferred to the end of this directory so it
-# does not depend on where that library's section sits in this file.
+# Deferred so it does not depend on where sm2_cpu_ppc is defined in this file.
 function(sm2_model3_link_ppc)
     if(TARGET sm2_cpu_ppc)
         target_compile_definitions(sm2_hw_model3 PRIVATE SM2_MODEL3_HAVE_PPC=1)
