@@ -571,6 +571,15 @@ CpuStatus Model3::main_cpu_status() const
 u8 Model3::game_inputs_g2() const
 {
     u8 data = m_inputs.in1;
+    // Get Bass's cast and select are active high on G24/G25.
+    if (rom::has_input(m_game.inputs, rom::InputFlags::Fishing) && m_game.name != "getbassur"
+        && m_game.parent != "getbassur") {
+        const bool cast   = (data & 0x01) == 0;
+        const bool select = (data & 0x02) == 0;
+        data = static_cast<u8>((data | 0x03) & ~0x30u);
+        if (cast) data |= 0x10;
+        if (select) data |= 0x20;
+    }
     if (m_game.gearbox) {
         static constexpr u8 kGearBits[5] = {0x70, 0x20, 0x10, 0x60, 0x50};
         u32 gear = 0;
