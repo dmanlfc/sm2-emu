@@ -222,11 +222,13 @@ add_library(sm2_cpu_ppc STATIC
     cpu/ppc/ppc_decode.cpp
     cpu/ppc/ppc_helper.cpp
     cpu/ppc/ppc_interp.cpp
+    cpu/ppc/ppc_jit_arm64.cpp
 )
 target_link_libraries(sm2_cpu_ppc
     PUBLIC
         sm2_core
     PRIVATE
+        sm2_cpu_jit
         sm2_warnings
 )
 

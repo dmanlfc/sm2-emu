@@ -53,7 +53,7 @@ u32 Ppc::helper(u32 insn, u32 index)
     ++m_stats.helper_calls;
     PpcState& st = m_st;
     u32* const s = st.slot;
-    const u32 pc = m_block_pc + 4 * index;
+    const u32 pc = m_st.block_pc + 4 * index;
 
     const u32 opcd = insn >> 26;
     const u32 rd = (insn >> 21) & 31, ra = (insn >> 16) & 31, rb = (insn >> 11) & 31;
@@ -381,7 +381,7 @@ u32 Ppc::mfspr(u32 spr, u32 index)
     }
     char msg[64];
     std::snprintf(msg, sizeof msg, "mfspr from unknown SPR %u", spr);
-    st.pc = m_block_pc + 4 * index;
+    st.pc = m_st.block_pc + 4 * index;
     fault(msg);
     return 0;
 }
@@ -432,14 +432,14 @@ void Ppc::mtspr(u32 spr, u32 v, u32 index)
     }
     char msg[64];
     std::snprintf(msg, sizeof msg, "mtspr to unknown SPR %u", spr);
-    st.pc = m_block_pc + 4 * index;
+    st.pc = m_st.block_pc + 4 * index;
     fault(msg);
 }
 
 u32 Ppc::read_spr(u32 spr)
 {
     if (!m_in_block) {
-        m_block_cycles = m_cycles;
+        m_st.block_cycles = m_cycles;
     }
     return mfspr(spr, 0);
 }
@@ -447,7 +447,7 @@ u32 Ppc::read_spr(u32 spr)
 void Ppc::write_spr(u32 spr, u32 value)
 {
     if (!m_in_block) {
-        m_block_cycles = m_cycles;
+        m_st.block_cycles = m_cycles;
     }
     mtspr(spr, value, 0);
     if (!m_in_run) {

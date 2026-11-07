@@ -92,7 +92,8 @@ public:
 
     void set_irq(bool asserted);
 
-    void set_exec_mode(ExecMode mode) { m_mode = mode; }
+    /// Jit attaches the host's backend if none is set.
+    void set_exec_mode(ExecMode mode);
     [[nodiscard]] ExecMode exec_mode() const { return m_mode; }
 
     /// Exact inside bus callbacks.
@@ -109,11 +110,12 @@ public:
 
     /// Flushes existing blocks.
     void set_backend(BlockBackend* backend);
+    [[nodiscard]] BlockBackend* backend() const { return m_backend; }
 
     [[nodiscard]] PpcState& state() { return m_st; }
     [[nodiscard]] const PpcState& state() const { return m_st; }
     [[nodiscard]] u32 pc() const { return m_st.pc; }
-    [[nodiscard]] u32 timer_ratio() const { return m_timer_ratio; }
+    [[nodiscard]] u32 timer_ratio() const { return m_st.timer_ratio; }
     [[nodiscard]] u64 timebase() const;
     [[nodiscard]] u32 decrementer() const;
     [[nodiscard]] bool faulted() const { return m_faulted; }
@@ -177,9 +179,9 @@ private:
     [[nodiscard]] u32 block_key() const { return m_st.fpscr & kKeyRnMask; }
 
     // timers
-    [[nodiscard]] u64 now_cycles(u32 insn_index) const { return m_block_cycles + insn_index; }
-    [[nodiscard]] u64 ticks_at(u64 cycles) const { return cycles / m_timer_ratio; }
-    [[nodiscard]] u64 read_tb(u64 cycles) const { return m_tb_offset + ticks_at(cycles); }
+    [[nodiscard]] u64 now_cycles(u32 insn_index) const { return m_st.block_cycles + insn_index; }
+    [[nodiscard]] u64 ticks_at(u64 cycles) const { return cycles / m_st.timer_ratio; }
+    [[nodiscard]] u64 read_tb(u64 cycles) const { return m_st.tb_offset + ticks_at(cycles); }
     void write_tbl(u64 cycles, u32 v);
     void write_tbu(u64 cycles, u32 v);
     [[nodiscard]] u32 read_dec(u64 cycles) const
@@ -206,14 +208,11 @@ private:
     PpcBus*   m_bus   = nullptr;
     ExecMode  m_mode  = ExecMode::Interpreter;
     BlockBackend* m_backend = nullptr;
+    std::unique_ptr<BlockBackend> m_own_backend;
 
     // timing
-    u32 m_timer_ratio  = 4;
     u64 m_cycles       = 0;   ///< Completed cycles, at block granularity.
-    u64 m_block_cycles = 0;   ///< m_cycles when the current block started.
-    u32 m_block_pc     = 0;   ///< pc of the current block, for helpers.
     u64 m_run_target   = 0;
-    u64 m_tb_offset    = 0;
     u64 m_dec_base     = 0;
     u64 m_dec_deadline = 0;   ///< Cycle at which DEC next reaches 0xffffffff.
     u32 m_pending      = 0;   ///< kPend* bits.

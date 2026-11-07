@@ -281,7 +281,7 @@ u32 Ppc::interpret(IrBlock& b, u32 max_insns)
             case IrOp::Mfxer: s[o.d] = st.get_xer(); break;
             case IrOp::Mtxer: st.set_xer(s[o.a]); break;
             case IrOp::Mftb: {
-                const u64 tb = read_tb(m_block_cycles + b.op_insn[i]);
+                const u64 tb = read_tb(m_st.block_cycles + b.op_insn[i]);
                 s[o.d] = static_cast<u32>(o.a ? tb >> 32 : tb);
                 break;
             }

@@ -181,6 +181,15 @@ struct PpcState {
 
     void* cpu;
 
+    // ---- run loop ------------------------------------------------------------
+    u64 block_cycles;  ///< Cycles completed when the current block started.
+    u32 block_pc;      ///< pc of the current block, for helpers.
+    u32 budget;        ///< Cycles a native entry may run (>= its block's length).
+
+    // ---- timebase: TB = tb_offset + cycles / timer_ratio ----------------------
+    u64 tb_offset;
+    u32 timer_ratio;
+
     // ---- accessors -----------------------------------------------------------
     [[nodiscard]] u32& r(unsigned n) { return slot[n]; }
     [[nodiscard]] u32 r(unsigned n) const { return slot[n]; }

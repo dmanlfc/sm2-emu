@@ -27,6 +27,7 @@ public:
               cpu::ppc::PpcBus& bus) override
     {
         m_ppc.init(config, pages, bus);
+        m_ppc.set_exec_mode(cpu::ppc::ExecMode::Jit);
     }
     void reset() override { m_ppc.reset(); }
     s64  run(s64 cycles) override { return m_ppc.run(cycles); }

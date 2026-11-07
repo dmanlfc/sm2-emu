@@ -20,6 +20,7 @@
 #include "core/archive.h"
 #include "core/log.h"
 #include "cpu/ppc/ppc_internal.h"
+#include "cpu/ppc/ppc_jit_arm64.h"
 #include "hw/machine.h"
 
 #include <algorithm>
@@ -65,7 +66,10 @@ u32 model_hid1(Model model, u32 cpu_hz, u32 bus_hz)
 
 }  // namespace
 
-Ppc::Ppc() = default;
+Ppc::Ppc()
+{
+    m_st.timer_ratio = 4;
+}
 
 Ppc::~Ppc()
 {
@@ -80,7 +84,7 @@ void Ppc::init(const PpcConfig& config, PageMap& pages, PpcBus& bus)
     m_pages  = &pages;
     m_bus    = &bus;
     const u64 ratio = config.bus_hz != 0 ? (4ull * config.cpu_hz) / config.bus_hz : 4;
-    m_timer_ratio = static_cast<u32>(std::max<u64>(1, ratio));
+    m_st.timer_ratio = static_cast<u32>(std::max<u64>(1, ratio));
     reset();
 }
 
@@ -89,7 +93,9 @@ void Ppc::reset()
     flush_blocks();
     free_dead();
 
+    const u32 ratio = m_st.timer_ratio;
     m_st = PpcState{};
+    m_st.timer_ratio = ratio;
     m_st.read_table  = m_pages != nullptr ? m_pages->read_table() : nullptr;
     m_st.write_table = m_pages != nullptr ? m_pages->write_table() : nullptr;
     m_st.cpu = this;
@@ -100,8 +106,8 @@ void Ppc::reset()
     m_st.pc   = 0xfff00100;
 
     m_cycles       = 0;
-    m_block_cycles = 0;
-    m_tb_offset    = 0;
+    m_st.block_cycles = 0;
+    m_st.tb_offset    = 0;
     m_dec_base     = 0xffffffffu;
     update_dec_deadline();
     m_pending  = m_irq_line ? kPendIrq : 0u;
@@ -148,11 +154,12 @@ s64 Ppc::run(s64 cycles)
             m_trace(m_trace_user, *this, b->pc, b->raw[0]);
         }
 
-        m_block_cycles = m_cycles;
-        m_block_pc     = b->pc;
+        m_st.block_cycles = m_cycles;
+        m_st.block_pc     = b->pc;
         m_in_block     = true;
         u32 n;
         if (b->native != nullptr && budget >= b->num_insns && m_mode != ExecMode::Interpreter) {
+            m_st.budget = budget;
             n = b->native(&m_st);
         } else {
             n = interpret(*b, budget);
@@ -219,7 +226,7 @@ void Ppc::check_interrupts()
 
 u64 Ppc::total_cycles() const
 {
-    return m_cycles + (m_in_block ? m_st.cur_insn : 0u);
+    return m_in_block ? m_st.block_cycles + m_st.cur_insn : m_cycles;
 }
 
 void Ppc::fault(std::string message)
@@ -282,13 +289,13 @@ u32 Ppc::decrementer() const
 void Ppc::write_tbl(u64 cycles, u32 v)
 {
     const u64 tb = (read_tb(cycles) & ~0xffffffffull) | v;
-    m_tb_offset  = tb - ticks_at(cycles);
+    m_st.tb_offset  = tb - ticks_at(cycles);
 }
 
 void Ppc::write_tbu(u64 cycles, u32 v)
 {
     const u64 tb = (read_tb(cycles) & 0xffffffffull) | (u64{v} << 32);
-    m_tb_offset  = tb - ticks_at(cycles);
+    m_st.tb_offset  = tb - ticks_at(cycles);
 }
 
 void Ppc::write_dec(u64 cycles, u32 v)
@@ -306,7 +313,7 @@ void Ppc::write_dec(u64 cycles, u32 v)
 
 void Ppc::update_dec_deadline()
 {
-    m_dec_deadline = (m_dec_base + 1) * m_timer_ratio;
+    m_dec_deadline = (m_dec_base + 1) * m_st.timer_ratio;
 }
 
 // ---------------------------------------------------------------------------
@@ -374,6 +381,13 @@ IrBlock* Ppc::build(u32 pc, u32 key)
 
     if (m_backend != nullptr) {
         m_backend->compile(*block);
+        if (block->native == nullptr && m_backend->full()) {
+            const u32 flags = m_st.exit_flags;
+            flush_blocks();
+            m_st.exit_flags = flags;
+            m_backend->reset_code();
+            m_backend->compile(*block);
+        }
     }
     ++m_stats.blocks_built;
     IrBlock* const raw = block.get();
@@ -388,6 +402,9 @@ void Ppc::kill_block(IrBlock* b)
     }
     b->valid = false;
     ++m_stats.blocks_invalidated;
+    if (m_backend != nullptr) {
+        m_backend->invalidated(*b);
+    }
 
     const u32 idx = (b->pc >> 2) & ((1u << kFastBits) - 1);
     if (m_fast[idx] == b) {
@@ -489,6 +506,19 @@ void Ppc::set_backend(BlockBackend* backend)
     flush_blocks();
     free_dead();
     m_backend = backend;
+}
+
+void Ppc::set_exec_mode(ExecMode mode)
+{
+    m_mode = mode;
+    if (mode != ExecMode::Interpreter && m_backend == nullptr) {
+        if (!m_own_backend) {
+            m_own_backend = create_jit_arm64();
+        }
+        if (m_own_backend) {
+            set_backend(m_own_backend.get());
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -684,7 +714,7 @@ void Ppc::serialize(Archive& ar)
     ar.raw(m_st.reserved_addr);
 
     ar.raw(m_cycles);
-    ar.raw(m_tb_offset);
+    ar.raw(m_st.tb_offset);
     ar.raw(m_dec_base);
     ar.raw(m_pending);
     ar.raw(m_irq_line);
@@ -693,7 +723,7 @@ void Ppc::serialize(Archive& ar)
 
     if (ar.loading()) {
         m_st.slot[kSlotZero] = 0;
-        m_block_cycles = m_cycles;
+        m_st.block_cycles = m_cycles;
         update_dec_deadline();
         m_fault_message = m_faulted ? "faulted before the state was saved" : "";
         flush_blocks();

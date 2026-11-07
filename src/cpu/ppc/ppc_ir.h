@@ -32,7 +32,11 @@
 //
 // Native code (NativeBlockFn) runs the ops, stores the next pc in st->pc and
 // returns the number of instructions completed. It is entered only when the
-// whole block fits the cycle budget. Exits:
+// whole block fits st->budget. It may go on into following blocks of the same
+// key while each fits what is left of the budget, storing st->block_cycles as
+// each starts (and st->block_pc before a Helper), and returns the total; it
+// must not continue after a block that ran a Helper (DEC, MSR or FPSCR may
+// have changed). Exits:
 //   - terminator: return num_insns;
 //   - after every ppc_rt_* call, if st->exit_flags & kExitBreak: finish the
 //     current instruction's remaining ops, st->pc = pc + 4*(i+1), return i+1
@@ -259,6 +263,14 @@ public:
 
     /// `block` is being destroyed; release whatever compile() made.
     virtual void release(IrBlock& block) = 0;
+
+    /// `block` was invalidated (it may still be running): stop entering it.
+    virtual void invalidated(IrBlock& block) { (void)block; }
+
+    /// compile() ran out of code space: the core kills every block, calls
+    /// reset_code() and compiles again.
+    [[nodiscard]] virtual bool full() const { return false; }
+    virtual void reset_code() {}
 };
 
 /// Decode the block at `pc`. `fetch(addr, &word)` returns false if the address
