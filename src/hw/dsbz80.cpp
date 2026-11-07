@@ -59,6 +59,7 @@ void DsbZ80::reset()
     m_mp_pos = 0;
     m_cycle_debt    = 0;
     m_resample_frac = 0;
+    m_prev[0] = m_prev[1] = 0;
     m_counters      = Counters{};
 
     if (!present()) {
@@ -110,6 +111,11 @@ void DsbZ80::serialize(Archive& ar)
     ar.raw(has_decoder);
     if (has_decoder && m_decoder) {
         m_decoder->serialize(ar);
+    }
+
+    // Only with interpolation (Model 3), so Model 2 save states keep their layout.
+    if (m_interpolate) {
+        ar.bytes(m_prev, 2);
     }
 }
 
@@ -324,7 +330,9 @@ void DsbZ80::decode_next()
     int sample_rate    = 0;
     int channel_count  = 0;
     int output_samples = 0;
-    const bool ok = m_decoder->decode_buffer(m_mp_pos, static_cast<int>(m_mp_end) * 8,
+    // A Model 3 MPEG region can be smaller than the Z80's 16 MB window.
+    const u32 end = std::min<u32>(m_mp_end, static_cast<u32>(m_mpeg_rom.size()));
+    const bool ok = m_decoder->decode_buffer(m_mp_pos, static_cast<int>(end) * 8,
                                              m_audio_buf, output_samples,
                                              sample_rate, channel_count);
     if (ok) {
@@ -365,8 +373,14 @@ void DsbZ80::mix(s16* dst, u32 frames, u32 out_rate)
             }
         }
 
-        const s16 lraw = m_audio_buf[m_audio_pos * 2];
-        const s16 rraw = m_audio_buf[m_audio_pos * 2 + 1];
+        s16 lraw = m_audio_buf[m_audio_pos * 2];
+        s16 rraw = m_audio_buf[m_audio_pos * 2 + 1];
+        if (m_interpolate) {
+            // Linear interpolation from the previous decoded sample.
+            const s64 t = static_cast<s64>(m_resample_frac);
+            lraw = static_cast<s16>(m_prev[0] + (lraw - m_prev[0]) * t / out_rate);
+            rraw = static_cast<s16>(m_prev[1] + (rraw - m_prev[1]) * t / out_rate);
+        }
 
         // Volume, MAME: sample * m_mp_vol, full-scale 32768*128.
         s32 l;
@@ -397,6 +411,8 @@ void DsbZ80::mix(s16* dst, u32 frames, u32 out_rate)
         m_resample_frac += kDecoderRate;
         while (m_resample_frac >= out_rate) {
             m_resample_frac -= out_rate;
+            m_prev[0] = m_audio_buf[m_audio_pos * 2];
+            m_prev[1] = m_audio_buf[m_audio_pos * 2 + 1];
             ++m_audio_pos;
         }
     }

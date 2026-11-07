@@ -81,6 +81,10 @@ public:
     [[nodiscard]] bool txrdy() const { return m_tx_holding_empty && tx_enabled(); }
     [[nodiscard]] bool rxrdy() const { return m_rx_full && rx_enabled(); }
 
+    /// A byte arriving now would be latched, not dropped. Lets a sender pace
+    /// itself to the reader (the Model 3 sound board feeding the DSB).
+    [[nodiscard]] bool can_receive() const { return rx_enabled() && !m_rx_full; }
+
     /// A byte arriving from the other end of the link.
     void write_rxd(u8 value);
 

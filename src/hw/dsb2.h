@@ -12,6 +12,11 @@
 //
 // On Model 2 only the Top Skater family carries a DSB2. Their sound effects come
 // from the SCSP; only the music is on this board.
+//
+// Portions derived from Supermodel's Src/Model3/DSB.cpp (CDSB2::WriteMPEGFIFO
+// and the volume/stereo handling in CDSB2::RunFrame), Copyright (c) 2003-2026
+// The Supermodel Team, GPL-3.0-or-later; that code is "based on code donated by
+// R. Belmont".
 
 #pragma once
 
@@ -46,6 +51,13 @@ public:
     /// A serial byte from the host's i8251, the same one the SCSP receives.
     void write_txd(u8 value);
 
+    /// See DsbZ80::ready_for_byte.
+    [[nodiscard]] bool ready_for_byte() const { return present() && m_uart.can_receive(); }
+
+    /// Use the Model 3 FIFO command set. Set before reset(); the save-state
+    /// layout depends on it.
+    void set_model3_commands(bool enabled) { m_model3 = enabled; }
+
     void set_rxd_handler(std::function<void(u8)> handler) { m_rxd_handler = std::move(handler); }
 
     /// Advance the 68000 (and its UART and 1 kHz timer) by the equivalent of
@@ -63,6 +75,10 @@ public:
 
     /// The player's music level, in percent.
     void set_music_volume(u32 percent) { m_music = static_cast<s32>(percent * 256 / 100); }
+
+    /// Linearly interpolate the 32 kHz decoder output (Model 3). Set before
+    /// reset(); the save-state layout depends on it.
+    void set_interpolate(bool enabled) { m_interpolate = enabled; }
 
     // -- cpu::Bus (68000, big-endian) ---------------------------------------
 
@@ -100,6 +116,9 @@ private:
 
     void system_control_w(u8 data);  ///< 0xd00001: MPEG ROM bank (A24)
     void fifo_w(u8 data);            ///< 0xe00003: command / address FIFO
+    void fifo_w_model3(u8 data);     ///< fifo_w with the Model 3 command set
+    void play();
+    void stop();
 
     bool open_window(u32 start, u32 end);
     void decode_next();
@@ -122,8 +141,17 @@ private:
     u8      m_mp_state = 0;  ///< 0 stopped, 1 playing, 2 looping to m_start/m_end
     Command m_command = Command::Idle;
 
+    // m_param: opcode awaiting its parameter byte, 0 if none.
+    // m_stereo: 0 stereo, 1 left on both, 2 right on both.
+    bool m_model3    = false;
+    u8   m_param     = 0;
+    u8   m_volume[2] = {0xff, 0xff};
+    u8   m_stereo    = 0;
+
     u64 m_cycle_debt     = 0;  ///< host->68000 clock remainder.
     u64 m_timer_debt     = 0;  ///< host cycles toward the next 1 kHz tick.
+    bool m_interpolate = false;
+    s16  m_prev[2]     = {};  ///< Previous decoded sample pair, for interpolation.
     u64 m_resample_frac  = 0;
 
     std::function<void(u8)> m_rxd_handler;

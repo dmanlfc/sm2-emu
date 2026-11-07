@@ -54,8 +54,16 @@ public:
     /// The player's music level, in percent.
     void set_music_volume(u32 percent) { m_music = static_cast<s32>(percent * 256 / 100); }
 
+    /// Linearly interpolate the 32 kHz decoder output (Model 3). Set before
+    /// reset(); the save-state layout depends on it.
+    void set_interpolate(bool enabled) { m_interpolate = enabled; }
+
     /// A serial byte from the host's i8251, the same one the SCSP receives.
     void write_txd(u8 value);
+
+    /// The UART would latch a byte now. A host that can outrun the link (the
+    /// Model 3 sound board) queues and sends only when this is true.
+    [[nodiscard]] bool ready_for_byte() const { return present() && m_uart.can_receive(); }
 
     /// A byte the board sends back to the host (unused by the Model 2 titles,
     /// kept for completeness).
@@ -125,6 +133,8 @@ private:
     u64 m_cycle_debt = 0;
 
     // Linear resampler state (decoder 32000 Hz -> output rate).
+    bool m_interpolate = false;
+    s16  m_prev[2]     = {};  ///< Previous decoded sample pair, for interpolation.
     u64 m_resample_frac = 0;
 
     std::function<void(u8)> m_rxd_handler;

@@ -184,6 +184,17 @@ the code taken from Supermodel.
   Files derived from Supermodel are listed here as they are ported:
 
     data/games.xml        Model 3 game definitions, from Config/Games.xml
+    Model 3 sound board
+      src/hw/model3/model3_sound.cpp, model3_sound.h
+      from Src/Model3/SoundBoard.cpp, SoundBoard.h
+      Copyright (c) 2011 Bart Trzynadlowski, Nik Henson; with the MIDI port
+      and output mixing from Src/Model3/Model3.cpp, Src/Model3/DSB.cpp and
+      Src/OSD/SDL/Audio.cpp, Copyright (c) 2003-2026 The Supermodel Team
+
+    Digital Sound Board 2, the Model 3 command set (portions)
+      src/hw/dsb2.cpp, dsb2.h (otherwise derived from MAME, above)
+      from Src/Model3/DSB.cpp, Copyright (c) 2003-2026 The Supermodel Team;
+      based on code donated by R. Belmont
 
 Work by Daniel Martin first published in the dmanlfc/Supermodel fork -- the
 OpenGL ES and Wayland support, the Vulkan renderer, GPU API selection, the

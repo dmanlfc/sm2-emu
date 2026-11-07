@@ -82,6 +82,16 @@ public:
     /// A byte arrived from the host's UART.
     void midi_in(u8 value);
 
+    /// Bytes waiting in the MIDI input FIFO. It has no overflow check, so a
+    /// fast host (the Model 3 PowerPC) must hold back when it is full.
+    [[nodiscard]] u32 midi_in_pending() const { return static_cast<u32>((m_MidiW - m_MidiR) & 31); }
+
+    /// One slot is lost to the full/empty ambiguity.
+    static constexpr u32 kMidiInCapacity = 31;
+
+    /// DAC18B: the program selected the 18-bit DAC output format.
+    [[nodiscard]] bool dac18() const { return (m_udata.data[0] & 0x0100) != 0; }
+
     // -- inspection, for the headless bring-up test --------------------------
 
     struct Stats {

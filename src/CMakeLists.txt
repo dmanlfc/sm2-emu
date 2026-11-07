@@ -280,6 +280,22 @@ target_link_libraries(sm2_hw
 )
 
 # ---------------------------------------------------------------------------
+# sm2_hw_model3 — Sega Model 3: the sound board
+# ---------------------------------------------------------------------------
+# The Model 3 machine's chips live here. The sound board reuses sm2_hw's SCSP,
+# 68000 and DSBs, so it links sm2_hw rather than the other way round.
+
+add_library(sm2_hw_model3 STATIC
+    hw/model3/model3_sound.cpp
+)
+target_link_libraries(sm2_hw_model3
+    PUBLIC
+        sm2_hw
+    PRIVATE
+        sm2_warnings
+)
+
+# ---------------------------------------------------------------------------
 # sm2_osd — window, input, audio, config
 # ---------------------------------------------------------------------------
 
