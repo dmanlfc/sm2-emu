@@ -107,8 +107,8 @@ struct Inputs {
 
 /// A type-erased snapshot of the machine's main CPU state.
 ///
-/// See the file comment above for why this is a plain struct rather than a
-/// shared virtual CPU base class.
+/// A plain struct rather than a shared virtual CPU base class: the V60, i960
+/// and PowerPC cores have nothing in common beyond what is copied out here.
 struct CpuStatus {
     /// One-line register dump, as the concrete core's own state_string().
     std::string state_string;

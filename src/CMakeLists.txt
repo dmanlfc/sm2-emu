@@ -213,9 +213,6 @@ target_link_libraries(sm2_cpu_jit
 # ---------------------------------------------------------------------------
 # sm2_cpu_ppc — the Model 3 PowerPC 603e / 603ev
 # ---------------------------------------------------------------------------
-# Written here (decoder, block IR, IR interpreter) rather than ported, so it is
-# held to the strict warning profile. The JIT backends that consume its IR live
-# alongside it as ppc_jit_*.cpp.
 
 add_library(sm2_cpu_ppc STATIC
     cpu/ppc/ppc.cpp
@@ -331,11 +328,8 @@ target_link_libraries(sm2_hw
 )
 
 # ---------------------------------------------------------------------------
-# sm2_hw_model3 — the Sega Model 3 machine and its chips (machine section)
+# sm2_hw_model3 — the Sega Model 3 machine, its chips and its sound board
 # ---------------------------------------------------------------------------
-# The machine's own files. The sound board (hw/model3/model3_sound.*) adds its
-# files to this target from its own section; keep this list to the machine's.
-#
 # sm2_hw and sm2_hw_model3 depend on each other (create_machine constructs a
 # Model3; the machine uses sm2_hw's EEPROM, 315-5881 and link board).
 
@@ -343,8 +337,8 @@ add_library(sm2_hw_model3 STATIC
     hw/model3/drive_board.cpp
     hw/model3/jtag.cpp
     hw/model3/model3.cpp
-    hw/model3/model3_sound.cpp
     hw/model3/model3_cpu_ppc.cpp
+    hw/model3/model3_sound.cpp
     hw/model3/mpc10x.cpp
     hw/model3/net_board.cpp
     hw/model3/real3d.cpp
@@ -373,8 +367,7 @@ function(sm2_model3_link_ppc)
 endfunction()
 cmake_language(DEFER CALL sm2_model3_link_ppc)
 
-# The sound board: hw/model3/model3_sound_port.cpp defines create_sound_port()
-# over the sound board's own class. Until it exists the machine runs silent.
+# Without the SoundPort adapter the machine runs silent.
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/hw/model3/model3_sound_port.cpp")
     target_sources(sm2_hw_model3 PRIVATE hw/model3/model3_sound_port.cpp)
     target_compile_definitions(sm2_hw_model3 PRIVATE SM2_MODEL3_HAVE_SOUND=1)
