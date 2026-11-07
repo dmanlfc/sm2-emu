@@ -2826,6 +2826,34 @@ void Gui::draw_system_tab(Config& config)
         }
     }
 
+    // Applied live; the network port rebinds on Enter.
+    ImGui::Spacing();
+    ImGui::SeparatorText(tr("Cabinet outputs"));
+    ImGui::Checkbox(tr_id("Network outputs"), &config.outputs_network);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        tooltip(tr("Send lamps, gun recoil and drive-board output to\n"
+                   "MAMEHooker, Hook Of The Reaper and similar tools,\n"
+                   "using MAME's network output protocol."));
+    }
+    ImGui::BeginDisabled(!config.outputs_network);
+    int port = static_cast<int>(config.outputs_network_port);
+    ImGui::SetNextItemWidth(120.0f);
+    if (ImGui::InputInt(tr_id("Port"), &port, 1, 100, ImGuiInputTextFlags_EnterReturnsTrue)) {
+        config.outputs_network_port = static_cast<u32>(std::clamp(port, 1, 65535));
+    }
+    ImGui::EndDisabled();
+#ifdef _WIN32
+    ImGui::Checkbox(tr_id("Windows outputs"), &config.outputs_windows);
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        tooltip(tr("The same outputs over MAME's Windows message\n"
+                   "protocol, for tools that hook MAME that way."));
+    }
+#endif
+
     ImGui::Spacing();
     ImGui::SeparatorText(tr("Keyboard shortcuts"));
     draw_hotkeys(config);

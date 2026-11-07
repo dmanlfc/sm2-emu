@@ -267,9 +267,9 @@ Both are set up in the settings menu (`F10`):
 - **Setup:** guns must be in absolute mouse mode and plugged in before sm2-emu
   starts. Aiming works windowed too.
 - **Buttons:** only the five mouse buttons are read.
-- **Recoil:** sm2-emu doesn't drive the motor on Windows. Turn on
-  `outputs_windows` or `outputs_network` and let MAMEHooker or Hook Of The
-  Reaper fire it.
+- **Recoil:** sm2-emu doesn't drive the motor on Windows. Turn on Windows or
+  Network outputs in the System tab and let MAMEHooker or Hook Of The Reaper
+  fire it.
 
 ### Save states
 
