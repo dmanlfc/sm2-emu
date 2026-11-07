@@ -72,6 +72,9 @@ struct VideoFrame {
 
     rom::Model3Step step = rom::Model3Step::Step10;
 
+    /// rom::Model3Spec::centre_letterbox.
+    bool centre_letterbox = false;
+
     /// Advances once per published frame.
     u64 frame_number = 0;
 

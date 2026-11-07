@@ -60,6 +60,9 @@ public:
 
     void build(const hw::model3::VideoFrame& frame);
 
+    /// Before build(): true when the frame's tile layers are all transparent.
+    void set_layers_empty(bool empty) { m_layersEmpty = empty; }
+
     // -- results of the last build() ---------------------------------------------
 
     [[nodiscard]] const std::vector<Node>& nodes() const { return m_nodes; }
@@ -136,6 +139,8 @@ private:
     unsigned m_xRes = 496, m_yRes = 384;
     unsigned m_totalXRes = 496, m_totalYRes = 384;
     bool     m_wideScreen = false;
+    bool     m_layersEmpty = false;
+    bool     m_centreLetterbox = false;
 
     // Real3D Base Matrix Pointer
     const float* m_matrixBasePtr = nullptr;

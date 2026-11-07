@@ -31,10 +31,19 @@ void FrameBuilder::reset()
 void FrameBuilder::submit(const hw::model3::VideoFrame& frame, bool encode_depth)
 {
     m_textures.submit(frame);
+    m_tilegen.draw_frame(frame.tilegen_vram, frame.tilegen_regs, frame.tilegen_lines, frame.tilegen_writes);
+
+    if (frame.centre_letterbox) {
+        const auto blank = [](std::span<const u32> layer) {
+            return std::all_of(layer.begin(), layer.end(), [](u32 p) { return p == 0; });
+        };
+        m_scene.set_layers_empty(blank(m_tilegen.layer(0)) && blank(m_tilegen.layer(1)));
+    } else {
+        m_scene.set_layers_empty(false);
+    }
+
     m_scene.build(frame);
     build_frame_plan(m_scene, encode_depth, {m_textures.page_blank(0), m_textures.page_blank(1)}, m_plan);
-
-    m_tilegen.draw_frame(frame.tilegen_vram, frame.tilegen_regs, frame.tilegen_lines, frame.tilegen_writes);
 
     // An opaque top layer hides the 3D (Le Mans 24's boot screen draws a full
     // scene under it); skip it unless line-of-sight still needs the depth.

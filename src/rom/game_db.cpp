@@ -336,7 +336,8 @@ constexpr u32 kWorkRamSize = 0x00100000;
         return false;
     }
 
-    return attribute_bool(node, "netboard", false, &out->netboard, context);
+    return attribute_bool(node, "netboard", false, &out->netboard, context)
+        && attribute_bool(node, "centre_letterbox", false, &out->centre_letterbox, context);
 }
 
 /// "none" lets a clone decline its parent's protection.

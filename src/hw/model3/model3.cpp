@@ -569,6 +569,7 @@ void Model3::publish_frame()
     f.tilegen_regs  = m_tilegen.registers();
     f.tilegen_lines = m_tilegen.line_latch();
     f.step          = m_game.model3.step;
+    f.centre_letterbox = m_game.model3.centre_letterbox;
     f.frame_number  = ++m_published_count;
     m_published     = b;
 }

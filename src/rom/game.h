@@ -311,6 +311,9 @@ struct Model3Spec {
     /// True when the cabinet has a network board for linked play.
     bool netboard = false;
 
+    /// Centre a letterboxed 3D window when nothing is drawn around it.
+    bool centre_letterbox = false;
+
     /// The PowerPC's clock for this step, in Hz.
     [[nodiscard]] u32 cpu_hz() const
     {

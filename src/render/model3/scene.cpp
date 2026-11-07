@@ -102,6 +102,7 @@ void Scene::ResetPerFrameState()
 
 void Scene::build(const hw::model3::VideoFrame& frame)
 {
+    m_centreLetterbox = frame.centre_letterbox;
     int step = 0x10;
     switch (frame.step) {
         case rom::Model3Step::Step10: step = 0x10; break;
@@ -715,6 +716,12 @@ void Scene::RenderViewport(u32 addr, int depth)
         vp->vpY      = (static_cast<float>(vpnode[0x1A] >> 16) * static_cast<float>(1.0 / 16.0));     // viewport Y (12.4)
         vp->vpWidth  = (static_cast<float>(vpnode[0x14] & 0xFFFF) * static_cast<float>(1.0 / 4.0));  // width (14.2)
         vp->vpHeight = (static_cast<float>(vpnode[0x14] >> 16) * static_cast<float>(1.0 / 4.0));     // height (14.2)
+
+        // A full-width letterbox with nothing drawn around it: centre it.
+        if (m_centreLetterbox && m_layersEmpty && vp->vpX == 0 && vp->vpWidth >= 495
+            && vp->vpHeight >= 96 && vp->vpHeight <= 368) {
+            vp->vpY = std::floor((384.0f - vp->vpHeight) * 0.5f);
+        }
 
         const u32 matrixBase = vpnode[0x16] & 0xFFFFFF;  // matrix base address
 

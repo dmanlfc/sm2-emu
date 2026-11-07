@@ -9471,7 +9471,7 @@
     <version>Export, Revision A</version>
     <manufacturer>Sega, LucasArts</manufacturer>
     <year>1998</year>
-    <model3 step="2.1" mpeg_board="dsb2" drive_board="joystick"/>
+    <model3 step="2.1" mpeg_board="dsb2" drive_board="joystick" centre_letterbox="true"/>
     <inputs>
       <input type="common"/>
       <input type="analog_joystick"/>
@@ -9550,7 +9550,7 @@
     <version>Export</version>
     <manufacturer>Sega, LucasArts</manufacturer>
     <year>1998</year>
-    <model3 step="2.1" mpeg_board="dsb2" drive_board="joystick"/>
+    <model3 step="2.1" mpeg_board="dsb2" drive_board="joystick" centre_letterbox="true"/>
     <inputs>
       <input type="common"/>
       <input type="analog_joystick"/>
@@ -9574,7 +9574,7 @@
     <version>Location Test, 16.09.98</version>
     <manufacturer>Sega, LucasArts</manufacturer>
     <year>1998</year>
-    <model3 step="2.1" mpeg_board="dsb2" drive_board="joystick"/>
+    <model3 step="2.1" mpeg_board="dsb2" drive_board="joystick" centre_letterbox="true"/>
     <inputs>
       <input type="common"/>
       <input type="analog_joystick"/>
