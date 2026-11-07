@@ -24,9 +24,6 @@
 // Windows (rawinput_gun.cpp) guns are Raw Input mice with a light-gun product
 // name. Both report buttons as Linux evdev key codes, so the bindings in the
 // config work on either platform.
-//
-// The evdev technique follows Supermodel's evdev input system, but no code is
-// taken from it.
 #pragma once
 
 #include "core/types.h"

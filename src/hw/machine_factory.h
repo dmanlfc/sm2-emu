@@ -14,7 +14,7 @@
 //
 #pragma once
 
-#include "hw/model2_machine_base.h"
+#include "hw/machine.h"
 #include "rom/game.h"
 #include "rom/rom_set.h"
 
@@ -39,7 +39,6 @@ namespace sm2::hw {
 /// allocating any device state, so a later wave's real implementation is never
 /// fighting stale partial construction left behind by an earlier failed
 /// attempt.
-[[nodiscard]] std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game,
-                                                                 rom::RomSet roms);
+[[nodiscard]] std::unique_ptr<Machine> create_machine(const rom::GameSpec& game, rom::RomSet roms);
 
 }  // namespace sm2::hw

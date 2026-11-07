@@ -682,8 +682,11 @@ void apply_volume(std::span<const sm2::s16> in, sm2::u32 percent, std::vector<sm
 }
 
 struct LoadedMachine {
-    sm2::rom::GameSpec                          game;
-    std::unique_ptr<sm2::hw::Model2MachineBase> machine_iface;
+    sm2::rom::GameSpec                game;
+    std::unique_ptr<sm2::hw::Machine> machine_owner;
+
+    /// machine_owner's Model 1 / Model 2 interface.
+    sm2::hw::Model2MachineBase* machine_iface = nullptr;
 
     sm2::hw::Model2*         machine      = nullptr;
     sm2::hw::Model2B*        machine_2b   = nullptr;
@@ -767,7 +770,8 @@ struct LoadedMachine {
 
     LoadedMachine out;
     out.game          = result->game;
-    out.machine_iface = hw::create_machine(result->game, std::move(result->roms));
+    out.machine_owner = hw::create_machine(result->game, std::move(result->roms));
+    out.machine_iface = out.machine_owner ? out.machine_owner->as_model2() : nullptr;
     if (!out.machine_iface) {
         if (error != nullptr) {
             error->game    = result->game.name;
@@ -777,11 +781,11 @@ struct LoadedMachine {
     }
 
     // Downcast once; accessors below stay written against the concrete class.
-    out.machine      = dynamic_cast<hw::Model2*>(out.machine_iface.get());
-    out.machine_2b   = dynamic_cast<hw::Model2B*>(out.machine_iface.get());
-    out.machine_2c   = dynamic_cast<hw::Model2C*>(out.machine_iface.get());
-    out.machine_orig = dynamic_cast<hw::Model2Original*>(out.machine_iface.get());
-    out.machine_m1   = dynamic_cast<hw::Model1*>(out.machine_iface.get());
+    out.machine      = dynamic_cast<hw::Model2*>(out.machine_iface);
+    out.machine_2b   = dynamic_cast<hw::Model2B*>(out.machine_iface);
+    out.machine_2c   = dynamic_cast<hw::Model2C*>(out.machine_iface);
+    out.machine_orig = dynamic_cast<hw::Model2Original*>(out.machine_iface);
+    out.machine_m1   = dynamic_cast<hw::Model1*>(out.machine_iface);
     if (out.machine != nullptr) {
         out.main_cpu    = &out.machine->cpu();
         out.sound_board = &out.machine->sound();
@@ -1243,7 +1247,7 @@ int main(int argc, char** argv)
         SM2_INFO("no ROM given; starting with the bring-up display only");
     }
 
-    hw::Model2MachineBase* machine_iface = loaded.has_value() ? loaded->machine_iface.get()
+    hw::Model2MachineBase* machine_iface = loaded.has_value() ? loaded->machine_iface
                                                               : nullptr;
     hw::Model2*         machine      = loaded.has_value() ? loaded->machine      : nullptr;
     hw::Model2B*        machine_2b   = loaded.has_value() ? loaded->machine_2b   : nullptr;
@@ -2353,7 +2357,7 @@ int main(int argc, char** argv)
             async_soft.forget_machine();
             backend->wait_idle();
             loaded        = std::move(next);
-            machine_iface = loaded->machine_iface.get();
+            machine_iface = loaded->machine_iface;
             machine       = loaded->machine;
             machine_2b    = loaded->machine_2b;
             machine_2c    = loaded->machine_2c;

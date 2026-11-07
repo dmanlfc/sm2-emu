@@ -23,7 +23,7 @@
 
 namespace sm2::hw {
 
-std::unique_ptr<Model2MachineBase> create_machine(const rom::GameSpec& game, rom::RomSet roms)
+std::unique_ptr<Machine> create_machine(const rom::GameSpec& game, rom::RomSet roms)
 {
     // Each case gates on rom::board_implemented, the same function RomLoader::load
     // gates on, so the two stay in sync rather than being separately maintained.

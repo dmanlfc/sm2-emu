@@ -1,5 +1,5 @@
-sm2-emu — Sega Model 1 & 2 arcade emulator
-======================================
+sm2-emu — Sega Model 1, 2 & 3 arcade emulator
+==============================================
 
 Copyright (c) 2025+ Daniel Martin (dmanlfc) and the sm2-emu contributors.
 
@@ -21,7 +21,10 @@ Additional terms (GNU GPL version 3, section 7)
 -----------------------------------------------
 
 These terms apply to sm2-emu and to every work based on it, in source or
-object form.
+object form. They cover only the material whose copyright the sm2-emu authors
+hold. Code taken from Supermodel (see "Derived from Supermodel" below) stays
+under the GNU GPL version 3 or later alone, as its authors released it; these
+terms apply to sm2-emu's changes to that code, not to the code itself.
 
   1. Attribution (section 7(b)). Keep intact the copyright notices and author
      attributions in the source files, in this NOTICE file, and on the
@@ -164,16 +167,36 @@ into its device framework in ways a port would have to unpick.
     SCSP at the other end of the wire; this models whole bytes and keeps only the
     byte period, which is the part the sound driver's pacing depends on.
 
-Architectural influence
------------------------
+Derived from Supermodel (https://github.com/trzy/Supermodel), GPL-3.0-or-later
+-------------------------------------------------------------------------------
 
-The application structure — the XML-driven ROM database with content-addressed
-CRC32 identification and stride/chunk interleaving, the snapshot-based handoff
-between emulation and rendering, and the layered input abstraction — was
-informed by the design of Supermodel, the Sega Model 3 emulator
-(https://supermodel3.com). Supermodel is licensed under the GPL; no Supermodel
-code is included in sm2-emu except where contributed directly by its original
-author under the terms of this project's licence.
+sm2-emu's Sega Model 3 support is ported from Supermodel at commit 24d2ffc
+("Fix initializer order (#325)", 26 July 2026). Supermodel is licensed under
+the GNU GPL version 3 or later, the same licence as sm2-emu, and the files
+below keep their authors' copyright notices. Those files are marked
+"SPDX-License-Identifier: GPL-3.0-or-later" and name the Supermodel file they
+come from. As stated above, the section 7 additional terms do not extend to
+the code taken from Supermodel.
+
+  Copyright (c) 2003-2026 The Supermodel Team: Bart Trzynadlowski, Ian Curtis,
+  Nik Henson, and the other Supermodel contributors.
+
+  Files derived from Supermodel are listed here as they are ported:
+
+    (none yet)
+
+Work by Daniel Martin first published in the dmanlfc/Supermodel fork -- the
+OpenGL ES and Wayland support, the Vulkan renderer, GPU API selection, the
+configurable folder locations, the evdev light gun and steering wheel input,
+and the cross-compiling build -- is the author's own and carries the sm2-emu
+header. Where such a file still contains code translated from Supermodel's
+own (for example the New3D drawing logic in the Vulkan renderer), its header
+says so and keeps the Supermodel Team's notice for those portions.
+
+Code that reached Supermodel from MAME (the PowerPC core's origins and the
+315-5881 cipher) is credited under "Derived from MAME" above: the 315-5881 is
+already ported directly from MAME, and the PowerPC core is written for
+sm2-emu (see its header for what it draws on).
 
 Third-party dependencies
 ------------------------
