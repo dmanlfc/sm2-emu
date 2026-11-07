@@ -528,6 +528,10 @@ struct Config {
     /// and the status display; the board negotiates the real link id from frames.
     u32 link_cabinet_index = 0;
 
+    /// Model 3 link: how many frames late the other cabinets' updates are read.
+    /// More hides Wi-Fi jitter; each frame delays the other cars by 1/60 s.
+    u32 link_delay = 6;
+
     // -- paths -------------------------------------------------------------
 
     /// ROM archives; a game named with no path loads <rom_dir>/<name>.{zip,7z}.

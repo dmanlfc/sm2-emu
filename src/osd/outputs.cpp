@@ -52,6 +52,7 @@ namespace {
 constexpr int kRawDrive   = -1;
 constexpr int kRawLamps   = -2;
 constexpr int kGameOutput = -3;  ///< One of the set's own, from games.xml.
+constexpr int kBillboard  = -4;  ///< A Model 3 billboard digit, from update_billboard().
 
 constexpr u32 kWorkRamBase = 0x00500000;
 
@@ -421,7 +422,7 @@ void Outputs::configure(bool network, u16 port, bool windows)
 }
 
 void Outputs::set_game(const std::string& name, const std::string& parent,
-                       std::span<const rom::OutputSpec> game_outputs)
+                       std::span<const rom::OutputSpec> game_outputs, bool billboard)
 {
     if (name == m_game) {
         return;
@@ -445,6 +446,13 @@ void Outputs::set_game(const std::string& name, const std::string& parent,
         m_items.push_back({spec.name, 0, true});
         m_bits.push_back(kGameOutput);
         m_game_outputs.push_back({spec});
+    }
+    m_first_bill_item = billboard ? m_items.size() : 0;
+    if (billboard) {
+        for (int i = 1; i <= 5; ++i) {
+            m_items.push_back({"BillDigit" + std::to_string(i), 0, true});
+            m_bits.push_back(kBillboard);
+        }
     }
     for (Backend* backend : {m_network.get(), m_windows.get()}) {
         if (backend != nullptr) {
@@ -500,6 +508,8 @@ void Outputs::update(u8 lamp_latch, std::span<const u8> drive_writes,
             set(i, lamp_latch);
         } else if (m_bits[i] == kGameOutput) {
             set(i, m_game_outputs[i - m_first_game_item].value);
+        } else if (m_bits[i] == kBillboard) {
+            continue;
         } else {
             // Every byte in order: a force command can be followed by its
             // parameters within one frame.
@@ -583,6 +593,16 @@ void Outputs::set(usize index, s32 value)
         if (backend != nullptr) {
             backend->changed(index, item);
         }
+    }
+}
+
+void Outputs::update_billboard(std::span<const u8> bill)
+{
+    if (m_game.empty() || m_first_bill_item == 0 || (m_network == nullptr && m_windows == nullptr)) {
+        return;
+    }
+    for (usize i = 0; i < bill.size() && i < 5; ++i) {
+        set(m_first_bill_item + i, bill[i]);
     }
 }
 

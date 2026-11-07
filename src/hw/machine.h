@@ -13,15 +13,8 @@
 // that licence. See LICENSE and NOTICE.
 //
 //
-// The call surface every emulated machine presents to main.cpp, whatever the
-// board family: lifecycle, the input latch, the link board, NVRAM and
-// save-states, the main CPU's status and the cabinet outputs.
-//
-// Everything a Model 1 or Model 2 renderer, debug dump or rewind buffer reads
-// on top of that lives one level down in Model2MachineBase. A Sega Model 3
-// machine (hw::model3::Model3) derives from this class directly: its video is a
-// Real3D Pro-1000 and a tile generator, which share nothing with Model 2's
-// display-list RAM and System 24 tilemaps.
+// The call surface every emulated machine presents to main.cpp. Model 1/2
+// specifics live in Model2MachineBase; Model 3 derives from this directly.
 #pragma once
 
 #include "core/log.h"
@@ -178,8 +171,7 @@ public:
     // run_frame() interleaves the main CPU, any coprocessor and the sound
     // board, so main.cpp sees one call and cannot time them apart. Each board
     // accumulates its own nanoseconds below, gated on profiling being armed
-    // (these run thousands of times a frame). The "i960" figure is the main
-    // CPU's, whichever core that is.
+    // (these run thousands of times a frame). "i960" means the main CPU.
 
     /// Arm or disarm the per-core accumulators. main.cpp turns it on under
     /// --profile only.
@@ -260,6 +252,21 @@ public:
     /// The last value the game wrote to its lamp/coin-counter latch.
     [[nodiscard]] u8 lamp_latch() const { return m_lamp_latch; }
 
+    /// Outputs of an emulated drive board/billboard (Model 3's Z80 boards).
+    /// Forces: `constant` is -1..1 (positive = right), the rest 0..1.
+    struct BoardOutputs {
+        bool  force_feedback = false;  ///< a board is driving the forces below
+        float constant       = 0.0f;
+        float constant_y     = 0.0f;  ///< joystick Y axis, positive up
+        float self_center    = 0.0f;
+        float friction       = 0.0f;
+        float vibrate        = 0.0f;
+
+        bool              billboard = false;
+        std::array<u8, 5> bill{};  ///< P1 digits 1-2, P2 digits 1-2, lamps (0 = segment lit)
+    };
+    [[nodiscard]] const BoardOutputs& board_outputs() const { return m_board_outputs; }
+
     /// Log every access that lands outside a mapped region. Off by default.
     virtual void set_log_unmapped(bool enable) = 0;
 
@@ -304,6 +311,8 @@ protected:
     void record_lamp_latch(u8 value) { m_lamp_latch = value; }
 
     u8 m_lamp_latch = 0;
+
+    BoardOutputs m_board_outputs;
 
     /// Zero the per-frame accumulators. Called at the top of run_frame().
     void reset_core_profile()

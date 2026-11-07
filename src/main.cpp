@@ -838,13 +838,16 @@ void configure_cabinet_link(sm2::hw::Machine& machine,
 
     auto transport = std::make_unique<hw::UdpTransport>(
         config.link_local_ip, static_cast<u16>(config.link_port),
-        config.link_next_ip, static_cast<u16>(config.link_next_port));
+        config.link_next_ip, static_cast<u16>(config.link_next_port),
+        // Model 3 needs every segment; Model 1/2 drop stale frames.
+        machine.as_model3() != nullptr ? 4096 : hw::UdpTransport::kBacklog);
     if (!transport->ok()) {
         SM2_WARN("cabinet link disabled: %s", transport->error().c_str());
         machine.comm().set_transport(nullptr);
         return;
     }
     machine.comm().set_transport(std::move(transport));
+    machine.comm().set_link_delay(config.link_delay);
     SM2_INFO("cabinet link enabled (cabinet %u): listening %s:%u, next %s:%u",
              config.link_cabinet_index,
              config.link_local_ip.empty() ? "*" : config.link_local_ip.c_str(),
@@ -1052,6 +1055,7 @@ int main(int argc, char** argv)
     options.config.link_next_ip        = from_file.link_next_ip;
     options.config.link_next_port      = from_file.link_next_port;
     options.config.link_cabinet_index  = from_file.link_cabinet_index;
+    options.config.link_delay          = from_file.link_delay;
 
     options.config.lightgun_crosshair       = from_file.lightgun_crosshair;
     options.config.lightgun_hide_flash      = from_file.lightgun_hide_flash;
@@ -2569,9 +2573,9 @@ int main(int argc, char** argv)
             outputs.configure(options.config.outputs_network,
                               static_cast<u16>(options.config.outputs_network_port),
                               options.config.outputs_windows);
-            if (machine_iface != nullptr && loaded.has_value()) {
-                outputs.set_game(loaded->game.name, loaded->game.parent,
-                                 loaded->game.outputs);
+            if ((machine_iface != nullptr || machine_m3 != nullptr) && loaded.has_value()) {
+                outputs.set_game(loaded->game.name, loaded->game.parent, loaded->game.outputs,
+                                 loaded->game.model3.drive_board == rom::Model3DriveBoard::Billboard);
             } else {
                 outputs.set_game({}, {});
             }
@@ -2660,6 +2664,12 @@ int main(int argc, char** argv)
                 input.update_drive_board(loaded->game, drive_writes.view());
                 outputs.update(machine_any->lamp_latch(), drive_writes.view(),
                                machine_iface ? machine_iface->work_ram() : std::span<const u8>{});
+                {
+                    const hw::Machine::BoardOutputs& board = machine_any->board_outputs();
+                    if (board.billboard) outputs.update_billboard(board.bill);
+                    input.set_board_force({board.force_feedback, board.constant, board.self_center,
+                                           board.friction, board.vibrate});
+                }
                 input.update_force_feedback(loaded->game);
                 input.update_pad_rumble(loaded->game);
                 if (options.coin_at != 0) {

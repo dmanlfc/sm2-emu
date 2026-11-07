@@ -1348,7 +1348,7 @@ void Input::serialize_drive_board(Archive& ar)
 bool Input::wheel_ffb_active(const rom::GameSpec& game) const
 {
     return m_wheel.handle != nullptr && m_wheel.ffb && m_wheel_settings.ffb
-        && game.drive_board && m_wheel.steer_axis >= 0;
+        && (game.drive_board || m_board_force.active) && m_wheel.steer_axis >= 0;
 }
 
 void Input::update_force_feedback(const rom::GameSpec& game)
@@ -1437,7 +1437,17 @@ void Input::update_force_feedback(const rom::GameSpec& game)
         int game_force = 0;
         m_daytona.set_dip(static_cast<int>(m_wheel_settings.drive_dip));
         m_indy.set_dip(static_cast<int>(m_wheel_settings.drive_dip));
-        if (daytona_board(game.drive_protocol)) {
+        if (m_board_force.active) {
+            const float full = static_cast<float>(board_full);
+            constexpr int kFullSpeed = 1024;
+            game_force = static_cast<int>(-m_board_force.constant * full)
+                       + spring(static_cast<int>(m_board_force.self_center * full))
+                       + static_cast<int>(m_board_force.friction * full)
+                             * std::clamp(velocity, -kFullSpeed, kFullSpeed) / kFullSpeed;
+            if (m_wheel.ffb->has_rumble()) {
+                chop_swing = std::min(static_cast<int>(m_board_force.vibrate * full), 32767);
+            }
+        } else if (daytona_board(game.drive_protocol)) {
             // The board's start-up calibration is run against the simulated
             // spring.
             const u32 steer       = m_wheel_settings.steer_degrees;
@@ -1596,6 +1606,13 @@ void Input::update_force_feedback(const rom::GameSpec& game)
         rumble = std::max(rumble, command.strength * ceiling / kDriveFull);
     }
 
+    if (!ffb_active && m_board_force.active && m_wheel_settings.rumble) {
+        const int ceiling = static_cast<int>(
+            std::clamp(m_wheel_settings.rumble_strength, 0u, 100u) * 16383 / 100);
+        const float felt = std::max(m_board_force.vibrate, std::abs(m_board_force.constant));
+        rumble = std::max(rumble, static_cast<int>(felt * static_cast<float>(ceiling)));
+    }
+
     // Boost the impact rumble so a hit is clearly felt.
     rumble *= 2;
 
@@ -1690,7 +1707,8 @@ void Input::update_pad_rumble(const rom::GameSpec& game)
 
     const int ceiling = static_cast<int>(
         std::clamp(m_pad_rumble_strength, 0u, 100u) * 65535 / 100);
-    const bool active = m_pad_rumble_enabled && game.has_steering() && !wheel_ffb_active(game);
+    const bool active = m_pad_rumble_enabled && (game.has_steering() || m_board_force.active)
+                     && !wheel_ffb_active(game);
     if (!active) {
         m_pad_rumble_hold = 0;
         m_pad_rumble_level = 0;
@@ -1722,6 +1740,11 @@ void Input::update_pad_rumble(const rom::GameSpec& game)
             impact = std::min(impact * 3 / 2, 65535);  // a flip is the sharper hit
             m_pad_rumble_dir = dir;
         }
+    }
+
+    if (active && m_board_force.active) {
+        const float felt = std::max(m_board_force.vibrate, std::abs(m_board_force.constant));
+        if (felt > 0.05f) impact = std::max(impact, static_cast<int>(felt * static_cast<float>(ceiling)));
     }
 
     // Cornering load: the board's answer is a centring spring, so synthesise a buzz instead.

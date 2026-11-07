@@ -711,6 +711,10 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_u32(value, &out->link_cabinet_index)) {
                 bad_value();
             }
+        } else if (key == "link_delay") {
+            if (!parse_u32(value, &out->link_delay)) {
+                bad_value();
+            }
         } else if (key == "wheel_ffb") {
             if (!parse_bool(value, &out->wheel_ffb)) {
                 bad_value();
@@ -1018,6 +1022,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     // A UDP port is 16-bit; floor at 1 since 0 binds an ephemeral port.
     out->link_port      = std::clamp(out->link_port, 1u, 65535u);
     out->link_next_port = std::clamp(out->link_next_port, 1u, 65535u);
+    out->link_delay     = std::clamp(out->link_delay, 1u, 30u);
     return true;
 }
 
@@ -1151,6 +1156,7 @@ bool save_config(const std::string& path, const Config& config)
         << "link_next_ip = " << config.link_next_ip << "\n"
         << "link_next_port = " << config.link_next_port << "\n"
         << "link_cabinet_index = " << config.link_cabinet_index << "\n"
+        << "link_delay = " << config.link_delay << "\n"
         << "outputs_network = " << bool_text(config.outputs_network) << "\n"
         << "outputs_network_port = " << config.outputs_network_port << "\n"
         << "outputs_windows = " << bool_text(config.outputs_windows) << "\n"

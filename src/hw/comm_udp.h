@@ -42,7 +42,7 @@ public:
     /// local_ip listens on every interface; empty next_ip means no forwarding
     /// (tail of a chain). On failure ok() is false and the transport is inert.
     UdpTransport(const std::string& local_ip, u16 local_port,
-                 std::string next_ip, u16 next_port);
+                 std::string next_ip, u16 next_port, std::size_t backlog = kBacklog);
 
     [[nodiscard]] bool               ok() const { return m_socket.valid(); }
     [[nodiscard]] const std::string& error() const { return m_socket.last_error(); }
@@ -60,6 +60,7 @@ private:
     u16            m_next_port = 0;
 
     std::deque<std::vector<u8>> m_rx;
+    std::size_t                 m_backlog = kBacklog;
     bool                        m_send_failed = false;
 };
 

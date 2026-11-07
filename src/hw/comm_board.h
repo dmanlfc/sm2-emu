@@ -18,6 +18,9 @@ public:
     /// loopback.
     virtual void set_transport(std::unique_ptr<CommTransport> transport) = 0;
 
+    /// Frames by which other cabinets' data is read late (Model 3 net board).
+    virtual void set_link_delay(u32 /*frames*/) {}
+
     [[nodiscard]] virtual bool link_alive() const = 0;
     [[nodiscard]] virtual u8   link_id() const    = 0;
     [[nodiscard]] virtual u8   link_count() const = 0;

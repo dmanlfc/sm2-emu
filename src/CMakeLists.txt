@@ -340,11 +340,13 @@ target_link_libraries(sm2_hw
 # Model3; the machine uses sm2_hw's EEPROM, 315-5881 and link board).
 
 add_library(sm2_hw_model3 STATIC
+    hw/model3/drive_board.cpp
     hw/model3/jtag.cpp
     hw/model3/model3.cpp
     hw/model3/model3_sound.cpp
     hw/model3/model3_cpu_ppc.cpp
     hw/model3/mpc10x.cpp
+    hw/model3/net_board.cpp
     hw/model3/real3d.cpp
     hw/model3/rtc72421.cpp
     hw/model3/scheduler.cpp
@@ -358,6 +360,7 @@ target_link_libraries(sm2_hw_model3
         sm2_rom
     PRIVATE
         sm2_warnings
+        sm2_miniz
 )
 target_link_libraries(sm2_hw PRIVATE sm2_hw_model3)
 

@@ -295,7 +295,7 @@ bool UdpSocket::recv_from(std::vector<u8>& out)
     if (m_fd == kInvalid) return false;
 
     // Model 2 comm frames top out at 0x1000+1 bytes; a page is ample headroom.
-    u8 buffer[0x1200];
+    u8 buffer[0x10000];
     const auto n = ::recvfrom(
 #if defined(_WIN32)
         static_cast<SOCKET>(m_fd), reinterpret_cast<char*>(buffer), sizeof buffer,

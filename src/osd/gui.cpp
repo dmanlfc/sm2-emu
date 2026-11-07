@@ -2715,6 +2715,22 @@ void Gui::draw_network_tab(Config& config)
         }
     }
 
+    {
+        int delay = static_cast<int>(config.link_delay);
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::InputInt(tr_id("Link delay (frames)"), &delay)) {
+            config.link_delay = static_cast<u32>(std::clamp(delay, 1, 30));
+        }
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered()) {
+            tooltip(tr("Model 3 only. How many frames late the other cabinets'\n"
+                       "data is read. Raise it if a race over Wi-Fi stutters;\n"
+                       "lower it on a wired LAN. Each frame shows the other\n"
+                       "cars 1/60 s later."));
+        }
+    }
+
     ImGui::SeparatorText(tr("Next cabinet in the ring"));
 
     text_field(N_("Next IP"), config.link_next_ip, 180.0f);

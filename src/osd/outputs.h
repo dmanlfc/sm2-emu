@@ -59,7 +59,7 @@ public:
     /// mame_stop for the old set and mame_start for the new one. `game_outputs`
     /// is the set's own list from games.xml.
     void set_game(const std::string& name, const std::string& parent,
-                  std::span<const rom::OutputSpec> game_outputs = {});
+                  std::span<const rom::OutputSpec> game_outputs = {}, bool billboard = false);
 
     void set_paused(bool paused);
 
@@ -67,6 +67,10 @@ public:
     /// set's own outputs are read from.
     void update(u8 lamp_latch, std::span<const u8> drive_writes,
                 std::span<const u8> work_ram = {});
+
+    /// A Model 3 billboard's digits and lamps, published as BillDigit1-5.
+    /// Call after update().
+    void update_billboard(std::span<const u8> bill);
 
     /// Accept clients and flush queued messages. Call once per frame.
     void poll();
@@ -92,6 +96,9 @@ private:
 
     /// Which lamp-latch bit feeds each item, or -1 for RawDrive.
     std::vector<int> m_bits;
+
+    /// The first BillDigit item, added by set_game(); zero when there is none.
+    usize m_first_bill_item = 0;
 
     /// One of the set's own outputs as it stood this frame and the one before.
     struct GameOutput {

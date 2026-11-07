@@ -247,6 +247,18 @@ public:
     /// Saves or restores the drive board model, for save states.
     void serialize_drive_board(Archive& ar);
 
+    /// Forces from a board that computes them itself (Model 3). Constant is
+    /// -1..1, positive right; the rest 0..1. Set before update_force_feedback();
+    /// while active it replaces decoding the drive-board bytes.
+    struct BoardForce {
+        bool  active      = false;
+        float constant    = 0.0f;
+        float self_center = 0.0f;
+        float friction    = 0.0f;
+        float vibrate     = 0.0f;
+    };
+    void set_board_force(const BoardForce& force) { m_board_force = force; }
+
     /// Update the wheel's force from the drive board and the steering position.
     /// Call once per frame after update_drive_board(). Does nothing without a
     /// wheel, without force feedback, or for a title with no steering.
@@ -601,6 +613,7 @@ private:
     /// 0 is off, n chops the torque with a period of 2^(n+2) board ticks.
     DriveCommand                     m_drive_command;
     int                              m_drive_pulse = 0;
+    BoardForce                       m_board_force;
 
     /// Daytona's drive board, which works out its forces from the wheel: fed
     /// the game's bytes, it drives a force-feedback wheel.

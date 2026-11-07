@@ -92,8 +92,8 @@ public:
 
     [[nodiscard]] Inputs&       inputs() override { return m_inputs; }
     [[nodiscard]] const Inputs& inputs() const override { return m_inputs; }
-    [[nodiscard]] CommBoard&       comm() override { return m_comm; }
-    [[nodiscard]] const CommBoard& comm() const override { return m_comm; }
+    [[nodiscard]] CommBoard&       comm() override { return m_net_comm ? *m_net_comm : m_comm; }
+    [[nodiscard]] const CommBoard& comm() const override { if (m_net_comm) return *m_net_comm; return m_comm; }
 
     void set_nvram_directory(const std::string& directory) override { m_nvram_directory = directory; }
     void load_nvram() override;
@@ -269,6 +269,7 @@ private:
     std::unique_ptr<DriveBoardPort> m_drive;
     std::unique_ptr<NetBoardPort>   m_net;
     bool m_run_net_board = false;
+    CommBoard* m_net_comm = nullptr;
     IrqController     m_irq;
     Mpc10x            m_mpc;
     PciBus            m_pci;

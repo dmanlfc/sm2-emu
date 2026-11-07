@@ -246,6 +246,8 @@ bool Model3::init(const rom::GameSpec& game, rom::RomSet roms)
 #if SM2_MODEL3_HAVE_SOUND
     if (!m_sound) m_sound = create_sound_port(game, m_roms);
 #endif
+    if (!m_drive) m_drive = create_drive_board(game, m_roms, m_inputs, m_board_outputs);
+    if (!m_net) attach_net_board(create_net_board(game, m_net_ram));
 
     m_initialised = true;
     if (m_cpu) attach_cpu(std::move(m_cpu));
@@ -291,6 +293,7 @@ void Model3::attach_drive_board(std::unique_ptr<DriveBoardPort> board)
 void Model3::attach_net_board(std::unique_ptr<NetBoardPort> board)
 {
     m_net = std::move(board);
+    m_net_comm = m_net ? m_net->comm() : nullptr;
     m_run_net_board = m_net != nullptr && m_stepping != 0x10;
     if (m_net) m_net->reset();
 }
