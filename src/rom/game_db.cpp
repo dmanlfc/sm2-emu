@@ -262,6 +262,7 @@ constexpr u32 kWorkRamSize = 0x00100000;
     if (text == "315-5838-doa") { *out = Protection::Sega315_5838_Doa; return true; }
     if (text == "315-5881")     { *out = Protection::Sega315_5881;     return true; }
     if (text == "daytona-maxx") { *out = Protection::DaytonaMaxxPic;   return true; }
+    if (text == "daytona-gtx")  { *out = Protection::DaytonaGtxBank;   return true; }
     return false;
 }
 

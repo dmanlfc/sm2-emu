@@ -113,6 +113,7 @@ constexpr u32 kDualPortWindow  = 0x1000;      // i960 bytes the 2K occupies
 constexpr u32 kUart            = 0x01c80000;
 constexpr u32 kNvram           = 0x01d00000;  // 16 KB
 constexpr u32 kRomMainData     = 0x02000000;  // 32 MB window
+constexpr u32 kGtxBank         = 0x02c00000;  // 1 MB, daytonagtx only: MAME's gtx_r
 constexpr u32 kRomMainDataHigh = 0x06000000;  // 16 MB window at region offset 0x1000000
 constexpr u32 kRenderMode      = 0x10000000;
 constexpr u32 kPolygonCount    = 0x10400000;
@@ -147,6 +148,7 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
 
     m_rom_maincpu   = m_roms.region("maincpu");
     m_rom_main_data = m_roms.region("main_data");
+    m_rom_prot_data = m_roms.region("prot_data");
 
     if (m_rom_maincpu.empty()) {
         SM2_ERROR("model2o: the 'maincpu' region is missing");
@@ -275,7 +277,8 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
     // under full scale.
     static const std::unordered_map<std::string, u16> kSoundGain = {
         {"daytona", 117}, {"daytona93", 117}, {"daytonam", 117},
-        {"daytonas", 117}, {"daytonase", 117},
+        {"daytonas", 117}, {"daytonase", 117}, {"daytonat", 117},
+        {"daytonata", 117}, {"daytonagtx", 117},
         {"desert", 111},
         {"vcop", 181}, {"vcopa", 181},
     };
@@ -298,6 +301,7 @@ void Model2Original::reset()
 {
     m_intreq = 0;
     m_intena = 0;
+    m_gtx_bank = 0;
     m_pending_intena_valid = false;
     m_intena_written       = false;
     m_timers.fill(Timer{});
@@ -691,6 +695,10 @@ Model2Original::Window Model2Original::resolve(u32 address)
         // the whole 256 KB is RAM instead.
         return rom_window(m_rom_maincpu, (address - kRomMirror) + 0x20000);
     }
+    if (m_game.protection == rom::Protection::DaytonaGtxBank
+        && address >= kGtxBank && address < kGtxBank + 0x100000) {
+        return Window{};  // banked per byte in register_read
+    }
     if (address >= kRomMainData && address < kRomMainData + 0x2000000) {
         return rom_window(m_rom_main_data, address - kRomMainData);
     }
@@ -759,6 +767,9 @@ u16 Model2Original::register_flags(u32 address)
     }
     if (address >= kLumaRam && address < kLumaRam + 0x20000) {
         return cpu::kBusFlagBurst;  // polygon luminance RAM
+    }
+    if (address >= kGtxBank && address < kGtxBank + 0x100000) {
+        return cpu::kBusFlagBurst;  // daytonagtx's banked data ROM
     }
     return cpu::kBusFlagNone;
 }
@@ -913,6 +924,27 @@ u32 Model2Original::register_read(u32 address, u32 width)
             if (src < m_rom_maincpu.size()) {
                 value |= static_cast<u32>(m_rom_maincpu[src]) << (byte * 8);
             }
+        }
+        return value;
+    }
+
+    // daytonagtx's banked data ROM (MAME's gtx_r): reading certain offsets
+    // selects bank 0 or 1, or bank 2, which holds no chips.
+    if (m_game.protection == rom::Protection::DaytonaGtxBank
+        && address >= kGtxBank && address < kGtxBank + 0x100000) {
+        u32 value = 0;
+        for (u32 byte = 0; byte < width; ++byte) {
+            const u32 rel = address - kGtxBank + byte;
+            if (rel == 0xffffc) {
+                m_gtx_bank = 2;
+            } else if (rel == 0xff00c || rel == 0xf0003) {
+                m_gtx_bank = 0;
+            } else if (rel == 0xff000) {
+                m_gtx_bank = 1;
+            }
+            const u32 src = m_gtx_bank * 0x100000 + rel;
+            const u8  b   = src < m_rom_prot_data.size() ? m_rom_prot_data[src] : 0xff;
+            value |= static_cast<u32>(b) << (byte * 8);
         }
         return value;
     }
@@ -1666,6 +1698,9 @@ void Model2Original::serialize(Archive& ar)
     ar.bytes(m_comm_ram.data(), m_comm_ram.size());
 
     ar.raw(m_maxx_state);
+    if (m_game.protection == rom::Protection::DaytonaGtxBank) {
+        ar.raw(m_gtx_bank);
+    }
     ar.raw(m_intreq);
     ar.raw(m_intena);
     for (Timer& timer : m_timers) {

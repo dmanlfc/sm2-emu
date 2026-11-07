@@ -381,6 +381,7 @@ private:
 
     std::span<const u8> m_rom_maincpu;
     std::span<const u8> m_rom_main_data;
+    std::span<const u8> m_rom_prot_data;
     std::span<const u8> m_rom_copro_tables;
     std::span<const u8> m_rom_copro_data;
     std::span<const u8> m_rom_polygons;
@@ -410,6 +411,8 @@ private:
 
     /// daytonam's simulated protection state (Protection::DaytonaMaxxPic).
     u8 m_maxx_state = 0;
+    /// daytonagtx's selected data bank (Protection::DaytonaGtxBank).
+    u8 m_gtx_bank = 0;
 
     // -- interrupt latch ---------------------------------------------------
     u32 m_intreq = 0;
