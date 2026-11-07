@@ -32,6 +32,7 @@
 #include "hw/sound_board.h"
 #include "hw/model2b.h"
 #include "hw/model2c.h"
+#include "hw/model3/model3.h"
 #include "hw/model2_debug.h"
 #include "hw/model2_softrender.h"
 #include "hw/model2_softrender_async.h"
@@ -287,7 +288,7 @@ struct Options {
 void print_usage()
 {
     std::printf(
-        "sm2-emu " SM2_VERSION " — Sega Model 1 & 2 arcade emulator\n"
+        "sm2-emu " SM2_VERSION " — Sega Model 1, 2 & 3 arcade emulator\n"
         "\n"
         "Usage: sm2-emu [options] [rom.zip]\n"
         "\n"
@@ -693,6 +694,7 @@ struct LoadedMachine {
     sm2::hw::Model2C*        machine_2c   = nullptr;
     sm2::hw::Model2Original* machine_orig = nullptr;
     sm2::hw::Model1*         machine_m1   = nullptr;
+    sm2::hw::model3::Model3* machine_m3   = nullptr;
 
     sm2::cpu::i960::I960* main_cpu    = nullptr;
     sm2::hw::SoundBoard*  sound_board = nullptr;
@@ -772,7 +774,8 @@ struct LoadedMachine {
     out.game          = result->game;
     out.machine_owner = hw::create_machine(result->game, std::move(result->roms));
     out.machine_iface = out.machine_owner ? out.machine_owner->as_model2() : nullptr;
-    if (!out.machine_iface) {
+    out.machine_m3    = out.machine_owner ? out.machine_owner->as_model3() : nullptr;
+    if (!out.machine_iface && !out.machine_m3) {
         if (error != nullptr) {
             error->game    = result->game.name;
             error->message = "The emulated machine could not be built; the log has the details.";
@@ -805,24 +808,26 @@ struct LoadedMachine {
     } else if (out.machine_m1 != nullptr) {
         out.sound_board = &out.machine_m1->sound();
         out.sound_link  = &out.machine_m1->uart();
+    } else if (out.machine_m3 != nullptr) {
+        out.sound_board = out.machine_m3->sound() ? out.machine_m3->sound()->sound_board() : nullptr;
     } else {
         SM2_ERROR("internal error: create_machine returned an unexpected machine type");
         return std::nullopt;
     }
 
-    out.machine_iface->set_nvram_directory(nvram_dir);
-    out.machine_iface->set_log_unmapped(log_unmapped);
-    out.machine_iface->load_nvram();
+    out.machine_owner->set_nvram_directory(nvram_dir);
+    out.machine_owner->set_log_unmapped(log_unmapped);
+    out.machine_owner->load_nvram();
     // init() resets before the NVRAM is in place, so reset again to let the
     // program read the settings it saved last time.
-    out.machine_iface->reset();
+    out.machine_owner->reset();
     return out;
 }
 
 /// Attach a LAN transport to the link board when linking is on, else restore
 /// the loopback. Called after every load. A socket that fails to bind is not
 /// fatal: the board reports not-connected and simply never links.
-void configure_cabinet_link(sm2::hw::Model2MachineBase& machine,
+void configure_cabinet_link(sm2::hw::Machine& machine,
                             const sm2::Config&          config)
 {
     using namespace sm2;
@@ -1242,7 +1247,7 @@ int main(int argc, char** argv)
         if (!loaded.has_value()) {
             return 1;
         }
-        configure_cabinet_link(*loaded->machine_iface, options.config);
+        configure_cabinet_link(*loaded->machine_owner, options.config);
     } else {
         SM2_INFO("no ROM given; starting with the bring-up display only");
     }
@@ -1254,6 +1259,8 @@ int main(int argc, char** argv)
     hw::Model2C*        machine_2c   = loaded.has_value() ? loaded->machine_2c   : nullptr;
     hw::Model2Original* machine_orig = loaded.has_value() ? loaded->machine_orig : nullptr;
     hw::Model1*         machine_m1   = loaded.has_value() ? loaded->machine_m1   : nullptr;
+    hw::model3::Model3* machine_m3   = loaded.has_value() ? loaded->machine_m3   : nullptr;
+    hw::Machine*        machine_any  = loaded.has_value() ? loaded->machine_owner.get() : nullptr;
 
     cpu::i960::I960* main_cpu    = loaded.has_value() ? loaded->main_cpu    : nullptr;
     hw::SoundBoard*  sound_board = loaded.has_value() ? loaded->sound_board : nullptr;
@@ -2119,7 +2126,7 @@ int main(int argc, char** argv)
 
         // No ROM: show the picker if there is a rom_dir, else the settings
         // overlay so a ROM directory can be set.
-        if (!machine_iface) {
+        if (!machine_any) {
             if (will_show_picker) {
                 show_picker();
             } else {
@@ -2233,8 +2240,8 @@ int main(int argc, char** argv)
         core::StageTimer stage_cpu_i960("cpu_i960");
         core::StageTimer stage_cpu_copro("cpu_copro");
         core::StageTimer stage_cpu_sound("cpu_sound");
-        if (machine_iface) {
-            machine_iface->set_core_profiling(options.profile);
+        if (machine_any) {
+            machine_any->set_core_profiling(options.profile);
         }
         if (options.profile) {
             const usize expected = static_cast<usize>(options.duration_seconds) * 120;
@@ -2255,7 +2262,7 @@ int main(int argc, char** argv)
         // One snapshot every other frame, so a held rewind runs at twice real time.
         constexpr u32 kRewindInterval = 2;
         hw::Rewind                   rewind;
-        const hw::Model2MachineBase* rewind_machine = nullptr;
+        const hw::Machine* rewind_machine = nullptr;
         bool                         rewind_held    = false;  ///< Backspace is down.
 
         u32  frames_presented = 0;   ///< Since the loop started.
@@ -2363,6 +2370,8 @@ int main(int argc, char** argv)
             machine_2c    = loaded->machine_2c;
             machine_orig  = loaded->machine_orig;
             machine_m1    = loaded->machine_m1;
+            machine_m3    = loaded->machine_m3;
+            machine_any   = loaded->machine_owner.get();
             main_cpu      = loaded->main_cpu;
             sound_board   = loaded->sound_board;
             sound_link    = loaded->sound_link;
@@ -2370,7 +2379,7 @@ int main(int argc, char** argv)
             if (sound_board != nullptr) {
                 static_cast<void>(audio.init(sound_board->sample_rate()));
             }
-            configure_cabinet_link(*machine_iface, options.config);
+            configure_cabinet_link(*machine_any, options.config);
             if (gui.picker_active()) {
                 scraper.stop();
                 gui.release_picker_textures();
@@ -2423,7 +2432,7 @@ int main(int argc, char** argv)
                             // otherwise -- a single ROM launched by path with no
                             // rom_dir to browse -- it quits. Serviced after the
                             // event loop, so the teardown runs outside it.
-                            if (will_show_picker && machine_iface != nullptr) {
+                            if (will_show_picker && machine_any != nullptr) {
                                 return_to_picker_requested = true;
                             } else {
                                 running = false;
@@ -2494,7 +2503,7 @@ int main(int argc, char** argv)
                 input.update_pad_shortcuts(options.config.pad_shortcuts);
             if (pad_shortcuts.exit) {
                 // As Esc: back to the games when there are some, else quit.
-                if (will_show_picker && machine_iface != nullptr) {
+                if (will_show_picker && machine_any != nullptr) {
                     return_to_picker_requested = true;
                 } else {
                     running = false;
@@ -2503,7 +2512,7 @@ int main(int argc, char** argv)
             if (pad_shortcuts.screenshot) {
                 screenshot_requested = true;
             }
-            if (!gui.visible() && machine_iface != nullptr) {
+            if (!gui.visible() && machine_any != nullptr) {
                 if (pad_shortcuts.save) {
                     state_action = StateAction{StateOp::Save, hw::kQuickSlot};
                 } else if (pad_shortcuts.load) {
@@ -2612,25 +2621,25 @@ int main(int argc, char** argv)
                                  ? static_cast<usize>(options.config.rewind_buffer_mb) << 20
                                  : 0,
                              kRewindInterval);
-            if (machine_iface != rewind_machine) {
+            if (machine_any != rewind_machine) {
                 rewind.clear();
-                rewind_machine = machine_iface;
+                rewind_machine = machine_any;
             }
             if (gui.visible()) {
                 rewind_held = false;
             }
 
             bool rewinding = false;
-            if (machine_iface && !effective_pause) {
+            if (machine_any && !effective_pause) {
                 // Step back a snapshot, then run a frame from it so there is a
                 // picture; its sound is dropped.
                 rewinding = (rewind_held || pad_shortcuts.rewind)
-                         && rewind.step_back(*machine_iface);
+                         && rewind.step_back(*machine_any);
 
                 // Inputs are levels, sampled whenever the program polls the I/O
                 // controller during the frame, so they have to be set before the
                 // frame runs rather than after.
-                input.poll(&machine_iface->inputs(), loaded->game);
+                input.poll(&machine_any->inputs(), loaded->game);
                 // Push the live settings (the GUI changes these) before computing
                 // this frame's force, so slider and calibration take effect now.
                 input.set_wheel_settings(wheel_settings_from(options.config));
@@ -2647,10 +2656,10 @@ int main(int argc, char** argv)
                 input.set_present_placement(shown_aspect(), options.config.scaling_method,
                                             gui.picture_area());
                 input.set_sinden_border(options.config.sinden_border);
-                const auto drive_writes = machine_iface->take_drive_board_writes();
+                const auto drive_writes = machine_any->take_drive_board_writes();
                 input.update_drive_board(loaded->game, drive_writes.view());
-                outputs.update(machine_iface->lamp_latch(), drive_writes.view(),
-                               machine_iface->work_ram());
+                outputs.update(machine_any->lamp_latch(), drive_writes.view(),
+                               machine_iface ? machine_iface->work_ram() : std::span<const u8>{});
                 input.update_force_feedback(loaded->game);
                 input.update_pad_rumble(loaded->game);
                 if (options.coin_at != 0) {
@@ -2659,14 +2668,19 @@ int main(int argc, char** argv)
                     // only the attract mode.
                     const osd::Input::ScriptedPress press = osd::Input::scripted_press(
                         frames_presented, options.coin_at, loaded->game.start1_bit);
-                    machine_iface->inputs().in0 &= static_cast<u8>(~press.in0);
-                    machine_iface->inputs().in1 &= static_cast<u8>(~press.in1);
+                    machine_any->inputs().in0 &= static_cast<u8>(~press.in0);
+                    machine_any->inputs().in1 &= static_cast<u8>(~press.in1);
                 }
 
+                if (machine_iface) {
                 machine_iface->set_draw_distance(options.config.extended_draw_distance);
                 machine_iface->set_music_volume(options.config.music_volume);
                 machine_iface->set_black_level(black_level_for(options.config));
-                {
+                }
+                if (machine_m3) {
+                    backend->set_widescreen(0, 0u);
+                }
+                if (machine_iface) {
                     // The geometry engine and the backend must agree on the
                     // width for the frame run_frame() builds.
                     const u32 columns =
@@ -2699,16 +2713,16 @@ int main(int argc, char** argv)
                 }
                 {
                     auto scope = core::maybe_scope(stage_run_frame, profile_sample);
-                    machine_iface->run_frame();
+                    machine_any->run_frame();
                 }
                 if (!rewinding) {
-                    rewind.capture(*machine_iface);
+                    rewind.capture(*machine_any);
                 }
-                if (loaded->game.lightgun.present) {
+                if (machine_iface && loaded->game.lightgun.present) {
                     machine_iface->video().filter_gun_flash(options.config.lightgun_hide_flash,
                                                             machine_iface->inputs().in1);
                 }
-                if (texture_dumper) {
+                if (texture_dumper && machine_iface) {
                     // scan() can compose, which must not race the render thread.
                     async_soft.wait();
                     texture_dumper->scan(*machine_iface);
@@ -2720,18 +2734,18 @@ int main(int argc, char** argv)
                     // to wrap -- see Geometrizer::last_run_nanoseconds()'s own
                     // documentation of why this figure exists.
                     stage_geometry.record_ms(
-                        static_cast<double>(machine_iface->geometry_stage_nanoseconds())
+                        static_cast<double>(machine_iface ? machine_iface->geometry_stage_nanoseconds() : 0)
                         / 1'000'000.0);
                     // The per-core split, filled inside run_frame() for the same
                     // reason: main.cpp sees one interleaved call, not three.
                     stage_cpu_i960.record_ms(
-                        static_cast<double>(machine_iface->i960_stage_nanoseconds())
+                        static_cast<double>(machine_any->i960_stage_nanoseconds())
                         / 1'000'000.0);
                     stage_cpu_copro.record_ms(
-                        static_cast<double>(machine_iface->copro_stage_nanoseconds())
+                        static_cast<double>(machine_any->copro_stage_nanoseconds())
                         / 1'000'000.0);
                     stage_cpu_sound.record_ms(
-                        static_cast<double>(machine_iface->sound_stage_nanoseconds())
+                        static_cast<double>(machine_any->sound_stage_nanoseconds())
                         / 1'000'000.0);
                 }
 
@@ -2757,7 +2771,7 @@ int main(int argc, char** argv)
                     sound_board->clear_pending_samples();
                 }
 
-                if (const hw::CpuStatus cpu = machine_iface->main_cpu_status(); cpu.faulted) {
+                if (const hw::CpuStatus cpu = machine_any->main_cpu_status(); cpu.faulted) {
                     SM2_ERROR("stopping: %s", cpu.fault_message.c_str());
                     exit_code = 1;
                     break;
@@ -2850,7 +2864,14 @@ int main(int argc, char** argv)
                 }
             }
 
-            if (!draw_with_software) {
+            if (machine_m3) {
+                const render::model3::LineOfSight los = backend->model3_line_of_sight();
+                for (unsigned i = 0; los.frame_number != 0 && i < los.range.size(); ++i) {
+                    machine_m3->set_line_of_sight(i, los.range[i]);
+                }
+                auto scope = core::maybe_scope(stage_build, profile_sample);
+                backend->submit_model3_frame(machine_m3->video_frame());
+            } else if (!draw_with_software) {
                 // Uploads and the 3D pass first. Both need a command buffer that is
                 // not inside a rendering scope: a transfer cannot be issued inside
                 // one, and the 3D pass opens a scope of its own on its offscreen
@@ -2882,7 +2903,9 @@ int main(int argc, char** argv)
                 record_scope.emplace(stage_record);
             }
 
-            if (!draw_with_software) {
+            if (machine_m3) {
+                backend->render_model3();
+            } else if (!draw_with_software) {
                 backend->render_polygons();
             }
 
@@ -2936,7 +2959,7 @@ int main(int argc, char** argv)
                     }
                     backend->submit_native_frame(soft_frame);
                 }
-            } else {
+            } else if (!machine_m3) {
                 // Render test mode cuts the DSP out: the framebuffer bank the host has
                 // been drawing into is shown instead of the 3D pass, and has already
                 // been composed into the layers below.
@@ -3022,8 +3045,8 @@ int main(int argc, char** argv)
             }
             gui.new_frame();
             // Live link state for the Network tab.
-            if (machine_iface != nullptr) {
-                const hw::CommBoard& comm = machine_iface->comm();
+            if (machine_any != nullptr) {
+                const hw::CommBoard& comm = machine_any->comm();
                 gui.set_link_status(osd::Gui::LinkStatus{
                     options.config.link_enabled, comm.enabled(), comm.link_alive(),
                     comm.link_id(), comm.link_count()});
@@ -3036,7 +3059,7 @@ int main(int argc, char** argv)
             }
             // Feed the States tab the game's slots (only while the overlay is up,
             // since listing them touches the filesystem).
-            if (gui.visible() && machine_iface != nullptr && loaded.has_value()) {
+            if (gui.visible() && machine_any != nullptr && loaded.has_value()) {
                 std::vector<osd::Gui::StateSlot> gui_slots;
                 for (const hw::SlotInfo& s :
                      hw::list_state_slots(options.config.states_dir, loaded->game.name)) {
@@ -3050,7 +3073,7 @@ int main(int argc, char** argv)
                 }
                 gui.set_state_slots(true, std::move(gui_slots));
             } else {
-                gui.set_state_slots(machine_iface != nullptr, {});
+                gui.set_state_slots(machine_any != nullptr, {});
             }
             gui.set_current_game(loaded.has_value() ? loaded->game.name : std::string());
             gui.set_current_family(loaded.has_value() ? game_family(loaded->game)
@@ -3074,7 +3097,7 @@ int main(int argc, char** argv)
                 window.set_fullscreen(options.config.fullscreen);
             }
             // Settings just closed with no game loaded: rescan rom_dir.
-            if (settings_was_visible && !gui.visible() && machine_iface == nullptr) {
+            if (settings_was_visible && !gui.visible() && machine_any == nullptr) {
                 show_picker();
             }
             settings_was_visible = gui.visible();
@@ -3101,8 +3124,8 @@ int main(int argc, char** argv)
             if (return_to_picker_requested) {
                 return_to_picker_requested = false;
                 async_soft.forget_machine();
-                if (machine_iface != nullptr) {
-                    machine_iface->save_nvram();
+                if (machine_any != nullptr) {
+                    machine_any->save_nvram();
                 }
                 backend->wait_idle();
 
@@ -3113,6 +3136,8 @@ int main(int argc, char** argv)
                 machine_2c    = nullptr;
                 machine_orig  = nullptr;
                 machine_m1    = nullptr;
+                machine_m3    = nullptr;
+                machine_any   = nullptr;
                 main_cpu      = nullptr;
                 sound_board   = nullptr;
                 sound_link    = nullptr;
@@ -3172,8 +3197,8 @@ int main(int argc, char** argv)
                                         i18n::tr("Drop a .zip or .7z ROM archive to play it."), {});
                     continue;
                 }
-                if (machine_iface != nullptr) {
-                    machine_iface->save_nvram();
+                if (machine_any != nullptr) {
+                    machine_any->save_nvram();
                 }
                 rom::LoadError               load_error;
                 std::optional<LoadedMachine> dropped =
@@ -3224,7 +3249,7 @@ int main(int argc, char** argv)
             // screenshot, so the machine is never mid-run_frame (the board's own
             // m_in_frame guard also enforces this). The overlay and the F6/F7
             // hotkeys both route through state_action.
-            if (state_action.has_value() && machine_iface != nullptr && loaded.has_value()) {
+            if (state_action.has_value() && machine_any != nullptr && loaded.has_value()) {
                 const std::string path = hw::state_slot_path(
                     options.config.states_dir, loaded->game.name, state_action->slot);
                 // The file's base name, e.g. "topskatr.quick.sm2state" — enough
@@ -3232,7 +3257,7 @@ int main(int argc, char** argv)
                 const std::string file =
                     std::filesystem::path(path).filename().string();
                 if (state_action->op == StateOp::Save) {
-                    if (machine_iface->save_state(path)) {
+                    if (machine_any->save_state(path)) {
                         SM2_INFO("saved state to slot '%s'", state_action->slot.c_str());
                         gui.notify(i18n::trf("State saved: %s", file.c_str()));
                     } else {
@@ -3241,7 +3266,7 @@ int main(int argc, char** argv)
                         gui.notify(i18n::trf("Save failed: %s", file.c_str()));
                     }
                 } else if (state_action->op == StateOp::Load) {
-                    if (machine_iface->load_state(path)) {
+                    if (machine_any->load_state(path)) {
                         SM2_INFO("loaded state from slot '%s'", state_action->slot.c_str());
                         pacer.resync();  // the frame clock jumped; do not chase it
                         gui.notify(i18n::trf("State loaded: %s", file.c_str()));
@@ -3451,8 +3476,10 @@ int main(int argc, char** argv)
             }
         }
 
+        if (machine_any) {
+            machine_any->save_nvram();
+        }
         if (machine_iface) {
-            machine_iface->save_nvram();
             machine_iface->log_unmapped_summary();
             machine_iface->log_burst_summary();
         }

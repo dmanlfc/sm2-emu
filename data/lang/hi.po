@@ -656,8 +656,8 @@ msgstr "परिचय"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 1 & 2 arcade emulator"
-msgstr "Sega Model 1 & 2 आर्केड एमुलेटर"
+msgid "A Sega Model 1, 2 & 3 arcade emulator"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format

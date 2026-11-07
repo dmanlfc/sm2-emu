@@ -657,8 +657,8 @@ msgstr "О програму"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 1 & 2 arcade emulator"
-msgstr "Емулатор аркадних машина Sega Model 1 & 2"
+msgid "A Sega Model 1, 2 & 3 arcade emulator"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format

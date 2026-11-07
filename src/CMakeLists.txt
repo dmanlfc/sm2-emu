@@ -511,6 +511,7 @@ target_link_libraries(sm2-emu
         sm2_osd
         sm2_render
         sm2_hw
+        sm2_hw_model3
         sm2_warnings
 )
 if(SM2_BUILD_VULKAN)

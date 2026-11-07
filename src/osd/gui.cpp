@@ -1044,7 +1044,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::Text(" ___) | |  | | / __/|_____|| |___| |  | | |_| |");
             ImGui::Text("|____/|_|  |_||_____|      |_____|_|  |_|\\___/");
             ImGui::Spacing();
-            ImGui::TextUnformatted(tr("A Sega Model 1 & 2 arcade emulator"));
+            ImGui::TextUnformatted(tr("A Sega Model 1, 2 & 3 arcade emulator"));
             ImGui::Spacing();
             ImGui::Text("Copyright (c) 2025+ Daniel Martin (dmanlfc)");
             ImGui::TextUnformatted(tr("GPL-3.0-or-later licence. See LICENSE."));

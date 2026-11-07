@@ -21,7 +21,7 @@
 
 namespace sm2::hw {
 
-class Model2MachineBase;
+class Machine;
 
 /// Recent machine states, for stepping back through play.
 ///
@@ -37,12 +37,12 @@ public:
     void clear();
 
     /// Call after every frame the machine runs forward.
-    void capture(const Model2MachineBase& machine);
+    void capture(const Machine& machine);
 
     /// Restore the newest snapshot and make the one before it the newest. The
     /// oldest is kept, so holding rewind stops there. False when there is
     /// nothing to restore.
-    bool step_back(Model2MachineBase& machine);
+    bool step_back(Machine& machine);
 
     [[nodiscard]] usize snapshots() const { return m_current.empty() ? 0 : m_deltas.size() + 1; }
     [[nodiscard]] usize bytes_used() const { return m_current.size() + m_delta_bytes; }

@@ -2,7 +2,7 @@
 Type=Application
 Name=SM2 Emulator
 GenericName=Arcade Emulator
-Comment=Sega Model 1 & 2 arcade emulator
+Comment=Sega Model 1, 2 & 3 arcade emulator
 Exec=sm2-emu %f
 Icon=sm2-emu
 Terminal=false

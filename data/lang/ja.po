@@ -654,8 +654,8 @@ msgstr "情報"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 1 & 2 arcade emulator"
-msgstr "セガ Model 1 & 2 アーケードエミュレーター"
+msgid "A Sega Model 1, 2 & 3 arcade emulator"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format

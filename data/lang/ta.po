@@ -656,8 +656,8 @@ msgstr "பற்றி"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 1 & 2 arcade emulator"
-msgstr "ஒரு Sega Model 1 & 2 ஆர்கேட் எமுலேட்டர்"
+msgid "A Sega Model 1, 2 & 3 arcade emulator"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format

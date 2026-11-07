@@ -39,7 +39,7 @@ bool board_implemented(Board board)
         case Board::Model2B: return true;
         case Board::Model2C: return true;
         case Board::Model1:  return true;
-        case Board::Model3:  return false;
+        case Board::Model3:  return true;
     }
     return false;
 }

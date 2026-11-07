@@ -116,7 +116,7 @@ void Rewind::clear()
     m_counter     = 0;
 }
 
-void Rewind::capture(const Model2MachineBase& machine)
+void Rewind::capture(const Machine& machine)
 {
     if (m_budget == 0 || ++m_counter < m_interval) {
         return;
@@ -138,7 +138,7 @@ void Rewind::capture(const Model2MachineBase& machine)
     }
 }
 
-bool Rewind::step_back(Model2MachineBase& machine)
+bool Rewind::step_back(Machine& machine)
 {
     if (m_current.empty() || !machine.load_state_data(m_current)) {
         return false;
