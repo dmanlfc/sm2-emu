@@ -53,6 +53,7 @@ public:
     void set_di(bool level);
 
     [[nodiscard]] bool data_out() const { return m_do; }
+    [[nodiscard]] bool reading() const { return m_state == State::Reading; }
 
     // -- persistence -------------------------------------------------------
 

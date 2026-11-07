@@ -311,6 +311,7 @@ void Model3::reset()
 
     m_security_ptr        = 0;
     m_security_first_read = true;
+    m_eeprom_busy  = 0;
     m_input_bank   = 0;
     m_serial_fifo1 = 0;
     m_serial_fifo2 = 0;
@@ -610,7 +611,14 @@ u8 Model3::read_inputs(unsigned reg)
 
         case 0x04:
             if ((m_input_bank & 1) == 0) return m_inputs.in0;
-            return static_cast<u8>((m_inputs.in3 & 0xC0) | 0x1F | (m_eeprom.data_out() ? 0x20 : 0));
+        {
+            bool data_out = m_eeprom.data_out();
+            if (m_eeprom_busy > 0 && !m_eeprom.reading()) {
+                --m_eeprom_busy;
+                data_out = false;
+            }
+            return static_cast<u8>((m_inputs.in3 & 0xC0) | 0x1F | (data_out ? 0x20 : 0));
+        }
 
         case 0x08: return game_inputs_g2();
 
@@ -651,6 +659,7 @@ void Model3::write_inputs(unsigned reg, u8 data)
     switch (reg & 0x3F) {
         case 0x00:
             m_eeprom.set_cs(((data >> 6) & 1) != 0);
+            if (((data >> 6) & 1) == 0) m_eeprom_busy = 5;
             m_eeprom.set_di(((data >> 5) & 1) != 0);
             m_eeprom.set_clk(((data >> 7) & 1) != 0);
             m_input_bank = data;
@@ -1421,6 +1430,7 @@ void Model3::serialize(Archive& ar)
     ar.raw(m_output_reg);
     ar.raw(m_security_first_read);
     ar.raw(m_security_ptr);
+    ar.raw(m_eeprom_busy);
     ar.raw(m_inputs);
     ar.raw(m_gun_offscreen);
     ar.raw(m_run_net_board);

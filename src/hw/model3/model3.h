@@ -25,7 +25,7 @@
 //   - Virtual RTC; inputs come from hw::Inputs, with game remaps done in the
 //     input layer.
 //   - Sound, drive and net boards attach through ports.h.
-//   - sm2-emu's 93C46 and 315-5881.
+//   - sm2-emu's 93C46 and 315-5881, with a short EEPROM busy delay.
 //   - Archive save states; NVRAM in the .nv block layout plus an
 //     "sm2-emu RTC" block.
 #pragma once
@@ -109,21 +109,17 @@ public:
 
     // -- Model 3 specifics ----------------------------------------------------------
 
-    /// The most recently published frame. Valid after the first run_frame()
-    /// and unchanged until the end of the run_frame() after the next (two
-    /// buffers; see video_frame.h).
+    /// Valid until the end of the run_frame() after next (double-buffered).
     [[nodiscard]] const VideoFrame& video_frame() const { return m_frames_out[m_published]; }
 
     /// Renderer feedback: line-of-sight value for priority level 0-3. Call
     /// between frames only.
     void set_line_of_sight(unsigned index, float value) { m_real3d.set_line_of_sight(index, value); }
 
-    /// The RTC's current time, Unix seconds. main.cpp may set it from the host
-    /// clock at power-on; it is then emulated time (saved in states and NVRAM).
+    /// Unix seconds; emulated time thereafter (saved in states and NVRAM).
     void set_rtc_time(s64 unix_seconds) { m_rtc.set_time(unix_seconds); }
 
-    /// Light guns aimed off screen: bit 0 player 1, bit 1 player 2. Read by
-    /// the gun interface's register 8. Set by the input layer each frame.
+    /// Bit 0 P1, bit 1 P2 off screen; read via gun register 8.
     void set_gun_offscreen(u8 bits) { m_gun_offscreen = bits; }
 
     void attach_cpu(std::unique_ptr<MainCpu> cpu);
@@ -297,6 +293,7 @@ private:
     std::array<u8, 2> m_output_reg{};
     bool m_security_first_read = true;
     u32  m_security_ptr = 0;
+    u8   m_eeprom_busy  = 0;
 
     // -- schedule --
     Scheduler m_sched;
