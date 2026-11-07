@@ -102,17 +102,39 @@ void TileGen::draw_frame(std::span<const u8> vram, std::span<const u32> regs)
 }
 
 void TileGen::draw_frame(std::span<const u8> vram, std::span<const u32> regs,
-                         std::span<const hw::model3::TileGenLine> lines)
+                         std::span<const hw::model3::TileGenLine> lines,
+                         std::span<const hw::model3::TileGenWrite> writes)
 {
     if (regs.size() < kRegs || lines.size() < kHeight) {
         draw_frame(vram, regs);
         return;
     }
     clear();
+    if (vram.size() < kVramBytes) {
+        writes = {};
+    }
+    if (!writes.empty()) {
+        m_vram_work.assign(vram.begin(), vram.begin() + kVramBytes);
+        vram = m_vram_work;
+    }
     prepare(vram, regs);
     std::array<u32, kRegs> line_regs{};
     std::copy_n(regs.begin(), kRegs, line_regs.begin());
+    usize next = 0;
     for (u32 i = 0; i < kHeight; i++) {
+        for (; next < writes.size() && writes[next].line <= i; ++next) {
+            const hw::model3::TileGenWrite& w = writes[next];
+            if (w.offset + 4 > kVramBytes) {
+                continue;
+            }
+            std::memcpy(m_vram_work.data() + w.offset, w.bytes.data(), 4);
+            if (w.offset >= 0x100000) {
+                const u32 index = (w.offset - 0x100000) / 4;
+                for (int layer = 0; layer < 2; layer++) {
+                    m_pal[static_cast<usize>(layer)][index] = GetColour32(layer, vram32(0x40000 + index));
+                }
+            }
+        }
         const hw::model3::TileGenLine& l = lines[i];
         line_regs[0x20 / 4] = l.reg20;
         line_regs[0x40 / 4] = l.reg40;

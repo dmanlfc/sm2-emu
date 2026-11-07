@@ -346,6 +346,7 @@ void Model3::reset()
     }
 
     m_sched.reset();
+    track_tilegen(false);
     m_gpus_ready  = false;
     m_frame_done  = false;
     m_in_frame    = false;
@@ -400,7 +401,36 @@ void Model3::start_active(u64 when)
 {
     m_flip_line = m_tilegen.read_register(0x08);
     m_line      = 0;
+    std::memcpy(m_tilegen_copy[m_published ^ 1u].data(), m_tilegen.vram(), TileGen::kVramBytes);
+    m_tilegen_writes.clear();
+    track_tilegen(true);
     dispatch(kEvLine, when);
+}
+
+// Each 2D line is drawn from VRAM as it is at that line. VRAM stores
+// during lines 0-382 are sent to the slow path and journalled for the renderer.
+void Model3::track_tilegen(bool on)
+{
+    if (on == m_tilegen_tracking) return;
+    m_tilegen_tracking = on;
+    m_pages.map(0xF1000000, TileGen::kVramBytes, m_tilegen.vram(),
+                on ? cpu::PageMap::Access::ReadOnly : cpu::PageMap::Access::ReadWrite);
+}
+
+bool Model3::tilegen_store(u32 addr, u32 size, u32 data)
+{
+    if (!m_tilegen_tracking || addr < 0xF1000000 || addr >= 0xF1000000 + TileGen::kVramBytes) return false;
+    const u32 offset = addr - 0xF1000000;
+    u8* const p      = m_tilegen.vram() + offset;
+    if (size == 1) *p = static_cast<u8>(data);
+    else if (size == 2) store_be16(p, static_cast<u16>(data));
+    else store_be32(p, data);
+    TileGenWrite w;
+    w.line   = m_line;
+    w.offset = offset & ~3u;
+    std::memcpy(w.bytes.data(), m_tilegen.vram() + w.offset, 4);
+    m_tilegen_writes.push_back(w);
+    return true;
 }
 
 void Model3::dispatch(u32 event, u64 when)
@@ -450,6 +480,7 @@ void Model3::dispatch(u32 event, u64 when)
             if (m_line == 383) m_irq.assert_irq(IrqController::kVblank);
             m_tilegen.latch_line(m_line);
             ++m_line;
+            if (m_line == VideoFrame::kActiveLines) track_tilegen(false);
             m_sched.schedule(m_line < VideoFrame::kActiveLines ? kEvLine : kEvFrameEnd,
                              when + m_line_cycles);
             break;
@@ -532,8 +563,9 @@ void Model3::publish_frame()
     const unsigned b = m_published ^ 1u;
     VideoFrame& f    = m_frames_out[b];
     m_real3d.publish(b, f);
-    std::memcpy(m_tilegen_copy[b].data(), m_tilegen.vram(), TileGen::kVramBytes);
     f.tilegen_vram  = m_tilegen_copy[b];
+    f.tilegen_writes.swap(m_tilegen_writes);
+    m_tilegen_writes.clear();
     f.tilegen_regs  = m_tilegen.registers();
     f.tilegen_lines = m_tilegen.line_latch();
     f.step          = m_game.model3.step;
@@ -934,6 +966,7 @@ void Model3::write8(u32 addr, u8 data)
         if (m_cpu && m_pages.is_code_page(addr)) m_cpu->invalidate(addr, 1);
         return;
     }
+    if (tilegen_store(addr, 1, data)) return;
     mmio_write8(addr, data);
 }
 
@@ -949,6 +982,7 @@ void Model3::write16(u32 addr, u16 data)
         if (m_cpu && m_pages.is_code_page(addr)) m_cpu->invalidate(addr, 2);
         return;
     }
+    if (tilegen_store(addr, 2, data)) return;
     mmio_write16(addr, data);
 }
 
@@ -964,6 +998,7 @@ void Model3::write32(u32 addr, u32 data)
         if (m_cpu && m_pages.is_code_page(addr)) m_cpu->invalidate(addr, 4);
         return;
     }
+    if (tilegen_store(addr, 4, data)) return;
     mmio_write32(addr, data);
 }
 

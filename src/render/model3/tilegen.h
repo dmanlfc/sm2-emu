@@ -11,7 +11,8 @@
 // NOTICE's section 7 additional terms apply to sm2-emu's changes only.
 //
 // Draws from a VideoFrame's VRAM and registers. Palettes are rebuilt from
-// VRAM. VRAM words are loaded little-endian.
+// VRAM; VRAM stores made during active display (tilegen_writes) are applied
+// per line. VRAM words are loaded little-endian.
 #pragma once
 
 #include "core/types.h"
@@ -42,7 +43,8 @@ public:
     void draw_frame(std::span<const u8> vram, std::span<const u32> regs);
 
     void draw_frame(std::span<const u8> vram, std::span<const u32> regs,
-                    std::span<const hw::model3::TileGenLine> lines);
+                    std::span<const hw::model3::TileGenLine> lines,
+                    std::span<const hw::model3::TileGenWrite> writes = {});
 
     [[nodiscard]] std::span<const u32> layer(int index) const { return m_surface[static_cast<usize>(index)]; }
 
@@ -88,6 +90,7 @@ private:
     void build_palettes(u32 reg40, u32 reg44);
 
     std::span<const u8> m_vram;
+    std::vector<u8>     m_vram_work;  // VRAM as of the line being drawn, when stores are applied
     u32                 m_palette_regs[2] = {~0u, ~0u};
 
     ColourOffsetRegister m_colourOffsetRegs[2];

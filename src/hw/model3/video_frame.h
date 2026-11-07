@@ -49,6 +49,17 @@ struct TileGenLine {
     std::array<u32, 4> scroll{};  ///< Layer enable + scroll (0x60-0x6C).
 };
 
+/// A tile generator VRAM store made during the active display. Each line is
+/// drawn from VRAM as it stands at that line, so the renderer starts
+/// from `tilegen_vram` (VRAM at the start of line 0) and applies these, in
+/// order, before drawing line `line`. `bytes` is the aligned word at `offset`
+/// after the store, in VRAM's own byte order.
+struct TileGenWrite {
+    u32 line   = 0;
+    u32 offset = 0;
+    std::array<u8, 4> bytes{};
+};
+
 struct VideoFrame {
     static constexpr u32 kCullingLoWords = 0x400000 / 4;  ///< 4 MB at 0x8C000000.
     static constexpr u32 kCullingHiWords = 0x100000 / 4;  ///< 1 MB at 0x8E000000.
@@ -87,7 +98,8 @@ struct VideoFrame {
 
     // -- Tile generator ---------------------------------------------------------
 
-    std::span<const u8>             tilegen_vram;  ///< kTileGenVramBytes, as the PowerPC wrote it.
+    std::span<const u8>             tilegen_vram;  ///< kTileGenVramBytes at the start of line 0, as the PowerPC wrote it.
+    std::vector<TileGenWrite>       tilegen_writes;  ///< Stores during lines 0-382, in order.
     std::array<u32, kTileGenRegs>   tilegen_regs{};
 
     std::array<TileGenLine, kActiveLines> tilegen_lines{};

@@ -233,6 +233,8 @@ private:
     void end_frame();
     void run_sound_to_now();
     void publish_frame();
+    void track_tilegen(bool on);
+    [[nodiscard]] bool tilegen_store(u32 addr, u32 size, u32 data);
     void cpu_irq_line(bool level);
 
     void serialize(Archive& ar);
@@ -315,6 +317,8 @@ private:
     // -- publication --
     std::array<VideoFrame, 2> m_frames_out{};
     std::array<std::vector<u8>, 2> m_tilegen_copy;
+    std::vector<TileGenWrite> m_tilegen_writes;
+    bool m_tilegen_tracking = false;  ///< VRAM stores take the slow path and are journalled.
     u64 m_published_count = 0;
     unsigned m_published = 0;
 };
