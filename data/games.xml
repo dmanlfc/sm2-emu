@@ -9328,7 +9328,7 @@
     </roms>
   </game>
 
-  <game name="srally2p" parent="srally2" board="model3" gearbox="true">
+  <game name="srally2p" parent="srally2" board="model3" preliminary="true" gearbox="true">
     <title>Sega Rally 2</title>
     <version>Prototype</version>
     <manufacturer>Sega</manufacturer>
@@ -9362,7 +9362,7 @@
     </roms>
   </game>
 
-  <game name="srally2pa" parent="srally2" board="model3" gearbox="true">
+  <game name="srally2pa" parent="srally2" board="model3" preliminary="true" gearbox="true">
     <title>Sega Rally 2</title>
     <version>Prototype Version A</version>
     <manufacturer>Sega</manufacturer>
