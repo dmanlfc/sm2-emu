@@ -31,8 +31,7 @@
 #include <vk_mem_alloc.h>
 
 #include <algorithm>
-#include <cstdio>
-#include <cstdlib>
+#include <chrono>
 #include <cstring>
 #include <vector>
 
@@ -993,6 +992,7 @@ void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
 
 bool Model3Pass::prepare_3d(FrameBuilder& frame, BuildSlot& f, bool on_worker)
 {
+    const auto start = std::chrono::steady_clock::now();
     f.build = 0;
     f.los_pending.fill(false);
     const FramePlan& plan = frame.plan();
@@ -1072,6 +1072,7 @@ bool Model3Pass::prepare_3d(FrameBuilder& frame, BuildSlot& f, bool on_worker)
     f.frame_number = frame.frame_number();
     f.sets_epoch   = m_sets_epoch;
     f.build        = frame.build_serial();
+    m_prepare_ms   = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
     return true;
 }
 

@@ -2049,6 +2049,7 @@ int main(int argc, char** argv)
         core::StageTimer stage_m3_tilegen("m3_tilegen");
         core::StageTimer stage_m3_scene("m3_scene");
         core::StageTimer stage_m3_plan("m3_plan");
+        core::StageTimer stage_m3_record("m3_record_3d");
         if (machine_any) {
             machine_any->set_core_profiling(options.profile);
         }
@@ -2060,7 +2061,7 @@ int main(int argc, char** argv)
                  &stage_software_wait, &stage_software_snapshot, &stage_software_async,
                  &stage_present_wait, &stage_cpu_i960, &stage_cpu_copro,
                  &stage_cpu_sound, &stage_m3_wait, &stage_m3_build, &stage_m3_textures,
-                 &stage_m3_tilegen, &stage_m3_scene, &stage_m3_plan}) {
+                 &stage_m3_tilegen, &stage_m3_scene, &stage_m3_plan, &stage_m3_record}) {
                 timer->reserve(expected);
             }
         }
@@ -2737,6 +2738,9 @@ int main(int argc, char** argv)
                 stage_m3_tilegen.record_ms(t.tilegen);
                 stage_m3_scene.record_ms(t.scene);
                 stage_m3_plan.record_ms(t.plan);
+                if (m3_async) {
+                    stage_m3_record.record_ms(t.record);
+                }
             };
             if (machine_m3) {
                 if (!m3_async) {
@@ -3313,7 +3317,7 @@ int main(int argc, char** argv)
                      &stage_present_wait, &stage_software, &stage_software_wait,
                      &stage_software_snapshot, &stage_software_async, &stage_m3_wait,
                      &stage_m3_build, &stage_m3_textures, &stage_m3_tilegen, &stage_m3_scene,
-                     &stage_m3_plan}) {
+                     &stage_m3_plan, &stage_m3_record}) {
                     const core::StageStats stats = core::summarise(*timer);
                     if (stats.samples == 0) {
                         continue;

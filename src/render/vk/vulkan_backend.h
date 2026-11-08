@@ -115,7 +115,12 @@ public:
     void set_model3_async(bool async) override { m_model3_async = async; }
     void release_model3_frames(const hw::model3::VideoFrame& current) override { m_model3_frame.release(&current); }
     void finish_model3() override { m_model3_frame.wait(); }
-    [[nodiscard]] model3::BuildTimes model3_build_times() const override { return m_model3_frame.build_times(); }
+    [[nodiscard]] model3::BuildTimes model3_build_times() const override
+    {
+        model3::BuildTimes times = m_model3_frame.build_times();
+        times.record             = m_model3.prepare_ms();
+        return times;
+    }
     void reset_model3() override { m_model3_frame.reset(); }
     void set_model3_texture_dumper(model3::TextureDumper* dumper) override { m_model3_frame.set_texture_dumper(dumper); }
     [[nodiscard]] model3::LineOfSight model3_line_of_sight() const override

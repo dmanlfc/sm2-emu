@@ -23,6 +23,7 @@ struct BuildTimes {
     double tilegen  = 0.0;
     double scene    = 0.0;
     double plan     = 0.0;
+    double record   = 0.0;  ///< Vulkan: the 3D pass's commands, recorded with the build.
 };
 
 }  // namespace sm2::render::model3

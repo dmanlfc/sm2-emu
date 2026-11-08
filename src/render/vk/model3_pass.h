@@ -58,6 +58,7 @@ public:
     /// On the frame's worker, after a build: the 3D pass for the next
     /// record(), which otherwise records it itself.
     void prepare_next(model3::FrameBuilder& frame);
+    [[nodiscard]] double prepare_ms() const { return m_prepare_ms; }
     [[nodiscard]] u64 take_upload_ticket()
     {
         const u64 ticket = m_upload_ticket;
@@ -170,6 +171,7 @@ private:
     u64           m_records    = 0;
     u64           m_sets_epoch = 1;  // bumped when the slots' sets are rewritten
     VkCommandPool m_slot_pool  = VK_NULL_HANDLE;
+    double        m_prepare_ms = 0.0;
 
     // Descriptors and pipelines
     VkSampler             m_nearest = VK_NULL_HANDLE;
