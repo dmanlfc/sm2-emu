@@ -525,6 +525,10 @@ void Gui::draw_menu_bar(Config& config)
 void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_names,
                         Input* input)
 {
+    const auto model12_only = [&] {
+        ImGui::SameLine();
+        ImGui::TextDisabled("%s", tr("(Model 1 & 2 only)"));
+    };
     // 88% of the space between the menu bar and the status bar, centred,
     // re-applied every frame so it tracks a resize. On a short display the
     // bars are a large share of the height, so the window must not cover them.
@@ -714,9 +718,14 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
 
             {
                 int brightness = static_cast<int>(config.brightness);
+                if (m_model3_running) ImGui::BeginDisabled();
                 ImGui::SetNextItemWidth(220);
                 if (ImGui::SliderInt(tr_id("Brightness"), &brightness, 0, 100, "%d%%")) {
                     config.brightness = static_cast<u32>(std::clamp(brightness, 0, 100));
+                }
+                if (m_model3_running) {
+                    ImGui::EndDisabled();
+                    model12_only();
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
@@ -778,10 +787,15 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     tex_index             = 0;
                     ImGui::BeginDisabled();
                 }
+                if (m_model3_running) ImGui::BeginDisabled();
                 ImGui::SetNextItemWidth(160);
                 if (ImGui::Combo(tr_id("3D texture filter"), &tex_index, tr_all(kTexLabels).data(),
                                  static_cast<int>(kTexLabels.size()))) {
                     config.texture_filter = static_cast<TextureFilter>(tex_index);
+                }
+                if (m_model3_running) {
+                    ImGui::EndDisabled();
+                    model12_only();
                 }
                 if (!m_caps_anisotropy) {
                     ImGui::EndDisabled();
@@ -849,10 +863,15 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     translucency        = 0;
                     ImGui::BeginDisabled();
                 }
+                if (m_model3_running) ImGui::BeginDisabled();
                 ImGui::SetNextItemWidth(160);
                 if (ImGui::Combo(tr_id("Translucency"), &translucency, tr_all(kTranslucencyLabels).data(),
                                  static_cast<int>(kTranslucencyLabels.size()))) {
                     config.translucency = static_cast<Translucency>(translucency);
+                }
+                if (m_model3_running) {
+                    ImGui::EndDisabled();
+                    model12_only();
                 }
                 if (!m_caps_blended) {
                     ImGui::EndDisabled();
@@ -865,7 +884,12 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                                "see-through surface it's trying to achieve. Applies live."));
                 }
 
+                if (m_model3_running) ImGui::BeginDisabled();
                 ImGui::Checkbox(tr_id("Extended draw distance"), &config.extended_draw_distance);
+                if (m_model3_running) {
+                    ImGui::EndDisabled();
+                    model12_only();
+                }
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {

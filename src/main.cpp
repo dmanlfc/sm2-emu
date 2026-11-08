@@ -2890,6 +2890,7 @@ int main(int argc, char** argv)
                 gui.set_state_slots(machine_any != nullptr, {});
             }
             gui.set_current_game(loaded.has_value() ? loaded->game.name : std::string());
+            gui.set_model3_running(loaded.has_value() && loaded->game.board == rom::Board::Model3);
             gui.set_current_family(loaded.has_value() ? game_family(loaded->game)
                                                       : std::string());
             gui.set_shown_aspect(shown_aspect());

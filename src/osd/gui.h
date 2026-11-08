@@ -129,6 +129,7 @@ public:
     void set_current_family(std::string key) { m_current_family = std::move(key); }
 
     void set_current_game(std::string name) { m_current_game = std::move(name); }
+    void set_model3_running(bool running) { m_model3_running = running; }
 
     [[nodiscard]] render::PictureArea picture_area() const { return m_present_area; }
 
@@ -419,6 +420,7 @@ private:
     Bezel       m_bezel;
     std::string m_bezel_lookup;
     std::string m_current_game;
+    bool        m_model3_running = false;
     void draw_bezel(const Config& config);
     void load_bezel(const std::string& path);
     void release_bezel();

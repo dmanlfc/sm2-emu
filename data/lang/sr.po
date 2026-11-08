@@ -2178,3 +2178,6 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+
+msgid "(Model 1 & 2 only)"
+msgstr ""
