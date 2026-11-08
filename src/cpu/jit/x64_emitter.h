@@ -210,6 +210,7 @@ public:
     void imul(Gp d, const Mem& s);
     void imul(Gp d, Gp s, s32 imm);
     void cdq() { emit8(0x99); }
+    void cmc() { emit8(0xF5); }
     void cqo() { emit8(0x48); emit8(0x99); }
 
     // ---- Shifts and rotates ---------------------------------------------------
@@ -383,6 +384,8 @@ public:
     void roundsd(Xmm d, Xmm s, u8 mode);
     void ldmxcsr(const Mem& m);
     void stmxcsr(const Mem& m);
+    /// FMA3: d = s2 * d + s3 (VEX.66.0F38.W1 A9).
+    void vfmadd213sd(Xmm d, Xmm s2, Xmm s3);
 
 protected:
     bool patch_fixup(usize pos, u32 kind, usize target) override;

@@ -21,6 +21,7 @@
 #include "core/log.h"
 #include "cpu/ppc/ppc_internal.h"
 #include "cpu/ppc/ppc_jit_arm64.h"
+#include "cpu/ppc/ppc_jit_x64.h"
 #include "hw/machine.h"
 
 #include <algorithm>
@@ -514,6 +515,7 @@ void Ppc::set_exec_mode(ExecMode mode)
     if (mode != ExecMode::Interpreter && m_backend == nullptr) {
         if (!m_own_backend) {
             m_own_backend = create_jit_arm64();
+            if (!m_own_backend) m_own_backend = create_jit_x64();
         }
         if (m_own_backend) {
             set_backend(m_own_backend.get());

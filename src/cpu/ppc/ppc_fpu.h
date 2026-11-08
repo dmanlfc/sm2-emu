@@ -19,6 +19,9 @@
 
 #include <bit>
 #include <cmath>
+#if defined(__GNUC__) && defined(__x86_64__)
+#include <cpuid.h>
+#endif
 
 // FP semantics shared by the interpreters (PEM chapter 3, appendix D).
 
@@ -88,10 +91,44 @@ inline constexpr u64 kQuietBit = 0x0008000000000000ull;
     asm("fmadd %d0, %d1, %d2, %d3" : "=w"(r) : "w"(a), "w"(c), "w"(b));
     return r;
 }
+#elif defined(__GNUC__) && defined(__x86_64__)
+[[nodiscard]] inline double add(double a, double b)
+{
+    asm("addsd %1, %0" : "+x"(a) : "x"(b));
+    return a;
+}
+[[nodiscard]] inline double mul(double a, double b)
+{
+    asm("mulsd %1, %0" : "+x"(a) : "x"(b));
+    return a;
+}
+/// FMA3 usable (CPU and OS). The x86-64 JIT emits the same instruction so
+/// NaN precedence matches.
+[[nodiscard]] inline bool host_has_fma()
+{
+    static const bool has = [] {
+        unsigned a, b, c, d;
+        if (!__get_cpuid(1, &a, &b, &c, &d)) return false;
+        if ((c & (1u << 12)) == 0 || (c & (1u << 27)) == 0 || (c & (1u << 28)) == 0) return false;
+        unsigned lo, hi;
+        asm volatile("xgetbv" : "=a"(lo), "=d"(hi) : "c"(0));
+        return (lo & 6) == 6;
+    }();
+    return has;
+}
+[[nodiscard]] inline double fma(double a, double c, double b)
+{
+    if (host_has_fma()) {
+        asm("vfmadd213sd %2, %1, %0" : "+x"(a) : "x"(c), "x"(b));
+        return a;
+    }
+    return std::fma(a, c, b);
+}
 #else
 [[nodiscard]] inline double add(double a, double b) { return a + b; }
 [[nodiscard]] inline double mul(double a, double b) { return a * b; }
 [[nodiscard]] inline double fma(double a, double c, double b) { return std::fma(a, c, b); }
+[[nodiscard]] inline bool host_has_fma() { return false; }
 #endif
 
 /// The negation is of the rounded result (an exact zero becomes -0): keep the

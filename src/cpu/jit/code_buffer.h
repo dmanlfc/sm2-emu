@@ -23,7 +23,9 @@
 //
 // W^X: bracket every write in a WriteScope.
 //   macOS arm64  MAP_JIT + pthread_jit_write_protect_np (per thread)
-//   Linux        memfd dual mapping (RW + RX views), mprotect fallback
+//   Linux arm64  memfd dual mapping (RW + RX views), mprotect fallback
+//   x86-64       one RWX mapping (toggling the whole region per compile is
+//                far too slow, worst of all under Rosetta); toggle fallback
 //   others       mprotect / VirtualProtect toggling of the whole region; no
 //                thread may run code from the buffer while a scope is open
 // Emitters write through CodeSpan::rw and branch relative to CodeSpan::exec.
@@ -45,6 +47,7 @@ public:
         MapJit,       ///< macOS arm64: per-thread write protection.
         DualMapping,  ///< Separate RW and RX views.
         Toggle,       ///< One view, flipped between RW and RX.
+        Rwx,          ///< x86-64: one view, always writable and executable.
     };
 
     CodeBuffer() = default;
@@ -123,6 +126,7 @@ public:
 
 private:
     bool map_dual(usize size);
+    bool map_rwx(usize size);
     bool map_single(usize size);
     void set_executable(bool executable);
 

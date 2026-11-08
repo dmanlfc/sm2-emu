@@ -776,6 +776,15 @@ void Emitter::stmxcsr(const Mem& m)
     enc_rm(0, 4, {0x0F, 0xAE}, 3, m);
 }
 
+void Emitter::vfmadd213sd(Xmm d, Xmm s2, Xmm s3)
+{
+    emit8(0xC4);
+    emit8(static_cast<u8>(((d.id & 8) != 0 ? 0 : 0x80) | 0x40 | ((s3.id & 8) != 0 ? 0 : 0x20) | 0x02));
+    emit8(static_cast<u8>(0x80 | ((~s2.id & 0xF) << 3) | 0x01));
+    emit8(0xA9);
+    emit8(static_cast<u8>(0xC0 | ((d.id & 7) << 3) | (s3.id & 7)));
+}
+
 // -- Calling conventions -------------------------------------------------------------------
 
 const AbiInfo& abi_info(Abi abi)

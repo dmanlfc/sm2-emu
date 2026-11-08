@@ -40,6 +40,11 @@
 #else
 #  define SM2_JIT_MAP_JIT 0
 #endif
+#if defined(__x86_64__) || defined(_M_X64)
+#  define SM2_JIT_RWX 1
+#else
+#  define SM2_JIT_RWX 0
+#endif
 
 namespace sm2::cpu::jit {
 
@@ -110,6 +115,9 @@ bool CodeBuffer::init(usize size, bool force_toggle)
 #else
     (void)force_toggle;
 #endif
+#if SM2_JIT_RWX
+    if (!mapped && !force_toggle) mapped = map_rwx(size);
+#endif
     if (!mapped) mapped = map_single(size);
     if (!mapped) {
         SM2_ERROR("jit: could not reserve %zu bytes of executable memory", size);
@@ -124,6 +132,7 @@ bool CodeBuffer::init(usize size, bool force_toggle)
               static_cast<void*>(m_exec),
               m_protection == Protection::MapJit        ? "MAP_JIT"
               : m_protection == Protection::DualMapping ? "dual-mapped"
+              : m_protection == Protection::Rwx         ? "RWX"
                                                         : "toggled",
               near_program(m_exec, m_size) ? "near" : "far from");
     return true;
@@ -168,6 +177,49 @@ bool CodeBuffer::map_dual(usize size)
     (void)size;
     return false;
 #endif
+}
+
+bool CodeBuffer::map_rwx(usize size)
+{
+#if defined(_WIN32)
+    void* mem = nullptr;
+    for_each_hint(size, [&](void* hint) {
+        void* p = VirtualAlloc(hint, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+        if (p == nullptr) return false;
+        if (near_program(p, size)) {
+            mem = p;
+            return true;
+        }
+        VirtualFree(p, 0, MEM_RELEASE);
+        return false;
+    });
+    if (mem == nullptr) mem = VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    if (mem == nullptr) return false;
+#else
+    constexpr int kProt  = PROT_READ | PROT_WRITE | PROT_EXEC;
+    constexpr int kFlags = MAP_PRIVATE | MAP_ANON;
+    void* mem = nullptr;
+    for_each_hint(size, [&](void* hint) {
+        void* p = mmap(hint, size, kProt, kFlags, -1, 0);
+        if (p == MAP_FAILED) return false;
+        if (near_program(p, size)) {
+            mem = p;
+            return true;
+        }
+        munmap(p, size);
+        return false;
+    });
+    if (mem == nullptr) {
+        void* p = mmap(nullptr, size, kProt, kFlags, -1, 0);
+        if (p == MAP_FAILED) return false;
+        mem = p;
+    }
+#endif
+    m_exec       = static_cast<u8*>(mem);
+    m_rw         = m_exec;
+    m_size       = size;
+    m_protection = Protection::Rwx;
+    return true;
 }
 
 bool CodeBuffer::map_single(usize size)
@@ -276,6 +328,7 @@ void CodeBuffer::begin_write()
         if (m_write_depth++ == 0) set_executable(false);
         break;
     case Protection::DualMapping:
+    case Protection::Rwx:
     case Protection::None:
         break;
     }
@@ -293,6 +346,7 @@ void CodeBuffer::end_write()
         if (--m_write_depth == 0) set_executable(true);
         break;
     case Protection::DualMapping:
+    case Protection::Rwx:
     case Protection::None:
         break;
     }
