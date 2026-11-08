@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.24)
 
 project(sm2-emu
     VERSION     0.9.59
-    DESCRIPTION "Sega Model 1 & 2 arcade emulator"
+    DESCRIPTION "Sega Model 1, 2 & 3 arcade emulator"
     LANGUAGES   C CXX
 )
 
@@ -32,6 +32,15 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Apple's ld warns on every static library CMake repeats for link order.
+if(APPLE)
+    include(CheckLinkerFlag)
+    check_linker_flag(CXX "LINKER:-no_warn_duplicate_libraries" SM2_LD_NO_DUP_WARN)
+    if(SM2_LD_NO_DUP_WARN)
+        add_link_options(LINKER:-no_warn_duplicate_libraries)
+    endif()
+endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Keep binaries in one predictable place; the emulator resolves data files

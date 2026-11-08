@@ -287,7 +287,6 @@ add_library(sm2_hw STATIC
     hw/m1audio.cpp
     hw/m1comm.cpp
     hw/m2comm.cpp
-    hw/machine_factory.cpp
     hw/mb8421.cpp
     hw/model1io.cpp
     hw/model1io2.cpp
@@ -332,8 +331,8 @@ target_link_libraries(sm2_hw
 # ---------------------------------------------------------------------------
 # sm2_hw_model3 — the Sega Model 3 machine, its chips and its sound board
 # ---------------------------------------------------------------------------
-# sm2_hw and sm2_hw_model3 depend on each other (create_machine constructs a
-# Model3; the machine uses sm2_hw's EEPROM, 315-5881 and link board).
+# Builds on sm2_hw (EEPROM, 315-5881, link board). create_machine lives in
+# sm2_machines below so the two do not depend on each other.
 
 add_library(sm2_hw_model3 STATIC
     hw/model3/drive_board.cpp
@@ -358,7 +357,16 @@ target_link_libraries(sm2_hw_model3
         sm2_warnings
         sm2_miniz
 )
-target_link_libraries(sm2_hw PRIVATE sm2_hw_model3)
+
+# sm2_machines — create_machine(), which constructs every board
+add_library(sm2_machines STATIC hw/machine_factory.cpp)
+target_link_libraries(sm2_machines
+    PUBLIC
+        sm2_hw
+        sm2_hw_model3
+    PRIVATE
+        sm2_warnings
+)
 
 # Deferred so it does not depend on where sm2_cpu_ppc is defined in this file.
 function(sm2_model3_link_ppc)
@@ -512,6 +520,7 @@ target_link_libraries(sm2-emu
         sm2_render
         sm2_hw
         sm2_hw_model3
+        sm2_machines
         sm2_warnings
 )
 if(SM2_BUILD_VULKAN)
