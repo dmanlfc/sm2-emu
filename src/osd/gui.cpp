@@ -2097,17 +2097,17 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
             {"swa", "Brake", N_("Laser")},          {"swa", "Accelerator", N_("Torpedo")},
             {"swa", "Button 1", N_("Laser")},       {"swa", "Button 2", N_("Torpedo")},
             {"swa", "Button 3", N_("View")},        {"swa", "Button 4", nullptr},
-            {"swa", "Move Up", nullptr},            {"swa", "Move Down", N_("Brake")},
+            {"swa", "Move Up", N_("Throttle forward")}, {"swa", "Move Down", N_("Throttle back")},
             {"swa", "Move Left", nullptr},          {"swa", "Move Right", nullptr},
             {"swa", "Gear Up", nullptr},            {"swa", "Gear Down", nullptr},
-            {"swa", "Steer / Aim", N_("Yoke")},     {"swa", "Right Lever", N_("Brake")},
+            {"swa", "Steer / Aim", N_("Yoke")},     {"swa", "Right Lever", N_("Throttle")},
             {"wingwar", "Button 1", N_("Machine Gun")}, {"wingwar", "Button 2", N_("Missile")},
             {"wingwar", "Button 3", N_("Smoke")},   {"wingwar", "Button 4", nullptr},
             {"wingwar", "Move Up", N_("View 1")},   {"wingwar", "Move Right", N_("View 2")},
             {"wingwar", "Move Down", N_("View 3")}, {"wingwar", "Move Left", N_("View 4")},
-            {"wingwar", "Brake", N_("Brake")},      {"wingwar", "Accelerator", nullptr},
+            {"wingwar", "Brake", N_("Throttle back")}, {"wingwar", "Accelerator", N_("Throttle forward")},
             {"wingwar", "Gear Up", nullptr},        {"wingwar", "Gear Down", nullptr},
-            {"wingwar", "Steer / Aim", N_("Stick")}, {"wingwar", "Right Lever", N_("Brake")},
+            {"wingwar", "Steer / Aim", N_("Stick")}, {"wingwar", "Right Lever", N_("Throttle")},
         };
         bool unused = false;
         for (const Named& named : kNamed) {

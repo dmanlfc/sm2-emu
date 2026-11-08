@@ -6738,7 +6738,7 @@
     <analog>
       <channel index="0" control="stickx" min="27" max="227" rest="0x7f" reverse="true"/>
       <channel index="1" control="sticky" min="27" max="227" rest="0x7f"/>
-      <channel index="2" control="throttle" min="28" max="200" rest="0x7f" reverse="true"/>
+      <channel index="2" control="throttle" min="28" max="0xff" rest="0x7f" reverse="true"/>
       <channel index="4" control="stick2x" min="27" max="227" rest="0x7f" reverse="true"/>
       <channel index="5" control="stick2y" min="27" max="227" rest="0x7f"/>
     </analog>
@@ -6818,7 +6818,7 @@
     <analog>
       <channel index="0" control="stickx" min="27" max="227" rest="0x7f" reverse="true"/>
       <channel index="1" control="sticky" min="27" max="227" rest="0x7f"/>
-      <channel index="2" control="throttle" min="28" max="200" rest="0x7f" reverse="true"/>
+      <channel index="2" control="throttle" min="28" max="0xff" rest="0x7f" reverse="true"/>
       <channel index="4" control="stick2x" min="27" max="227" rest="0x7f" reverse="true"/>
       <channel index="5" control="stick2y" min="27" max="227" rest="0x7f"/>
     </analog>
@@ -6899,7 +6899,7 @@
     <analog>
       <channel index="0" control="stickx" rest="0x80" reverse="true"/>
       <channel index="1" control="sticky" rest="0x80"/>
-      <channel index="2" control="throttle" min="0x01" rest="0x01"/>
+      <channel index="2" control="throttle" min="0x01" rest="0x80" reverse="true"/>
     </analog>
 
     <roms>
@@ -6981,7 +6981,7 @@
     <analog>
       <channel index="0" control="stickx" rest="0x80" reverse="true"/>
       <channel index="1" control="sticky" rest="0x80"/>
-      <channel index="2" control="throttle" min="0x01" rest="0x01"/>
+      <channel index="2" control="throttle" min="0x01" rest="0x80" reverse="true"/>
     </analog>
 
     <roms>
@@ -7063,7 +7063,7 @@
     <analog>
       <channel index="0" control="stickx" rest="0x80" reverse="true"/>
       <channel index="1" control="sticky" rest="0x80"/>
-      <channel index="2" control="throttle" min="0x01" rest="0x01"/>
+      <channel index="2" control="throttle" min="0x01" rest="0x80" reverse="true"/>
     </analog>
 
     <roms>
@@ -7146,7 +7146,7 @@
       <channel index="0" control="stickx" rest="0x80"/>
       <channel index="1" control="sticky" rest="0x80" reverse="true"/>
       <!-- Read through the motion base (0xaf), not the mux. -->
-      <channel index="2" control="throttle" min="0x01" rest="0x01"/>
+      <channel index="2" control="throttle" min="0x01" rest="0x80" reverse="true"/>
     </analog>
 
     <roms>

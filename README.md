@@ -234,8 +234,10 @@ the right lever, `Q` / `E` the left shot / dash and `Right Shift` /
 `Right Ctrl` the right shot / dash. On a pad, the sticks are the levers, the
 triggers the shots and the bumpers the dashes.
 
-**Flying games:** Star Wars Arcade and Wing War fly at full speed; pull the
-right stick back (or use the brake) to slow down.
+**Flying games:** Star Wars Arcade and Wing War have a throttle lever on the
+right stick: push to accelerate, pull back to slow down, and Wing War hovers
+with it fully back. Wing War's triggers do the same; on the keyboard it is
+`Left Ctrl` / `Left Alt`.
 
 The renderer is chosen at launch with `--graphics-backend` and can't be
 switched while running.
