@@ -2405,6 +2405,7 @@ int main(int argc, char** argv)
                         if (!replacements) {
                             replacements = std::make_unique<render::TextureReplacements>();
                         }
+                        backend->finish_model3();  // the build reads the pack
                         (void)replacements->load(texture_load_directory(options.config, wanted));
                         backend->set_texture_replacements(replacements.get());
                     }
@@ -2784,9 +2785,6 @@ int main(int argc, char** argv)
 
             if (machine_m3) {
                 backend->render_model3();
-                if (m3_async) {
-                    submit_m3();
-                }
             } else if (!draw_with_software) {
                 backend->render_polygons();
             }
@@ -2886,6 +2884,10 @@ int main(int argc, char** argv)
                                         numbered_series
                                             ? static_cast<int>(frames_presented)
                                             : -1);
+            }
+            // After the dumper's request is taken: its scan runs in the build.
+            if (m3_async) {
+                submit_m3();
             }
 
             // Push present and enhancement options each frame so a GUI change
