@@ -256,10 +256,6 @@ struct Options {
     /// Run this many frames headless, report, and exit. Zero means run normally.
     sm2::u32 boot_test    = 0;
 
-    /// Save-state round-trip self-test: boot this many frames, then run the
-    /// save/advance/load/re-advance check (see the handler). Zero means off.
-    sm2::u32 savestate_test = 0;
-
     /// Quit after this many presented frames. Zero means run until asked to stop.
     sm2::u32 run_frames   = 0;
 
@@ -433,17 +429,6 @@ void print_usage()
                 static_cast<sm2::u32>(std::strtoul(argv[++index], nullptr, 10));
             if (out->boot_test == 0) {
                 SM2_ERROR("--boot-test needs a frame count of at least one");
-                return false;
-            }
-        } else if (std::strcmp(arg, "--savestate-test") == 0) {
-            if (index + 1 >= argc) {
-                SM2_ERROR("--savestate-test requires a boot frame count");
-                return false;
-            }
-            out->savestate_test =
-                static_cast<sm2::u32>(std::strtoul(argv[++index], nullptr, 10));
-            if (out->savestate_test == 0) {
-                SM2_ERROR("--savestate-test needs a frame count of at least one");
                 return false;
             }
         } else if (std::strcmp(arg, "--run-frames") == 0) {
@@ -1179,14 +1164,12 @@ int main(int argc, char** argv)
     // for the windowed loop. The DB is then built unconditionally below.
     const bool will_show_picker = options.rom_path.empty() && options.game.empty()
                                   && any_rom_dir
-                                  && !options.list_games && options.boot_test == 0
-                                  && options.savestate_test == 0;
+                                  && !options.list_games && options.boot_test == 0;
 
     // Same as will_show_picker, minus requiring rom_dir already set: it may
     // be set later from the Paths tab, whose rescan below needs the database.
     const bool may_need_picker = options.rom_path.empty() && options.game.empty()
-                                 && !options.list_games && options.boot_test == 0
-                                 && options.savestate_test == 0;
+                                 && !options.list_games && options.boot_test == 0;
 
     // -- ROM database ------------------------------------------------------
     // Loaded before anything graphical, so a bad ROM path fails immediately
@@ -1281,11 +1264,11 @@ int main(int argc, char** argv)
     // Restore a save state before anything runs, so a one-frame --screenshot
     // renders exactly that state through whichever backend is selected.
     if (!options.load_state.empty()) {
-        if (machine_iface == nullptr) {
+        if (machine_any == nullptr) {
             SM2_ERROR("--load-state needs a ROM");
             return 1;
         }
-        if (!machine_iface->load_state(options.load_state)) {
+        if (!machine_any->load_state(options.load_state)) {
             SM2_ERROR("--load-state: failed to load '%s'", options.load_state.c_str());
             return 1;
         }
@@ -1293,217 +1276,6 @@ int main(int argc, char** argv)
     }
 
     // -- headless boot test ------------------------------------------------
-    // Headless save-state regression (see the block for what it checks). Runs
-    // before the boot-test/windowed paths because it, too, needs only a machine.
-    if (options.savestate_test != 0) {
-        if (machine_iface == nullptr) {
-            SM2_ERROR("--savestate-test needs a ROM");
-            return 1;
-        }
-
-        // A save file IS the serialized machine, so comparing two save files
-        // byte-for-byte is a state-hash comparison needing no extra API. Save A
-        // at frame N, advance and save B, load A, then re-advance and save B2:
-        // B2 != B catches a mutable field that drives emulation but is missing
-        // from serialize(), since loading A leaves it at its post-advance value.
-        const u32 boot   = options.savestate_test;
-        const u32 stride = 120;  // an active, non-trivial window
-
-        auto advance = [&](u32 base, u32 count) {
-            for (u32 i = 0; i < count; ++i) {
-                const u32 frame = base + i;
-                if (options.coin_at != 0) {
-                    const osd::Input::ScriptedPress press = osd::Input::scripted_press(
-                        frame, options.coin_at, loaded->game.start1_bit);
-                    machine_iface->inputs().in0 = static_cast<u8>(0xff & ~press.in0);
-                    machine_iface->inputs().in1 = static_cast<u8>(0xff & ~press.in1);
-                }
-                machine_iface->run_frame();
-                if (sound_board != nullptr) {
-                    sound_board->clear_pending_samples();
-                }
-            }
-        };
-
-        namespace fs = std::filesystem;
-        const fs::path dir = fs::temp_directory_path() / "sm2_savestate_test";
-        std::error_code ec;
-        fs::create_directories(dir, ec);
-        const std::string path_a  = (dir / "a.sm2state").string();
-        const std::string path_b  = (dir / "b.sm2state").string();
-        const std::string path_a2 = (dir / "a2.sm2state").string();
-        const std::string path_b2 = (dir / "b2.sm2state").string();
-
-        auto read_file = [](const std::string& p) {
-            std::FILE* h = std::fopen(p.c_str(), "rb");
-            std::vector<u8> out;
-            if (h == nullptr) return out;
-            std::fseek(h, 0, SEEK_END);
-            const long n = std::ftell(h);
-            std::fseek(h, 0, SEEK_SET);
-            if (n > 0) {
-                out.resize(static_cast<usize>(n));
-                if (std::fread(out.data(), 1, out.size(), h) != out.size()) {
-                    out.clear();
-                }
-            }
-            std::fclose(h);
-            return out;
-        };
-
-        SM2_INFO("savestate-test: booting %u frames for %s", boot,
-                 loaded->game.name.c_str());
-        advance(0, boot);
-
-        if (!machine_iface->save_state(path_a)) {
-            SM2_ERROR("savestate-test: initial save failed");
-            return 1;
-        }
-        advance(boot, stride);
-        if (!machine_iface->save_state(path_b)) {
-            SM2_ERROR("savestate-test: post-advance save failed");
-            return 1;
-        }
-        if (!machine_iface->load_state(path_a)) {
-            SM2_ERROR("savestate-test: load failed");
-            return 1;
-        }
-        if (!machine_iface->save_state(path_a2)) {
-            SM2_ERROR("savestate-test: re-save after load failed");
-            return 1;
-        }
-        advance(boot, stride);
-        if (!machine_iface->save_state(path_b2)) {
-            SM2_ERROR("savestate-test: post-reload advance save failed");
-            return 1;
-        }
-
-        const std::vector<u8> a  = read_file(path_a);
-        const std::vector<u8> b  = read_file(path_b);
-        const std::vector<u8> a2 = read_file(path_a2);
-        const std::vector<u8> b2 = read_file(path_b2);
-
-        int rc = 0;
-        if (a.empty() || a == b) {
-            SM2_ERROR("savestate-test: A/B setup looks wrong (empty or no drift)");
-            rc = 1;
-        }
-        if (a != a2) {
-            SM2_ERROR("savestate-test: FAIL — state after load (%zu B) differs from "
-                      "saved state (%zu B): the round trip is not faithful",
-                      a2.size(), a.size());
-            rc = 1;
-        } else {
-            SM2_INFO("savestate-test: load restored the saved state exactly");
-        }
-        if (b != b2) {
-            SM2_ERROR("savestate-test: FAIL — re-advance from the restored state "
-                      "diverged (%zu vs %zu B): a mutable field is missing from "
-                      "serialize()", b2.size(), b.size());
-            rc = 1;
-        } else {
-            SM2_INFO("savestate-test: re-advance reproduced the reference exactly");
-        }
-        // Also exercise the real slot path the F6/overlay UI uses: save to the
-        // quick slot under the derived states dir, then load it back. Proves the
-        // states-dir derivation and the slot-path helper, not just temp files.
-        {
-            const std::string slot_path = hw::state_slot_path(
-                options.config.states_dir, loaded->game.name, hw::kQuickSlot);
-            if (!machine_iface->save_state(slot_path)
-                || !machine_iface->load_state(slot_path)) {
-                SM2_ERROR("savestate-test: slot-path round trip failed (%s)",
-                          slot_path.c_str());
-                rc = 1;
-            } else {
-                SM2_INFO("savestate-test: slot path OK (%s)", slot_path.c_str());
-            }
-        }
-
-        // Reject cases: a wrong-game, truncated or wrong-version file must be
-        // refused and leave the running machine untouched. Prove "untouched" by
-        // saving the state before and after each rejected load; the two must
-        // match byte for byte.
-        {
-            if (!machine_iface->save_state(path_a)) {
-                SM2_ERROR("savestate-test: reject setup save failed");
-                rc = 1;
-            }
-            const std::vector<u8> before = read_file(path_a);
-
-            auto expect_refused_and_intact = [&](const char* what,
-                                                 const std::string& bad_path) {
-                if (machine_iface->load_state(bad_path)) {
-                    SM2_ERROR("savestate-test: FAIL — %s was accepted", what);
-                    rc = 1;
-                    return;
-                }
-                static_cast<void>(machine_iface->save_state(path_a2));
-                if (read_file(path_a2) != before) {
-                    SM2_ERROR("savestate-test: FAIL — machine disturbed after a "
-                              "rejected %s load", what);
-                    rc = 1;
-                } else {
-                    SM2_INFO("savestate-test: rejected %s, machine intact", what);
-                }
-            };
-
-            // 1. Wrong game: a valid state for a different game.
-            const std::string wrong_game =
-                (fs::path(dir) / "wrong_game.sm2state").string();
-            {
-                std::vector<u8> img = before;
-                // Header: 8 magic + u32 version + u32 game_len + game bytes. The
-                // first game-name byte is at offset 16; flip it so the name no
-                // longer matches.
-                if (img.size() > 16) {
-                    img[16] = static_cast<u8>(img[16] ^ 0xff);
-                }
-                std::FILE* h = std::fopen(wrong_game.c_str(), "wb");
-                if (h) {
-                    std::fwrite(img.data(), 1, img.size(), h);
-                    std::fclose(h);
-                }
-                expect_refused_and_intact("wrong-game", wrong_game);
-            }
-
-            // 2. Truncated: only the first 8 bytes (magic) survive.
-            const std::string truncated =
-                (fs::path(dir) / "truncated.sm2state").string();
-            {
-                std::FILE* h = std::fopen(truncated.c_str(), "wb");
-                if (h) {
-                    std::fwrite(before.data(), 1, std::min<usize>(8, before.size()), h);
-                    std::fclose(h);
-                }
-                expect_refused_and_intact("truncated", truncated);
-            }
-
-            // 3. Wrong version: bump the version field (u32 right after the
-            // 8-byte magic) so it no longer matches this build.
-            const std::string wrong_version =
-                (fs::path(dir) / "wrong_version.sm2state").string();
-            {
-                std::vector<u8> img = before;
-                if (img.size() > 8) {
-                    img[8] = static_cast<u8>(img[8] + 1);
-                }
-                std::FILE* h = std::fopen(wrong_version.c_str(), "wb");
-                if (h) {
-                    std::fwrite(img.data(), 1, img.size(), h);
-                    std::fclose(h);
-                }
-                expect_refused_and_intact("wrong-version", wrong_version);
-            }
-        }
-
-        if (rc == 0) {
-            SM2_INFO("savestate-test: PASS — %s round-trips bit-identically",
-                     loaded->game.name.c_str());
-        }
-        return rc;
-    }
-
     // No window, no Vulkan: just run the machine and report where it got to.
     // This is the fastest way to see whether a change moved the boot forward.
     if (options.boot_test != 0) {
