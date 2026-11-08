@@ -12,7 +12,8 @@
 //
 // Draws from a VideoFrame's VRAM and registers. Palettes are rebuilt from
 // VRAM; VRAM stores made during active display (tilegen_writes) are applied
-// per line. VRAM words are loaded little-endian.
+// per line. VRAM words are loaded little-endian. Widescreen side columns come
+// from the map and flat edges.
 #pragma once
 
 #include "core/types.h"
@@ -47,6 +48,29 @@ public:
                     std::span<const hw::model3::TileGenWrite> writes = {});
 
     [[nodiscard]] std::span<const u32> layer(int index) const { return m_surface[static_cast<usize>(index)]; }
+
+    /// Widescreen: `columns` more of the map drawn each side of the bottom
+    /// layer into wide_layer(), for the layers set_extend() names.
+    void set_side_columns(u32 columns);
+    [[nodiscard]] u32 side_columns() const { return m_side; }
+    [[nodiscard]] u32 wide_width() const { return kVisibleWidth + 2 * m_side; }
+    /// `edges` also carries a row out whose 16 pixels at that edge are one
+    /// colour (a sky gradient).
+    void set_extend(std::array<bool, 4> extend, bool edges)
+    {
+        m_extend       = extend;
+        m_extend_edges = edges;
+    }
+
+    /// A layer wide_width() across: the sides, then the 496 columns of
+    /// layer() copied in by finish_wide().
+    [[nodiscard]] std::span<const u32> wide_layer(int index) const { return m_wide[static_cast<usize>(index)]; }
+    void finish_wide();
+
+    /// Per layer, a hash of the X scroll down the frame last drawn, and
+    /// whether it was enabled.
+    [[nodiscard]] const std::array<u32, 4>&  scroll_hash() const { return m_scroll_hash; }
+    [[nodiscard]] const std::array<bool, 4>& enabled() const { return m_enabled; }
 
 private:
     struct ColourOffsetRegister {
@@ -89,6 +113,10 @@ private:
 
     void build_palettes(u32 reg40, u32 reg44);
 
+    [[nodiscard]] u32 tile_pixel(int index, bool four_bit, int x, int line, int scroll_x, int scroll_y) const;
+    void draw_sides(int line, std::span<const u32> regs, int primary, int line_mask, const int scroll_x[2],
+                    const int scroll_y[2], const bool has_layer[2]);
+
     std::span<const u8> m_vram;
     std::vector<u8>     m_vram_work;  // VRAM as of the line being drawn, when stores are applied
     u32                 m_palette_regs[2] = {~0u, ~0u};
@@ -96,6 +124,13 @@ private:
     ColourOffsetRegister m_colourOffsetRegs[2];
     std::array<std::vector<u32>, 2> m_pal;      // computed palettes: [0] A/A', [1] B/B'
     std::array<std::vector<u32>, 2> m_surface;  // [0] bottom, [1] top
+
+    u32                  m_side = 0;
+    std::array<bool, 4>  m_extend{};
+    bool                 m_extend_edges = false;
+    std::array<std::vector<u32>, 2> m_wide;
+    std::array<u32, 4>   m_scroll_hash{};
+    std::array<bool, 4>  m_enabled{};
 };
 
 }  // namespace sm2::render::model3

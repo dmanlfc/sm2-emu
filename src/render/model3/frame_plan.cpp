@@ -270,6 +270,7 @@ u32 PlanBuilder::viewport_index(const Node& node)
     m_plan.viewports.push_back(rect);
     const u32 index = static_cast<u32>(m_plan.viewports.size() - 1);
     m_viewport_index.emplace(&node, index);
+    m_plan.widened = m_plan.widened || m_scene.widens(vp);
     return index;
 }
 
@@ -569,6 +570,7 @@ bool FramePlan::los_active() const
 void build_frame_plan(Scene& scene, bool encode_depth, std::array<bool, 2> blank_pages, FramePlan& plan)
 {
     plan.white_flash = false;
+    plan.widened     = false;
     plan.fogs.clear();
     plan.passes.clear();
     plan.draws.clear();

@@ -78,6 +78,8 @@ bool Model3Pass::init(u32 render_scale, u32 width)
     m_render_scale = render_scale;
     m_width        = width * render_scale;
     m_height       = 384 * render_scale;
+    m_layer_width[0] = width > TileGen::kVisibleWidth ? width : TileGen::kWidth;
+    m_layer_width[1] = m_layer_width[0];
 
     s32 alignment = 256;
     GetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &alignment);
@@ -222,9 +224,9 @@ bool Model3Pass::create_textures()
     TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     GenTextures(2, m_layers);
-    for (u32 tex : m_layers) {
-        BindTexture(GL_TEXTURE_2D, tex);
-        TexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, TileGen::kWidth, TileGen::kHeight);
+    for (int i = 0; i < 2; i++) {
+        BindTexture(GL_TEXTURE_2D, m_layers[i]);
+        TexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, static_cast<GLsizei>(m_layer_width[i]), TileGen::kHeight);
         TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
@@ -333,19 +335,21 @@ void Model3Pass::upload_uniforms(const FramePlan& plan)
     upload(kUboFog, fogs.data(), fogs.size(), sizeof(ScrollFogUniforms), m_fog_stride);
 }
 
-void Model3Pass::draw_layer(u32 texture, const FramePlan& plan)
+void Model3Pass::draw_layer(u32 texture, const LayerDraw& d)
 {
     struct {
         float rect[4];
         float uv_scale[2];
-        float pad[2];
+        float clip[2];
     } block{};
-    block.rect[0]     = static_cast<float>(plan.layer_2d.x);
-    block.rect[1]     = static_cast<float>(plan.layer_2d.y);
-    block.rect[2]     = static_cast<float>(plan.layer_2d.width);
-    block.rect[3]     = static_cast<float>(plan.layer_2d.height);
-    block.uv_scale[0] = static_cast<float>(TileGen::kVisibleWidth) / static_cast<float>(TileGen::kWidth);
+    block.rect[0]     = static_cast<float>(d.rect.x);
+    block.rect[1]     = static_cast<float>(d.rect.y);
+    block.rect[2]     = static_cast<float>(d.rect.width);
+    block.rect[3]     = static_cast<float>(d.rect.height);
+    block.uv_scale[0] = d.uv_scale;
     block.uv_scale[1] = 1.0f;
+    block.clip[0]     = d.clip_lo;
+    block.clip[1]     = d.clip_hi;
 
     BindBuffer(GL_UNIFORM_BUFFER, m_ubo[kUboLayer]);
     BufferData(GL_UNIFORM_BUFFER, sizeof(block), &block, GL_STREAM_DRAW);
@@ -536,9 +540,12 @@ void Model3Pass::render(FrameBuilder& frame, u32 native_fbo)
 
     upload_textures(frame.textures());
     for (int i = 0; i < 2; i++) {
+        if (frame.layer(i).size() != static_cast<usize>(m_layer_width[i]) * TileGen::kHeight) {
+            continue;
+        }
         BindTexture(GL_TEXTURE_2D, m_layers[i]);
-        TexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, TileGen::kWidth, TileGen::kHeight, GL_RGBA, GL_UNSIGNED_BYTE,
-                      frame.layer(i).data());
+        TexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(m_layer_width[i]), TileGen::kHeight, GL_RGBA,
+                      GL_UNSIGNED_BYTE, frame.layer(i).data());
     }
 
     if (!plan.white_flash) {
@@ -561,7 +568,7 @@ void Model3Pass::render(FrameBuilder& frame, u32 native_fbo)
     set_rect(Scissor, plan.display);
     Enable(GL_BLEND);
     BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    draw_layer(m_layers[0], plan);
+    draw_layer(m_layers[0], plan.layers[0]);
 
     if (plan.white_flash) {
         // Block culling: the 3D clears to white inside the display box.
@@ -584,8 +591,8 @@ void Model3Pass::render(FrameBuilder& frame, u32 native_fbo)
         DrawArrays(GL_TRIANGLES, 0, 3);
     }
 
-    // Render2D::RenderFrameTop()
-    draw_layer(m_layers[1], plan);
+    // The top tile layer.
+    draw_layer(m_layers[1], plan.layers[1]);
 
     Disable(GL_BLEND);
     Disable(GL_SCISSOR_TEST);

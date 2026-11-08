@@ -51,10 +51,17 @@ public:
     [[nodiscard]] std::span<const u32> layer(int index) const;
 
 private:
+    void plan_layers();
+    void track_scroll();
+
     Scene         m_scene;
     TextureSheets m_textures;
     TileGen       m_tilegen;
     FramePlan     m_plan;
+    std::array<u32, 4>  m_scroll_hash{};
+    std::array<u32, 4>  m_scroll_age{};  // frames since the layer last scrolled
+    std::array<bool, 4> m_scrolled{};
+    std::array<bool, 4> m_scroll_known{};
     bool m_has_frame      = false;
     u64  m_frame_number   = 0;
 };

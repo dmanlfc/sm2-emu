@@ -200,6 +200,7 @@ bool Model3Pass::init(Context& context, u32 render_scale, u32 width)
     m_render_scale = render_scale;
     m_width        = width * render_scale;
     m_height       = 384 * render_scale;
+    m_layer_width.fill(width > TileGen::kVisibleWidth ? width : TileGen::kWidth);
     // Tile-aligned targets: a render area that is not a whole number of
     // tiles costs tilers a slow clear path and partial tile stores.
     m_target_width  = round_up(m_width, 64);
@@ -313,8 +314,8 @@ bool Model3Pass::create_resources()
                       sampled_dst, VK_IMAGE_ASPECT_COLOR_BIT, 2)) {
         return false;
     }
-    for (Image& layer : m_layers) {
-        if (!create_image(layer, kColourFormat, TileGen::kWidth, TileGen::kHeight, 1, sampled_dst,
+    for (usize l = 0; l < m_layers.size(); l++) {
+        if (!create_image(m_layers[l], kColourFormat, m_layer_width[l], TileGen::kHeight, 1, sampled_dst,
                           VK_IMAGE_ASPECT_COLOR_BIT)) {
             return false;
         }
@@ -758,19 +759,23 @@ void Model3Pass::read_back_los(PerFrame& f)
 void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
 {
     TextureSheets& sheets = frame.textures();
-    const usize layer_bytes = static_cast<usize>(TileGen::kWidth) * TileGen::kHeight * 4;
+    const usize layer_bytes[2] = {static_cast<usize>(m_layer_width[0]) * TileGen::kHeight * 4,
+                                  static_cast<usize>(m_layer_width[1]) * TileGen::kHeight * 4};
 
     // Staging: both tile layers, then every texture rectangle packed tightly.
     usize texture_bytes = 0;
     for (const TextureUpload& u : sheets.uploads()) {
         texture_bytes += round_up(static_cast<VkDeviceSize>(u.width) * u.height * 2, 4);
     }
-    if (!ensure_buffer(f.staging, layer_bytes * 2 + texture_bytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT)) {
+    if (!ensure_buffer(f.staging, layer_bytes[0] + layer_bytes[1] + texture_bytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT)) {
+        return;
+    }
+    if (frame.layer(0).size_bytes() != layer_bytes[0] || frame.layer(1).size_bytes() != layer_bytes[1]) {
         return;
     }
     u8* staging = static_cast<u8*>(f.staging.mapped);
-    std::memcpy(staging, frame.layer(0).data(), layer_bytes);
-    std::memcpy(staging + layer_bytes, frame.layer(1).data(), layer_bytes);
+    std::memcpy(staging, frame.layer(0).data(), layer_bytes[0]);
+    std::memcpy(staging + layer_bytes[0], frame.layer(1).data(), layer_bytes[1]);
 
     // Layers: last frame's composite may still sample them; the barrier orders that.
     for (int l = 0; l < 2; l++) {
@@ -779,9 +784,9 @@ void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
                              VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, 0, VK_PIPELINE_STAGE_2_COPY_BIT,
                              VK_ACCESS_2_TRANSFER_WRITE_BIT);
         VkBufferImageCopy region{};
-        region.bufferOffset     = static_cast<VkDeviceSize>(l) * layer_bytes;
+        region.bufferOffset     = l == 0 ? 0 : layer_bytes[0];
         region.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
-        region.imageExtent      = {TileGen::kWidth, TileGen::kHeight, 1};
+        region.imageExtent      = {m_layer_width[static_cast<usize>(l)], TileGen::kHeight, 1};
         vkCmdCopyBufferToImage(cmd, f.staging.buffer, m_layers[static_cast<usize>(l)].image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
         record_image_barrier(cmd, m_layers[static_cast<usize>(l)].image, VK_IMAGE_ASPECT_COLOR_BIT,
@@ -793,7 +798,7 @@ void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
     // Texture pages.
     if (!sheets.uploads().empty() || !m_banks_initialised) {
         std::vector<VkBufferImageCopy> regions;
-        VkDeviceSize offset = layer_bytes * 2;
+        VkDeviceSize offset = layer_bytes[0] + layer_bytes[1];
         const u16*   texels = sheets.texels().data();
         for (const TextureUpload& u : sheets.uploads()) {
             for (u32 row = 0; row < u.height; row++) {
@@ -1175,17 +1180,20 @@ void Model3Pass::composite(const FramePlan& plan, VkImageView native_view, VkCom
     struct {
         float rect[4];
         float uv_scale[2];
-        float pad[2];
+        float clip[2];
     } push{};
-    push.rect[0]     = static_cast<float>(plan.layer_2d.x);
-    push.rect[1]     = static_cast<float>(plan.layer_2d.y);
-    push.rect[2]     = static_cast<float>(plan.layer_2d.width);
-    push.rect[3]     = static_cast<float>(plan.layer_2d.height);
-    push.uv_scale[0] = static_cast<float>(TileGen::kVisibleWidth) / static_cast<float>(TileGen::kWidth);
-    push.uv_scale[1] = 1.0f;
     const usize filter = m_smooth_2d ? 1 : 0;
 
     auto draw_layer = [&](int layer) {
+        const LayerDraw& d = plan.layers[layer];
+        push.rect[0]       = static_cast<float>(d.rect.x);
+        push.rect[1]       = static_cast<float>(d.rect.y);
+        push.rect[2]       = static_cast<float>(d.rect.width);
+        push.rect[3]       = static_cast<float>(d.rect.height);
+        push.uv_scale[0]   = d.uv_scale;
+        push.uv_scale[1]   = 1.0f;
+        push.clip[0]       = d.clip_lo;
+        push.clip[1]       = d.clip_hi;
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_layer_pipeline);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_layer_layout, 0, 1,
                                 &m_layer_sets[static_cast<usize>(layer)][filter], 0, nullptr);

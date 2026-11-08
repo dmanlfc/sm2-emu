@@ -118,6 +118,7 @@ private:
     // Inputs
     Image                m_bank;  // two layers, one per page
     std::array<Image, 2> m_layers;
+    std::array<u32, 2>   m_layer_width{};
     bool                 m_banks_initialised = false;
     Buffer               m_rom_vertices;
     u64                  m_rom_generation = 0;

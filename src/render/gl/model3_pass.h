@@ -51,7 +51,7 @@ private:
     void upload_textures(model3::TextureSheets& sheets);
     void upload_vertices(const model3::Scene& scene);
     void upload_uniforms(const model3::FramePlan& plan);
-    void draw_layer(u32 texture, const model3::FramePlan& plan);
+    void draw_layer(u32 texture, const model3::LayerDraw& d);
     void draw_range(const model3::FramePlan& plan, model3::DrawRange range, bool colour_pass);
     void draw_3d(const model3::FramePlan& plan, u64 frame_number);
 
@@ -80,6 +80,7 @@ private:
     // inputs
     u32 m_bank      = 0;
     u32 m_layers[2] = {0, 0};
+    u32 m_layer_width[2] = {0, 0};
     u32 m_vao       = 0;
     u32 m_vbo       = 0;
     u64 m_rom_generation = 0;

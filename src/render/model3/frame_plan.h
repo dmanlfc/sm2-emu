@@ -164,14 +164,25 @@ struct FogDraw {
     ScrollFogUniforms uniforms{};
 };
 
+// A tile layer's texture drawn at `rect`: uv.x scaled by uv_scale, kept
+// within [clip_lo, clip_hi).
+struct LayerDraw {
+    PixelRect rect;
+    float     uv_scale = 1.0f;
+    float     clip_lo  = 0.0f;
+    float     clip_hi  = 1.0f;
+};
+
 struct FramePlan {
     u32 target_width  = 0;
     u32 target_height = 0;
 
     bool white_flash = false;
 
-    PixelRect display;   // Main.cpp's scissor: display inset by the 2D/3D correction
+    PixelRect display;   // the scissor: display inset by the 2D/3D correction
     PixelRect layer_2d;  // tile layers, shifted left/up by the correction
+    LayerDraw layers[2];  // bottom, top; set by FrameBuilder
+    bool      widened = false;  // a viewport reaches into the widescreen columns
 
     std::vector<FogDraw>          fogs;
     std::vector<LayerPass>        passes;
