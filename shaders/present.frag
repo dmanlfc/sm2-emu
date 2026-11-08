@@ -56,6 +56,14 @@ layout(push_constant) uniform Present {
 
 const uint kSharpBilinear = 2u;
 
+#ifdef SM2_TARGET_GL
+const bool kCrtVariant = true;
+#else
+// A pipeline without the CRT block keeps the plain path small enough to run at
+// the full thread count on tilers; the CRT code costs V3D half its threads.
+layout(constant_id = 0) const bool kCrtVariant = true;
+#endif
+
 // Sample coordinate for the current scaling method (before any CRT warp).
 vec2 sample_uv(vec2 uv)
 {
@@ -88,7 +96,7 @@ void main()
 {
     vec2 frame = vTexCoord;
 
-    if (pc.crt_enabled == 0u) {
+    if (!kCrtVariant || pc.crt_enabled == 0u) {
         // Plain present path -- no added work when the filter is off.
         fragColour = vec4(texture(uLayer, sample_uv(frame)).rgb, 1.0);
         return;

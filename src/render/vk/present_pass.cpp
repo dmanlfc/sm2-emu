@@ -133,6 +133,10 @@ void PresentPass::shutdown()
         target.set = {VK_NULL_HANDLE, VK_NULL_HANDLE};
     }
 
+    if (m_pipeline_crt != VK_NULL_HANDLE) {
+        vkDestroyPipeline(device, m_pipeline_crt, nullptr);
+        m_pipeline_crt = VK_NULL_HANDLE;
+    }
     if (m_pipeline != VK_NULL_HANDLE) {
         vkDestroyPipeline(device, m_pipeline, nullptr);
         m_pipeline = VK_NULL_HANDLE;
@@ -409,8 +413,13 @@ bool PresentPass::create_pipeline()
     info.layout              = m_pipeline_layout;
     info.renderPass          = VK_NULL_HANDLE;
 
-    SM2_VK_TRY(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr,
-                                         &m_pipeline));
+    for (VkBool32 crt : {VK_FALSE, VK_TRUE}) {
+        const VkSpecializationMapEntry entry{0, 0, sizeof(VkBool32)};
+        VkSpecializationInfo           spec{1, &entry, sizeof(VkBool32), &crt};
+        stages[1].pSpecializationInfo = &spec;
+        SM2_VK_TRY(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr,
+                                             crt ? &m_pipeline_crt : &m_pipeline));
+    }
     return true;
 }
 
@@ -550,7 +559,7 @@ void PresentPass::record()
 
     const usize slot = sampler_for(m_options.scaling_method);
 
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_options.crt_enabled ? m_pipeline_crt : m_pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1,
                             &target.set[slot], 0, nullptr);
     vkCmdPushConstants(cmd, m_pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
