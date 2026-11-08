@@ -32,6 +32,7 @@
 #include "render/model3/tilegen.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
 
 namespace sm2::render::model3 {
@@ -52,6 +53,7 @@ TileGen::TileGen()
     for (auto& s : m_surface) {
         s.assign(static_cast<usize>(kWidth) * kHeight, 0);
     }
+    reset_scroll();
 }
 
 // m_vram always holds kVramBytes (see prepare()), so no bounds checks.
@@ -151,10 +153,19 @@ void TileGen::clear()
     clear_state();
 }
 
-void TileGen::clear_state()
+void TileGen::clear_state() {}
+
+void TileGen::reset_scroll()
 {
-    m_scroll_hash.fill(0);
-    m_enabled.fill(false);
+    for (auto& l : m_line_scroll) {
+        l.fill(~0u);
+    }
+    for (auto& l : m_line_still) {
+        l.fill(kStill);
+    }
+    for (auto& l : m_line_active) {
+        l.fill(false);
+    }
 }
 
 void TileGen::clear_line(u32 line)
@@ -226,7 +237,7 @@ void TileGen::finish_wide()
                 std::fill(row + side + right, row + width, 0u);
             }
         }
-        if (!m_extend_edges) {
+        if (!m_extend) {
             continue;
         }
         const auto edge_flat = [&](int edge) {
@@ -300,21 +311,39 @@ u32 TileGen::tile_pixel(int index, bool four_bit, int x, int line, int scroll_x,
 }
 
 void TileGen::draw_sides(int line, std::span<const u32> regs, int primary, int line_mask, const int scroll_x[2],
-                         const int scroll_y[2], const bool has_layer[2])
+                         const int scroll_y[2], const bool scrolling[2])
 {
     u32* const row   = m_wide[0].data() + static_cast<usize>(wide_width()) * static_cast<usize>(line);
     const int  side  = static_cast<int>(m_side);
     const int  right = static_cast<int>(kVisibleWidth);
+    const auto pixel = [&](int x) {
+        const int layer = (GetPixelMask(line_mask, std::clamp(x, 0, right - 1)) + 1) & 1;
+        const int index = primary + layer;
+        if (!scrolling[layer] || Above3D(regs, index)) {
+            return 0u;
+        }
+        return tile_pixel(index, Is4Bit(regs, index), x, line, scroll_x[layer], scroll_y[layer]);
+    };
+    // The map wraps at 512: only a line whose 16 columns off the screen are
+    // filled joins up with itself; a 496-wide screen leaves them blank.
+    const auto seamless = [&](int from) {
+        for (int x = from; x < from + static_cast<int>(kWidth - kVisibleWidth); x++) {
+            if (pixel(x) == 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+    const bool left_ok  = seamless(static_cast<int>(kVisibleWidth) - static_cast<int>(kWidth));
+    const bool right_ok = seamless(right);
     for (int x = -side; x < right + side; x++) {
         if (x == 0) {
             x = right;
         }
-        const int layer = (GetPixelMask(line_mask, std::clamp(x, 0, right - 1)) + 1) & 1;
-        const int index = primary + layer;
-        if (!has_layer[layer] || !m_extend[static_cast<usize>(index)] || Above3D(regs, index)) {
+        if (!(x < 0 ? left_ok : right_ok)) {
             continue;
         }
-        const u32 colour = tile_pixel(index, Is4Bit(regs, index), x, line, scroll_x[layer], scroll_y[layer]);
+        const u32 colour = pixel(x);
         if (colour != 0) {
             row[x + side] = colour;
         }
@@ -577,15 +606,30 @@ void TileGen::draw_line(int line, std::span<const u32> regs)
             LineScrollMode(regs, altIndex) ? GetLineScroll(altIndex, line) : GetXScroll(regs, altIndex)};
         const int scrollY[2] = {GetYScroll(regs, primaryIndex), GetYScroll(regs, altIndex)};
 
+        // A line counts as scrolling background once its scroll moves on two
+        // frames close together (not a one-off jump to a new screen), until the
+        // layer is switched off or keeps still for a while.
+        bool scrolling[2] = {};
         for (int k = 0; k < 2; k++) {
-            if (hasLayer[k]) {
-                u32& h = m_scroll_hash[static_cast<usize>(primaryIndex + k)];
-                h      = (h ^ static_cast<u32>(scrollX[k] | (scrollY[k] << 16))) * 0x01000193u;
-                m_enabled[static_cast<usize>(primaryIndex + k)] = true;
+            const usize index  = static_cast<usize>(primaryIndex + k);
+            u32&        last   = m_line_scroll[index][static_cast<usize>(line)];
+            u32&        still  = m_line_still[index][static_cast<usize>(line)];
+            bool&       active = m_line_active[index][static_cast<usize>(line)];
+            const u32   now    = hasLayer[k] ? (static_cast<u32>(scrollX[k]) & 0x1FF) | ((static_cast<u32>(scrollY[k]) & 0x1FF) << 16) : ~0u;
+            if (now == ~0u) {
+                still  = kStill;
+                active = false;
+            } else if (last != ~0u && now != last) {
+                active = active || still < kRepeat;
+                still  = 0;
+            } else if (still < kStill) {
+                active = active && ++still < kStill;
             }
+            last         = now;
+            scrolling[k] = m_extend && active;
         }
-        if (m_side != 0 && (m_extend[static_cast<usize>(primaryIndex)] || m_extend[static_cast<usize>(altIndex)])) {
-            draw_sides(line, regs, primaryIndex, lineMask, scrollX, scrollY, hasLayer);
+        if (m_side != 0 && (scrolling[0] || scrolling[1])) {
+            draw_sides(line, regs, primaryIndex, lineMask, scrollX, scrollY, scrolling);
         }
 
         for (int x = 0; x < static_cast<int>(kVisibleWidth);) {

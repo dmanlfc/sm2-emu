@@ -102,7 +102,6 @@ public:
 private:
     void build(const hw::model3::VideoFrame& frame, bool encode_depth);
     void plan_layers();
-    void track_scroll();
     void apply_replacements();
     void worker();
 
@@ -113,10 +112,6 @@ private:
     TextureHasher m_hasher;
     const TextureReplacements* m_replacements = nullptr;
     TextureDumper*             m_dumper       = nullptr;
-    std::array<u32, 4>  m_scroll_hash{};
-    std::array<u32, 4>  m_scroll_age{};  // frames since the layer last scrolled
-    std::array<bool, 4> m_scrolled{};
-    std::array<bool, 4> m_scroll_known{};
     bool m_has_frame      = false;
     u64  m_frame_number   = 0;
     u64  m_builds         = 0;

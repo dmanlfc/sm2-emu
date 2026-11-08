@@ -111,8 +111,7 @@ void FrameBuilder::reset()
     m_last = nullptr;
     m_scene.reset();
     m_textures.invalidate();
-    m_scrolled.fill(false);
-    m_scroll_known.fill(false);
+    m_tilegen.reset_scroll();
     m_has_frame = false;
 }
 
@@ -138,8 +137,7 @@ void FrameBuilder::build(const hw::model3::VideoFrame& frame, bool encode_depth)
     m_times.textures = since(mark);
     const SceneGeometry& g = m_scene.geometry();
     m_tilegen.set_side_columns(g.columns);
-    const bool wide_2d = g.wide_2d && g.widen;
-    m_tilegen.set_extend(wide_2d ? m_scrolled : std::array<bool, 4>{}, wide_2d);
+    m_tilegen.set_extend(g.wide_2d && g.widen);
     m_tilegen.draw_frame(frame.tilegen_vram, frame.tilegen_regs, frame.tilegen_lines, frame.tilegen_writes);
     m_tilegen.finish_wide();
     m_times.tilegen = since(mark);
@@ -165,7 +163,6 @@ void FrameBuilder::build(const hw::model3::VideoFrame& frame, bool encode_depth)
         m_plan.fogs.clear();
         m_plan.white_flash = false;
     }
-    track_scroll();
     plan_layers();
     if (m_replacements != nullptr && !m_replacements->empty()) {
         apply_replacements();
@@ -231,27 +228,6 @@ bool FrameBuilder::top_layer_hides_3d() const
 std::span<const u32> FrameBuilder::layer(int index) const
 {
     return m_tilegen.side_columns() != 0 ? m_tilegen.wide_layer(index) : m_tilegen.layer(index);
-}
-
-// A layer counts as scrolling background from when its scroll first moves
-// until it is switched off or keeps still for a while.
-void FrameBuilder::track_scroll()
-{
-    constexpr u32 kStill = 60 * 20;
-    const auto& hash    = m_tilegen.scroll_hash();
-    const auto& enabled = m_tilegen.enabled();
-    for (usize i = 0; i < 4; i++) {
-        if (!enabled[i]) {
-            m_scrolled[i] = false;
-        } else if (m_scroll_known[i] && hash[i] != m_scroll_hash[i]) {
-            m_scrolled[i]   = true;
-            m_scroll_age[i] = 0;
-        } else if (++m_scroll_age[i] >= kStill) {
-            m_scrolled[i] = false;
-        }
-        m_scroll_known[i] = enabled[i];
-        m_scroll_hash[i]  = hash[i];
-    }
 }
 
 void FrameBuilder::plan_layers()

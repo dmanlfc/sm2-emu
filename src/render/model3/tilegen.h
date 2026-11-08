@@ -51,27 +51,19 @@ public:
     [[nodiscard]] std::span<const u32> layer(int index) const { return m_surface[static_cast<usize>(index)]; }
 
     /// Widescreen: `columns` more of the map drawn each side of the bottom
-    /// layer into wide_layer(), for the layers set_extend() names.
+    /// layer into wide_layer(), on the lines where a layer is scrolling.
     void set_side_columns(u32 columns);
     [[nodiscard]] u32 side_columns() const { return m_side; }
     [[nodiscard]] u32 wide_width() const { return kVisibleWidth + 2 * m_side; }
-    /// `edges` also carries a row out whose 16 pixels at that edge are one
-    /// colour (a sky gradient).
-    void set_extend(std::array<bool, 4> extend, bool edges)
-    {
-        m_extend       = extend;
-        m_extend_edges = edges;
-    }
+    /// Also carries a layer's rows out when its edges are one colour all the
+    /// way down (a sky gradient, a frame).
+    void set_extend(bool extend) { m_extend = extend; }
 
     /// A layer wide_width() across: the sides, then the 496 columns of
     /// layer() copied in by finish_wide().
     [[nodiscard]] std::span<const u32> wide_layer(int index) const { return m_wide[static_cast<usize>(index)]; }
     void finish_wide();
-
-    /// Per layer, a hash of the X scroll down the frame last drawn, and
-    /// whether it was enabled.
-    [[nodiscard]] const std::array<u32, 4>&  scroll_hash() const { return m_scroll_hash; }
-    [[nodiscard]] const std::array<bool, 4>& enabled() const { return m_enabled; }
+    void reset_scroll();
 
 private:
     struct ColourOffsetRegister {
@@ -119,7 +111,7 @@ private:
 
     [[nodiscard]] u32 tile_pixel(int index, bool four_bit, int x, int line, int scroll_x, int scroll_y) const;
     void draw_sides(int line, std::span<const u32> regs, int primary, int line_mask, const int scroll_x[2],
-                    const int scroll_y[2], const bool has_layer[2]);
+                    const int scroll_y[2], const bool scrolling[2]);
 
     std::span<const u8> m_vram;
     std::vector<u8>     m_vram_work;  // VRAM as of the line being drawn, when stores are applied
@@ -132,11 +124,15 @@ private:
     std::array<std::vector<u32>, 2> m_surface;  // [0] bottom, [1] top
 
     u32                  m_side = 0;
-    std::array<bool, 4>  m_extend{};
-    bool                 m_extend_edges = false;
+    bool                 m_extend = false;
     std::array<std::vector<u32>, 2> m_wide;
-    std::array<u32, 4>   m_scroll_hash{};
-    std::array<bool, 4>  m_enabled{};
+    // Per layer and line: the scroll last drawn (~0 if off), frames since it
+    // moved, and whether it counts as scrolling.
+    static constexpr u32 kStill  = 60 * 20;
+    static constexpr u32 kRepeat = 30;
+    std::array<std::array<u32, kHeight>, 4>  m_line_scroll{};
+    std::array<std::array<u32, kHeight>, 4>  m_line_still{};
+    std::array<std::array<bool, kHeight>, 4> m_line_active{};
 };
 
 }  // namespace sm2::render::model3
