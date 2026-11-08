@@ -2042,11 +2042,9 @@ msgstr "Enter: চালু   F10: সেটিংস   F9: প্রস্থ�
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"ROM ফোল্ডারে কোনো Model 2 ROM আর্কাইভ পাওয়া যায়নি। সেটিংস (F1) > পাথ-এ এটি সেট "
-"করুন, তারপর আবার চালু করুন।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2169,3 +2167,11 @@ msgstr "ভিউ 3"
 #, no-c-format
 msgid "View 4"
 msgstr "ভিউ 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

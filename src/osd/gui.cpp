@@ -960,6 +960,11 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                       N_("Where the Model 1 ROM archives live.\n"
                          "Empty means the ROM directory."));
             ImGui::Spacing();
+            dir_field(N_("Model 3 ROM directory"), "##model3romdir", config.model3_rom_dir,
+                      DirPickerTarget::Model3RomDir,
+                      N_("Where the Model 3 ROM archives live.\n"
+                         "Empty means the ROM directory."));
+            ImGui::Spacing();
             dir_field(N_("Saves directory"), "##saves", config.nvram_dir,
                       DirPickerTarget::NvramDir,
                       N_("Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
@@ -3461,6 +3466,7 @@ void Gui::draw_dir_picker_popup(Config& config)
         switch (m_dir_picker_target) {
             case DirPickerTarget::RomDir:        config.rom_dir        = m_dir_picker_path; break;
             case DirPickerTarget::Model1RomDir:  config.model1_rom_dir = m_dir_picker_path; break;
+            case DirPickerTarget::Model3RomDir:  config.model3_rom_dir = m_dir_picker_path; break;
             case DirPickerTarget::NvramDir:      config.nvram_dir      = m_dir_picker_path; break;
             case DirPickerTarget::ScreenshotDir: config.screenshot_dir = m_dir_picker_path; break;
             case DirPickerTarget::BezelDir: config.bezel_dir = m_dir_picker_path; break;
@@ -3680,7 +3686,7 @@ void Gui::draw_picker(Config& config)
 
     if (m_picker_entries.empty()) {
         ImGui::Spacing();
-        text_wrapped("No Model 2 ROM archives were found in the ROM directory. Set it in "
+        text_wrapped("No ROM archives were found in the ROM directories. Set them in "
                      "Settings (F1) > Paths, then relaunch.");
         ImGui::End();
         ImGui::PopStyleColor();

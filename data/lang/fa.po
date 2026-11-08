@@ -2041,11 +2041,9 @@ msgstr "Enter: اجرا   F10: تنظیمات   F9: خروج"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"هیچ آرشیو ROM برای Model 2 در پوشه ROM پیدا نشد. آن را در تنظیمات (F1) > "
-"مسیرها تنظیم کنید، سپس دوباره اجرا کنید."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2168,3 +2166,11 @@ msgstr "نما 3"
 #, no-c-format
 msgid "View 4"
 msgstr "نما 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

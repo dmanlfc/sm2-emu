@@ -55,6 +55,7 @@ public:
 
     void serialize(Archive& ar) override { m_board.serialize(ar); }
     [[nodiscard]] SoundBoard* sound_board() override { return &m_board; }
+    void set_music_volume(u32 percent) override { m_board.set_music_volume(percent); }
 
     Model3Sound m_board;
 };

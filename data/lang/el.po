@@ -2056,11 +2056,9 @@ msgstr "Enter: εκκίνηση   F10: ρυθμίσεις   F9: έξοδος"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"Δεν βρέθηκαν αρχεία ROM του Model 2 στον φάκελο ROM. Ορίστε τον στις "
-"Ρυθμίσεις (F1) > Διαδρομές και επανεκκινήστε."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2185,3 +2183,11 @@ msgstr "Οπτική 3"
 #, no-c-format
 msgid "View 4"
 msgstr "Οπτική 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

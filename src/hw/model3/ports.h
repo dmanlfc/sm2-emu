@@ -91,6 +91,9 @@ public:
 
     /// May be nullptr.
     [[nodiscard]] virtual SoundBoard* sound_board() = 0;
+
+    /// The MPEG music board's level in percent.
+    virtual void set_music_volume(u32 percent) { (void)percent; }
 };
 
 /// nullptr without SM2_MODEL3_HAVE_SOUND.

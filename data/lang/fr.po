@@ -2051,11 +2051,9 @@ msgstr "Enter : lancer   F10 : paramètres   F9 : quitter"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"Aucune archive ROM Model 2 trouvée dans le dossier des ROM. Définissez-le "
-"dans Paramètres (F1) > Chemins, puis relancez."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2180,3 +2178,11 @@ msgstr "Vue 3"
 #, no-c-format
 msgid "View 4"
 msgstr "Vue 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

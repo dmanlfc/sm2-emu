@@ -280,7 +280,7 @@ private:
     void draw_calibration_markers(const class Input* input);
     void draw_sinden_border(const Config& config);
 
-    enum class DirPickerTarget { None, RomDir, Model1RomDir, NvramDir, ScreenshotDir, BezelDir, CrosshairDir };
+    enum class DirPickerTarget { None, RomDir, Model1RomDir, Model3RomDir, NvramDir, ScreenshotDir, BezelDir, CrosshairDir };
 
     void open_dir_picker(DirPickerTarget target, const std::string& initial);
 

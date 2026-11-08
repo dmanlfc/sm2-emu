@@ -544,6 +544,9 @@ struct Config {
     /// Model 1 ROM archives; empty means rom_dir holds them too.
     std::string model1_rom_dir;
 
+    /// Model 3 ROM archives; empty means rom_dir holds them too.
+    std::string model3_rom_dir;
+
     /// Saves: per-game .nv and .eeprom images. Empty here;
     /// resolve_default_paths() fills it under the platform data directory.
     std::string nvram_dir;

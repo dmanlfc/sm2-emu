@@ -2042,11 +2042,9 @@ msgstr "Enter: spustiť   F10: nastavenia   F9: ukončiť"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"V priečinku ROM sa nenašli žiadne archívy ROM pre Model 2. Nastavte ho v "
-"Nastavenia (F1) > Cesty a spustite znova."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2169,3 +2167,11 @@ msgstr "Pohľad 3"
 #, no-c-format
 msgid "View 4"
 msgstr "Pohľad 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

@@ -2045,11 +2045,9 @@ msgstr "Enter: pokreni   F10: postavke   F9: izlaz"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"U mapi ROM-ova nisu pronađene ROM arhive za Model 2. Postavite je u Postavke "
-"(F1) > Putanje, zatim ponovno pokrenite."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2172,3 +2170,11 @@ msgstr "Pogled 3"
 #, no-c-format
 msgid "View 4"
 msgstr "Pogled 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

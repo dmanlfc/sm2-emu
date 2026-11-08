@@ -2041,11 +2041,9 @@ msgstr "Enter: चलाएँ   F10: सेटिंग्स   F9: बाह�
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"ROM डायरेक्टरी में कोई Model 2 ROM आर्काइव नहीं मिला। इसे सेटिंग्स (F1) > पाथ में सेट करें, "
-"फिर दोबारा चलाएँ।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2168,3 +2166,11 @@ msgstr "व्यू 3"
 #, no-c-format
 msgid "View 4"
 msgstr "व्यू 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

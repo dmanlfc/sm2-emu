@@ -2040,11 +2040,9 @@ msgstr "Enter: 실행   F10: 설정   F9: 종료"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"ROM 디렉터리에서 Model 2 ROM 압축 파일을 찾을 수 없습니다. 설정(F1) > 경로에"
-"서 지정한 뒤 다시 실행하세요."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2168,3 +2166,11 @@ msgstr "시점 3"
 #, no-c-format
 msgid "View 4"
 msgstr "시점 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

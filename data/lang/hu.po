@@ -2052,11 +2052,9 @@ msgstr "Enter: indítás   F10: beállítások   F9: kilépés"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"Nem található Model 2 ROM-archívum a ROM-mappában. Állítsa be: Beállítások "
-"(F1) > Útvonalak, majd indítsa újra."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2181,3 +2179,11 @@ msgstr "Nézet 3"
 #, no-c-format
 msgid "View 4"
 msgstr "Nézet 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

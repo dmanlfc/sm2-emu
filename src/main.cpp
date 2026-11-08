@@ -189,6 +189,7 @@ struct Options {
         bool gpu        = false;
         bool rom_dir    = false;
         bool model1_rom_dir = false;
+        bool model3_rom_dir = false;
         bool nvram_dir  = false;
         bool screenshot_dir = false;
         bool render_scale = false;
@@ -319,6 +320,8 @@ void print_usage()
         "      --rom-dir <dir> Where the ROM archives live; a game named with no\n"
         "                      path is loaded from <dir>/<name>.zip or .7z\n"
         "      --model1-rom-dir <dir>  Where the Model 1 archives live, if not\n"
+        "                      in --rom-dir\n"
+        "      --model3-rom-dir <dir>  Where the Model 3 archives live, if not\n"
         "                      in --rom-dir\n"
         "      --screenshot-dir <dir>  Where screenshots are written\n"
         "      --load-state <file>  Restore this save state before running, so a\n"
@@ -536,6 +539,8 @@ void print_usage()
             out->given.rom_dir = true;
         } else if (takes_value("--model1-rom-dir", &out->config.model1_rom_dir)) {
             out->given.model1_rom_dir = true;
+        } else if (takes_value("--model3-rom-dir", &out->config.model3_rom_dir)) {
+            out->given.model3_rom_dir = true;
         } else if (takes_value("--nvram", &out->config.nvram_dir)) {
             out->given.nvram_dir = true;
         } else if (takes_value("--screenshot-dir", &out->config.screenshot_dir)) {
@@ -691,8 +696,8 @@ struct LoadedMachine {
     const sm2::hw::I8251* sound_link  = nullptr;
 };
 
-/// The folder set `name` loads from: model1_rom_dir for a Model 1 set when one
-/// is given, else rom_dir.
+/// The folder set `name` loads from: model1_rom_dir / model3_rom_dir for a
+/// Model 1 / Model 3 set when one is given, else rom_dir.
 [[nodiscard]] const std::string& rom_dir_for(const sm2::rom::GameDatabase& database,
                                              const sm2::Config& config,
                                              const std::string& name)
@@ -701,6 +706,10 @@ struct LoadedMachine {
     if (game != nullptr && game->board == sm2::rom::Board::Model1
         && !config.model1_rom_dir.empty()) {
         return config.model1_rom_dir;
+    }
+    if (game != nullptr && game->board == sm2::rom::Board::Model3
+        && !config.model3_rom_dir.empty()) {
+        return config.model3_rom_dir;
     }
     return config.rom_dir;
 }
@@ -931,6 +940,9 @@ int main(int argc, char** argv)
     if (!options.given.model1_rom_dir) {
         options.config.model1_rom_dir = from_file.model1_rom_dir;
     }
+    if (!options.given.model3_rom_dir) {
+        options.config.model3_rom_dir = from_file.model3_rom_dir;
+    }
     if (!options.given.nvram_dir) {
         options.config.nvram_dir = from_file.nvram_dir;
     }
@@ -1156,7 +1168,8 @@ int main(int argc, char** argv)
     // says which parent a clone's merged archive is named after. A positional
     // path wins.
     const bool any_rom_dir = !options.config.rom_dir.empty()
-                             || !options.config.model1_rom_dir.empty();
+                             || !options.config.model1_rom_dir.empty()
+                             || !options.config.model3_rom_dir.empty();
     const bool game_in_rom_dir = options.rom_path.empty() && !options.game.empty()
                                  && any_rom_dir;
 
@@ -2241,12 +2254,12 @@ int main(int argc, char** argv)
                             if (is_hotkey(event.key, Config::Hotkey::Pause) && !event.key.repeat) {
                                 paused = !paused;
                             } else if (is_hotkey(event.key, Config::Hotkey::QuickSave) && !event.key.repeat
-                                       && machine_iface != nullptr) {
+                                       && machine_any != nullptr) {
                                 // Quick-save / quick-load the reserved slot. Only
                                 // with a game running; serviced between frames.
                                 state_action = StateAction{StateOp::Save, hw::kQuickSlot};
                             } else if (is_hotkey(event.key, Config::Hotkey::QuickLoad) && !event.key.repeat
-                                       && machine_iface != nullptr) {
+                                       && machine_any != nullptr) {
                                 state_action = StateAction{StateOp::Load, hw::kQuickSlot};
                             } else if (is_hotkey(event.key, Config::Hotkey::Fps) && !event.key.repeat) {
                                 options.config.show_fps = !options.config.show_fps;
@@ -2467,6 +2480,9 @@ int main(int argc, char** argv)
                 machine_iface->set_draw_distance(options.config.extended_draw_distance);
                 machine_iface->set_music_volume(options.config.music_volume);
                 machine_iface->set_black_level(black_level_for(options.config));
+                }
+                if (machine_m3 && machine_m3->sound() != nullptr) {
+                    machine_m3->sound()->set_music_volume(options.config.music_volume);
                 }
                 if (machine_m3) {
                     const u32 columns =

@@ -2048,11 +2048,9 @@ msgstr "Enter: palaist   F10: iestatījumi   F9: iziet"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"ROM mapē netika atrasts neviens Model 2 ROM arhīvs. Iestatiet to sadaļā "
-"Iestatījumi (F1) > Ceļi un palaidiet no jauna."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2176,3 +2174,11 @@ msgstr "Skats 3"
 #, no-c-format
 msgid "View 4"
 msgstr "Skats 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

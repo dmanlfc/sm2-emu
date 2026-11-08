@@ -2039,11 +2039,9 @@ msgstr "Enter: luncurkan   F10: pengaturan   F9: keluar"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"Tidak ada arsip ROM Model 2 di direktori ROM. Atur di Pengaturan (F1) > "
-"Jalur, lalu buka ulang."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2167,3 +2165,11 @@ msgstr "Tampilan 3"
 #, no-c-format
 msgid "View 4"
 msgstr "Tampilan 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

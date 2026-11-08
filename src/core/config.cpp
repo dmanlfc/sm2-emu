@@ -953,6 +953,8 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             out->rom_dir = value;
         } else if (key == "model1_rom_dir") {
             out->model1_rom_dir = value;
+        } else if (key == "model3_rom_dir") {
+            out->model3_rom_dir = value;
         } else if (key == "nvram_dir") {
             out->nvram_dir = value;
         } else if (key == "screenshot_dir") {
@@ -1087,6 +1089,7 @@ bool save_config(const std::string& path, const Config& config)
     out << "\n[paths]\n"
         << "rom_dir = " << config.rom_dir << "\n"
         << "model1_rom_dir = " << config.model1_rom_dir << "\n"
+        << "model3_rom_dir = " << config.model3_rom_dir << "\n"
         << "nvram_dir = " << config.nvram_dir << "\n"
         << "screenshot_dir = " << config.screenshot_dir << "\n"
         << "bezel_dir = " << config.bezel_dir << "\n"

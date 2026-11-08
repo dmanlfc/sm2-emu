@@ -2031,11 +2031,9 @@ msgstr "Enter：啟動   F10：設定   F9：結束"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"在 ROM 目錄中找不到 Model 2 ROM 壓縮檔。請在 設定（F1）> 路徑 中設定，然後重"
-"新啟動。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2157,3 +2155,11 @@ msgstr "視角 3"
 #, no-c-format
 msgid "View 4"
 msgstr "視角 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""

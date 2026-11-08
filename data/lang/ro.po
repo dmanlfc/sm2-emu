@@ -2047,11 +2047,9 @@ msgstr "Enter: pornește   F10: setări   F9: ieșire"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
+"No ROM archives were found in the ROM directories. Set them in Settings "
 "(F1) > Paths, then relaunch."
 msgstr ""
-"Nu s-au găsit arhive ROM Model 2 în directorul ROM. Setați-l în Setări (F1) "
-"> Căi, apoi reporniți."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2176,3 +2174,11 @@ msgstr "Vedere 3"
 #, no-c-format
 msgid "View 4"
 msgstr "Vedere 4"
+
+msgid "Model 3 ROM directory"
+msgstr ""
+
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
