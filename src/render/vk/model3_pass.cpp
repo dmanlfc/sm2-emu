@@ -1036,12 +1036,11 @@ void Model3Pass::draw_range(const FramePlan& plan, DrawRange range, int layer, P
         if (pipeline == VK_NULL_HANDLE) {
             continue;
         }
+        // One layout and the same dynamic states for all: sets, pushes and
+        // the stencil reference stay bound across pipelines.
         if (pipeline != bound_pipeline) {
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
             bound_pipeline = pipeline;
-            bound_uniforms = ~0u;  // rebind descriptors and pushes under the new pipeline
-            bound_model    = ~0u;
-            bound_ref      = -1;
         }
         if (d.viewport != bound_viewport) {
             const ViewportRect& vp = plan.viewports[d.viewport];
@@ -1061,10 +1060,10 @@ void Model3Pass::draw_range(const FramePlan& plan, DrawRange range, int layer, P
                                &plan.models[d.model]);
             bound_model = d.model;
         }
-        const int ref = d.no_los_return ? 0x80 : 0x00;
+        const int ref = d.layered || !d.no_los_return ? 0x00 : 0x80;
         if (!float_depth && ref != bound_ref) {
-            vkCmdSetStencilReference(cmd, VK_STENCIL_FACE_FRONT_AND_BACK, static_cast<u32>(d.layered ? 0 : ref));
-            bound_ref = d.layered ? -2 : ref;
+            vkCmdSetStencilReference(cmd, VK_STENCIL_FACE_FRONT_AND_BACK, static_cast<u32>(ref));
+            bound_ref = ref;
         }
         const int region = d.dynamic ? 1 : 0;
         if (region != bound_region) {
