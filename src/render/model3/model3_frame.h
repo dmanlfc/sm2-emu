@@ -65,9 +65,9 @@ public:
     /// Runs `job` on the worker after what is queued; wait(ticket) for it.
     u64 run_async(std::function<void()> job);
     void wait(u64 ticket);
-    /// wait(), and forget last_frame() unless it is `keep`.
+    /// wait(), then forget the last frame unless it is `keep`.
     void release(const hw::model3::VideoFrame* keep = nullptr);
-    /// wait(); rebuild the last frame if it was built for other geometry.
+    /// wait(), then rebuild the last frame if it was built for other geometry.
     void match_geometry(const SceneGeometry& geometry, bool encode_depth);
     /// The frame of the last submit, or null after reset().
     [[nodiscard]] const hw::model3::VideoFrame* last_frame() const { return m_last; }

@@ -71,10 +71,11 @@ void FrameBuilder::wait()
 
 void FrameBuilder::release(const hw::model3::VideoFrame* keep)
 {
-    wait();
-    if (m_last != keep) {
-        m_last = nullptr;
+    if (keep != nullptr && m_last == keep) {
+        return;
     }
+    wait();
+    m_last = nullptr;
 }
 
 void FrameBuilder::match_geometry(const SceneGeometry& geometry, bool encode_depth)
