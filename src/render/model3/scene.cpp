@@ -416,9 +416,10 @@ void Scene::DescendCullingNode(u32 addr)
     const float fBlendRadius = pro_float16(uBlendRadius) * m_nodeAttribs.currentModelScale;
 
     bool outsideFrustum = false;
-    if ((z * m_planes.bnlu - x * m_planes.bnlv * m_planes.correction) > fCullRadius
+    const float cx = m_planes.correction == 1.0f ? x : x * m_planes.correction + z * m_planes.shift;
+    if ((z * m_planes.bnlu - cx * m_planes.bnlv) > fCullRadius
         || (z * m_planes.bntu + y * m_planes.bntw) > fCullRadius
-        || (z * m_planes.bnru - x * m_planes.bnrv * m_planes.correction) > fCullRadius
+        || (z * m_planes.bnru - cx * m_planes.bnrv) > fCullRadius
         || (z * m_planes.bnbu + y * m_planes.bnbw) > fCullRadius) {
         outsideFrustum = true;
     }
@@ -742,7 +743,8 @@ void Scene::RenderViewport(u32 addr, int depth)
         m_planes.bnrv       = u32_as_float(vpnode[0x11]);
         m_planes.bnbu       = u32_as_float(vpnode[0x12]);
         m_planes.bnbw       = u32_as_float(vpnode[0x13]);
-        m_planes.correction = 1.0f;  // might get changed by the calc viewport method
+        m_planes.correction = 1.0f;  // calc_viewport() may change it
+        m_planes.shift      = 0.0f;
 
         vp->angle_left   = (0.0f - jo) / cv;
         vp->angle_right  = (1.0f - jo) / cv;
@@ -1239,22 +1241,22 @@ void Scene::calc_viewport(Viewport* vp)
 
     vp->projectionMatrix.load_identity();  // reset matrix
 
-    if (m_wideScreen && (vp->vpX == 0) && (vp->vpWidth >= 495) && (vp->vpY == 0) && (vp->vpHeight >= 383)) {
-
-        // In wide-screen mode the frustum of a full-screen viewport is expanded
-        // horizontally to fill the window, keeping the aspect ratio correct.
-        const float windowAR       = static_cast<float>(m_totalXRes) / static_cast<float>(m_totalYRes);
-        const float viewableAreaAR = static_cast<float>(m_xRes) / static_cast<float>(m_yRes);
-
-        const float correction = windowAR / viewableAreaAR;
-        m_planes.correction    = 1.0f / correction;
+    if (widens(*vp)) {
+        // Grow the frustum by the same angle on each side, so the 4:3 picture
+        // stays where it was, and cull against the wider one by mapping x back.
+        const float scale = static_cast<float>(m_totalXRes) / static_cast<float>(m_xRes);
+        const float grow  = (r - l) * (scale - 1.0f) * 0.5f;
+        const float wl    = l - grow;
+        const float wr    = r + grow;
+        m_planes.correction = 1.0f / scale;
+        m_planes.shift      = wl / scale - l;
 
         vp->x      = 0;
         vp->y      = static_cast<int>(m_yOffs) + static_cast<int>((384.0f - (vp->vpY + vp->vpHeight)) * m_yRatio);
         vp->width  = static_cast<int>(m_totalXRes);
         vp->height = static_cast<int>(vp->vpHeight * m_yRatio);
 
-        vp->projectionMatrix.frustum_rz(l * correction, r * correction, b, t, kNearPlane);
+        vp->projectionMatrix.frustum_rz(wl, wr, b, t, kNearPlane);
     } else {
 
         vp->x      = static_cast<int>(m_xOffs) + static_cast<int>(vp->vpX * m_xRatio);
@@ -1266,9 +1268,14 @@ void Scene::calc_viewport(Viewport* vp)
     }
 }
 
+bool Scene::widens(const Viewport& vp) const
+{
+    return m_wideScreen && vp.vpX == 0 && vp.vpWidth >= 495 && vp.vpY == 0 && vp.vpHeight >= 383;
+}
+
 void Scene::translate_los_position(int inX, int inY, int& outX, int& outY) const
 {
-    // remap real3d 496x384 to our new viewport
+    // remap the Real3D's 496x384 to the target viewport
     inY = 384 - inY;
 
     outX = static_cast<int>(m_xOffs) + static_cast<int>(static_cast<float>(inX) * m_xRatio);

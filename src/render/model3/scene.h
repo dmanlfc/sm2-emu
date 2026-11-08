@@ -40,13 +40,15 @@ inline constexpr float kNearPlane = 1e-3f;
 struct SceneGeometry {
     u32  render_scale = 1;
     u32  columns      = 0;  ///< Native columns added on each side (widescreen).
+    bool widen        = true;   ///< Full-width viewports reach into the columns.
+    bool wide_2d      = false;  ///< Scrolling layers behind the 3D do too.
 
     [[nodiscard]] u32  x_res() const { return 496 * render_scale; }
     [[nodiscard]] u32  y_res() const { return 384 * render_scale; }
     [[nodiscard]] u32  total_x() const { return (496 + 2 * columns) * render_scale; }
     [[nodiscard]] u32  total_y() const { return y_res(); }
     [[nodiscard]] u32  x_offset() const { return columns * render_scale; }
-    [[nodiscard]] bool wide_screen() const { return columns > 0; }
+    [[nodiscard]] bool wide_screen() const { return columns > 0 && widen; }
 };
 
 class Scene {
@@ -82,6 +84,9 @@ public:
     void translate_los_position(int inX, int inY, int& outX, int& outY) const;
 
     void calc_viewport(Viewport* vp);
+
+    /// Widescreen: whether this viewport grows into the side columns.
+    [[nodiscard]] bool widens(const Viewport& vp) const;
 
 private:
     const u32* TranslateCullingAddress(u32 addr, u32 words) const;
@@ -172,6 +177,7 @@ private:
         float bnbu;
         float bnbw;
         float correction;
+        float shift;
     } m_planes{};
 };
 
