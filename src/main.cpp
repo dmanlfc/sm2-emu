@@ -272,6 +272,7 @@ struct Options {
     /// Implies --duration's stopping behaviour when duration_seconds is zero.
     bool profile = false;
 
+
     /// Discard every profiler and frame-time sample before this presented-frame
     /// number, so attract/title/select screens (which draw almost nothing) do
     /// not inflate the average. Set past the coin/start sequence (coin_at +
@@ -1006,6 +1007,7 @@ int main(int argc, char** argv)
     // GUI shows and round-trips what was saved.
     options.config.show_fps            = from_file.show_fps;
     options.config.software_async      = from_file.software_async;
+    options.config.model3_async        = from_file.model3_async;
     options.config.software_slow_cores = from_file.software_slow_cores;
     options.config.show_notifications  = from_file.show_notifications;
     options.config.rewind              = from_file.rewind;
@@ -2039,6 +2041,14 @@ int main(int argc, char** argv)
         core::StageTimer stage_cpu_i960("cpu_i960");
         core::StageTimer stage_cpu_copro("cpu_copro");
         core::StageTimer stage_cpu_sound("cpu_sound");
+        // Model 3 frame build: the wait for the worker, and the build's own
+        // CPU time and parts on whichever thread ran it.
+        core::StageTimer stage_m3_wait("m3_build_wait");
+        core::StageTimer stage_m3_build("m3_build");
+        core::StageTimer stage_m3_textures("m3_textures");
+        core::StageTimer stage_m3_tilegen("m3_tilegen");
+        core::StageTimer stage_m3_scene("m3_scene");
+        core::StageTimer stage_m3_plan("m3_plan");
         if (machine_any) {
             machine_any->set_core_profiling(options.profile);
         }
@@ -2049,7 +2059,8 @@ int main(int argc, char** argv)
                  &stage_tilemap_upload, &stage_record, &stage_submit, &stage_software,
                  &stage_software_wait, &stage_software_snapshot, &stage_software_async,
                  &stage_present_wait, &stage_cpu_i960, &stage_cpu_copro,
-                 &stage_cpu_sound}) {
+                 &stage_cpu_sound, &stage_m3_wait, &stage_m3_build, &stage_m3_textures,
+                 &stage_m3_tilegen, &stage_m3_scene, &stage_m3_plan}) {
                 timer->reserve(expected);
             }
         }
@@ -2163,6 +2174,7 @@ int main(int argc, char** argv)
         const auto adopt_game = [&](LoadedMachine&& next) {
             async_soft.forget_machine();
             backend->wait_idle();
+            backend->reset_model3();
             loaded        = std::move(next);
             machine_iface = loaded->machine_iface;
             machine       = loaded->machine;
@@ -2442,8 +2454,16 @@ int main(int argc, char** argv)
                 rewind_held = false;
             }
 
+            // Model 3 async: this pass draws the frame emulated by the pass
+            // before, built on a worker while this one emulates.
+            const bool m3_async = machine_m3 != nullptr && options.config.model3_async;
+            const u32  m3_lag   = m3_async ? 1u : 0u;
+            backend->set_model3_async(m3_async);
+            // --run-frames' extra pass to show the last frame emulated.
+            const bool draining = options.run_frames != 0 && frames_presented >= options.run_frames;
+
             bool rewinding = false;
-            if (machine_any && !effective_pause) {
+            if (machine_any && !effective_pause && !draining) {
                 // Step back a snapshot, then run a frame from it so there is a
                 // picture; its sound is dropped.
                 rewinding = (rewind_held || pad_shortcuts.rewind)
@@ -2539,6 +2559,9 @@ int main(int argc, char** argv)
                     backend->set_hud_bands(loaded->game.hud_bands);
                     backend->set_widescreen(columns, wide_below ? (1u + static_cast<u32>(side_fill)) | spread
                                                                 : 0u);
+                }
+                if (machine_m3) {
+                    backend->release_model3_frames(machine_m3->video_frame());
                 }
                 {
                     auto scope = core::maybe_scope(stage_run_frame, profile_sample);
@@ -2693,13 +2716,32 @@ int main(int argc, char** argv)
                 }
             }
 
-            if (machine_m3) {
+            // Line-of-sight results go back to the machine before the frame is
+            // built, so they lag by the same number of frames with or without async.
+            const auto submit_m3 = [&] {
                 const render::model3::LineOfSight los = backend->model3_line_of_sight();
                 for (unsigned i = 0; los.frame_number != 0 && i < los.range.size(); ++i) {
                     machine_m3->set_line_of_sight(i, los.range[i]);
                 }
                 auto scope = core::maybe_scope(stage_build, profile_sample);
                 backend->submit_model3_frame(machine_m3->video_frame());
+            };
+            const auto sample_m3_build = [&] {
+                if (!profile_sample) {
+                    return;
+                }
+                const render::model3::BuildTimes t = backend->model3_build_times();
+                stage_m3_build.record_ms(t.total);
+                stage_m3_textures.record_ms(t.textures);
+                stage_m3_tilegen.record_ms(t.tilegen);
+                stage_m3_scene.record_ms(t.scene);
+                stage_m3_plan.record_ms(t.plan);
+            };
+            if (machine_m3) {
+                if (!m3_async) {
+                    submit_m3();
+                    sample_m3_build();
+                }
             } else if (!draw_with_software) {
                 // Uploads and the 3D pass first. Both need a command buffer that is
                 // not inside a rendering scope: a transfer cannot be issued inside
@@ -2727,6 +2769,14 @@ int main(int argc, char** argv)
             // non-software path. Not used when draw_with_software, since there
             // is no Vulkan drawing to time in that path -- present.upload_from_host()
             // is a transfer, not a draw, and stays out of this figure.
+            if (m3_async) {
+                {
+                    auto scope = core::maybe_scope(stage_m3_wait, profile_sample);
+                    backend->finish_model3();
+                }
+                sample_m3_build();
+            }
+
             std::optional<core::StageTimer::Scope> record_scope;
             if (profile_sample && !draw_with_software) {
                 record_scope.emplace(stage_record);
@@ -2734,6 +2784,9 @@ int main(int argc, char** argv)
 
             if (machine_m3) {
                 backend->render_model3();
+                if (m3_async) {
+                    submit_m3();
+                }
             } else if (!draw_with_software) {
                 backend->render_polygons();
             }
@@ -2799,16 +2852,18 @@ int main(int argc, char** argv)
             // Read back the finished native frame, before it is scaled, so a
             // screenshot is the frame the hardware produced at the size it
             // produced it.
+            // Model 3 async shows the frame emulated by the pass before.
+            const u32  shown_frame = frames_presented - std::min(frames_presented, m3_lag);
             const bool last_frame =
-                options.run_frames != 0 && frames_presented + 1 >= options.run_frames;
+                options.run_frames != 0 && frames_presented + 1 >= options.run_frames + m3_lag;
             const bool numbered_series =
                 options.screenshot_interval != 0 || !options.screenshot_frames.empty();
             const bool capture_diagnostic =
-                !options.screenshot.empty()
+                !options.screenshot.empty() && frames_presented >= m3_lag
                 && (!options.screenshot_frames.empty()
-                        ? options.screenshot_frames.count(frames_presented) != 0
+                        ? options.screenshot_frames.count(shown_frame) != 0
                         : options.screenshot_interval != 0
-                              ? (frames_presented % options.screenshot_interval) == 0
+                              ? (shown_frame % options.screenshot_interval) == 0
                                     || last_frame
                               : last_frame || options.run_frames == 0);
             const std::string dump_frame =
@@ -3057,7 +3112,7 @@ int main(int argc, char** argv)
             // this is not the default path.
             if (capture_diagnostic && numbered_series) {
                 backend->wait_idle();
-                if (!backend->save_capture(numbered_path(options.screenshot, frames_presented))) {
+                if (!backend->save_capture(numbered_path(options.screenshot, shown_frame))) {
                     exit_code = 1;
                     break;
                 }
@@ -3127,7 +3182,7 @@ int main(int argc, char** argv)
 
             ++frames_presented;
 
-            if (options.run_frames != 0 && frames_presented >= options.run_frames) {
+            if (options.run_frames != 0 && frames_presented >= options.run_frames + m3_lag) {
                 running = false;
             }
 
@@ -3254,7 +3309,9 @@ int main(int argc, char** argv)
                      &stage_cpu_sound, &stage_geometry, &stage_compose,
                      &stage_tilemap_upload, &stage_build, &stage_record, &stage_submit,
                      &stage_present_wait, &stage_software, &stage_software_wait,
-                     &stage_software_snapshot, &stage_software_async}) {
+                     &stage_software_snapshot, &stage_software_async, &stage_m3_wait,
+                     &stage_m3_build, &stage_m3_textures, &stage_m3_tilegen, &stage_m3_scene,
+                     &stage_m3_plan}) {
                     const core::StageStats stats = core::summarise(*timer);
                     if (stats.samples == 0) {
                         continue;

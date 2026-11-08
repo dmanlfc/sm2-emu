@@ -219,8 +219,13 @@ void VulkanBackend::submit_model3_frame(const hw::model3::VideoFrame& frame)
     if (!ensure_model3()) {
         return;
     }
+    m_model3_frame.wait();
     m_model3_frame.set_geometry(model3_geometry());
-    m_model3_frame.submit(frame, m_model3.encode_depth());
+    if (m_model3_async) {
+        m_model3_frame.submit_async(frame, m_model3.encode_depth());
+    } else {
+        m_model3_frame.submit(frame, m_model3.encode_depth());
+    }
 }
 
 void VulkanBackend::render_model3()
@@ -228,6 +233,7 @@ void VulkanBackend::render_model3()
     if (!ensure_model3()) {
         return;
     }
+    m_model3_frame.match_geometry(model3_geometry(), m_model3.encode_depth());
     m_model3.record(m_model3_frame, m_present.native_image(), m_native_view);
 }
 
@@ -349,6 +355,7 @@ bool VulkanBackend::end_frame()
 
 void VulkanBackend::wait_idle()
 {
+    m_model3_frame.release();
     m_context.wait_idle();
 }
 

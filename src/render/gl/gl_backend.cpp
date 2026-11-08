@@ -337,6 +337,7 @@ void GlBackend::wait_idle()
     // gl_context.h's own note on why). Called anyway for parity with the
     // Vulkan path's call sites, which is cheap insurance against a future
     // change here introducing asynchrony this comment did not anticipate.
+    m_model3_frame.release();
     Finish();
 }
 
@@ -377,16 +378,21 @@ bool GlBackend::ensure_model3()
         }
         m_model3_width = width;
     }
-    m_model3_frame.set_geometry(model3_geometry());
+    m_model3_frame.match_geometry(model3_geometry(), false);
     m_model3.set_smooth_2d(m_enhancement_options.upscale_2d != Upscale2D::Faithful);
     return true;
 }
 
 void GlBackend::submit_model3_frame(const hw::model3::VideoFrame& frame)
 {
+    m_model3_frame.wait();
     m_model3_frame.set_geometry(model3_geometry());
     // DEPTH32F_STENCIL8 is a float depth buffer: no depth remap needed.
-    m_model3_frame.submit(frame, false);
+    if (m_model3_async) {
+        m_model3_frame.submit_async(frame, false);
+    } else {
+        m_model3_frame.submit(frame, false);
+    }
 }
 
 void GlBackend::render_model3()

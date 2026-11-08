@@ -22,6 +22,7 @@
 
 #include "core/config.h"
 #include "core/types.h"
+#include "render/model3/build_times.h"
 #include "render/model3/line_of_sight.h"
 
 #include <array>
@@ -416,18 +417,30 @@ public:
 
     /// Block until the device has finished everything submitted so far.
     /// Required before destroying anything a submitted frame still refers
-    /// to, and before save_capture() can trust a capture is complete.
+    /// to, and before save_capture() can trust a capture is complete. Also
+    /// lets go of any Model 3 VideoFrame.
     virtual void wait_idle() = 0;
 
     // -- Sega Model 3 ---------------------------------------------------------
     //
     // Replaces steps 2-5 above: submit_model3_frame() (CPU only; the frame may
     // be reused once it returns; may precede begin_frame()), then
-    // render_model3(). Both on the render thread. GPU backends only.
+    // render_model3(). Both on the render thread.
+    //
+    // Async: submit_model3_frame() builds on a worker and the frame must stay
+    // intact until the next render_model3() (or wait_idle(), or
+    // release_model3_frames()), which draws it, one frame behind.
 
     [[nodiscard]] virtual bool supports_model3() const { return false; }
     virtual void submit_model3_frame(const hw::model3::VideoFrame& frame) { static_cast<void>(frame); }
     virtual void render_model3() {}
+    virtual void set_model3_async(bool async) { static_cast<void>(async); }
+    /// The machine is about to overwrite every VideoFrame except `current`.
+    virtual void release_model3_frames(const hw::model3::VideoFrame& current) { static_cast<void>(current); }
+    /// Wait for an async build.
+    virtual void finish_model3() {}
+    /// CPU time of the last frame build, on whichever thread ran it.
+    [[nodiscard]] virtual model3::BuildTimes model3_build_times() const { return {}; }
 
     /// Drop cached ROM models and texture state (new game).
     virtual void reset_model3() {}

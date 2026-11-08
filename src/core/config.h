@@ -97,6 +97,10 @@ struct Config {
     /// With software_async on a big.LITTLE host, draw on the slow cores.
     bool software_slow_cores = true;
 
+    /// Model 3: build each frame on a second thread while the next one is
+    /// emulated; shown one frame later.
+    bool model3_async = true;
+
     /// Show brief on-screen notifications (e.g. "State saved"), top-centered,
     /// while gameplay continues. On by default.
     bool show_notifications = true;

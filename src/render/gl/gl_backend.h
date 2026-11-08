@@ -98,6 +98,10 @@ public:
     [[nodiscard]] bool supports_model3() const override { return true; }
     void submit_model3_frame(const hw::model3::VideoFrame& frame) override;
     void render_model3() override;
+    void set_model3_async(bool async) override { m_model3_async = async; }
+    void release_model3_frames(const hw::model3::VideoFrame& current) override { m_model3_frame.release(&current); }
+    void finish_model3() override { m_model3_frame.wait(); }
+    [[nodiscard]] model3::BuildTimes model3_build_times() const override { return m_model3_frame.build_times(); }
     void reset_model3() override { m_model3_frame.reset(); }
     void set_model3_texture_dumper(model3::TextureDumper* dumper) override { m_model3_frame.set_texture_dumper(dumper); }
     [[nodiscard]] model3::LineOfSight model3_line_of_sight() const override
@@ -127,6 +131,7 @@ private:
 
     /// Created on the first Model 3 frame.
     model3::FrameBuilder m_model3_frame;
+    bool                 m_model3_async = false;
     Model3Pass           m_model3;
     u32                  m_model3_width = 0;
     u32                  m_model3_wide  = 0;  // set_widescreen()'s wide_background

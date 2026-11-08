@@ -19,12 +19,88 @@
 #include "render/texture_replace.h"
 
 #include <algorithm>
+#include <chrono>
 #include <vector>
 
 namespace sm2::render::model3 {
 
+FrameBuilder::~FrameBuilder()
+{
+    if (m_thread.joinable()) {
+        {
+            const std::lock_guard<std::mutex> lock(m_mutex);
+            m_quit = true;
+        }
+        m_cv.notify_all();
+        m_thread.join();
+    }
+}
+
+void FrameBuilder::submit_async(const hw::model3::VideoFrame& frame, bool encode_depth)
+{
+    wait();
+    if (!m_thread.joinable()) {
+        m_thread = std::thread([this] { worker(); });
+    }
+    {
+        const std::lock_guard<std::mutex> lock(m_mutex);
+        m_job       = &frame;
+        m_job_depth = encode_depth;
+    }
+    m_busy = true;
+    m_last = &frame;
+    m_cv.notify_all();
+}
+
+void FrameBuilder::wait()
+{
+    if (!m_busy) {
+        return;
+    }
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_cv.wait(lock, [this] { return m_job == nullptr; });
+    m_busy = false;
+}
+
+void FrameBuilder::release(const hw::model3::VideoFrame* keep)
+{
+    wait();
+    if (m_last != keep) {
+        m_last = nullptr;
+    }
+}
+
+void FrameBuilder::match_geometry(const SceneGeometry& geometry, bool encode_depth)
+{
+    wait();
+    if (m_last != nullptr && !(m_scene.geometry() == geometry)) {
+        m_scene.set_geometry(geometry);
+        build(*m_last, encode_depth);
+    }
+}
+
+void FrameBuilder::worker()
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+    for (;;) {
+        m_cv.wait(lock, [this] { return m_quit || m_job != nullptr; });
+        if (m_quit) {
+            return;
+        }
+        const hw::model3::VideoFrame* job   = m_job;
+        const bool                    depth = m_job_depth;
+        lock.unlock();
+        build(*job, depth);
+        lock.lock();
+        m_job = nullptr;
+        m_cv.notify_all();
+    }
+}
+
 void FrameBuilder::reset()
 {
+    wait();
+    m_last = nullptr;
     m_scene.reset();
     m_textures.invalidate();
     m_scrolled.fill(false);
@@ -34,13 +110,31 @@ void FrameBuilder::reset()
 
 void FrameBuilder::submit(const hw::model3::VideoFrame& frame, bool encode_depth)
 {
+    wait();
+    m_last = &frame;
+    build(frame, encode_depth);
+}
+
+void FrameBuilder::build(const hw::model3::VideoFrame& frame, bool encode_depth)
+{
+    using Clock      = std::chrono::steady_clock;
+    const auto since = [](Clock::time_point& t) {
+        const Clock::time_point now = Clock::now();
+        const double            ms  = std::chrono::duration<double, std::milli>(now - t).count();
+        t                           = now;
+        return ms;
+    };
+    const Clock::time_point start = Clock::now();
+    Clock::time_point       mark  = start;
     m_textures.submit(frame);
+    m_times.textures = since(mark);
     const SceneGeometry& g = m_scene.geometry();
     m_tilegen.set_side_columns(g.columns);
     const bool wide_2d = g.wide_2d && g.widen;
     m_tilegen.set_extend(wide_2d ? m_scrolled : std::array<bool, 4>{}, wide_2d);
     m_tilegen.draw_frame(frame.tilegen_vram, frame.tilegen_regs, frame.tilegen_lines, frame.tilegen_writes);
     m_tilegen.finish_wide();
+    m_times.tilegen = since(mark);
 
     if (frame.centre_letterbox) {
         const auto blank = [](std::span<const u32> layer) {
@@ -52,6 +146,7 @@ void FrameBuilder::submit(const hw::model3::VideoFrame& frame, bool encode_depth
     }
 
     m_scene.build(frame);
+    m_times.scene = since(mark);
     build_frame_plan(m_scene, encode_depth, {m_textures.page_blank(0), m_textures.page_blank(1)}, m_plan);
 
     // An opaque top layer hides the 3D (Le Mans 24's boot screen draws a full
@@ -68,9 +163,11 @@ void FrameBuilder::submit(const hw::model3::VideoFrame& frame, bool encode_depth
     if (m_dumper != nullptr) {
         m_dumper->scan(m_plan, m_textures, m_hasher);
     }
+    m_times.plan = since(mark);
 
     m_frame_number = frame.frame_number;
     m_has_frame    = true;
+    m_times.total = std::chrono::duration<double, std::milli>(Clock::now() - start).count();
 }
 
 void FrameBuilder::apply_replacements()

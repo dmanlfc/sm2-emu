@@ -49,6 +49,8 @@ struct SceneGeometry {
     [[nodiscard]] u32  total_y() const { return y_res(); }
     [[nodiscard]] u32  x_offset() const { return columns * render_scale; }
     [[nodiscard]] bool wide_screen() const { return columns > 0 && widen; }
+
+    bool operator==(const SceneGeometry&) const = default;
 };
 
 class Scene {

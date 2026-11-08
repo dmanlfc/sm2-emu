@@ -527,6 +527,10 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->software_async)) {
                 bad_value();
             }
+        } else if (key == "model3_async") {
+            if (!parse_bool(value, &out->model3_async)) {
+                bad_value();
+            }
         } else if (key == "software_slow_cores") {
             if (!parse_bool(value, &out->software_slow_cores)) {
                 bad_value();
@@ -1078,6 +1082,7 @@ bool save_config(const std::string& path, const Config& config)
         << "dump_textures = " << bool_text(config.dump_textures) << "\n"
         << "software_async = " << bool_text(config.software_async) << "\n"
         << "software_slow_cores = " << bool_text(config.software_slow_cores) << "\n"
+        << "model3_async = " << bool_text(config.model3_async) << "\n"
         << "\n[audio]\n"
         << "music_volume = " << config.music_volume << "\n"
         << "game_volume = " << bool_text(config.game_volume) << "\n";

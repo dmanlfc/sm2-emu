@@ -87,7 +87,9 @@ Extra cores help little, except with the software renderer. It splits its
 drawing into bands, and by default (`software_async = true`) draws each frame
 on its own thread, one frame behind the emulation, at the cost of a frame of
 latency. On big.LITTLE chips (`software_slow_cores = true`) the drawing runs on
-the little cores and leaves the big cores to the emulation.
+the little cores and leaves the big cores to the emulation. Model 3 likewise
+builds each frame (2D layers, scene walk) on a second thread while the next
+frame is emulated (`model3_async = true`), also a frame behind.
 
 ### GPU
 

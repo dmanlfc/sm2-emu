@@ -13,11 +13,13 @@
 // that licence. See LICENSE and NOTICE.
 //
 // One Model 3 frame built on the CPU for a GPU backend. submit() copies all it
-// needs out of the VideoFrame (only the VROM view is kept); not thread-safe.
+// needs out of the VideoFrame (only the VROM view is kept). submit_async()
+// builds on a worker thread instead; wait() before touching the builder.
 #pragma once
 
 #include "core/types.h"
 #include "hw/model3/video_frame.h"
+#include "render/model3/build_times.h"
 #include "render/model3/frame_plan.h"
 #include "render/model3/line_of_sight.h"
 #include "render/model3/scene.h"
@@ -26,7 +28,10 @@
 #include "render/model3/tilegen.h"
 
 #include <array>
+#include <condition_variable>
+#include <mutex>
 #include <span>
+#include <thread>
 #include <vector>
 
 namespace sm2::render {
@@ -39,12 +44,30 @@ class TextureDumper;
 
 class FrameBuilder {
 public:
+    FrameBuilder() = default;
+    ~FrameBuilder();
+    FrameBuilder(const FrameBuilder&)            = delete;
+    FrameBuilder& operator=(const FrameBuilder&) = delete;
+
     void set_geometry(const SceneGeometry& geometry) { m_scene.set_geometry(geometry); }
     [[nodiscard]] const SceneGeometry& geometry() const { return m_scene.geometry(); }
 
     void reset();
 
     void submit(const hw::model3::VideoFrame& frame, bool encode_depth);
+
+    // The frame must stay intact until wait() returns.
+    void submit_async(const hw::model3::VideoFrame& frame, bool encode_depth);
+    void wait();
+    /// wait(), and forget last_frame() unless it is `keep`.
+    void release(const hw::model3::VideoFrame* keep = nullptr);
+    /// wait(); rebuild the last frame if it was built for other geometry.
+    void match_geometry(const SceneGeometry& geometry, bool encode_depth);
+    /// The frame of the last submit, or null after reset().
+    [[nodiscard]] const hw::model3::VideoFrame* last_frame() const { return m_last; }
+    [[nodiscard]] bool busy() const { return m_busy; }
+    /// CPU time of the last build, on whichever thread ran it.
+    [[nodiscard]] const BuildTimes& build_times() const { return m_times; }
 
     [[nodiscard]] bool has_frame() const { return m_has_frame; }
     [[nodiscard]] u64  frame_number() const { return m_frame_number; }
@@ -56,15 +79,25 @@ public:
     [[nodiscard]] TextureSheets&   textures() { return m_textures; }
 
     /// Custom textures to point the plan at; null for none.
-    void set_texture_replacements(const TextureReplacements* replacements) { m_replacements = replacements; }
-    void set_texture_dumper(TextureDumper* dumper) { m_dumper = dumper; }
+    void set_texture_replacements(const TextureReplacements* replacements)
+    {
+        wait();
+        m_replacements = replacements;
+    }
+    void set_texture_dumper(TextureDumper* dumper)
+    {
+        wait();
+        m_dumper = dumper;
+    }
 
     [[nodiscard]] std::span<const u32> layer(int index) const;
 
 private:
+    void build(const hw::model3::VideoFrame& frame, bool encode_depth);
     void plan_layers();
     void track_scroll();
     void apply_replacements();
+    void worker();
 
     Scene         m_scene;
     TextureSheets m_textures;
@@ -79,6 +112,17 @@ private:
     std::array<bool, 4> m_scroll_known{};
     bool m_has_frame      = false;
     u64  m_frame_number   = 0;
+
+    const hw::model3::VideoFrame* m_last = nullptr;
+    BuildTimes                    m_times;
+
+    std::thread             m_thread;
+    std::mutex              m_mutex;
+    std::condition_variable m_cv;
+    const hw::model3::VideoFrame* m_job = nullptr;
+    bool m_job_depth = false;
+    bool m_busy      = false;  // main thread's view: a job is queued or running
+    bool m_quit      = false;
 };
 
 }  // namespace sm2::render::model3
