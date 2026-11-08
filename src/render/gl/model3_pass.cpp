@@ -22,6 +22,7 @@
 
 #include "core/log.h"
 
+#include "render/texture_replace.h"
 #include "shaders/fullscreen_quad_vert_glsl.h"
 #include "shaders/model3_composite_base_frag_glsl.h"
 #include "shaders/model3_composite_trans_frag_glsl.h"
@@ -74,7 +75,7 @@ Model3Pass::~Model3Pass()
 
 bool Model3Pass::init(u32 render_scale, u32 width)
 {
-    shutdown();
+    shutdown(true);
     m_render_scale = render_scale;
     m_width        = width * render_scale;
     m_height       = 384 * render_scale;
@@ -99,8 +100,14 @@ bool Model3Pass::init(u32 render_scale, u32 width)
     return true;
 }
 
-void Model3Pass::shutdown()
+void Model3Pass::shutdown(bool keep_atlas)
 {
+    if (!keep_atlas && m_atlas != 0) {
+        DeleteTextures(1, &m_atlas);
+        m_atlas            = 0;
+        m_atlas_generation = 0;
+        m_atlas_live       = false;
+    }
     for (u32* p : {&m_r3d_program, &m_fog_program, &m_base_program, &m_trans_program, &m_layer_program}) {
         if (*p != 0) {
             DeleteProgram(*p);
@@ -284,6 +291,45 @@ void Model3Pass::upload_textures(TextureSheets& sheets)
     sheets.clear_uploads();
 }
 
+void Model3Pass::sync_atlas()
+{
+    const bool wanted = m_replacements != nullptr && !m_replacements->empty() && m_replacements->layer_count() != 0;
+    const u64  generation = wanted ? m_replacements->generation() : 0;
+    if (m_atlas != 0 && generation == m_atlas_generation) {
+        return;
+    }
+    m_atlas_generation = generation;
+
+    bool have_pixels = generation != 0;
+    for (u32 layer = 0; have_pixels && layer < m_replacements->layer_count(); ++layer) {
+        have_pixels = !m_replacements->layer_pixels(layer).empty();
+    }
+    if (m_atlas != 0) {
+        DeleteTextures(1, &m_atlas);
+    }
+    GenTextures(1, &m_atlas);
+    BindTexture(GL_TEXTURE_2D_ARRAY, m_atlas);
+    m_atlas_live = have_pixels;
+    if (!have_pixels) {
+        TexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 1, 1, 1);
+        return;
+    }
+    const auto size   = static_cast<GLsizei>(kReplacementLayerSize);
+    const u32  layers = m_replacements->layer_count();
+    TexStorage3D(GL_TEXTURE_2D_ARRAY, static_cast<GLsizei>(TextureReplacements::mip_levels()), GL_RGBA8, size, size,
+                 static_cast<GLsizei>(layers));
+    for (u32 layer = 0; layer < layers; ++layer) {
+        TexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, static_cast<GLint>(layer), size, size, 1, GL_RGBA, GL_UNSIGNED_BYTE,
+                      m_replacements->layer_pixels(layer).data());
+    }
+    GenerateMipmap(GL_TEXTURE_2D_ARRAY);
+    TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    m_replacements->release_pixels();
+}
+
 void Model3Pass::upload_vertices(const Scene& scene)
 {
     BindBuffer(GL_ARRAY_BUFFER, m_vbo);
@@ -317,6 +363,9 @@ void Model3Pass::upload_uniforms(const FramePlan& plan)
         std::vector<u8> staging(bytes, 0);
         for (usize i = 0; i < count; i++) {
             std::memcpy(staging.data() + i * stride, static_cast<const u8*>(data) + i * size, size);
+            if (slot == kUboR3D && !m_atlas_live) {
+                std::memset(staging.data() + i * stride + offsetof(R3DUniforms, replaceInfo), 0, sizeof(u32));
+            }
         }
         BindBuffer(GL_UNIFORM_BUFFER, m_ubo[slot]);
         if (bytes > m_ubo_size[slot]) {
@@ -457,6 +506,8 @@ void Model3Pass::draw_3d(const FramePlan& plan, u64 frame_number)
     BindVertexArray(m_vao);
     ActiveTexture(GL_TEXTURE1);
     BindTexture(GL_TEXTURE_2D_ARRAY, m_bank);
+    ActiveTexture(GL_TEXTURE2);
+    BindTexture(GL_TEXTURE_2D_ARRAY, m_atlas);
     ActiveTexture(GL_TEXTURE0);
 
     LineOfSight los;
@@ -538,6 +589,7 @@ void Model3Pass::render(FrameBuilder& frame, u32 native_fbo)
     }
     const FramePlan& plan = frame.plan();
 
+    sync_atlas();
     upload_textures(frame.textures());
     for (int i = 0; i < 2; i++) {
         if (frame.layer(i).size() != static_cast<usize>(m_layer_width[i]) * TileGen::kHeight) {

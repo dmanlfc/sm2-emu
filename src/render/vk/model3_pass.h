@@ -27,6 +27,10 @@
 
 using VmaAllocation = struct VmaAllocation_T*;
 
+namespace sm2::render {
+class TextureReplacements;
+}
+
 namespace sm2::render::vk {
 
 class Model3Pass {
@@ -38,12 +42,15 @@ public:
     Model3Pass& operator=(const Model3Pass&) = delete;
 
     [[nodiscard]] bool init(Context& context, u32 render_scale, u32 width);
-    void shutdown();
+    /// keep_atlas holds on to the custom texture atlas, whose pixels are gone
+    /// once uploaded.
+    void shutdown(bool keep_atlas = false);
     [[nodiscard]] bool ready() const { return m_ready; }
 
     [[nodiscard]] bool encode_depth() const { return m_depth_format != VK_FORMAT_D32_SFLOAT_S8_UINT; }
 
     void set_smooth_2d(bool smooth) { m_smooth_2d = smooth; }
+    void set_texture_replacements(TextureReplacements* replacements) { m_replacements = replacements; }
 
     void record(model3::FrameBuilder& frame, VkImage native_image, VkImageView native_view);
 
@@ -90,6 +97,7 @@ private:
                                            bool vertex_input, bool blend, int depth_mode, bool layered,
                                            const VkSpecializationInfo* spec = nullptr);
     void update_frame_sets(PerFrame& f);
+    void sync_atlas(VkCommandBuffer cmd);
 
     void read_back_los(PerFrame& f);
     void upload(model3::FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd);
@@ -159,6 +167,21 @@ private:
     VkPipeline m_base_pipeline  = VK_NULL_HANDLE;
     VkPipeline m_trans_pipeline = VK_NULL_HANDLE;
     VkPipeline m_layer_pipeline = VK_NULL_HANDLE;
+
+    // Custom textures: RGBA8 layers with mips, or a 1x1 stand-in.
+    struct Atlas {
+        Image  image;
+        Buffer staging;
+        u32    staging_age = 0;  ///< records left before staging can go
+        u32    mips        = 1;
+        u32    layers      = 1;
+        u64    generation  = 0;
+        bool   live        = false;
+        bool   bound       = false;  ///< written into the current r3d sets
+    };
+    TextureReplacements* m_replacements  = nullptr;
+    Atlas                m_atlas;
+    VkSampler            m_atlas_sampler = VK_NULL_HANDLE;
 
     model3::LineOfSightMailbox m_los;
 };

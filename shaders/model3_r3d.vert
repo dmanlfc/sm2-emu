@@ -63,6 +63,9 @@ layout(std140, set = 0, binding = 0) uniform R3DUniforms {
     uvec4 texMask;
     vec4  texScale;
     uint  texDivide;
+    uint  replaceInfo;
+    uint  replaceXY;
+    uint  replaceWH;
 };
 
 #ifdef SM2_TARGET_GL

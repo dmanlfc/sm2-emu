@@ -17,6 +17,7 @@
 #include "render/vk/model3_pass.h"
 
 #include "core/log.h"
+#include "render/texture_replace.h"
 
 #include "shaders/fullscreen_quad_vert.h"
 #include "shaders/model3_composite_base_frag.h"
@@ -192,7 +193,7 @@ void Model3Pass::destroy_image(Image& img)
 
 bool Model3Pass::init(Context& context, u32 render_scale, u32 width)
 {
-    shutdown();
+    shutdown(true);
     if (context.device() == VK_NULL_HANDLE) {
         return false;
     }
@@ -247,16 +248,22 @@ bool Model3Pass::init(Context& context, u32 render_scale, u32 width)
     m_rom_generation    = 0;
     m_rom_uploaded      = 0;
     m_banks_initialised = false;
+    m_atlas.bound       = false;
     return true;
 }
 
-void Model3Pass::shutdown()
+void Model3Pass::shutdown(bool keep_atlas)
 {
     if (m_context == nullptr) {
         return;
     }
     const VkDevice device = m_context->device();
     vkDeviceWaitIdle(device);
+    if (!keep_atlas) {
+        destroy_image(m_atlas.image);
+        destroy_buffer(m_atlas.staging);
+        m_atlas = Atlas{};
+    }
 
     for (VkPipeline& p : m_r3d_pipelines) {
         if (p != VK_NULL_HANDLE) vkDestroyPipeline(device, p, nullptr);
@@ -282,7 +289,7 @@ void Model3Pass::shutdown()
         vkDestroyDescriptorPool(device, m_pool, nullptr);
         m_pool = VK_NULL_HANDLE;
     }
-    for (VkSampler* s : {&m_nearest, &m_linear}) {
+    for (VkSampler* s : {&m_nearest, &m_linear, &m_atlas_sampler}) {
         if (*s != VK_NULL_HANDLE) vkDestroySampler(device, *s, nullptr);
         *s = VK_NULL_HANDLE;
     }
@@ -368,6 +375,8 @@ bool Model3Pass::create_resources()
     sampler.magFilter = VK_FILTER_LINEAR;
     sampler.minFilter = VK_FILTER_LINEAR;
     SM2_VK_TRY(vkCreateSampler(m_context->device(), &sampler, nullptr, &m_linear));
+    sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    SM2_VK_TRY(vkCreateSampler(m_context->device(), &sampler, nullptr, &m_atlas_sampler));
     return true;
 }
 
@@ -384,9 +393,10 @@ bool Model3Pass::create_descriptors()
     };
 
     const VkShaderStageFlags vf = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-    const VkDescriptorSetLayoutBinding r3d[2] = {
+    const VkDescriptorSetLayoutBinding r3d[3] = {
         {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, vf, nullptr},
-        {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr}};
+        {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr},
+        {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr}};
     const VkDescriptorSetLayoutBinding ubo[1] = {
         {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr}};
     const VkDescriptorSetLayoutBinding one[1] = {
@@ -402,7 +412,7 @@ bool Model3Pass::create_descriptors()
     const u32 frames = Context::kFramesInFlight;
     const VkDescriptorPoolSize sizes[2] = {
         {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, frames * 2},
-        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, frames * 2 + 1 + 2 + 4}};
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, frames * 3 + 1 + 2 + 4}};
     VkDescriptorPoolCreateInfo pool{};
     pool.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool.maxSets       = frames * 2 + 2 + 4;
@@ -683,14 +693,14 @@ VkPipeline Model3Pass::r3d_pipeline(int layer, bool layered, u32 variant, bool f
     if (pipeline != VK_NULL_HANDLE) {
         return pipeline;
     }
-    VkBool32                 values[6];
-    VkSpecializationMapEntry entries[6];
-    for (u32 i = 0; i < 6; i++) {
+    VkBool32                 values[7];
+    VkSpecializationMapEntry entries[7];
+    for (u32 i = 0; i < 7; i++) {
         values[i]  = (variant >> i) & 1u;
         entries[i] = {i, i * static_cast<u32>(sizeof(VkBool32)), sizeof(VkBool32)};
     }
     VkSpecializationInfo spec{};
-    spec.mapEntryCount = 6;
+    spec.mapEntryCount = 7;
     spec.pMapEntries   = entries;
     spec.dataSize      = sizeof(values);
     spec.pData         = values;
@@ -728,6 +738,132 @@ void Model3Pass::update_frame_sets(PerFrame& f)
     writes[1].pBufferInfo     = &fog;
     vkUpdateDescriptorSets(m_context->device(), 2, writes, 0, nullptr);
     f.bound_uniforms = f.uniforms.serial;
+}
+
+void Model3Pass::sync_atlas(VkCommandBuffer cmd)
+{
+    if (m_atlas.staging_age != 0 && --m_atlas.staging_age == 0) {
+        destroy_buffer(m_atlas.staging);
+    }
+    const bool wanted = m_replacements != nullptr && !m_replacements->empty() && m_replacements->layer_count() != 0;
+    const u64  generation = wanted ? m_replacements->generation() : 0;
+    if (m_atlas.image.image == VK_NULL_HANDLE || generation != m_atlas.generation) {
+        // Rare (a game or pack load), so the sets are rewritten with the device idle.
+        if (m_atlas.image.image != VK_NULL_HANDLE) {
+            vkDeviceWaitIdle(m_context->device());
+            destroy_image(m_atlas.image);
+            destroy_buffer(m_atlas.staging);
+            m_atlas.staging_age = 0;
+        }
+        bool have_pixels = generation != 0;
+        for (u32 layer = 0; have_pixels && layer < m_replacements->layer_count(); ++layer) {
+            have_pixels = !m_replacements->layer_pixels(layer).empty();
+        }
+        const VkImageUsageFlags usage =
+            VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        const u32          size        = kReplacementLayerSize;
+        const VkDeviceSize layer_bytes = static_cast<VkDeviceSize>(size) * size * 4;
+        if (have_pixels) {
+            const u32 layers = m_replacements->layer_count();
+            const u32 mips   = TextureReplacements::mip_levels();
+            if (!create_image(m_atlas.image, kColourFormat, size, size, mips, usage, VK_IMAGE_ASPECT_COLOR_BIT, 2 > layers ? 2 : layers)
+                || !create_buffer(m_atlas.staging, layer_bytes * layers, VK_BUFFER_USAGE_TRANSFER_SRC_BIT)) {
+                SM2_ERROR("vk: could not allocate the Model 3 custom texture atlas; drawing without it");
+                destroy_image(m_atlas.image);
+                destroy_buffer(m_atlas.staging);
+                have_pixels = false;
+            } else {
+                for (u32 layer = 0; layer < layers; ++layer) {
+                    std::memcpy(static_cast<u8*>(m_atlas.staging.mapped) + layer_bytes * layer,
+                                m_replacements->layer_pixels(layer).data(), layer_bytes);
+                }
+                m_replacements->release_pixels();
+                m_atlas.layers      = layers;
+                m_atlas.mips        = mips;
+                m_atlas.staging_age = Context::kFramesInFlight + 1;
+            }
+        }
+        if (!have_pixels) {
+            // Two layers, so the view is an array as the shader declares.
+            if (!create_image(m_atlas.image, kColourFormat, 1, 1, 1, usage, VK_IMAGE_ASPECT_COLOR_BIT, 2)) {
+                return;
+            }
+            m_atlas.layers = 2;
+            m_atlas.mips   = 1;
+        }
+        m_atlas.generation = generation;
+        m_atlas.live       = have_pixels;
+        m_atlas.bound      = false;
+
+        const VkImage image = m_atlas.image.image;
+        auto barrier = [&](u32 level, u32 levels, VkImageLayout from, VkImageLayout to, VkPipelineStageFlags2 src_stage,
+                           VkAccessFlags2 src_access, VkPipelineStageFlags2 dst_stage, VkAccessFlags2 dst_access) {
+            VkImageMemoryBarrier2 b{};
+            b.sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+            b.srcStageMask        = src_stage;
+            b.srcAccessMask       = src_access;
+            b.dstStageMask        = dst_stage;
+            b.dstAccessMask       = dst_access;
+            b.oldLayout           = from;
+            b.newLayout           = to;
+            b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            b.image               = image;
+            b.subresourceRange    = {VK_IMAGE_ASPECT_COLOR_BIT, level, levels, 0, VK_REMAINING_ARRAY_LAYERS};
+            VkDependencyInfo dep{};
+            dep.sType                   = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+            dep.imageMemoryBarrierCount = 1;
+            dep.pImageMemoryBarriers    = &b;
+            device_functions().cmd_pipeline_barrier2(cmd, &dep);
+        };
+        if (!have_pixels) {
+            barrier(0, 1, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_NONE, 0,
+                    VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
+        } else {
+            barrier(0, m_atlas.mips, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                    VK_PIPELINE_STAGE_2_NONE, 0, VK_PIPELINE_STAGE_2_COPY_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT);
+            VkBufferImageCopy region{};
+            region.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, m_atlas.layers};
+            region.imageExtent      = {size, size, 1};
+            vkCmdCopyBufferToImage(cmd, m_atlas.staging.buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+            for (u32 level = 1; level < m_atlas.mips; ++level) {
+                barrier(level - 1, 1, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                        VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+                        VK_ACCESS_2_TRANSFER_READ_BIT);
+                const s32 from = static_cast<s32>(std::max(size >> (level - 1), 1u));
+                const s32 to   = static_cast<s32>(std::max(size >> level, 1u));
+                VkImageBlit blit{};
+                blit.srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, level - 1, 0, m_atlas.layers};
+                blit.srcOffsets[1]  = {from, from, 1};
+                blit.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, level, 0, m_atlas.layers};
+                blit.dstOffsets[1]  = {to, to, 1};
+                vkCmdBlitImage(cmd, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               1, &blit, VK_FILTER_LINEAR);
+            }
+            if (m_atlas.mips > 1) {
+                barrier(0, m_atlas.mips - 1, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                        VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_READ_BIT,
+                        VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
+            }
+            barrier(m_atlas.mips - 1, 1, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT,
+                    VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
+        }
+    }
+    if (!m_atlas.bound) {
+        const VkDescriptorImageInfo info{m_atlas_sampler, m_atlas.image.view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+        for (PerFrame& f : m_frames) {
+            VkWriteDescriptorSet w{};
+            w.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            w.dstSet          = f.r3d_set;
+            w.dstBinding      = 2;
+            w.descriptorCount = 1;
+            w.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            w.pImageInfo      = &info;
+            vkUpdateDescriptorSets(m_context->device(), 1, &w, 0, nullptr);
+        }
+        m_atlas.bound = true;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -895,7 +1031,8 @@ void Model3Pass::draw_range(const FramePlan& plan, DrawRange range, int layer, P
 
     for (u32 i = range.begin; i < range.end; i++) {
         const R3DDraw& d = plan.draws[i];
-        const VkPipeline pipeline = r3d_pipeline(layer, d.layered, d.variant, float_depth);
+        const u32 variant = m_atlas.live ? d.variant : d.variant & ~kR3DVariantReplaced;
+        const VkPipeline pipeline = r3d_pipeline(layer, d.layered, variant, float_depth);
         if (pipeline == VK_NULL_HANDLE) {
             continue;
         }
@@ -1237,6 +1374,7 @@ void Model3Pass::record(FrameBuilder& frame, VkImage native_image, VkImageView n
     PerFrame&             f   = m_frames[m_context->frame_index()];
 
     read_back_los(f);
+    sync_atlas(cmd);
     upload(frame, f, cmd);
 
     const FramePlan& plan = frame.plan();

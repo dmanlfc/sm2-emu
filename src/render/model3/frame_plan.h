@@ -76,7 +76,9 @@ struct alignas(16) R3DUniforms {
     u32   texMask[4];             // 336
     float texScale[4];            // 352: multiplied, or divided when texDivide
     u32   texDivide;              // 368
-    u32   pad0[3];
+    u32   replaceInfo;            // 372: custom texture atlas layer + 1 (0 = none), max LOD << 8
+    u32   replaceXY;              // its rectangle in the layer, 16 bits each
+    u32   replaceWH;
 };
 static_assert(sizeof(R3DUniforms) == 384);
 static_assert(offsetof(R3DUniforms, baseTexInfo) == 160);
@@ -120,11 +122,12 @@ struct ViewportRect {
 };
 
 // Fragment shader specialisation bits, in constant_id order.
-constexpr u32 kR3DVariantCount = 64;
+constexpr u32 kR3DVariantCount = 128;
+constexpr u32 kR3DVariantReplaced = 1u << 6;
 [[nodiscard]] constexpr u32 r3d_variant(const R3DUniforms& u)
 {
     return u.textureEnabled | (u.microTexture << 1) | (u.textureAlpha << 2) | (u.alphaTest << 3)
-           | (u.lightEnabled << 4) | (u.specularEnabled << 5);
+           | (u.lightEnabled << 4) | (u.specularEnabled << 5) | (u.replaceInfo != 0 ? kR3DVariantReplaced : 0u);
 }
 
 struct R3DDraw {

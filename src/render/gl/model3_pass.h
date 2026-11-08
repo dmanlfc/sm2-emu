@@ -22,6 +22,10 @@
 #include "render/gl/gl_common.h"
 #include "render/model3/model3_frame.h"
 
+namespace sm2::render {
+class TextureReplacements;
+}
+
 namespace sm2::render::gl {
 
 class Model3Pass {
@@ -33,10 +37,12 @@ public:
     Model3Pass& operator=(const Model3Pass&) = delete;
 
     [[nodiscard]] bool init(u32 render_scale, u32 width);
-    void shutdown();
+    /// keep_atlas holds on to the custom texture atlas.
+    void shutdown(bool keep_atlas = false);
     [[nodiscard]] bool ready() const { return m_ready; }
 
     void set_smooth_2d(bool smooth) { m_smooth_2d = smooth; }
+    void set_texture_replacements(TextureReplacements* replacements) { m_replacements = replacements; }
 
     void render(model3::FrameBuilder& frame, u32 native_fbo);
 
@@ -49,6 +55,7 @@ private:
     [[nodiscard]] bool create_buffers();
 
     void upload_textures(model3::TextureSheets& sheets);
+    void sync_atlas();
     void upload_vertices(const model3::Scene& scene);
     void upload_uniforms(const model3::FramePlan& plan);
     void draw_layer(u32 texture, const model3::LayerDraw& d);
@@ -93,6 +100,12 @@ private:
     u32   m_uniform_stride  = 0;
     u32   m_model_stride    = 0;
     u32   m_fog_stride      = 0;
+
+    // Custom textures; their pixels go once uploaded.
+    TextureReplacements* m_replacements     = nullptr;
+    u32                  m_atlas            = 0;
+    u64                  m_atlas_generation = 0;
+    bool                 m_atlas_live       = false;
 
     model3::LineOfSightMailbox m_los;
 };

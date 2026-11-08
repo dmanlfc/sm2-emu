@@ -64,6 +64,9 @@ layout(std140, set = 0, binding = 0) uniform R3DUniforms {
     uvec4 texMask;
     vec4  texScale;
     uint  texDivide;
+    uint  replaceInfo;
+    uint  replaceXY;
+    uint  replaceWH;
 };
 
 #define textureInverted bool(b_textureInverted)
@@ -77,6 +80,7 @@ layout(std140, set = 0, binding = 0) uniform R3DUniforms {
 #define alphaTest       bool(b_alphaTest)
 #define lightEnabled    bool(b_lightEnabled)
 #define specularEnabled bool(b_specularEnabled)
+#define textureReplaced (replaceInfo != 0u)
 #else
 // Pipeline specialisation: the bits of R3DDraw::variant (frame_plan.h).
 layout(constant_id = 0) const bool textureEnabled  = false;
@@ -85,14 +89,18 @@ layout(constant_id = 2) const bool textureAlpha    = false;
 layout(constant_id = 3) const bool alphaTest       = false;
 layout(constant_id = 4) const bool lightEnabled    = false;
 layout(constant_id = 5) const bool specularEnabled = false;
+layout(constant_id = 6) const bool textureReplaced = false;
 #endif
 #define fixedShading    bool(b_fixedShading)
 #define smoothShading   bool(b_smoothShading)
 #define noLosReturn     bool(b_noLosReturn)
 
 layout(set = 0, binding = 1) uniform usampler2DArray textureBank;  // layer = page
+// Custom textures (render/texture_replace.cpp), in place of textureBank.
+layout(set = 0, binding = 2) uniform sampler2DArray replaceAtlas;
+const float kReplaceLayerSize = 4096.0;
 
-// interpolated inputs from vertex shader
+// inputs from the vertex shader
 layout(location = 0) in vec3  fsViewVertex;
 layout(location = 1) in vec3  fsViewNormal;  // per vertex normal vector
 layout(location = 2) in vec2  fsTexCoord;
@@ -237,46 +245,90 @@ vec4 texBiLinearBank(int page, ivec2 wrapMode, vec2 texSize, ivec2 texPos, vec2 
     return texBiLinear(page, wrapMode, texSize, texPos, texCoord, level);
 }
 
+float ReplaceWrap(int wrapMode, float u, float margin)
+{
+    if (wrapMode == 0) {
+        return fract(u);  // the atlas gutter repeats the image
+    }
+    if (wrapMode >= 2 && floor(mod(u, 2.0)) > 0.0) {
+        u = 1.0 - fract(u);
+    }
+    else {
+        u = fract(u);
+    }
+    return clamp(u, margin, 1.0 - margin);
+}
+
+// The LOD is the polygon's own, shifted by the replacement's scale. A micro
+// texture fades in only once the replacement too runs out of detail.
+vec4 ReplacementTexel(float lod)
+{
+    vec2  rectXY = vec2(float(replaceXY & 0xffffu), float(replaceXY >> 16));
+    vec2  rectWH = vec2(float(replaceWH & 0xffffu), float(replaceWH >> 16));
+    float scale  = min(rectWH.x / float(baseTexInfo.z), rectWH.y / float(baseTexInfo.w));
+    float rLod   = lod + log2(scale);
+    float level  = clamp(rLod, 0.0, float((replaceInfo >> 8) & 0xfu));
+    vec2  margin = 0.5 * exp2(level) / rectWH;
+    vec2  st     = vec2(ReplaceWrap(textureWrapMode.s, fsTexCoord.x, margin.x),
+                        ReplaceWrap(textureWrapMode.t, fsTexCoord.y, margin.y));
+    vec4  texel  = textureLod(replaceAtlas, vec3((rectXY + st * rectWH) / kReplaceLayerSize, float((replaceInfo & 0xffu) - 1u)), level);
+
+    if (microTexture && rLod < 0.0) {
+        vec4  scaleIndex = vec4(2.0, 4.0, 16.0, 256.0);
+        vec2  mscale     = (vec2(baseTexInfo.zw) / 128.0) * scaleIndex[int(microTextureMinLOD)];
+        vec4  micro      = texBiLinearBank((texturePage + 1) & 1, ivec2(0), vec2(128.0), GetMicroTexturePos(microTextureID), fsTexCoord * mscale, 0);
+        float blend      = min(-rLod * exp2(-microTextureMinLOD) * 0.5, 0.5);
+        texel = mix(texel, micro, blend);
+    }
+    return texel;
+}
+
 vec4 GetTextureValue()
 {
     float lod       = -log2(gl_FragCoord.w * gl_FragCoord.w * fsLODBase);
     float numLevels = floor(log2(min(float(baseTexInfo.z), float(baseTexInfo.w)))) - 1.0;  // r3d only generates down to 2:2 for square textures, otherwise its the min dimension
     float fLevel    = clamp(lod, 0.0, numLevels);
 
-    int iLevel = int(fLevel);
-
-    ivec2 tex1Pos  = GetTexturePosition(iLevel, baseTexInfo.xy);
-    ivec2 tex1Size = GetTextureSize(iLevel, baseTexInfo.zw);
-    vec4  tex1Data = texBiLinearBank(texturePage, textureWrapMode, vec2(tex1Size), tex1Pos, fsTexCoord, iLevel);
-
-    // init second texel with blank data to avoid any potentially undefined behavior
-    vec4 tex2Data = vec4(0.0);
-
-    float blendFactor = 0.0;
-
-    // if LOD < 0, no need to blend with next mipmap level; slight performance boost
-    //  while at it, just generalize to all cases where only one mip level needs to be touched
-    float ffL = fract(fLevel);
-    if (ffL > 0.0) {
-        ivec2 tex2Pos  = GetTexturePosition(iLevel + 1, baseTexInfo.xy);
-        ivec2 tex2Size = GetTextureSize(iLevel + 1, baseTexInfo.zw);
-        tex2Data = texBiLinearBank(texturePage, textureWrapMode, vec2(tex2Size), tex2Pos, fsTexCoord, iLevel + 1);
-
-        blendFactor = ffL;
+    vec4 tex1Data;
+    if (textureReplaced) {
+        tex1Data = ReplacementTexel(lod);
     }
-    else if (microTexture && lod < 0.0) {
-        vec4 scaleIndex = vec4(2.0, 4.0, 16.0, 256.0);  // unsure if minLOD=4 has 256x scale? No games appear to use it
-        vec2 scale      = (vec2(baseTexInfo.zw) / 128.0) * scaleIndex[int(microTextureMinLOD)];
+    else {
+        int iLevel = int(fLevel);
 
-        // microtextures are always 128x128 and only use LOD 0 mipmap
-        ivec2 tex2Pos = GetMicroTexturePos(microTextureID);
-        tex2Data = texBiLinearBank((texturePage + 1) & 1, ivec2(0), vec2(128.0), tex2Pos, fsTexCoord * scale, 0);
+        ivec2 tex1Pos  = GetTexturePosition(iLevel, baseTexInfo.xy);
+        ivec2 tex1Size = GetTextureSize(iLevel, baseTexInfo.zw);
+        tex1Data = texBiLinearBank(texturePage, textureWrapMode, vec2(tex1Size), tex1Pos, fsTexCoord, iLevel);
 
-        blendFactor = -lod * exp2(-microTextureMinLOD) * 0.5;
-        blendFactor = min(blendFactor, 0.5);
+        // init second texel with blank data to avoid any potentially undefined behavior
+        vec4 tex2Data = vec4(0.0);
+
+        float blendFactor = 0.0;
+
+        // if LOD < 0, no need to blend with next mipmap level; slight performance boost
+        //  while at it, just generalize to all cases where only one mip level needs to be touched
+        float ffL = fract(fLevel);
+        if (ffL > 0.0) {
+            ivec2 tex2Pos  = GetTexturePosition(iLevel + 1, baseTexInfo.xy);
+            ivec2 tex2Size = GetTextureSize(iLevel + 1, baseTexInfo.zw);
+            tex2Data = texBiLinearBank(texturePage, textureWrapMode, vec2(tex2Size), tex2Pos, fsTexCoord, iLevel + 1);
+
+            blendFactor = ffL;
+        }
+        else if (microTexture && lod < 0.0) {
+            vec4 scaleIndex = vec4(2.0, 4.0, 16.0, 256.0);  // unsure if minLOD=4 has 256x scale? No games appear to use it
+            vec2 scale      = (vec2(baseTexInfo.zw) / 128.0) * scaleIndex[int(microTextureMinLOD)];
+
+            // microtextures are always 128x128 and only use LOD 0 mipmap
+            ivec2 tex2Pos = GetMicroTexturePos(microTextureID);
+            tex2Data = texBiLinearBank((texturePage + 1) & 1, ivec2(0), vec2(128.0), tex2Pos, fsTexCoord * scale, 0);
+
+            blendFactor = -lod * exp2(-microTextureMinLOD) * 0.5;
+            blendFactor = min(blendFactor, 0.5);
+        }
+
+        tex1Data = mix(tex1Data, tex2Data, blendFactor);
     }
-
-    tex1Data = mix(tex1Data, tex2Data, blendFactor);
 
     if (textureInverted) {
         tex1Data.rgb = vec3(1.0) - tex1Data.rgb;
