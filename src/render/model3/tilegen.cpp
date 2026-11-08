@@ -229,12 +229,11 @@ void TileGen::finish_wide()
         if (!m_extend_edges) {
             continue;
         }
-        for (const int edge : {0, right - kFlat}) {
-            int  rows  = 0;
-            int  jumps = 0;
-            int  last[3] = {-1, -1, -1};
-            bool ok      = true;
-            for (u32 y = 0; y < kHeight && ok; y++) {
+        const auto edge_flat = [&](int edge) {
+            int rows    = 0;
+            int jumps   = 0;
+            int last[3] = {-1, -1, -1};
+            for (u32 y = 0; y < kHeight; y++) {
                 const u32* const p = m_surface[l].data() + static_cast<usize>(y) * kWidth + edge;
                 const int opaque   = static_cast<int>(std::count_if(p, p + kFlat, [](u32 v) { return (v >> 24) != 0; }));
                 if (!backdrop[y] || opaque == 0) {
@@ -242,7 +241,9 @@ void TileGen::finish_wide()
                     continue;
                 }
                 int mean[3];
-                ok = opaque == kFlat && flat(p, mean);
+                if (opaque != kFlat || !flat(p, mean)) {
+                    return false;
+                }
                 if (last[0] >= 0 && (std::abs(mean[0] - last[0]) > kSpread || std::abs(mean[1] - last[1]) > kSpread
                                      || std::abs(mean[2] - last[2]) > kSpread)) {
                     jumps++;
@@ -250,20 +251,26 @@ void TileGen::finish_wide()
                 std::copy(mean, mean + 3, last);
                 rows++;
             }
-            if (!ok || rows < kMinRows || jumps > kJumps) {
+            return rows >= kMinRows && jumps <= kJumps;
+        };
+        // Both sides or neither, so a picture never comes out lopsided.
+        if (!edge_flat(0) || !edge_flat(right - kFlat)) {
+            continue;
+        }
+        for (u32 y = 0; y < kHeight; y++) {
+            u32* const       row    = m_wide[l].data() + static_cast<usize>(y) * static_cast<usize>(width);
+            const u32* const centre = m_surface[l].data() + static_cast<usize>(y) * kWidth;
+            if (!backdrop[y]) {
                 continue;
             }
-            const int from = edge == 0 ? 0 : side + right;
-            for (u32 y = 0; y < kHeight; y++) {
-                u32* const       row = m_wide[l].data() + static_cast<usize>(y) * static_cast<usize>(width);
-                const u32* const p   = m_surface[l].data() + static_cast<usize>(y) * kWidth + edge;
-                if (!backdrop[y] || (p[0] >> 24) == 0) {
-                    continue;
+            for (int x = 0; x < side; x++) {
+                if (row[x] == 0 && (centre[0] >> 24) != 0) {
+                    row[x] = centre[(x - side) & (kFlat - 1)];
                 }
-                for (int x = from; x < from + side; x++) {
-                    if (row[x] == 0) {
-                        row[x] = p[(x - from + (edge == 0 ? kFlat - side % kFlat : 0)) & (kFlat - 1)];
-                    }
+            }
+            for (int x = side + right; x < width; x++) {
+                if (row[x] == 0 && (centre[right - 1] >> 24) != 0) {
+                    row[x] = centre[right - kFlat + ((x - side - right) & (kFlat - 1))];
                 }
             }
         }
