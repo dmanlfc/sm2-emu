@@ -910,8 +910,8 @@ void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
         return;
     }
     u8* staging = static_cast<u8*>(f.staging.mapped);
-    std::memcpy(staging, frame.layer(0).data(), layer_bytes[0]);
-    std::memcpy(staging + layer_bytes[0], frame.layer(1).data(), layer_bytes[1]);
+    m_copies.push_back({staging, frame.layer(0).data(), layer_bytes[0]});
+    m_copies.push_back({staging + layer_bytes[0], frame.layer(1).data(), layer_bytes[1]});
 
     // Layers: last frame's composite may still sample them; the barrier orders that.
     for (int l = 0; l < 2; l++) {
@@ -938,9 +938,9 @@ void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
         const u16*   texels = sheets.texels().data();
         for (const TextureUpload& u : sheets.uploads()) {
             for (u32 row = 0; row < u.height; row++) {
-                std::memcpy(staging + offset + static_cast<usize>(row) * u.width * 2,
-                            texels + static_cast<usize>(u.src_y + row) * TextureSheets::kSize + u.src_x,
-                            static_cast<usize>(u.width) * 2);
+                m_copies.push_back({staging + offset + static_cast<usize>(row) * u.width * 2,
+                                    texels + static_cast<usize>(u.src_y + row) * TextureSheets::kSize + u.src_x,
+                                    static_cast<usize>(u.width) * 2});
             }
             VkBufferImageCopy region{};
             region.bufferOffset     = offset;
@@ -986,8 +986,8 @@ void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
     }
     const usize rom_count = std::min<usize>(rom.size(), kMaxRomVerts);
     if (rom_count > m_rom_uploaded) {
-        std::memcpy(static_cast<u8*>(m_rom_vertices.mapped) + m_rom_uploaded * FVertexLayout::kStride,
-                    rom.data() + m_rom_uploaded, (rom_count - m_rom_uploaded) * FVertexLayout::kStride);
+        m_copies.push_back({static_cast<u8*>(m_rom_vertices.mapped) + m_rom_uploaded * FVertexLayout::kStride,
+                            rom.data() + m_rom_uploaded, (rom_count - m_rom_uploaded) * FVertexLayout::kStride});
         m_rom_uploaded = rom_count;
     }
     const auto  ram       = scene.ram_vertices();
@@ -995,7 +995,7 @@ void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
     if (ensure_buffer(f.ram_vertices, std::max<usize>(ram_count, 1) * FVertexLayout::kStride,
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
         && ram_count != 0) {
-        std::memcpy(f.ram_vertices.mapped, ram.data(), ram_count * FVertexLayout::kStride);
+        m_copies.push_back({f.ram_vertices.mapped, ram.data(), ram_count * FVertexLayout::kStride});
     }
 
     // Uniforms: R3D blocks, then fog blocks, each at the offset alignment.
@@ -1008,11 +1008,11 @@ void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
     }
     u8* u = static_cast<u8*>(f.uniforms.mapped);
     for (usize i = 0; i < plan.uniforms.size(); i++) {
-        std::memcpy(u + i * r3d_stride, &plan.uniforms[i], sizeof(R3DUniforms));
+        m_copies.push_back({u + i * r3d_stride, &plan.uniforms[i], sizeof(R3DUniforms)});
     }
     const VkDeviceSize fog_base = r3d_stride * std::max<usize>(plan.uniforms.size(), 1);
     for (usize i = 0; i < plan.fogs.size(); i++) {
-        std::memcpy(u + fog_base + i * fog_stride, &plan.fogs[i].uniforms, sizeof(ScrollFogUniforms));
+        m_copies.push_back({u + fog_base + i * fog_stride, &plan.fogs[i].uniforms, sizeof(ScrollFogUniforms)});
     }
     update_frame_sets(f);
 }
@@ -1375,7 +1375,18 @@ void Model3Pass::record(FrameBuilder& frame, VkImage native_image, VkImageView n
 
     read_back_los(f);
     sync_atlas(cmd);
+    if (m_upload_ticket != 0) {
+        frame.wait(take_upload_ticket());
+    }
+    m_copies.clear();
     upload(frame, f, cmd);
+    if (!m_copies.empty()) {
+        m_upload_ticket = frame.run_async([this] {
+            for (const Copy& c : m_copies) {
+                std::memcpy(c.dst, c.src, c.bytes);
+            }
+        });
+    }
 
     const FramePlan& plan = frame.plan();
     if (!plan.white_flash && f.uniforms.buffer != VK_NULL_HANDLE) {

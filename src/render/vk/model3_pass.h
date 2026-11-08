@@ -52,7 +52,15 @@ public:
     void set_smooth_2d(bool smooth) { m_smooth_2d = smooth; }
     void set_texture_replacements(TextureReplacements* replacements) { m_replacements = replacements; }
 
+    // The buffer writes run on the frame's worker while the commands are
+    // recorded: wait(take_upload_ticket()) on it before submitting.
     void record(model3::FrameBuilder& frame, VkImage native_image, VkImageView native_view);
+    [[nodiscard]] u64 take_upload_ticket()
+    {
+        const u64 ticket = m_upload_ticket;
+        m_upload_ticket  = 0;
+        return ticket;
+    }
 
     [[nodiscard]] const model3::LineOfSightMailbox& line_of_sight() const { return m_los; }
 
@@ -98,6 +106,12 @@ private:
                                            const VkSpecializationInfo* spec = nullptr);
     void update_frame_sets(PerFrame& f);
     void sync_atlas(VkCommandBuffer cmd);
+
+    struct Copy {
+        void*       dst   = nullptr;
+        const void* src   = nullptr;
+        usize       bytes = 0;
+    };
 
     void read_back_los(PerFrame& f);
     void upload(model3::FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd);
@@ -184,6 +198,9 @@ private:
     VkSampler            m_atlas_sampler = VK_NULL_HANDLE;
 
     model3::LineOfSightMailbox m_los;
+
+    std::vector<Copy> m_copies;
+    u64               m_upload_ticket = 0;
 };
 
 }  // namespace sm2::render::vk

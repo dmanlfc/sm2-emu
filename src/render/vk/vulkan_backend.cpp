@@ -95,6 +95,7 @@ void VulkanBackend::shutdown()
     // Nothing may be destroyed while a submitted command buffer still refers
     // to it; the context itself waits on shutdown too, but the passes below
     // are torn down first and cannot rely on that happening before they run.
+    m_model3_frame.wait();
     m_context.wait_idle();
 
     m_model3.shutdown();
@@ -344,6 +345,9 @@ void VulkanBackend::draw_overlay(bool active)
 
 bool VulkanBackend::end_frame()
 {
+    if (const u64 uploads = m_model3.take_upload_ticket(); uploads != 0) {
+        m_model3_frame.wait(uploads);
+    }
     record_image_barrier(m_context.cmd(), m_context.swapchain_image(),
                          VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                          VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,

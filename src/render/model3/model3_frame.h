@@ -14,7 +14,8 @@
 //
 // One Model 3 frame built on the CPU for a GPU backend. submit() copies all it
 // needs out of the VideoFrame (only the VROM view is kept). submit_async()
-// builds on a worker thread instead; wait() before touching the builder.
+// builds on a worker thread instead, which also runs run_async() jobs in
+// order; wait() before touching the builder.
 #pragma once
 
 #include "core/types.h"
@@ -29,6 +30,8 @@
 
 #include <array>
 #include <condition_variable>
+#include <deque>
+#include <functional>
 #include <mutex>
 #include <span>
 #include <thread>
@@ -59,13 +62,15 @@ public:
     // The frame must stay intact until wait() returns.
     void submit_async(const hw::model3::VideoFrame& frame, bool encode_depth);
     void wait();
+    /// Runs `job` on the worker after what is queued; wait(ticket) for it.
+    u64 run_async(std::function<void()> job);
+    void wait(u64 ticket);
     /// wait(), and forget last_frame() unless it is `keep`.
     void release(const hw::model3::VideoFrame* keep = nullptr);
     /// wait(); rebuild the last frame if it was built for other geometry.
     void match_geometry(const SceneGeometry& geometry, bool encode_depth);
     /// The frame of the last submit, or null after reset().
     [[nodiscard]] const hw::model3::VideoFrame* last_frame() const { return m_last; }
-    [[nodiscard]] bool busy() const { return m_busy; }
     /// CPU time of the last build, on whichever thread ran it.
     [[nodiscard]] const BuildTimes& build_times() const { return m_times; }
 
@@ -119,10 +124,10 @@ private:
     std::thread             m_thread;
     std::mutex              m_mutex;
     std::condition_variable m_cv;
-    const hw::model3::VideoFrame* m_job = nullptr;
-    bool m_job_depth = false;
-    bool m_busy      = false;  // main thread's view: a job is queued or running
-    bool m_quit      = false;
+    std::deque<std::function<void()>> m_jobs;
+    u64  m_queued = 0;  // main thread only
+    u64  m_done   = 0;
+    bool m_quit   = false;
 };
 
 }  // namespace sm2::render::model3

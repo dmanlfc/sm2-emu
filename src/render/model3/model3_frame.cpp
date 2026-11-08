@@ -39,27 +39,34 @@ FrameBuilder::~FrameBuilder()
 void FrameBuilder::submit_async(const hw::model3::VideoFrame& frame, bool encode_depth)
 {
     wait();
+    m_last = &frame;
+    run_async([this, &frame, encode_depth] { build(frame, encode_depth); });
+}
+
+u64 FrameBuilder::run_async(std::function<void()> job)
+{
     if (!m_thread.joinable()) {
         m_thread = std::thread([this] { worker(); });
     }
     {
         const std::lock_guard<std::mutex> lock(m_mutex);
-        m_job       = &frame;
-        m_job_depth = encode_depth;
+        m_jobs.push_back(std::move(job));
     }
-    m_busy = true;
-    m_last = &frame;
     m_cv.notify_all();
+    return ++m_queued;
+}
+
+void FrameBuilder::wait(u64 ticket)
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_cv.wait(lock, [this, ticket] { return m_done >= ticket; });
 }
 
 void FrameBuilder::wait()
 {
-    if (!m_busy) {
-        return;
+    if (m_queued != 0) {
+        wait(m_queued);
     }
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_cv.wait(lock, [this] { return m_job == nullptr; });
-    m_busy = false;
 }
 
 void FrameBuilder::release(const hw::model3::VideoFrame* keep)
@@ -83,16 +90,16 @@ void FrameBuilder::worker()
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     for (;;) {
-        m_cv.wait(lock, [this] { return m_quit || m_job != nullptr; });
-        if (m_quit) {
+        m_cv.wait(lock, [this] { return m_quit || !m_jobs.empty(); });
+        if (m_jobs.empty()) {
             return;
         }
-        const hw::model3::VideoFrame* job   = m_job;
-        const bool                    depth = m_job_depth;
+        std::function<void()> job = std::move(m_jobs.front());
+        m_jobs.pop_front();
         lock.unlock();
-        build(*job, depth);
+        job();
         lock.lock();
-        m_job = nullptr;
+        ++m_done;
         m_cv.notify_all();
     }
 }
