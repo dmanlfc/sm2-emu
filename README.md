@@ -372,6 +372,11 @@ The 3D textures can be dumped and replaced with sharper ones (GPU renderers):
 
 Raise the render scale to see the extra detail.
 
+On Model 3 the textures are already in colour, so a dump is the texture as
+stored (`tex_<hash>.png`) and a replacement is drawn as is, keeping its alpha
+for cut-outs and see-through parts. A replacement only applies while the game
+holds that exact texture; mip levels are made from it.
+
 ## Cabinet link
 
 Games with a link board (Daytona USA, Sega Rally, Indy 500, Super GT 24h,
