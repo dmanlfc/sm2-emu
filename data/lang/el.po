@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-10-20 09:05+1000\n"
+"POT-Creation-Date: 2026-11-09 01:59+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -66,6 +66,11 @@ msgstr "Αποτυχία διαγραφής: %s"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "none"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "Αρχείο"
 
@@ -108,6 +113,11 @@ msgstr "Ειδοποιήσεις στην οθόνη"
 #, no-c-format
 msgid "Light-gun mode"
 msgstr "Λειτουργία όπλου φωτός"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(Model 1 & 2 only)"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -293,7 +303,8 @@ msgid ""
 "brighter. Applies live."
 msgstr ""
 "Πού βρίσκεται το μαύρο της εικόνας του Model 2. Το 50% είναι η προεπιλογή,\n"
-"ταιριαγμένη σε λήψη από arcade· λιγότερο είναι πιο σκούρο, περισσότερο πιο φωτεινό.\n"
+"ταιριαγμένη σε λήψη από arcade· λιγότερο είναι πιο σκούρο, περισσότερο πιο "
+"φωτεινό.\n"
 "Εφαρμόζεται αμέσως."
 
 #: src/osd/gui.cpp
@@ -544,6 +555,18 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 3 ROM directory"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Φάκελος αποθηκεύσεων"
 
@@ -563,8 +586,8 @@ msgstr "Φάκελος στιγμιοτύπων"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Where F12 screenshots are written."
-msgstr "Πού γράφονται τα στιγμιότυπα οθόνης του F12."
+msgid "Where screenshots are written."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1383,6 +1406,61 @@ msgstr "Επαναγέμιση"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Laser"
+msgstr "Λέιζερ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Τορπίλη"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Οπτική"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Χειριστήριο πτήσης"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Πολυβόλο"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Καπνός"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Οπτική 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Οπτική 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Οπτική 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Οπτική 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Μοχλίσκος"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Screenshot"
 msgstr "Στιγμιότυπο"
 
@@ -1439,6 +1517,15 @@ msgid ""
 msgstr ""
 "Κρατήστε το Guide και πατήστε το άλλο κουμπί· το παιχνίδι δεν τα βλέπει. Η "
 "Έξοδος γυρνά στα παιχνίδια, όταν υπάρχουν. Σέρβις και Δοκιμή δουλεύουν πάντα."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Slots are named for this game's controls; dimmed ones are not used. Show "
+"shortcuts lists the Guide combinations."
+msgstr ""
+"Οι θέσεις έχουν το όνομα των χειριστηρίων αυτού του παιχνιδιού· οι αχνές δεν "
+"χρησιμοποιούνται. Η Εμφάνιση συντομεύσεων δείχνει τους συνδυασμούς με Guide."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1933,18 +2020,98 @@ msgstr ""
 "χρειάζονται το παράθυρο μπροστά."
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Hold Backspace to step back through play.\n"
+"Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
-"Κρατήστε το Backspace για να γυρίσετε πίσω στο παιχνίδι.\n"
-"Κοστίζει λίγη ταχύτητα σε κάθε καρέ όσο είναι ενεργό."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind memory"
 msgstr "Μνήμη επαναφοράς"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Send lamps, gun recoil and drive-board output to\n"
+"MAMEHooker, Hook Of The Reaper and similar tools,\n"
+"using MAME's network output protocol."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Port"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Windows outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The same outputs over MAME's Windows message\n"
+"protocol, for tools that hook MAME that way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Back to games"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings overlay"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pause"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fast-forward (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a key..."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Clear"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a key, then press the new one. Escape cancels.\n"
+"A key a game also uses does both."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1954,13 +2121,11 @@ msgstr ""
 "του."
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Save the whole machine to a slot and restore it later. Quick-save is F6, "
-"quick-load is F7."
+"Save the whole machine to a slot and restore it later. Quick-save is %s, "
+"quick-load is %s."
 msgstr ""
-"Αποθηκεύστε ολόκληρο το μηχάνημα σε μια θέση και επαναφέρετέ το αργότερα. "
-"Γρήγορη αποθήκευση με F6, γρήγορη φόρτωση με F7."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2039,9 +2204,9 @@ msgid "Cancel"
 msgstr "Άκυρο"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "F10: toggle overlay"
-msgstr "F10: εναλλαγή επικάλυψης"
+#, c-format
+msgid "%s: toggle overlay"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2049,15 +2214,15 @@ msgid "Select a game"
 msgstr "Επιλέξτε παιχνίδι"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "Enter: launch   F10: settings   F9: quit"
-msgstr "Enter: εκκίνηση   F10: ρυθμίσεις   F9: έξοδος"
+#, c-format
+msgid "Enter: launch   %s: settings   %s: quit"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No ROM archives were found in the ROM directories. Set them in Settings "
-"(F1) > Paths, then relaunch."
+"No ROM archives were found in the ROM directories. Set them in Settings (F1) "
+"> Paths, then relaunch."
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -2069,6 +2234,34 @@ msgstr "Λήψη περιγραφής..."
 #, no-c-format
 msgid "No description available."
 msgstr "Δεν υπάρχει διαθέσιμη περιγραφή."
+
+#, no-c-format
+#~ msgid "Where F12 screenshots are written."
+#~ msgstr "Πού γράφονται τα στιγμιότυπα οθόνης του F12."
+
+#, no-c-format
+#~ msgid ""
+#~ "Hold Backspace to step back through play.\n"
+#~ "Costs a little speed on every frame while on."
+#~ msgstr ""
+#~ "Κρατήστε το Backspace για να γυρίσετε πίσω στο παιχνίδι.\n"
+#~ "Κοστίζει λίγη ταχύτητα σε κάθε καρέ όσο είναι ενεργό."
+
+#, no-c-format
+#~ msgid ""
+#~ "Save the whole machine to a slot and restore it later. Quick-save is F6, "
+#~ "quick-load is F7."
+#~ msgstr ""
+#~ "Αποθηκεύστε ολόκληρο το μηχάνημα σε μια θέση και επαναφέρετέ το αργότερα. "
+#~ "Γρήγορη αποθήκευση με F6, γρήγορη φόρτωση με F7."
+
+#, no-c-format
+#~ msgid "F10: toggle overlay"
+#~ msgstr "F10: εναλλαγή επικάλυψης"
+
+#, no-c-format
+#~ msgid "Enter: launch   F10: settings   F9: quit"
+#~ msgstr "Enter: εκκίνηση   F10: ρυθμίσεις   F9: έξοδος"
 
 #, no-c-format
 #~ msgid ""
@@ -2109,88 +2302,14 @@ msgstr "Δεν υπάρχει διαθέσιμη περιγραφή."
 #~ "αντιστοιχίζονται παρακάτω χωρίς κλικ πίσω σε αυτό το παράθυρο.\n"
 #~ "Το πληκτρολόγιο και το ποντίκι θέλουν ακόμα το παράθυρο μπροστά."
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Laser"
-msgstr "Λέιζερ"
+#~ msgid "Throttle"
+#~ msgstr "Γκάζι"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Torpedo"
-msgstr "Τορπίλη"
+#~ msgid "Throttle Up"
+#~ msgstr "Περισσότερο γκάζι"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "Οπτική"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle"
-msgstr "Γκάζι"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Up"
-msgstr "Περισσότερο γκάζι"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Down"
-msgstr "Λιγότερο γκάζι"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Yoke"
-msgstr "Χειριστήριο πτήσης"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Machine Gun"
-msgstr "Πολυβόλο"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Smoke"
-msgstr "Καπνός"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Stick"
-msgstr "Μοχλίσκος"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
-msgstr "Οι θέσεις έχουν το όνομα των χειριστηρίων αυτού του παιχνιδιού· οι αχνές δεν χρησιμοποιούνται. Η Εμφάνιση συντομεύσεων δείχνει τους συνδυασμούς με Guide."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 1"
-msgstr "Οπτική 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 2"
-msgstr "Οπτική 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 3"
-msgstr "Οπτική 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 4"
-msgstr "Οπτική 4"
-
-msgid "Model 3 ROM directory"
-msgstr ""
-
-msgid ""
-"Where the Model 3 ROM archives live.\n"
-"Empty means the ROM directory."
-msgstr ""
-
-msgid "(Model 1 & 2 only)"
-msgstr ""
+#~ msgid "Throttle Down"
+#~ msgstr "Λιγότερο γκάζι"

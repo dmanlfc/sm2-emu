@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-10-20 09:05+1000\n"
+"POT-Creation-Date: 2026-11-09 01:59+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -65,6 +65,11 @@ msgstr "削除に失敗しました: %s"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "none"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "ファイル"
 
@@ -107,6 +112,11 @@ msgstr "画面上の通知"
 #, no-c-format
 msgid "Light-gun mode"
 msgstr "ライトガンモード"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(Model 1 & 2 only)"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -292,7 +302,8 @@ msgid ""
 "brighter. Applies live."
 msgstr ""
 "Model 2 の画面の黒の位置。50% が既定値で、\n"
-"アーケード実機の映像に合わせています。下げると暗く、上げると明るくなります。\n"
+"アーケード実機の映像に合わせています。下げると暗く、上げると明るくなりま"
+"す。\n"
 "すぐに反映。"
 
 #: src/osd/gui.cpp
@@ -543,6 +554,18 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 3 ROM directory"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "セーブディレクトリ"
 
@@ -562,8 +585,8 @@ msgstr "スクリーンショットディレクトリ"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Where F12 screenshots are written."
-msgstr "F12 のスクリーンショットの保存先です。"
+msgid "Where screenshots are written."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1378,6 +1401,61 @@ msgstr "リロード"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Laser"
+msgstr "レーザー"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "魚雷"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "視点"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "操縦桿"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "機関銃"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "スモーク"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "視点 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "視点 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "視点 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "視点 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "スティック"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Screenshot"
 msgstr "スクリーンショット"
 
@@ -1434,6 +1512,15 @@ msgid ""
 msgstr ""
 "Guide を押したまま、もう一方のボタンを押します。ゲームには伝わりません。ゲー"
 "ムがある場合、終了でゲーム一覧に戻ります。サービスとテストは常に使えます。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Slots are named for this game's controls; dimmed ones are not used. Show "
+"shortcuts lists the Guide combinations."
+msgstr ""
+"枠はこのゲームの操作に合わせた名前です。薄い枠は使われません。ショートカット"
+"を表示で Guide の組み合わせを一覧できます。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1928,13 +2015,11 @@ msgstr ""
 "ウィンドウが前面にある必要があります。"
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Hold Backspace to step back through play.\n"
+"Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
-"Backspace を押し続けるとプレイを巻き戻せます。\n"
-"有効中は毎フレーム少し速度が落ちます。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1943,17 +2028,97 @@ msgstr "巻き戻しメモリ"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Load a game to save and restore its state."
-msgstr "ゲームを読み込むと、ステートの保存と復元ができます。"
+msgid "Cabinet outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network outputs"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Save the whole machine to a slot and restore it later. Quick-save is F6, "
-"quick-load is F7."
+"Send lamps, gun recoil and drive-board output to\n"
+"MAMEHooker, Hook Of The Reaper and similar tools,\n"
+"using MAME's network output protocol."
 msgstr ""
-"マシン全体をスロットに保存し、後で復元します。クイックセーブは F6、クイック"
-"ロードは F7 です。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Port"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Windows outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The same outputs over MAME's Windows message\n"
+"protocol, for tools that hook MAME that way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Back to games"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings overlay"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pause"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fast-forward (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a key..."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Clear"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a key, then press the new one. Escape cancels.\n"
+"A key a game also uses does both."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "ゲームを読み込むと、ステートの保存と復元ができます。"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is %s, "
+"quick-load is %s."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2031,9 +2196,9 @@ msgid "Cancel"
 msgstr "キャンセル"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "F10: toggle overlay"
-msgstr "F10: オーバーレイ切替"
+#, c-format
+msgid "%s: toggle overlay"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2041,15 +2206,15 @@ msgid "Select a game"
 msgstr "ゲームを選択"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "Enter: launch   F10: settings   F9: quit"
-msgstr "Enter: 起動   F10: 設定   F9: 終了"
+#, c-format
+msgid "Enter: launch   %s: settings   %s: quit"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No ROM archives were found in the ROM directories. Set them in Settings "
-"(F1) > Paths, then relaunch."
+"No ROM archives were found in the ROM directories. Set them in Settings (F1) "
+"> Paths, then relaunch."
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -2061,6 +2226,34 @@ msgstr "説明を取得中..."
 #, no-c-format
 msgid "No description available."
 msgstr "説明はありません。"
+
+#, no-c-format
+#~ msgid "Where F12 screenshots are written."
+#~ msgstr "F12 のスクリーンショットの保存先です。"
+
+#, no-c-format
+#~ msgid ""
+#~ "Hold Backspace to step back through play.\n"
+#~ "Costs a little speed on every frame while on."
+#~ msgstr ""
+#~ "Backspace を押し続けるとプレイを巻き戻せます。\n"
+#~ "有効中は毎フレーム少し速度が落ちます。"
+
+#, no-c-format
+#~ msgid ""
+#~ "Save the whole machine to a slot and restore it later. Quick-save is F6, "
+#~ "quick-load is F7."
+#~ msgstr ""
+#~ "マシン全体をスロットに保存し、後で復元します。クイックセーブは F6、クイッ"
+#~ "クロードは F7 です。"
+
+#, no-c-format
+#~ msgid "F10: toggle overlay"
+#~ msgstr "F10: オーバーレイ切替"
+
+#, no-c-format
+#~ msgid "Enter: launch   F10: settings   F9: quit"
+#~ msgstr "Enter: 起動   F10: 設定   F9: 終了"
 
 #, no-c-format
 #~ msgid ""
@@ -2101,88 +2294,14 @@ msgstr "説明はありません。"
 #~ "られます。キーボードとマウスはウィンドウが前面にある必要が\n"
 #~ "あります。"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Laser"
-msgstr "レーザー"
+#~ msgid "Throttle"
+#~ msgstr "スロットル"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Torpedo"
-msgstr "魚雷"
+#~ msgid "Throttle Up"
+#~ msgstr "スロットル上げ"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "視点"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle"
-msgstr "スロットル"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Up"
-msgstr "スロットル上げ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Down"
-msgstr "スロットル下げ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Yoke"
-msgstr "操縦桿"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Machine Gun"
-msgstr "機関銃"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Smoke"
-msgstr "スモーク"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Stick"
-msgstr "スティック"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
-msgstr "枠はこのゲームの操作に合わせた名前です。薄い枠は使われません。ショートカットを表示で Guide の組み合わせを一覧できます。"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 1"
-msgstr "視点 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 2"
-msgstr "視点 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 3"
-msgstr "視点 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 4"
-msgstr "視点 4"
-
-msgid "Model 3 ROM directory"
-msgstr ""
-
-msgid ""
-"Where the Model 3 ROM archives live.\n"
-"Empty means the ROM directory."
-msgstr ""
-
-msgid "(Model 1 & 2 only)"
-msgstr ""
+#~ msgid "Throttle Down"
+#~ msgstr "スロットル下げ"

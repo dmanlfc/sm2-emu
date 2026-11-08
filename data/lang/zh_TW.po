@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-10-20 09:05+1000\n"
+"POT-Creation-Date: 2026-11-09 01:59+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -65,6 +65,11 @@ msgstr "刪除失敗：%s"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "none"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "檔案"
 
@@ -107,6 +112,11 @@ msgstr "螢幕通知"
 #, no-c-format
 msgid "Light-gun mode"
 msgstr "光線槍模式"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(Model 1 & 2 only)"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -543,6 +553,18 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 3 ROM directory"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "存檔目錄"
 
@@ -562,8 +584,8 @@ msgstr "螢幕截圖目錄"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Where F12 screenshots are written."
-msgstr "F12 螢幕截圖的儲存位置。"
+msgid "Where screenshots are written."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1370,6 +1392,61 @@ msgstr "裝彈"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Laser"
+msgstr "雷射"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "魚雷"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "視角"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "操縱桿"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "機槍"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "煙霧"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "視角 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "視角 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "視角 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "視角 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "搖桿"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Screenshot"
 msgstr "螢幕截圖"
 
@@ -1426,6 +1503,14 @@ msgid ""
 msgstr ""
 "按住 Guide，再按另一個按鈕；遊戲不會收到這些按鈕。有遊戲清單時，離開會返回清"
 "單。服務與測試永遠可用。"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Slots are named for this game's controls; dimmed ones are not used. Show "
+"shortcuts lists the Guide combinations."
+msgstr ""
+"欄位依本遊戲的操作命名；變暗的欄位不使用。顯示快捷鍵會列出 Guide 組合鍵。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1913,13 +1998,11 @@ msgstr ""
 "鍵盤和滑鼠仍需視窗在前景。"
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Hold Backspace to step back through play.\n"
+"Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
-"按住 Backspace 可倒轉遊戲進程。\n"
-"開啟時每個影格都會稍微降低速度。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1928,15 +2011,97 @@ msgstr "倒轉記憶體"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Load a game to save and restore its state."
-msgstr "載入遊戲後即可儲存與還原其狀態。"
+msgid "Cabinet outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network outputs"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Save the whole machine to a slot and restore it later. Quick-save is F6, "
-"quick-load is F7."
-msgstr "將整台機器儲存至欄位，之後再還原。快速儲存為 F6，快速載入為 F7。"
+"Send lamps, gun recoil and drive-board output to\n"
+"MAMEHooker, Hook Of The Reaper and similar tools,\n"
+"using MAME's network output protocol."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Port"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Windows outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The same outputs over MAME's Windows message\n"
+"protocol, for tools that hook MAME that way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Back to games"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings overlay"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pause"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fast-forward (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a key..."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Clear"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a key, then press the new one. Escape cancels.\n"
+"A key a game also uses does both."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "載入遊戲後即可儲存與還原其狀態。"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is %s, "
+"quick-load is %s."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2014,9 +2179,9 @@ msgid "Cancel"
 msgstr "取消"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "F10: toggle overlay"
-msgstr "F10：切換覆蓋層"
+#, c-format
+msgid "%s: toggle overlay"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2024,15 +2189,15 @@ msgid "Select a game"
 msgstr "選擇遊戲"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "Enter: launch   F10: settings   F9: quit"
-msgstr "Enter：啟動   F10：設定   F9：結束"
+#, c-format
+msgid "Enter: launch   %s: settings   %s: quit"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No ROM archives were found in the ROM directories. Set them in Settings "
-"(F1) > Paths, then relaunch."
+"No ROM archives were found in the ROM directories. Set them in Settings (F1) "
+"> Paths, then relaunch."
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -2044,6 +2209,32 @@ msgstr "正在取得簡介..."
 #, no-c-format
 msgid "No description available."
 msgstr "沒有簡介。"
+
+#, no-c-format
+#~ msgid "Where F12 screenshots are written."
+#~ msgstr "F12 螢幕截圖的儲存位置。"
+
+#, no-c-format
+#~ msgid ""
+#~ "Hold Backspace to step back through play.\n"
+#~ "Costs a little speed on every frame while on."
+#~ msgstr ""
+#~ "按住 Backspace 可倒轉遊戲進程。\n"
+#~ "開啟時每個影格都會稍微降低速度。"
+
+#, no-c-format
+#~ msgid ""
+#~ "Save the whole machine to a slot and restore it later. Quick-save is F6, "
+#~ "quick-load is F7."
+#~ msgstr "將整台機器儲存至欄位，之後再還原。快速儲存為 F6，快速載入為 F7。"
+
+#, no-c-format
+#~ msgid "F10: toggle overlay"
+#~ msgstr "F10：切換覆蓋層"
+
+#, no-c-format
+#~ msgid "Enter: launch   F10: settings   F9: quit"
+#~ msgstr "Enter：啟動   F10：設定   F9：結束"
 
 #, no-c-format
 #~ msgid ""
@@ -2081,88 +2272,14 @@ msgstr "沒有簡介。"
 #~ "遊戲，其按鍵和軸也可在下方綁定，無需再點回此視窗。\n"
 #~ "鍵盤和滑鼠仍需視窗在前景。"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Laser"
-msgstr "雷射"
+#~ msgid "Throttle"
+#~ msgstr "油門"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Torpedo"
-msgstr "魚雷"
+#~ msgid "Throttle Up"
+#~ msgstr "加油門"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "視角"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle"
-msgstr "油門"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Up"
-msgstr "加油門"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Down"
-msgstr "減油門"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Yoke"
-msgstr "操縱桿"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Machine Gun"
-msgstr "機槍"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Smoke"
-msgstr "煙霧"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Stick"
-msgstr "搖桿"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
-msgstr "欄位依本遊戲的操作命名；變暗的欄位不使用。顯示快捷鍵會列出 Guide 組合鍵。"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 1"
-msgstr "視角 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 2"
-msgstr "視角 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 3"
-msgstr "視角 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 4"
-msgstr "視角 4"
-
-msgid "Model 3 ROM directory"
-msgstr ""
-
-msgid ""
-"Where the Model 3 ROM archives live.\n"
-"Empty means the ROM directory."
-msgstr ""
-
-msgid "(Model 1 & 2 only)"
-msgstr ""
+#~ msgid "Throttle Down"
+#~ msgstr "減油門"

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-10-20 09:05+1000\n"
+"POT-Creation-Date: 2026-11-09 01:59+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -62,6 +62,11 @@ msgstr "Silme başarısız: %s"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "none"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "Dosya"
 
@@ -104,6 +109,11 @@ msgstr "Ekran bildirimleri"
 #, no-c-format
 msgid "Light-gun mode"
 msgstr "Işık tabancası modu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(Model 1 & 2 only)"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -289,7 +299,8 @@ msgid ""
 "brighter. Applies live."
 msgstr ""
 "Model 2 görüntüsünde siyahın yeri. %50 varsayılandır,\n"
-"bir salon makinesi kaydına göre ayarlı; daha az daha koyu, daha çok daha parlak.\n"
+"bir salon makinesi kaydına göre ayarlı; daha az daha koyu, daha çok daha "
+"parlak.\n"
 "Hemen uygulanır."
 
 #: src/osd/gui.cpp
@@ -540,6 +551,18 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 3 ROM directory"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "Kayıt dizini"
 
@@ -559,8 +582,8 @@ msgstr "Ekran görüntüsü dizini"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Where F12 screenshots are written."
-msgstr "F12 ekran görüntülerinin yazıldığı yer."
+msgid "Where screenshots are written."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1372,6 +1395,61 @@ msgstr "Şarjör değiştir"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Laser"
+msgstr "Lazer"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "Torpido"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Görünüm"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "Lövye"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "Makineli tüfek"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "Duman"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "Görünüm 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "Görünüm 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "Görünüm 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "Görünüm 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "Çubuk"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Screenshot"
 msgstr "Ekran görüntüsü"
 
@@ -1428,6 +1506,15 @@ msgid ""
 msgstr ""
 "Guide'ı basılı tutun, sonra diğer düğmeye basın; oyun bunları görmez. Çıkış, "
 "oyun varsa oyunlara döner. Servis ve Test her zaman çalışır."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Slots are named for this game's controls; dimmed ones are not used. Show "
+"shortcuts lists the Guide combinations."
+msgstr ""
+"Yuvalar bu oyunun kontrollerine göre adlandırılır; soluk olanlar "
+"kullanılmaz. Kısayolları göster, Guide kombinasyonlarını listeler."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1922,13 +2009,11 @@ msgstr ""
 "pencerenin önde olması gerekir."
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Hold Backspace to step back through play.\n"
+"Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
-"Oyunda geri gitmek için Backspace'i basılı tutun.\n"
-"Açıkken her karede biraz hız kaybettirir."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1937,17 +2022,97 @@ msgstr "Geri sarma belleği"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Load a game to save and restore its state."
-msgstr "Durumunu kaydetmek ve geri yüklemek için bir oyun yükleyin."
+msgid "Cabinet outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network outputs"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Save the whole machine to a slot and restore it later. Quick-save is F6, "
-"quick-load is F7."
+"Send lamps, gun recoil and drive-board output to\n"
+"MAMEHooker, Hook Of The Reaper and similar tools,\n"
+"using MAME's network output protocol."
 msgstr ""
-"Tüm makineyi bir yuvaya kaydedin ve daha sonra geri yükleyin. Hızlı kaydetme "
-"F6, hızlı yükleme F7."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Port"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Windows outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The same outputs over MAME's Windows message\n"
+"protocol, for tools that hook MAME that way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Back to games"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings overlay"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pause"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fast-forward (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a key..."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Clear"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a key, then press the new one. Escape cancels.\n"
+"A key a game also uses does both."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "Durumunu kaydetmek ve geri yüklemek için bir oyun yükleyin."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is %s, "
+"quick-load is %s."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2025,9 +2190,9 @@ msgid "Cancel"
 msgstr "İptal"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "F10: toggle overlay"
-msgstr "F10: arayüzü aç/kapat"
+#, c-format
+msgid "%s: toggle overlay"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2035,15 +2200,15 @@ msgid "Select a game"
 msgstr "Bir oyun seçin"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "Enter: launch   F10: settings   F9: quit"
-msgstr "Enter: başlat   F10: ayarlar   F9: çıkış"
+#, c-format
+msgid "Enter: launch   %s: settings   %s: quit"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No ROM archives were found in the ROM directories. Set them in Settings "
-"(F1) > Paths, then relaunch."
+"No ROM archives were found in the ROM directories. Set them in Settings (F1) "
+"> Paths, then relaunch."
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -2055,6 +2220,34 @@ msgstr "Açıklama alınıyor..."
 #, no-c-format
 msgid "No description available."
 msgstr "Açıklama yok."
+
+#, no-c-format
+#~ msgid "Where F12 screenshots are written."
+#~ msgstr "F12 ekran görüntülerinin yazıldığı yer."
+
+#, no-c-format
+#~ msgid ""
+#~ "Hold Backspace to step back through play.\n"
+#~ "Costs a little speed on every frame while on."
+#~ msgstr ""
+#~ "Oyunda geri gitmek için Backspace'i basılı tutun.\n"
+#~ "Açıkken her karede biraz hız kaybettirir."
+
+#, no-c-format
+#~ msgid ""
+#~ "Save the whole machine to a slot and restore it later. Quick-save is F6, "
+#~ "quick-load is F7."
+#~ msgstr ""
+#~ "Tüm makineyi bir yuvaya kaydedin ve daha sonra geri yükleyin. Hızlı "
+#~ "kaydetme F6, hızlı yükleme F7."
+
+#, no-c-format
+#~ msgid "F10: toggle overlay"
+#~ msgstr "F10: arayüzü aç/kapat"
+
+#, no-c-format
+#~ msgid "Enter: launch   F10: settings   F9: quit"
+#~ msgstr "Enter: başlat   F10: ayarlar   F9: çıkış"
 
 #, no-c-format
 #~ msgid ""
@@ -2095,88 +2288,14 @@ msgstr "Açıklama yok."
 #~ "tıklamadan aşağıda atanabilir. Klavye ve fare için pencerenin\n"
 #~ "önde olması hâlâ gerekir."
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Laser"
-msgstr "Lazer"
+#~ msgid "Throttle"
+#~ msgstr "Gaz"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Torpedo"
-msgstr "Torpido"
+#~ msgid "Throttle Up"
+#~ msgstr "Gaz artır"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "Görünüm"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle"
-msgstr "Gaz"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Up"
-msgstr "Gaz artır"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Down"
-msgstr "Gaz azalt"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Yoke"
-msgstr "Lövye"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Machine Gun"
-msgstr "Makineli tüfek"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Smoke"
-msgstr "Duman"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Stick"
-msgstr "Çubuk"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
-msgstr "Yuvalar bu oyunun kontrollerine göre adlandırılır; soluk olanlar kullanılmaz. Kısayolları göster, Guide kombinasyonlarını listeler."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 1"
-msgstr "Görünüm 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 2"
-msgstr "Görünüm 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 3"
-msgstr "Görünüm 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 4"
-msgstr "Görünüm 4"
-
-msgid "Model 3 ROM directory"
-msgstr ""
-
-msgid ""
-"Where the Model 3 ROM archives live.\n"
-"Empty means the ROM directory."
-msgstr ""
-
-msgid "(Model 1 & 2 only)"
-msgstr ""
+#~ msgid "Throttle Down"
+#~ msgstr "Gaz azalt"

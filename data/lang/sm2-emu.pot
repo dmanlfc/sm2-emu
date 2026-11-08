@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-10-20 09:05+1000\n"
+"POT-Creation-Date: 2026-11-09 01:59+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -65,6 +65,11 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "none"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr ""
 
@@ -106,6 +111,11 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Light-gun mode"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(Model 1 & 2 only)"
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -494,6 +504,18 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 3 ROM directory"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr ""
 
@@ -511,7 +533,7 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Where F12 screenshots are written."
+msgid "Where screenshots are written."
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -592,7 +614,7 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "A Sega Model 1 & 2 arcade emulator"
+msgid "A Sega Model 1, 2 & 3 arcade emulator"
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -1266,6 +1288,61 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Laser"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Screenshot"
 msgstr ""
 
@@ -1319,6 +1396,13 @@ msgstr ""
 msgid ""
 "Hold Guide, then press the other button; the game does not see them. Exit "
 "goes back to the games when there are some. Service and Test always work."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Slots are named for this game's controls; dimmed ones are not used. Show "
+"shortcuts lists the Guide combinations."
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -1747,9 +1831,9 @@ msgid ""
 msgstr ""
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Hold Backspace to step back through play.\n"
+"Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
 
@@ -1760,14 +1844,96 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Load a game to save and restore its state."
+msgid "Cabinet outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network outputs"
 msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Save the whole machine to a slot and restore it later. Quick-save is F6, "
-"quick-load is F7."
+"Send lamps, gun recoil and drive-board output to\n"
+"MAMEHooker, Hook Of The Reaper and similar tools,\n"
+"using MAME's network output protocol."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Port"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Windows outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The same outputs over MAME's Windows message\n"
+"protocol, for tools that hook MAME that way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Back to games"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings overlay"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pause"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fast-forward (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a key..."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Clear"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a key, then press the new one. Escape cancels.\n"
+"A key a game also uses does both."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is %s, "
+"quick-load is %s."
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -1846,8 +2012,8 @@ msgid "Cancel"
 msgstr ""
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "F10: toggle overlay"
+#, c-format
+msgid "%s: toggle overlay"
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -1856,15 +2022,15 @@ msgid "Select a game"
 msgstr ""
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "Enter: launch   F10: settings   F9: quit"
+#, c-format
+msgid "Enter: launch   %s: settings   %s: quit"
 msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No Model 2 ROM archives were found in the ROM directory. Set it in Settings "
-"(F1) > Paths, then relaunch."
+"No ROM archives were found in the ROM directories. Set them in Settings (F1) "
+"> Paths, then relaunch."
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -1875,79 +2041,4 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "No description available."
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Laser"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Torpedo"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Up"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Down"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Yoke"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Machine Gun"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Smoke"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Stick"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 1"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 2"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 3"
-msgstr ""
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 4"
 msgstr ""

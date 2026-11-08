@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-10-20 09:05+1000\n"
+"POT-Creation-Date: 2026-11-09 01:59+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -62,6 +62,11 @@ msgstr "حذف ناموفق بود: %s"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "none"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "فایل"
 
@@ -104,6 +109,11 @@ msgstr "اعلان‌های روی صفحه"
 #, no-c-format
 msgid "Light-gun mode"
 msgstr "حالت تفنگ نوری"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "(Model 1 & 2 only)"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -540,6 +550,18 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Model 3 ROM directory"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 3 ROM archives live.\n"
+"Empty means the ROM directory."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Saves directory"
 msgstr "پوشه ذخیره‌ها"
 
@@ -559,8 +581,8 @@ msgstr "پوشه اسکرین‌شات‌ها"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Where F12 screenshots are written."
-msgstr "محل نوشتن اسکرین‌شات‌های F12."
+msgid "Where screenshots are written."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1373,6 +1395,61 @@ msgstr "پر کردن اسلحه"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Laser"
+msgstr "لیزر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Torpedo"
+msgstr "اژدر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "نما"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yoke"
+msgstr "فرمان پرواز"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Machine Gun"
+msgstr "مسلسل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Smoke"
+msgstr "دود"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 1"
+msgstr "نما 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 2"
+msgstr "نما 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 3"
+msgstr "نما 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View 4"
+msgstr "نما 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stick"
+msgstr "استیک"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Screenshot"
 msgstr "عکس صفحه"
 
@@ -1429,6 +1506,15 @@ msgid ""
 msgstr ""
 "Guide را نگه دارید، سپس دکمه دیگر را بزنید؛ بازی آن‌ها را نمی‌بیند. خروج به "
 "فهرست بازی‌ها برمی‌گردد اگر باشند. سرویس و تست همیشه کار می‌کنند."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Slots are named for this game's controls; dimmed ones are not used. Show "
+"shortcuts lists the Guide combinations."
+msgstr ""
+"خانه‌ها به نام کنترل‌های این بازی‌اند؛ کم‌رنگ‌ها استفاده نمی‌شوند. نمایش میان‌برها "
+"ترکیب‌های Guide را فهرست می‌کند."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1921,13 +2007,11 @@ msgstr ""
 "در جلو نیاز دارند."
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Hold Backspace to step back through play.\n"
+"Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
-"Backspace را نگه دارید تا در بازی به عقب بروید.\n"
-"تا روشن است، در هر فریم کمی از سرعت می‌کاهد."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1936,17 +2020,97 @@ msgstr "حافظه عقب‌بردن"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Load a game to save and restore its state."
-msgstr "یک بازی بارگذاری کنید تا وضعیت آن را ذخیره و بازیابی کنید."
+msgid "Cabinet outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network outputs"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Save the whole machine to a slot and restore it later. Quick-save is F6, "
-"quick-load is F7."
+"Send lamps, gun recoil and drive-board output to\n"
+"MAMEHooker, Hook Of The Reaper and similar tools,\n"
+"using MAME's network output protocol."
 msgstr ""
-"کل دستگاه را در یک اسلات ذخیره و بعداً بازیابی کنید. ذخیره سریع F6 و بارگذاری "
-"سریع F7 است."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Port"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Windows outputs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The same outputs over MAME's Windows message\n"
+"protocol, for tools that hook MAME that way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Back to games"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings overlay"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pause"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fast-forward (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind (held)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a key..."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Clear"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a key, then press the new one. Escape cancels.\n"
+"A key a game also uses does both."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "یک بازی بارگذاری کنید تا وضعیت آن را ذخیره و بازیابی کنید."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is %s, "
+"quick-load is %s."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2024,9 +2188,9 @@ msgid "Cancel"
 msgstr "لغو"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "F10: toggle overlay"
-msgstr "F10: نمایش/پنهان کردن منو"
+#, c-format
+msgid "%s: toggle overlay"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2034,15 +2198,15 @@ msgid "Select a game"
 msgstr "یک بازی انتخاب کنید"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "Enter: launch   F10: settings   F9: quit"
-msgstr "Enter: اجرا   F10: تنظیمات   F9: خروج"
+#, c-format
+msgid "Enter: launch   %s: settings   %s: quit"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No ROM archives were found in the ROM directories. Set them in Settings "
-"(F1) > Paths, then relaunch."
+"No ROM archives were found in the ROM directories. Set them in Settings (F1) "
+"> Paths, then relaunch."
 msgstr ""
 
 #: src/osd/gui.cpp
@@ -2054,6 +2218,34 @@ msgstr "در حال دریافت توضیحات..."
 #, no-c-format
 msgid "No description available."
 msgstr "توضیحی موجود نیست."
+
+#, no-c-format
+#~ msgid "Where F12 screenshots are written."
+#~ msgstr "محل نوشتن اسکرین‌شات‌های F12."
+
+#, no-c-format
+#~ msgid ""
+#~ "Hold Backspace to step back through play.\n"
+#~ "Costs a little speed on every frame while on."
+#~ msgstr ""
+#~ "Backspace را نگه دارید تا در بازی به عقب بروید.\n"
+#~ "تا روشن است، در هر فریم کمی از سرعت می‌کاهد."
+
+#, no-c-format
+#~ msgid ""
+#~ "Save the whole machine to a slot and restore it later. Quick-save is F6, "
+#~ "quick-load is F7."
+#~ msgstr ""
+#~ "کل دستگاه را در یک اسلات ذخیره و بعداً بازیابی کنید. ذخیره سریع F6 و "
+#~ "بارگذاری سریع F7 است."
+
+#, no-c-format
+#~ msgid "F10: toggle overlay"
+#~ msgstr "F10: نمایش/پنهان کردن منو"
+
+#, no-c-format
+#~ msgid "Enter: launch   F10: settings   F9: quit"
+#~ msgstr "Enter: اجرا   F10: تنظیمات   F9: خروج"
 
 #, no-c-format
 #~ msgid ""
@@ -2092,88 +2284,14 @@ msgstr "توضیحی موجود نیست."
 #~ "محورهایش را می‌توان پایین‌تر بدون کلیک دوباره روی این پنجره\n"
 #~ "تنظیم کرد. صفحه‌کلید و ماوس همچنان پنجره را در جلو می‌خواهند."
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Laser"
-msgstr "لیزر"
+#~ msgid "Throttle"
+#~ msgstr "گاز"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "Torpedo"
-msgstr "اژدر"
+#~ msgid "Throttle Up"
+#~ msgstr "گاز بیشتر"
 
-#: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "نما"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle"
-msgstr "گاز"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Up"
-msgstr "گاز بیشتر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Throttle Down"
-msgstr "گاز کمتر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Yoke"
-msgstr "فرمان پرواز"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Machine Gun"
-msgstr "مسلسل"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Smoke"
-msgstr "دود"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Stick"
-msgstr "استیک"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Slots are named for this game's controls; dimmed ones are not used. Show shortcuts lists the Guide combinations."
-msgstr "خانه‌ها به نام کنترل‌های این بازی‌اند؛ کم‌رنگ‌ها استفاده نمی‌شوند. نمایش میان‌برها ترکیب‌های Guide را فهرست می‌کند."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 1"
-msgstr "نما 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 2"
-msgstr "نما 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 3"
-msgstr "نما 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "View 4"
-msgstr "نما 4"
-
-msgid "Model 3 ROM directory"
-msgstr ""
-
-msgid ""
-"Where the Model 3 ROM archives live.\n"
-"Empty means the ROM directory."
-msgstr ""
-
-msgid "(Model 1 & 2 only)"
-msgstr ""
+#~ msgid "Throttle Down"
+#~ msgstr "گاز کمتر"
