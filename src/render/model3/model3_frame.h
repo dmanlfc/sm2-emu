@@ -21,6 +21,7 @@
 #include "render/model3/frame_plan.h"
 #include "render/model3/line_of_sight.h"
 #include "render/model3/scene.h"
+#include "render/model3/texture_key.h"
 #include "render/model3/textures.h"
 #include "render/model3/tilegen.h"
 
@@ -28,7 +29,13 @@
 #include <span>
 #include <vector>
 
+namespace sm2::render {
+class TextureReplacements;
+}
+
 namespace sm2::render::model3 {
+
+class TextureDumper;
 
 class FrameBuilder {
 public:
@@ -48,16 +55,24 @@ public:
     [[nodiscard]] bool top_layer_hides_3d() const;
     [[nodiscard]] TextureSheets&   textures() { return m_textures; }
 
+    /// Custom textures to point the plan at; null for none.
+    void set_texture_replacements(const TextureReplacements* replacements) { m_replacements = replacements; }
+    void set_texture_dumper(TextureDumper* dumper) { m_dumper = dumper; }
+
     [[nodiscard]] std::span<const u32> layer(int index) const;
 
 private:
     void plan_layers();
     void track_scroll();
+    void apply_replacements();
 
     Scene         m_scene;
     TextureSheets m_textures;
     TileGen       m_tilegen;
     FramePlan     m_plan;
+    TextureHasher m_hasher;
+    const TextureReplacements* m_replacements = nullptr;
+    TextureDumper*             m_dumper       = nullptr;
     std::array<u32, 4>  m_scroll_hash{};
     std::array<u32, 4>  m_scroll_age{};  // frames since the layer last scrolled
     std::array<bool, 4> m_scrolled{};

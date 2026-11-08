@@ -15,6 +15,8 @@
 #include "render/model3/model3_frame.h"
 
 #include "core/log.h"
+#include "render/model3/texture_dump.h"
+#include "render/texture_replace.h"
 
 #include <algorithm>
 #include <vector>
@@ -60,9 +62,38 @@ void FrameBuilder::submit(const hw::model3::VideoFrame& frame, bool encode_depth
     }
     track_scroll();
     plan_layers();
+    if (m_replacements != nullptr && !m_replacements->empty()) {
+        apply_replacements();
+    }
+    if (m_dumper != nullptr) {
+        m_dumper->scan(m_plan, m_textures, m_hasher);
+    }
 
     m_frame_number = frame.frame_number;
     m_has_frame    = true;
+}
+
+void FrameBuilder::apply_replacements()
+{
+    bool any = false;
+    for (R3DUniforms& u : m_plan.uniforms) {
+        if (u.textureEnabled == 0) {
+            continue;
+        }
+        TextureReplacements::Placement p;
+        if (!m_replacements->find(m_hasher.lookup(m_textures, texture_ref(u)), &p)) {
+            continue;
+        }
+        u.replaceInfo = (p.layer + 1) | (std::min(p.max_lod, 15u) << 8);
+        u.replaceXY   = p.x | (p.y << 16);
+        u.replaceWH   = p.width | (p.height << 16);
+        any           = true;
+    }
+    if (any) {
+        for (R3DDraw& d : m_plan.draws) {
+            d.variant = r3d_variant(m_plan.uniforms[d.uniforms]);
+        }
+    }
 }
 
 bool FrameBuilder::top_layer_hides_3d() const

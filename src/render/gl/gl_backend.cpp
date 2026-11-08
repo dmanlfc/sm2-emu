@@ -277,6 +277,8 @@ void GlBackend::set_present_options(const PresentOptions& options)
 void GlBackend::set_texture_replacements(TextureReplacements* replacements)
 {
     m_polygons.set_texture_replacements(replacements);
+    m_model3.set_texture_replacements(replacements);
+    m_model3_frame.set_texture_replacements(replacements);
 }
 
 void GlBackend::set_enhancement_options(const EnhancementOptions& options)

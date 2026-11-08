@@ -99,6 +99,7 @@ public:
     void submit_model3_frame(const hw::model3::VideoFrame& frame) override;
     void render_model3() override;
     void reset_model3() override { m_model3_frame.reset(); }
+    void set_model3_texture_dumper(model3::TextureDumper* dumper) override { m_model3_frame.set_texture_dumper(dumper); }
     [[nodiscard]] model3::LineOfSight model3_line_of_sight() const override
     {
         return m_model3.line_of_sight().latest();

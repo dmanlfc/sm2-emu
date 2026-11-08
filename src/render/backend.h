@@ -47,6 +47,9 @@ class Gui;
 namespace sm2::render {
 
 class TextureReplacements;
+namespace model3 {
+class TextureDumper;
+}
 
 /// What a backend can be asked to do, queried rather than assumed, so a call
 /// site asks "does this backend support X" instead of knowing which backend it
@@ -428,6 +431,9 @@ public:
 
     /// Drop cached ROM models and texture state (new game).
     virtual void reset_model3() {}
+
+    /// Collect every texture the Model 3 frames use, or null to stop.
+    virtual void set_model3_texture_dumper(model3::TextureDumper* dumper) { static_cast<void>(dumper); }
 
     /// Line-of-sight results of the latest completed frame (frame_number 0 =
     /// none yet). Any thread. Vulkan lags up to kFramesInFlight frames.

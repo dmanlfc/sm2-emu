@@ -47,6 +47,7 @@
 #include "osd/scraper.h"
 #include "osd/window.h"
 #include "render/backend.h"
+#include "render/model3/texture_dump.h"
 #include "render/texture_dump.h"
 #include "render/texture_replace.h"
 #include "rom/game_db.h"
@@ -2150,6 +2151,7 @@ int main(int argc, char** argv)
         window.set_title(build_title());
 
         std::optional<render::TextureDumper> texture_dumper;
+        std::unique_ptr<render::model3::TextureDumper> model3_dumper;
         std::string                          texture_dump_game;
 
         // Custom textures for the running game; the backend holds a pointer,
@@ -2376,7 +2378,8 @@ int main(int argc, char** argv)
             outputs.set_paused(effective_pause);
 
             {
-                const std::string wanted = machine_iface != nullptr && loaded.has_value()
+                const std::string wanted = (machine_iface != nullptr || machine_m3 != nullptr)
+                                                   && loaded.has_value()
                                                    && options.config.custom_textures
                                                ? loaded->game.name
                                                : std::string();
@@ -2398,8 +2401,10 @@ int main(int argc, char** argv)
             }
 
             {
-                const bool dumping = machine_iface != nullptr && loaded.has_value()
-                                  && (options.dump_textures || options.config.dump_textures);
+                const bool wants_dump = loaded.has_value()
+                                     && (options.dump_textures || options.config.dump_textures);
+                const bool dumping   = wants_dump && machine_iface != nullptr;
+                const bool dumping_3 = wants_dump && machine_m3 != nullptr;
                 const bool same_game =
                     loaded.has_value() && texture_dump_game == loaded->game.name;
                 if (texture_dumper && (!dumping || !same_game)) {
@@ -2407,11 +2412,21 @@ int main(int argc, char** argv)
                     texture_dumper->finish(same_game ? machine_iface : nullptr);
                     texture_dumper.reset();
                 }
-                if (dumping && !texture_dumper) {
+                if (model3_dumper && (!dumping_3 || !same_game)) {
+                    backend->set_model3_texture_dumper(nullptr);
+                    model3_dumper.reset();
+                }
+                if ((dumping && !texture_dumper) || (dumping_3 && !model3_dumper)) {
                     texture_dump_game = loaded->game.name;
-                    texture_dumper.emplace(
-                        texture_dump_directory(options.config, texture_dump_game),
-                        texture_dump_game);
+                    const std::string directory =
+                        texture_dump_directory(options.config, texture_dump_game);
+                    if (dumping) {
+                        texture_dumper.emplace(directory, texture_dump_game);
+                    } else {
+                        model3_dumper = std::make_unique<render::model3::TextureDumper>(
+                            directory, texture_dump_game);
+                        backend->set_model3_texture_dumper(model3_dumper.get());
+                    }
                 }
             }
 
@@ -2796,7 +2811,10 @@ int main(int argc, char** argv)
                               ? (frames_presented % options.screenshot_interval) == 0
                                     || last_frame
                               : last_frame || options.run_frames == 0);
-            const bool capture_this_frame = capture_diagnostic || screenshot_requested;
+            const std::string dump_frame =
+                model3_dumper ? model3_dumper->take_frame_request() : std::string();
+            const bool capture_this_frame =
+                capture_diagnostic || screenshot_requested || !dump_frame.empty();
             if (capture_this_frame && !backend->request_capture()) {
                 SM2_ERROR("frame capture failed");
                 exit_code = 1;
@@ -3045,6 +3063,11 @@ int main(int argc, char** argv)
                 }
             }
 
+            if (!dump_frame.empty()) {
+                backend->wait_idle();
+                (void)backend->save_capture(dump_frame);
+            }
+
             // F12: write a timestamped PNG into the screenshots directory.
             if (screenshot_requested) {
                 screenshot_requested = false;
@@ -3160,6 +3183,8 @@ int main(int argc, char** argv)
             texture_dumper->finish(machine_iface);
             texture_dumper.reset();
         }
+        backend->set_model3_texture_dumper(nullptr);
+        model3_dumper.reset();
         backend->set_texture_replacements(nullptr);
 
         if (frames_written_off != 0) {

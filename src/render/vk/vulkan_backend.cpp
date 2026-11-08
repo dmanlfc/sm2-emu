@@ -272,6 +272,8 @@ void VulkanBackend::set_widescreen(u32 columns, u32 wide_background)
 void VulkanBackend::set_texture_replacements(TextureReplacements* replacements)
 {
     m_polygons.set_texture_replacements(replacements);
+    m_model3.set_texture_replacements(replacements);
+    m_model3_frame.set_texture_replacements(replacements);
 }
 
 void VulkanBackend::set_enhancement_options(const EnhancementOptions& options)

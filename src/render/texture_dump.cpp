@@ -105,6 +105,14 @@ extern const char* const kIndexHtml;
 
 }  // namespace
 
+std::string texture_index_html(const std::string& json)
+{
+    std::string html = kIndexHtml;
+    const std::string marker = "/*DATA*/";
+    html.replace(html.find(marker), marker.size(), json);
+    return html;
+}
+
 TextureDumper::TextureDumper(std::string directory, std::string game)
     : m_directory(std::move(directory))
     , m_game(std::move(game))
@@ -363,10 +371,7 @@ void TextureDumper::finish(const hw::Model2MachineBase* machine)
         }
     }
 
-    std::string html = kIndexHtml;
-    const std::string marker = "/*DATA*/";
-    html.replace(html.find(marker), marker.size(), json.str());
-    std::ofstream(m_directory + "/index.html") << html;
+    std::ofstream(m_directory + "/index.html") << texture_index_html(json.str());
 
     SM2_INFO("texture dump: %zu texture(s), %zu colour variant(s), %u frame(s), "
              "orientation '%s'; open '%s/index.html'",
@@ -485,7 +490,7 @@ button:hover { border-color: var(--accent); }
       <div class="hint">To replace it, save an image with this exact name in
         <code>textures/<span class="d-game"></span>/load/</code>, at the same orientation and
         any whole multiple of this size (2x, 4x, 8x...).</div>
-      <h2 style="margin-top:16px">Colour variants</h2>
+      <h2 style="margin-top:16px" id="d-variants-title">Colour variants</h2>
       <div class="variants" id="d-variants"></div>
     </div>
     <div>
@@ -513,8 +518,10 @@ $("title").textContent = DATA.game + " textures";
 document.querySelectorAll(".d-game").forEach(e => e.textContent = DATA.game);
 const nVariants = DATA.textures.reduce((a, t) => a + t.variants.length, 0);
 const stored = DATA.textures.length ? orientText[DATA.textures[0].orient] : "";
-$("stats").textContent = `${DATA.textures.length} textures · ${nVariants} colour variants · ` +
+$("stats").textContent = DATA.unit ? `${DATA.textures.length} textures · shown as stored, in full colour` :
+  `${DATA.textures.length} textures · ${nVariants} colour variants · ` +
   `stored ${stored}, shown upright in the colouring used most on screen`;
+if (DATA.unit) $("d-variants-title").style.display = "none";
 [...new Set(DATA.textures.map(t => t.w + "x" + t.h))]
   .sort((a, b) => { const [aw, ah] = a.split("x"), [bw, bh] = b.split("x"); return bw * bh - aw * ah; })
   .forEach(s => $("size").insertAdjacentHTML("beforeend", `<option>${s}</option>`));
@@ -529,7 +536,7 @@ function render() {
     const shown = t.variants.find(v => v.shown);
     return `<div class="card" data-file="${t.file}">
       <div class="thumb checker"><img loading="lazy" src="${t.file}" alt=""></div>
-      <div class="meta"><b>${w}×${h}</b>${swatch(shown.palette)}
+      <div class="meta"><b>${w}×${h}</b>${shown ? swatch(shown.palette) : ""}
         ${t.variants.length > 1 ? `<span class="tag">${t.variants.length} colours</span>` : ""}
         ${t.cut ? '<span class="tag">cut-out</span>' : ""}</div></div>`;
   }).join("");
@@ -543,9 +550,10 @@ function open(t) {
   $("d-file").textContent = t.file;
   $("d-info").innerHTML = `
     <dt>Size</dt><dd>${w}×${h} (stored ${t.w}×${t.h}, ${orientText[t.orient]})</dd>
-    <dt>On screen</dt><dd>${(100 * t.area / total).toFixed(2)}% of all textured area, in ${t.frames} frames</dd>
+    <dt>On screen</dt><dd>${(100 * t.area / total).toFixed(2)}% of all textured ${DATA.unit || "area"}, in ${t.frames} frames</dd>
     <dt>First seen</dt><dd>${time(t.first)} (frame ${t.first})</dd>
-    <dt>Transparency</dt><dd>${t.cut ? "brightest level is see-through" : "none"}</dd>`;
+    ${t.info ? `<dt>Format</dt><dd>${t.info}</dd>` : ""}
+    <dt>Transparency</dt><dd>${t.cut ? (DATA.unit ? "alpha is used" : "brightest level is see-through") : "none"}</dd>`;
   $("d-variants").innerHTML = t.variants.slice().sort((a, b) => b.area - a.area).map(v =>
     `<div class="variant${v.shown ? " on" : ""}"><span class="swatches">${v.palette.map(c => `<i style="background:${c}"></i>`).join("")}</span>
       ${v.key} · ${(100 * v.area / (t.area || 1)).toFixed(1)}%${v.shown ? " · shown" : ""}</div>`).join("");

@@ -34,6 +34,9 @@ class SoftRenderer;
 
 namespace sm2::render {
 
+/// The dump's index.html around its JSON description.
+[[nodiscard]] std::string texture_index_html(const std::string& json);
+
 /// Collects each distinct texture the 3D polygons sample and, on finish(),
 /// writes one PNG per texture, upright and in its most visible colouring, plus
 /// an index.html to browse them with a screenshot of where each first appeared.
