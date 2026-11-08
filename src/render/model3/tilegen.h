@@ -10,10 +10,10 @@
 //
 // NOTICE's section 7 additional terms apply to sm2-emu's changes only.
 //
-// Draws from a VideoFrame's VRAM and registers. Palettes are rebuilt from
-// VRAM; VRAM stores made during active display (tilegen_writes) are applied
-// per line. VRAM words are loaded little-endian. Widescreen side columns come
-// from the map and flat edges.
+// Draws from a VideoFrame's VRAM and registers. Palettes persist across
+// frames and are updated from VRAM changes; VRAM stores made during active
+// display (tilegen_writes) are applied per line. VRAM words are loaded
+// little-endian. Widescreen side columns come from the map and flat edges.
 #pragma once
 
 #include "core/types.h"
@@ -38,6 +38,7 @@ public:
     void prepare(std::span<const u8> vram, std::span<const u32> regs);
 
     void clear();
+    void clear_line(u32 line);
 
     void draw_line(int line, std::span<const u32> regs);
 
@@ -111,7 +112,10 @@ private:
     void Draw8BitTilePair(int tileData, int hStart, int hEnd, int vFine, u32* lineBuffer, const u32* pal,
                           int& x) const;
 
+    void clear_state();
+    void sync_palette_ram();
     void build_palettes(u32 reg40, u32 reg44);
+    void build_palette(int layer);
 
     [[nodiscard]] u32 tile_pixel(int index, bool four_bit, int x, int line, int scroll_x, int scroll_y) const;
     void draw_sides(int line, std::span<const u32> regs, int primary, int line_mask, const int scroll_x[2],
@@ -120,6 +124,8 @@ private:
     std::span<const u8> m_vram;
     std::vector<u8>     m_vram_work;  // VRAM as of the line being drawn, when stores are applied
     u32                 m_palette_regs[2] = {~0u, ~0u};
+    std::vector<u8>     m_pal_ram;  // the palette VRAM m_pal was built from
+    bool                m_pal_valid = false;
 
     ColourOffsetRegister m_colourOffsetRegs[2];
     std::array<std::vector<u32>, 2> m_pal;      // computed palettes: [0] A/A', [1] B/B'

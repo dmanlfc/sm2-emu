@@ -36,39 +36,75 @@
 
 namespace sm2::render::model3 {
 
+namespace {
+
+constexpr u32 kPaletteWord = 0x40000;
+constexpr u32 kPaletteSize = 0x8000;
+
+}  // namespace
+
 TileGen::TileGen()
 {
     for (auto& p : m_pal) {
-        p.assign(0x8000, 0);
+        p.assign(kPaletteSize, 0);
     }
+    m_pal_ram.assign(kPaletteSize * 4, 0);
     for (auto& s : m_surface) {
         s.assign(static_cast<usize>(kWidth) * kHeight, 0);
     }
 }
 
+// m_vram always holds kVramBytes (see prepare()), so no bounds checks.
 u32 TileGen::vram32(u32 word_index) const
 {
-    const usize offset = static_cast<usize>(word_index) * 4;
-    if (offset + 4 > m_vram.size()) {
-        return 0;
-    }
-    return static_cast<u32>(m_vram[offset]) | (static_cast<u32>(m_vram[offset + 1]) << 8)
-           | (static_cast<u32>(m_vram[offset + 2]) << 16) | (static_cast<u32>(m_vram[offset + 3]) << 24);
+    // VRAM words are little-endian.
+    const u8* const p = m_vram.data() + static_cast<usize>(word_index) * 4;
+    return static_cast<u32>(p[0]) | (static_cast<u32>(p[1]) << 8) | (static_cast<u32>(p[2]) << 16)
+           | (static_cast<u32>(p[3]) << 24);
 }
 
 void TileGen::prepare(std::span<const u8> vram, std::span<const u32> regs)
 {
-    m_vram            = vram;
-    m_palette_regs[0] = ~0u;
-    m_palette_regs[1] = ~0u;
+    if (vram.size() < kVramBytes) {
+        std::vector<u8> padded(kVramBytes, 0);
+        std::copy(vram.begin(), vram.end(), padded.begin());
+        m_vram_work = std::move(padded);
+        vram        = m_vram_work;
+    }
+    m_vram = vram.first(kVramBytes);
+    sync_palette_ram();
     if (regs.size() < kRegs) {
         return;
     }
     build_palettes(regs[0x40 / 4], regs[0x44 / 4]);
 }
 
-// RecomputePalettes() for each layer pair whose offset changed; the palette
-// is at VRAM word 0x40000.
+// The palette entries whose VRAM word changed since the palettes were built.
+void TileGen::sync_palette_ram()
+{
+    const u8* const src = m_vram.data() + kPaletteWord * 4;
+    if (!m_pal_valid) {
+        std::memcpy(m_pal_ram.data(), src, kPaletteSize * 4);
+        m_palette_regs[0] = ~0u;
+        m_palette_regs[1] = ~0u;
+        m_pal_valid       = true;
+        return;
+    }
+    constexpr u32 kBlock = 64;
+    for (u32 block = 0; block < kPaletteSize; block += kBlock) {
+        if (std::memcmp(m_pal_ram.data() + block * 4, src + block * 4, kBlock * 4) == 0) {
+            continue;
+        }
+        std::memcpy(m_pal_ram.data() + block * 4, src + block * 4, kBlock * 4);
+        for (u32 i = block; i < block + kBlock; i++) {
+            const u32 word = vram32(kPaletteWord + i);
+            m_pal[0][i]    = GetColour32(0, word);
+            m_pal[1][i]    = GetColour32(1, word);
+        }
+    }
+}
+
+// Rebuilds the palette of each layer pair whose colour offset changed.
 void TileGen::build_palettes(u32 reg40, u32 reg44)
 {
     const u32 regs[2] = {reg40, reg44};
@@ -78,10 +114,29 @@ void TileGen::build_palettes(u32 reg40, u32 reg44)
         }
         m_palette_regs[layer] = regs[layer];
         m_colourOffsetRegs[layer].Update(regs[layer]);
-        u32* pal = m_pal[static_cast<usize>(layer)].data();
-        for (u32 i = 0; i < 32768; i++) {
-            pal[i] = GetColour32(layer, vram32(0x40000 + i));
+        build_palette(layer);
+    }
+}
+
+// GetColour32() over the whole palette, per channel from a table.
+void TileGen::build_palette(int layer)
+{
+    const ColourOffsetRegister& offset = m_colourOffsetRegs[layer];
+    u32 lut[3][2][32];
+    const s32 offsets[3] = {offset.r, offset.g, offset.b};
+    for (int c = 0; c < 3; c++) {
+        for (int v = 0; v < 32; v++) {
+            lut[c][0][v] = static_cast<u32>(std::clamp(offsets[c], 0, 255)) << (c * 8);
+            lut[c][1][v] = static_cast<u32>(std::clamp(offsets[c] + v * 255 / 31, 0, 255)) << (c * 8);
         }
+    }
+    u32* const      pal = m_pal[static_cast<usize>(layer)].data();
+    const u8* const ram = m_pal_ram.data();
+    for (u32 i = 0; i < kPaletteSize; i++) {
+        const u32 data   = static_cast<u32>(ram[i * 4]) | (static_cast<u32>(ram[i * 4 + 1]) << 8);
+        const u32 opaque = ((data >> 15) & 1) ^ 1;
+        pal[i] = (opaque * 0xFF000000u) | lut[0][opaque][data & 0x1F] | lut[1][opaque][(data >> 5) & 0x1F]
+                 | lut[2][opaque][(data >> 10) & 0x1F];
     }
 }
 
@@ -93,8 +148,25 @@ void TileGen::clear()
     for (auto& w : m_wide) {
         std::fill(w.begin(), w.end(), 0u);
     }
+    clear_state();
+}
+
+void TileGen::clear_state()
+{
     m_scroll_hash.fill(0);
     m_enabled.fill(false);
+}
+
+void TileGen::clear_line(u32 line)
+{
+    for (auto& s : m_surface) {
+        std::fill_n(s.begin() + static_cast<std::ptrdiff_t>(line * kWidth), kWidth, 0u);
+    }
+    if (m_side != 0) {
+        for (auto& w : m_wide) {
+            std::fill_n(w.begin() + static_cast<std::ptrdiff_t>(line * wide_width()), wide_width(), 0u);
+        }
+    }
 }
 
 void TileGen::set_side_columns(u32 columns)
@@ -228,7 +300,7 @@ void TileGen::draw_frame(std::span<const u8> vram, std::span<const u32> regs,
         draw_frame(vram, regs);
         return;
     }
-    clear();
+    clear_state();
     if (vram.size() < kVramBytes) {
         writes = {};
     }
@@ -249,6 +321,7 @@ void TileGen::draw_frame(std::span<const u8> vram, std::span<const u32> regs,
             std::memcpy(m_vram_work.data() + w.offset, w.bytes.data(), 4);
             if (w.offset >= 0x100000) {
                 const u32 index = (w.offset - 0x100000) / 4;
+                std::memcpy(m_pal_ram.data() + index * 4, w.bytes.data(), 4);
                 for (int layer = 0; layer < 2; layer++) {
                     m_pal[static_cast<usize>(layer)][index] = GetColour32(layer, vram32(0x40000 + index));
                 }
@@ -262,6 +335,7 @@ void TileGen::draw_frame(std::span<const u8> vram, std::span<const u32> regs,
             line_regs[0x60 / 4 + j] = l.scroll[j];
         }
         build_palettes(l.reg40, l.reg44);
+        clear_line(i);
         draw_line(static_cast<int>(i), line_regs);
     }
 }
@@ -369,6 +443,19 @@ void TileGen::Draw4BitTilePair(int tileData, int hStart, int hEnd, int vFine, u3
     const u32 patterns[] = {vram32(static_cast<u32>(patternOffset[0] + vFine)),
                             vram32(static_cast<u32>(patternOffset[1] + vFine))};
 
+    if (hStart == 0 && hEnd == 16 && x >= 0 && x + 16 <= static_cast<int>(kWidth)) {
+        u32* const out = lineBuffer + x;
+        for (int t = 0; t < 2; t++) {
+            const u32* const p = pal + paletteIndex[t];
+            for (int j = 0; j < 8; j++) {
+                const u32 colour32 = p[(patterns[t] >> ((7 - j) * 4)) & 0xFu];
+                out[t * 8 + j]     = colour32 >= 0x1000000 ? colour32 : out[t * 8 + j];
+            }
+        }
+        x += 16;
+        return;
+    }
+
     for (int i = hStart; i < hEnd; i++, x++) {
         const u32 pattern  = patterns[i / 8];  // first 8 pixels use pattern 1, next 8 pattern 2
         const u32 p        = (pattern >> ((7 - (i % 8)) * 4)) & 0xFu;
@@ -401,6 +488,19 @@ void TileGen::Draw8BitTilePair(int tileData, int hStart, int hEnd, int vFine, u3
                             vram32(static_cast<u32>(patternOffset[0] + (vFine * 2) + 1)),
                             vram32(static_cast<u32>(patternOffset[1] + (vFine * 2))),
                             vram32(static_cast<u32>(patternOffset[1] + (vFine * 2) + 1))};
+
+    if (hStart == 0 && hEnd == 16 && x >= 0 && x + 16 <= static_cast<int>(kWidth)) {
+        u32* const out = lineBuffer + x;
+        for (int q = 0; q < 4; q++) {
+            const u32* const p = pal + paletteIndex[q / 2];
+            for (int j = 0; j < 4; j++) {
+                const u32 colour32 = p[(patterns[q] >> ((3 - j) * 8)) & 0xFFu];
+                out[q * 4 + j]     = colour32 >= 0x1000000 ? colour32 : out[q * 4 + j];
+            }
+        }
+        x += 16;
+        return;
+    }
 
     for (int i = hStart; i < hEnd; i++, x++) {
         const u32 pattern  = patterns[i / 4];  // each pattern contains 4 pixels
