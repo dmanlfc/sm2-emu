@@ -48,8 +48,21 @@ constexpr u32 kReplacementLayerSize = 4096;
 [[nodiscard]] std::string replacement_file_name(u64 hash, u32 colour_base, u32 luma_table,
                                                 u32 luma, u32 orientation);
 
+/// `tex_<hash>.png`: a Model 3 texture, already in full colour.
+[[nodiscard]] std::string replacement_file_name(u64 hash);
+
 class TextureReplacements {
 public:
+    /// Where a replacement sits in the atlas.
+    struct Placement {
+        u32 layer   = 0;
+        u32 x       = 0;
+        u32 y       = 0;
+        u32 width   = 0;
+        u32 height  = 0;
+        u32 max_lod = 0;
+    };
+
     /// Load every replacement under `directory`, recursively, replacing
     /// whatever was loaded before. Returns how many were loaded.
     usize load(const std::string& directory);
@@ -72,6 +85,9 @@ public:
 
     /// Refresh what the frame's tints are measured with. Call before resolve().
     void begin_frame(const hw::Model2MachineBase& machine, const hw::Model2Video& video);
+
+    /// The replacement for a Model 3 texture hash, if any.
+    [[nodiscard]] bool find(u64 hash, Placement* out) const;
 
     /// Point `params` at a replacement when there is one for this polygon.
     void resolve(const hw::Model2MachineBase& machine, const hw::Model2Video& video,

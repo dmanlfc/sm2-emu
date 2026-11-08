@@ -49,6 +49,7 @@ struct Image {
     u32             luma_table  = 0;
     u32             luma        = 0;
     u32             orientation = 0;
+    bool            direct      = false;
     u32             width       = 0;
     u32             height      = 0;
     std::vector<u8> rgba;
@@ -79,6 +80,10 @@ struct Image {
 
 [[nodiscard]] bool parse_name(const std::string& stem, Image* out)
 {
+    if (stem.size() == 4 + 16 && stem.rfind("tex_", 0) == 0) {
+        out->direct = true;
+        return parse_hex(stem.substr(4), &out->hash);
+    }
     // tex_<16 hex>_<7 hex>[_<orientation>]
     if (stem.rfind("tex_", 0) != 0 || stem.size() < 4 + 16 + 1 + 7) {
         return false;
@@ -138,6 +143,82 @@ void to_stored(Image* image)
     image->height = sh;
 }
 
+/// Give see-through texels the colour of their opaque neighbours, so filtering
+/// and mip levels do not pull in whatever colour they happened to hold.
+void bleed_transparent(Image* image)
+{
+    const u32 w = image->width;
+    const u32 h = image->height;
+    std::vector<u8>& px = image->rgba;
+    std::vector<u8>  known(static_cast<usize>(w) * h);
+    bool any_hidden = false;
+    bool any_known  = false;
+    for (usize i = 0; i < known.size(); ++i) {
+        known[i] = px[i * 4 + 3] != 0 ? 1 : 0;
+        any_hidden = any_hidden || known[i] == 0;
+        any_known  = any_known || known[i] != 0;
+    }
+    if (!any_hidden || !any_known) {
+        return;
+    }
+    std::vector<usize> frontier;
+    for (u32 pass = 0; pass < 16; ++pass) {
+        frontier.clear();
+        for (u32 y = 0; y < h; ++y) {
+            for (u32 x = 0; x < w; ++x) {
+                const usize at = static_cast<usize>(y) * w + x;
+                if (known[at] != 0) {
+                    continue;
+                }
+                u32 sum[3] = {0, 0, 0};
+                u32 n      = 0;
+                for (int dy = -1; dy <= 1; ++dy) {
+                    for (int dx = -1; dx <= 1; ++dx) {
+                        const u32 nx = (x + w + static_cast<u32>(dx)) % w;
+                        const u32 ny = (y + h + static_cast<u32>(dy)) % h;
+                        const usize from = static_cast<usize>(ny) * w + nx;
+                        if (known[from] == 1) {
+                            for (u32 c = 0; c < 3; ++c) {
+                                sum[c] += px[from * 4 + c];
+                            }
+                            ++n;
+                        }
+                    }
+                }
+                if (n != 0) {
+                    for (u32 c = 0; c < 3; ++c) {
+                        px[at * 4 + c] = static_cast<u8>((sum[c] + n / 2) / n);
+                    }
+                    frontier.push_back(at);
+                }
+            }
+        }
+        if (frontier.empty()) {
+            break;
+        }
+        for (const usize at : frontier) {
+            known[at] = 1;
+        }
+    }
+    u64 sum[3] = {0, 0, 0};
+    u64 n      = 0;
+    for (usize i = 0; i < known.size(); ++i) {
+        if (px[i * 4 + 3] != 0) {
+            for (u32 c = 0; c < 3; ++c) {
+                sum[c] += px[i * 4 + c];
+            }
+            ++n;
+        }
+    }
+    for (usize i = 0; i < known.size(); ++i) {
+        if (known[i] == 0) {
+            for (u32 c = 0; c < 3; ++c) {
+                px[i * 4 + c] = static_cast<u8>(sum[c] / n);
+            }
+        }
+    }
+}
+
 void halve(Image* image)
 {
     const u32 w = std::max(image->width / 2, 1u);
@@ -176,6 +257,13 @@ void halve(Image* image)
 const char* orientation_tag(u32 orientation)
 {
     return kOrientationTags[orientation & 7u];
+}
+
+std::string replacement_file_name(u64 hash)
+{
+    char name[32];
+    std::snprintf(name, sizeof(name), "tex_%016llx.png", static_cast<unsigned long long>(hash));
+    return name;
 }
 
 std::string replacement_file_name(u64 hash, u32 colour_base, u32 luma_table, u32 luma,
@@ -258,6 +346,9 @@ usize TextureReplacements::load(const std::string& directory)
             image.rgba.assign(data, data + static_cast<usize>(w) * static_cast<usize>(h) * 4);
             stbi_image_free(data);
             to_stored(&image);
+            if (image.direct) {
+                bleed_transparent(&image);
+            }
             while (image.width + 2 * kGutter > kReplacementLayerSize
                    || image.height + 2 * kGutter > kReplacementLayerSize) {
                 halve(&image);
@@ -352,6 +443,17 @@ usize TextureReplacements::load(const std::string& directory)
     SM2_INFO("custom textures: %zu loaded from '%s' into %zu atlas layer(s) in %.2fs",
              m_entries.size(), directory.c_str(), m_layers.size(), seconds);
     return m_entries.size();
+}
+
+bool TextureReplacements::find(u64 hash, Placement* out) const
+{
+    const auto found = m_by_hash.find(hash);
+    if (found == m_by_hash.end()) {
+        return false;
+    }
+    const Entry& e = m_entries[found->second.front()];
+    *out = Placement{e.layer, e.x, e.y, e.width, e.height, e.max_lod};
+    return true;
 }
 
 void TextureReplacements::begin_frame(const hw::Model2MachineBase& machine,
