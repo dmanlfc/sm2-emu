@@ -45,6 +45,29 @@
 
 namespace sm2::cpu::mb86233 {
 
+namespace {
+
+// The TGP has no NaN or infinity: exponent 255 is the largest magnitude,
+// overflow saturates and 0/0 gives 0.
+[[nodiscard]] inline float tgp_float(u32 v)
+{
+    if (((v >> 23) & 0xff) == 0xff) {
+        v = (v & 0x80000000) | 0x7f7fffff;
+    }
+    return u2f(v);
+}
+
+[[nodiscard]] inline u32 tgp_bits(float f)
+{
+    u32 v = f2u(f);
+    if (((v >> 23) & 0xff) == 0xff) {
+        v = (v & 0x007fffff) ? 0 : ((v & 0x80000000) | 0x7f7fffff);
+    }
+    return v;
+}
+
+} // namespace
+
 MB86233::MB86233(Bus& bus) : m_bus(&bus)
 {
     reset();
@@ -250,7 +273,7 @@ void MB86233::alu_pre(u32 alu)
 	case 0x05: {
 		// fcpd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		u32 r = f2u(u2f(m_d) - u2f(m_a));
+		u32 r = tgp_bits(tgp_float(m_d) - tgp_float(m_a));
 		stset_set_sz_fp(r);
 		break;
 	}
@@ -258,7 +281,7 @@ void MB86233::alu_pre(u32 alu)
 	case 0x06: {
 		// fadd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		m_alu_r1 = f2u(u2f(m_d) + u2f(m_a));
+		m_alu_r1 = tgp_bits(tgp_float(m_d) + tgp_float(m_a));
 		stset_set_sz_fp(m_alu_r1);
 		break;
 	}
@@ -266,7 +289,7 @@ void MB86233::alu_pre(u32 alu)
 	case 0x07: {
 		// fsbd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		m_alu_r1 = f2u(u2f(m_d) - u2f(m_a));
+		m_alu_r1 = tgp_bits(tgp_float(m_d) - tgp_float(m_a));
 		stset_set_sz_fp(m_alu_r1);
 		break;
 	}
@@ -274,7 +297,7 @@ void MB86233::alu_pre(u32 alu)
 	case 0x08: {
 		// fml
 		m_alu_stmask = 0;
-		m_alu_r1 = f2u(u2f(m_a) * u2f(m_b));
+		m_alu_r1 = tgp_bits(tgp_float(m_a) * tgp_float(m_b));
 		m_alu_stset = 0;
 		break;
 	}
@@ -282,8 +305,8 @@ void MB86233::alu_pre(u32 alu)
 	case 0x09: {
 		// fmsd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		m_alu_r1 = f2u(u2f(m_d) + u2f(m_p));
-		m_alu_r2 = f2u(u2f(m_a) * u2f(m_b));
+		m_alu_r1 = tgp_bits(tgp_float(m_d) + tgp_float(m_p));
+		m_alu_r2 = tgp_bits(tgp_float(m_a) * tgp_float(m_b));
 		stset_set_sz_fp(m_alu_r1);
 		break;
 	}
@@ -291,8 +314,8 @@ void MB86233::alu_pre(u32 alu)
 	case 0x0a: {
 		// fmrd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		m_alu_r1 = f2u(u2f(m_d) - u2f(m_p));
-		m_alu_r2 = f2u(u2f(m_a) * u2f(m_b));
+		m_alu_r1 = tgp_bits(tgp_float(m_d) - tgp_float(m_p));
+		m_alu_r2 = tgp_bits(tgp_float(m_a) * tgp_float(m_b));
 		stset_set_sz_fp(m_alu_r1);
 		break;
 	}
@@ -308,7 +331,7 @@ void MB86233::alu_pre(u32 alu)
 	case 0x0c: {
 		// fsmd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		m_alu_r1 = f2u(u2f(m_d) + u2f(m_p));
+		m_alu_r1 = tgp_bits(tgp_float(m_d) + tgp_float(m_p));
 		stset_set_sz_fp(m_alu_r1);
 		break;
 	}
@@ -317,7 +340,7 @@ void MB86233::alu_pre(u32 alu)
 		// fspd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
 		m_alu_r1 = m_p;
-		m_alu_r2 = f2u(u2f(m_a) * u2f(m_b));
+		m_alu_r2 = tgp_bits(tgp_float(m_a) * tgp_float(m_b));
 		stset_set_sz_fp(m_alu_r1);
 		break;
 	}
@@ -325,7 +348,7 @@ void MB86233::alu_pre(u32 alu)
 	case 0x0e: {
 		// cxfd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		m_alu_r1 = f2u(s32(m_d));
+		m_alu_r1 = tgp_bits(s32(m_d));
 		stset_set_sz_int(m_alu_r1);
 		break;
 	}
@@ -334,10 +357,10 @@ void MB86233::alu_pre(u32 alu)
 		// cfxd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
 		switch((m_m >> 1) & 3) {
-		case 0: m_alu_r1 = s32(roundf(u2f(m_d))); break;
-		case 1: m_alu_r1 = s32(ceilf(u2f(m_d))); break;
-		case 2: m_alu_r1 = s32(floorf(u2f(m_d))); break;
-		case 3: m_alu_r1 = s32(u2f(m_d)); break;
+		case 0: m_alu_r1 = s32(roundf(tgp_float(m_d))); break;
+		case 1: m_alu_r1 = s32(ceilf(tgp_float(m_d))); break;
+		case 2: m_alu_r1 = s32(floorf(tgp_float(m_d))); break;
+		case 3: m_alu_r1 = s32(tgp_float(m_d)); break;
 		}
 		stset_set_sz_int(m_alu_r1);
 		break;
@@ -346,7 +369,7 @@ void MB86233::alu_pre(u32 alu)
 	case 0x10: {
 		// fdvd
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		m_alu_r1 = f2u(u2f(m_d) / u2f(m_a));
+		m_alu_r1 = tgp_bits(tgp_float(m_d) / tgp_float(m_a));
 		stset_set_sz_fp(m_alu_r1);
 		break;
 	}
@@ -362,7 +385,7 @@ void MB86233::alu_pre(u32 alu)
 	case 0x13: {
 		// d = b + a
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		m_alu_r1 = f2u(u2f(m_b) + u2f(m_a));
+		m_alu_r1 = tgp_bits(tgp_float(m_b) + tgp_float(m_a));
 		stset_set_sz_fp(m_alu_r1);
 		break;
 	}
@@ -370,7 +393,7 @@ void MB86233::alu_pre(u32 alu)
 	case 0x14: {
 		// d = b - a
 		m_alu_stmask = F_ZRD|F_SGD|F_CPD|F_OVD|F_DVZD;
-		m_alu_r1 = f2u(u2f(m_b) - u2f(m_a));
+		m_alu_r1 = tgp_bits(tgp_float(m_b) - tgp_float(m_a));
 		stset_set_sz_fp(m_alu_r1);
 		break;
 	}
