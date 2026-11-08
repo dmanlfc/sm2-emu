@@ -2469,7 +2469,14 @@ int main(int argc, char** argv)
                 machine_iface->set_black_level(black_level_for(options.config));
                 }
                 if (machine_m3) {
-                    backend->set_widescreen(0, 0u);
+                    const u32 columns =
+                        shown_aspect() == AspectMode::Widescreen ? render::kWideColumns : 0;
+                    const rom::SideFill fill = loaded->game.side_fill;
+                    const bool widen = columns != 0 && fill != rom::SideFill::Pillarbox;
+                    input.set_widescreen(columns);
+                    backend->set_widescreen(columns, !widen                       ? 0u
+                                                     : fill == rom::SideFill::Mirror ? 1u
+                                                                                     : 2u);
                 }
                 if (machine_iface) {
                     // The geometry engine and the backend must agree on the

@@ -113,6 +113,7 @@ bool GlBackend::init(osd::Window& window, const BackendConfig& config)
 
 void GlBackend::set_widescreen(u32 columns, u32 wide_background)
 {
+    m_model3_wide = wide_background;
     m_tilemaps.set_wide_below(wide_background);
     if (columns == m_columns) {
         return;
@@ -374,14 +375,14 @@ bool GlBackend::ensure_model3()
         }
         m_model3_width = width;
     }
-    m_model3_frame.set_geometry(model3::SceneGeometry{m_render_scale, m_columns});
+    m_model3_frame.set_geometry(model3_geometry());
     m_model3.set_smooth_2d(m_enhancement_options.upscale_2d != Upscale2D::Faithful);
     return true;
 }
 
 void GlBackend::submit_model3_frame(const hw::model3::VideoFrame& frame)
 {
-    m_model3_frame.set_geometry(model3::SceneGeometry{m_render_scale, m_columns});
+    m_model3_frame.set_geometry(model3_geometry());
     // DEPTH32F_STENCIL8 is a float depth buffer: no depth remap needed.
     m_model3_frame.submit(frame, false);
 }

@@ -384,6 +384,8 @@ public:
     /// (a row-scroll layer's foreground tile). Bits 8-17 and 18-27, when set,
     /// are unused and bits 28-31, when
     /// set, are the tile layers a HUD spread by set_hud_bands() is drawn on.
+    /// Model 3: 0 keeps the 3D 4:3, 1 also widens the scrolling 2D below it,
+    /// 2 widens the 3D alone.
     virtual void set_widescreen(u32 columns, u32 wide_background) = 0;
 
     /// Where a spread HUD lies, per band of 48 rows (GameSpec::hud_bands).

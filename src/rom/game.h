@@ -494,7 +494,8 @@ struct GameSpec {
 
     /// In widescreen, which side-column pixels stay black rather than mirror
     /// the screen edge: none, all of them, or only menu panels; or keep the
-    /// game 4:3 altogether (a 2D cockpit frame around the 3D).
+    /// game 4:3 altogether (a 2D cockpit frame around the 3D). Model 3:
+    /// anything but mirror keeps the 2D layers 4:3, pillarbox the 3D too.
     SideFill side_fill = SideFill::Mirror;
 
     /// In widescreen, the screen columns the HUD splits at: what lies left of

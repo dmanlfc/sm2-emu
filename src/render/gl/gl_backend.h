@@ -107,6 +107,10 @@ public:
 private:
     /// Create (or resize) the Model 3 pass for the current scale and width.
     [[nodiscard]] bool ensure_model3();
+    [[nodiscard]] model3::SceneGeometry model3_geometry() const
+    {
+        return {m_render_scale, m_columns, m_model3_wide != 0, m_model3_wide == 1};
+    }
 
     /// Shader texture-quality value for the current enhancement options, clamped
     /// to the device's anisotropy limit. 0 = faithful single-tap.
@@ -124,6 +128,7 @@ private:
     model3::FrameBuilder m_model3_frame;
     Model3Pass           m_model3;
     u32                  m_model3_width = 0;
+    u32                  m_model3_wide  = 0;  // set_widescreen()'s wide_background
 
     bool m_capture_requested = false;
     bool m_overlay_ready     = false;

@@ -123,11 +123,16 @@ private:
     /// clamped to the device's anisotropy limit. 0 = faithful single-tap.
     [[nodiscard]] u32 effective_texture_quality() const;
     [[nodiscard]] bool ensure_model3();
+    [[nodiscard]] model3::SceneGeometry model3_geometry() const
+    {
+        return {m_render_scale, m_columns, m_model3_wide != 0, m_model3_wide == 1};
+    }
 
     // Model 3, created on the first Model 3 frame.
     model3::FrameBuilder m_model3_frame;
     Model3Pass           m_model3;
     u32                  m_model3_width = 0;
+    u32                  m_model3_wide  = 0;  // set_widescreen()'s wide_background
 
     Context      m_context;
     TilemapPass  m_tilemaps;

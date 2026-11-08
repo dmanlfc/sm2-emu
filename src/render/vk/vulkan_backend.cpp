@@ -219,7 +219,7 @@ void VulkanBackend::submit_model3_frame(const hw::model3::VideoFrame& frame)
     if (!ensure_model3()) {
         return;
     }
-    m_model3_frame.set_geometry(model3::SceneGeometry{m_render_scale, m_columns});
+    m_model3_frame.set_geometry(model3_geometry());
     m_model3_frame.submit(frame, m_model3.encode_depth());
 }
 
@@ -265,6 +265,7 @@ void VulkanBackend::set_present_options(const PresentOptions& options)
 void VulkanBackend::set_widescreen(u32 columns, u32 wide_background)
 {
     m_pending_columns = columns;
+    m_model3_wide     = wide_background;
     m_tilemaps.set_wide_below(wide_background);
 }
 
