@@ -55,6 +55,9 @@ public:
     // The buffer writes run on the frame's worker while the commands are
     // recorded: wait(take_upload_ticket()) on it before submitting.
     void record(model3::FrameBuilder& frame, VkImage native_image, VkImageView native_view);
+    /// On the frame's worker, after a build: the 3D pass for the next
+    /// record(), which otherwise records it itself.
+    void prepare_next(model3::FrameBuilder& frame);
     [[nodiscard]] u64 take_upload_ticket()
     {
         const u64 ticket = m_upload_ticket;
@@ -78,16 +81,25 @@ private:
         VkImageView   view       = VK_NULL_HANDLE;
     };
     struct PerFrame {
+        Buffer staging;  ///< Texture and tile layer uploads.
+    };
+    // The 3D pass of one record(): record r uses slot r % kSlots, which the
+    // GPU finished with when the record before it began its frame.
+    struct BuildSlot {
         Buffer          ram_vertices;
         Buffer          uniforms;   ///< R3D blocks then fog blocks.
-        Buffer          staging;    ///< Texture and tile layer uploads.
         Buffer          los;        ///< 4 readback slots.
         VkDescriptorSet r3d_set = VK_NULL_HANDLE;
         VkDescriptorSet fog_set = VK_NULL_HANDLE;
         u64             bound_uniforms = 0;  ///< serial of the buffer the sets point at
+        VkCommandBuffer cmd = VK_NULL_HANDLE;  ///< secondary
+        u64             build      = 0;  ///< FrameBuilder::build_serial() recorded, 0 for none
+        u64             sets_epoch = 0;
+        bool            has_3d     = false;
         std::array<bool, 4> los_pending{};
         u64             frame_number = 0;
     };
+    static constexpr u32 kSlots = Context::kFramesInFlight + 1;
 
     [[nodiscard]] bool create_buffer(Buffer& b, VkDeviceSize size, VkBufferUsageFlags usage);
     void destroy_buffer(Buffer& b);
@@ -104,7 +116,7 @@ private:
                                            std::span<const VkFormat> colour_formats, VkFormat depth_format,
                                            bool vertex_input, bool blend, int depth_mode, bool layered,
                                            const VkSpecializationInfo* spec = nullptr);
-    void update_frame_sets(PerFrame& f);
+    void update_frame_sets(BuildSlot& f);
     void sync_atlas(VkCommandBuffer cmd);
 
     struct Copy {
@@ -113,10 +125,11 @@ private:
         usize       bytes = 0;
     };
 
-    void read_back_los(PerFrame& f);
+    void read_back_los(BuildSlot& f);
     void upload(model3::FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd);
-    void draw_3d(const model3::FramePlan& plan, PerFrame& f, VkCommandBuffer cmd);
-    void draw_range(const model3::FramePlan& plan, model3::DrawRange range, int layer, PerFrame& f,
+    [[nodiscard]] bool prepare_3d(model3::FrameBuilder& frame, BuildSlot& f, bool on_worker);
+    void draw_3d(const model3::FramePlan& plan, BuildSlot& f, VkCommandBuffer cmd);
+    void draw_range(const model3::FramePlan& plan, model3::DrawRange range, int layer, BuildSlot& f,
                     VkCommandBuffer cmd, bool float_depth);
     void composite(const model3::FramePlan& plan, VkImageView native_view, VkCommandBuffer cmd);
 
@@ -153,6 +166,10 @@ private:
     Image                m_depth_copy;
 
     std::array<PerFrame, Context::kFramesInFlight> m_frames;
+    std::array<BuildSlot, kSlots>                  m_slots;
+    u64           m_records    = 0;
+    u64           m_sets_epoch = 1;  // bumped when the slots' sets are rewritten
+    VkCommandPool m_slot_pool  = VK_NULL_HANDLE;
 
     // Descriptors and pipelines
     VkSampler             m_nearest = VK_NULL_HANDLE;

@@ -76,6 +76,8 @@ public:
 
     [[nodiscard]] bool has_frame() const { return m_has_frame; }
     [[nodiscard]] u64  frame_number() const { return m_frame_number; }
+    /// Advances with every build.
+    [[nodiscard]] u64  build_serial() const { return m_builds; }
 
     [[nodiscard]] const Scene&     scene() const { return m_scene; }
     [[nodiscard]] const FramePlan& plan() const { return m_plan; }
@@ -117,6 +119,7 @@ private:
     std::array<bool, 4> m_scroll_known{};
     bool m_has_frame      = false;
     u64  m_frame_number   = 0;
+    u64  m_builds         = 0;
 
     const hw::model3::VideoFrame* m_last = nullptr;
     BuildTimes                    m_times;

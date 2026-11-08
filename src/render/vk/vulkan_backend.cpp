@@ -217,13 +217,14 @@ bool VulkanBackend::ensure_model3()
 
 void VulkanBackend::submit_model3_frame(const hw::model3::VideoFrame& frame)
 {
+    m_model3_frame.wait();
     if (!ensure_model3()) {
         return;
     }
-    m_model3_frame.wait();
     m_model3_frame.set_geometry(model3_geometry());
     if (m_model3_async) {
         m_model3_frame.submit_async(frame, m_model3.encode_depth());
+        m_model3_frame.run_async([this] { m_model3.prepare_next(m_model3_frame); });
     } else {
         m_model3_frame.submit(frame, m_model3.encode_depth());
     }
@@ -231,6 +232,7 @@ void VulkanBackend::submit_model3_frame(const hw::model3::VideoFrame& frame)
 
 void VulkanBackend::render_model3()
 {
+    m_model3_frame.wait();
     if (!ensure_model3()) {
         return;
     }

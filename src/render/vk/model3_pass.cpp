@@ -294,12 +294,20 @@ void Model3Pass::shutdown(bool keep_atlas)
         *s = VK_NULL_HANDLE;
     }
     for (auto& f : m_frames) {
-        destroy_buffer(f.ram_vertices);
-        destroy_buffer(f.uniforms);
         destroy_buffer(f.staging);
-        destroy_buffer(f.los);
         f = PerFrame{};
     }
+    for (BuildSlot& s : m_slots) {
+        destroy_buffer(s.ram_vertices);
+        destroy_buffer(s.uniforms);
+        destroy_buffer(s.los);
+        s = BuildSlot{};
+    }
+    if (m_slot_pool != VK_NULL_HANDLE) {
+        vkDestroyCommandPool(device, m_slot_pool, nullptr);
+        m_slot_pool = VK_NULL_HANDLE;
+    }
+    m_records = 0;
     destroy_buffer(m_rom_vertices);
     destroy_image(m_bank);
     for (Image& i : m_layers) destroy_image(i);
@@ -356,10 +364,23 @@ bool Model3Pass::create_resources()
                        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)) {
         return false;
     }
-    for (PerFrame& f : m_frames) {
-        if (!create_buffer(f.los, kLosSlotBytes * 4, VK_BUFFER_USAGE_TRANSFER_DST_BIT)) {
+    for (BuildSlot& s : m_slots) {
+        if (!create_buffer(s.los, kLosSlotBytes * 4, VK_BUFFER_USAGE_TRANSFER_DST_BIT)) {
             return false;
         }
+    }
+    VkCommandPoolCreateInfo pool{};
+    pool.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    pool.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    pool.queueFamilyIndex = m_context->graphics_family();
+    SM2_VK_TRY(vkCreateCommandPool(m_context->device(), &pool, nullptr, &m_slot_pool));
+    for (BuildSlot& s : m_slots) {
+        VkCommandBufferAllocateInfo info{};
+        info.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        info.commandPool        = m_slot_pool;
+        info.level              = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+        info.commandBufferCount = 1;
+        SM2_VK_TRY(vkAllocateCommandBuffers(m_context->device(), &info, &s.cmd));
     }
 
     VkSamplerCreateInfo sampler{};
@@ -409,7 +430,7 @@ bool Model3Pass::create_descriptors()
         return false;
     }
 
-    const u32 frames = Context::kFramesInFlight;
+    const u32 frames = kSlots;
     const VkDescriptorPoolSize sizes[2] = {
         {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, frames * 2},
         {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, frames * 3 + 1 + 2 + 4}};
@@ -428,7 +449,7 @@ bool Model3Pass::create_descriptors()
         info.pSetLayouts        = &layout;
         return vkAllocateDescriptorSets(device, &info, out) == VK_SUCCESS;
     };
-    for (PerFrame& f : m_frames) {
+    for (BuildSlot& f : m_slots) {
         if (!allocate(m_r3d_set_layout, &f.r3d_set) || !allocate(m_ubo_set_layout, &f.fog_set)) {
             return false;
         }
@@ -469,7 +490,7 @@ bool Model3Pass::create_descriptors()
         write(m_layer_sets[static_cast<usize>(l)][0], 0, image_info(m_nearest, m_layers[static_cast<usize>(l)].view));
         write(m_layer_sets[static_cast<usize>(l)][1], 0, image_info(m_linear, m_layers[static_cast<usize>(l)].view));
     }
-    for (PerFrame& f : m_frames) {
+    for (BuildSlot& f : m_slots) {
         const VkDescriptorImageInfo bank = image_info(m_nearest, m_bank.view);
         VkWriteDescriptorSet w{};
         w.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -719,7 +740,7 @@ VkPipeline Model3Pass::r3d_pipeline(int layer, bool layered, u32 variant, bool f
     return pipeline;
 }
 
-void Model3Pass::update_frame_sets(PerFrame& f)
+void Model3Pass::update_frame_sets(BuildSlot& f)
 {
     if (f.bound_uniforms == f.uniforms.serial) {
         return;
@@ -852,7 +873,8 @@ void Model3Pass::sync_atlas(VkCommandBuffer cmd)
     }
     if (!m_atlas.bound) {
         const VkDescriptorImageInfo info{m_atlas_sampler, m_atlas.image.view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-        for (PerFrame& f : m_frames) {
+        ++m_sets_epoch;
+        for (BuildSlot& f : m_slots) {
             VkWriteDescriptorSet w{};
             w.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             w.dstSet          = f.r3d_set;
@@ -870,7 +892,7 @@ void Model3Pass::sync_atlas(VkCommandBuffer cmd)
 // Per frame
 // ---------------------------------------------------------------------------
 
-void Model3Pass::read_back_los(PerFrame& f)
+void Model3Pass::read_back_los(BuildSlot& f)
 {
     // This slot's fence has retired, so its earlier copies are complete.
     bool any = false;
@@ -967,57 +989,100 @@ void Model3Pass::upload(FrameBuilder& frame, PerFrame& f, VkCommandBuffer cmd)
         sheets.clear_uploads();
     }
 
-    const FramePlan& plan = frame.plan();
-    if (plan.white_flash) {
-        return;
-    }
-
-    // Vertices, written in place (host-visible). The ROM region only appends,
-    // past anything an earlier frame in flight is reading.
-    const Scene& scene = frame.scene();
-    const auto   rom   = scene.rom_vertices();
-    if (scene.rom_generation() != m_rom_generation || rom.size() < m_rom_uploaded) {
-        // A reset may rewrite vertices an in-flight frame reads; wait it out.
-        if (m_rom_uploaded != 0) {
-            m_context->wait_idle();
-        }
-        m_rom_generation = scene.rom_generation();
-        m_rom_uploaded   = 0;
-    }
-    const usize rom_count = std::min<usize>(rom.size(), kMaxRomVerts);
-    if (rom_count > m_rom_uploaded) {
-        m_copies.push_back({static_cast<u8*>(m_rom_vertices.mapped) + m_rom_uploaded * FVertexLayout::kStride,
-                            rom.data() + m_rom_uploaded, (rom_count - m_rom_uploaded) * FVertexLayout::kStride});
-        m_rom_uploaded = rom_count;
-    }
-    const auto  ram       = scene.ram_vertices();
-    const usize ram_count = std::min<usize>(ram.size(), kMaxRamVerts);
-    if (ensure_buffer(f.ram_vertices, std::max<usize>(ram_count, 1) * FVertexLayout::kStride,
-                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
-        && ram_count != 0) {
-        m_copies.push_back({f.ram_vertices.mapped, ram.data(), ram_count * FVertexLayout::kStride});
-    }
-
-    // Uniforms: R3D blocks, then fog blocks, each at the offset alignment.
-    const VkDeviceSize r3d_stride = round_up(sizeof(R3DUniforms), m_ubo_alignment);
-    const VkDeviceSize fog_stride = round_up(sizeof(ScrollFogUniforms), m_ubo_alignment);
-    const VkDeviceSize bytes = r3d_stride * std::max<usize>(plan.uniforms.size(), 1)
-                             + fog_stride * std::max<usize>(plan.fogs.size(), 1);
-    if (!ensure_buffer(f.uniforms, bytes, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)) {
-        return;
-    }
-    u8* u = static_cast<u8*>(f.uniforms.mapped);
-    for (usize i = 0; i < plan.uniforms.size(); i++) {
-        m_copies.push_back({u + i * r3d_stride, &plan.uniforms[i], sizeof(R3DUniforms)});
-    }
-    const VkDeviceSize fog_base = r3d_stride * std::max<usize>(plan.uniforms.size(), 1);
-    for (usize i = 0; i < plan.fogs.size(); i++) {
-        m_copies.push_back({u + fog_base + i * fog_stride, &plan.fogs[i].uniforms, sizeof(ScrollFogUniforms)});
-    }
-    update_frame_sets(f);
 }
 
-void Model3Pass::draw_range(const FramePlan& plan, DrawRange range, int layer, PerFrame& f, VkCommandBuffer cmd,
+bool Model3Pass::prepare_3d(FrameBuilder& frame, BuildSlot& f, bool on_worker)
+{
+    f.build = 0;
+    f.los_pending.fill(false);
+    const FramePlan& plan = frame.plan();
+    f.has_3d              = false;
+    if (!plan.white_flash) {
+        // Vertices, written in place (host-visible). The ROM region only
+        // appends, past anything an earlier frame in flight is reading.
+        const Scene& scene = frame.scene();
+        const auto   rom   = scene.rom_vertices();
+        if (scene.rom_generation() != m_rom_generation || rom.size() < m_rom_uploaded) {
+            // A reset may rewrite vertices an in-flight frame reads; wait it
+            // out, which only the render thread may do.
+            if (m_rom_uploaded != 0) {
+                if (on_worker) {
+                    return false;
+                }
+                m_context->wait_idle();
+            }
+            m_rom_generation = scene.rom_generation();
+            m_rom_uploaded   = 0;
+        }
+        const usize rom_count = std::min<usize>(rom.size(), kMaxRomVerts);
+        if (rom_count > m_rom_uploaded) {
+            std::memcpy(static_cast<u8*>(m_rom_vertices.mapped) + m_rom_uploaded * FVertexLayout::kStride,
+                        rom.data() + m_rom_uploaded, (rom_count - m_rom_uploaded) * FVertexLayout::kStride);
+            m_rom_uploaded = rom_count;
+        }
+        const auto  ram       = scene.ram_vertices();
+        const usize ram_count = std::min<usize>(ram.size(), kMaxRamVerts);
+        if (ensure_buffer(f.ram_vertices, std::max<usize>(ram_count, 1) * FVertexLayout::kStride,
+                          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+            && ram_count != 0) {
+            std::memcpy(f.ram_vertices.mapped, ram.data(), ram_count * FVertexLayout::kStride);
+        }
+
+        // Uniforms: R3D blocks, then fog blocks, each at the offset alignment.
+        const VkDeviceSize r3d_stride = round_up(sizeof(R3DUniforms), m_ubo_alignment);
+        const VkDeviceSize fog_stride = round_up(sizeof(ScrollFogUniforms), m_ubo_alignment);
+        const VkDeviceSize bytes = r3d_stride * std::max<usize>(plan.uniforms.size(), 1)
+                                 + fog_stride * std::max<usize>(plan.fogs.size(), 1);
+        if (ensure_buffer(f.uniforms, bytes, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)) {
+            u8* u = static_cast<u8*>(f.uniforms.mapped);
+            for (usize i = 0; i < plan.uniforms.size(); i++) {
+                std::memcpy(u + i * r3d_stride, &plan.uniforms[i], sizeof(R3DUniforms));
+            }
+            const VkDeviceSize fog_base = r3d_stride * std::max<usize>(plan.uniforms.size(), 1);
+            for (usize i = 0; i < plan.fogs.size(); i++) {
+                std::memcpy(u + fog_base + i * fog_stride, &plan.fogs[i].uniforms, sizeof(ScrollFogUniforms));
+            }
+            update_frame_sets(f);
+            f.has_3d = true;
+        }
+    }
+
+    VkCommandBufferInheritanceInfo inherit{};
+    inherit.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+    VkCommandBufferBeginInfo begin{};
+    begin.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    begin.flags            = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    begin.pInheritanceInfo = &inherit;
+    if (vkBeginCommandBuffer(f.cmd, &begin) != VK_SUCCESS) {
+        return false;
+    }
+    if (f.has_3d) {
+        draw_3d(plan, f, f.cmd);
+    } else {
+        // Keep colour targets sampleable even when no 3D was drawn.
+        for (Image& c : m_colour) {
+            record_image_barrier(f.cmd, c.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, 0,
+                                 VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
+        }
+    }
+    if (vkEndCommandBuffer(f.cmd) != VK_SUCCESS) {
+        return false;
+    }
+    f.frame_number = frame.frame_number();
+    f.sets_epoch   = m_sets_epoch;
+    f.build        = frame.build_serial();
+    return true;
+}
+
+void Model3Pass::prepare_next(FrameBuilder& frame)
+{
+    if (m_ready && frame.has_frame()) {
+        static_cast<void>(prepare_3d(frame, m_slots[m_records % kSlots], true));
+    }
+}
+
+void Model3Pass::draw_range(const FramePlan& plan, DrawRange range, int layer, BuildSlot& f, VkCommandBuffer cmd,
                             bool float_depth)
 {
     const VkDeviceSize r3d_stride = round_up(sizeof(R3DUniforms), m_ubo_alignment);
@@ -1076,7 +1141,7 @@ void Model3Pass::draw_range(const FramePlan& plan, DrawRange range, int layer, P
     }
 }
 
-void Model3Pass::draw_3d(const FramePlan& plan, PerFrame& f, VkCommandBuffer cmd)
+void Model3Pass::draw_3d(const FramePlan& plan, BuildSlot& f, VkCommandBuffer cmd)
 {
     const auto& fn = device_functions();
     const VkRect2D whole{{0, 0}, {m_target_width, m_target_height}};
@@ -1371,8 +1436,11 @@ void Model3Pass::record(FrameBuilder& frame, VkImage native_image, VkImageView n
     }
     const VkCommandBuffer cmd = m_context->cmd();
     PerFrame&             f   = m_frames[m_context->frame_index()];
+    const u64             r   = m_records++;
+    BuildSlot&            s   = m_slots[r % kSlots];
 
-    read_back_los(f);
+    // Line-of-sight from kFramesInFlight records back, whose frame has retired.
+    read_back_los(m_slots[(r + kSlots - Context::kFramesInFlight) % kSlots]);
     sync_atlas(cmd);
     if (m_upload_ticket != 0) {
         frame.wait(take_upload_ticket());
@@ -1387,20 +1455,20 @@ void Model3Pass::record(FrameBuilder& frame, VkImage native_image, VkImageView n
         });
     }
 
-    const FramePlan& plan = frame.plan();
-    if (!plan.white_flash && f.uniforms.buffer != VK_NULL_HANDLE) {
-        m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Poly3D, false);
-        draw_3d(plan, f, cmd);
-        m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, GpuStage::Poly3D, true);
-    } else {
-        // Keep colour targets sampleable even when no 3D was drawn.
-        for (Image& c : m_colour) {
-            record_image_barrier(cmd, c.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, 0,
-                                 VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
+    if (s.build != frame.build_serial() || s.sets_epoch != m_sets_epoch) {
+        if (!prepare_3d(frame, s, false)) {
+            return;
         }
     }
-    f.frame_number = frame.frame_number();
+    const FramePlan& plan = frame.plan();
+    if (s.has_3d) {
+        m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Poly3D, false);
+    }
+    vkCmdExecuteCommands(cmd, 1, &s.cmd);
+    if (s.has_3d) {
+        m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, GpuStage::Poly3D, true);
+    }
+    s.build = 0;  // one submission each
     m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Composite, false);
     composite(plan, native_view, cmd);
     m_context->write_timestamp(VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, GpuStage::Composite, true);

@@ -175,6 +175,7 @@ void FrameBuilder::build(const hw::model3::VideoFrame& frame, bool encode_depth)
 
     m_frame_number = frame.frame_number;
     m_has_frame    = true;
+    ++m_builds;
     m_times.total = std::chrono::duration<double, std::milli>(Clock::now() - start).count();
 }
 
