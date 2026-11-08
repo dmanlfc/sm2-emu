@@ -244,15 +244,15 @@ void FrameBuilder::plan_layers()
     if (side == 0) {
         return;
     }
+    // With no 3D reaching the side columns, only a scrolling background fills them.
+    if (!m_plan.widened) {
+        m_tilegen.keep_scrolled_sides();
+    }
     const u32 width = m_tilegen.wide_width();
     for (LayerDraw& d : m_plan.layers) {
         d.rect.x -= static_cast<s32>(side * g.render_scale);
         d.rect.width = static_cast<s32>(width * g.render_scale);
         d.uv_scale   = 1.0f;
-        if (!m_plan.widened) {
-            d.clip_lo = static_cast<float>(side) / static_cast<float>(width);
-            d.clip_hi = static_cast<float>(side + TileGen::kVisibleWidth) / static_cast<float>(width);
-        }
     }
 }
 

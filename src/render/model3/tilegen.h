@@ -63,6 +63,8 @@ public:
     /// layer() copied in by finish_wide().
     [[nodiscard]] std::span<const u32> wide_layer(int index) const { return m_wide[static_cast<usize>(index)]; }
     void finish_wide();
+    /// Clears the sides of all but the lines a scrolling layer filled.
+    void keep_scrolled_sides();
     void reset_scroll();
 
 private:
@@ -133,6 +135,7 @@ private:
     std::array<std::array<u32, kHeight>, 4>  m_line_scroll{};
     std::array<std::array<u32, kHeight>, 4>  m_line_still{};
     std::array<std::array<bool, kHeight>, 4> m_line_active{};
+    std::array<bool, kHeight>                m_side_scrolled{};
 };
 
 }  // namespace sm2::render::model3

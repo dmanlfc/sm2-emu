@@ -153,7 +153,10 @@ void TileGen::clear()
     clear_state();
 }
 
-void TileGen::clear_state() {}
+void TileGen::clear_state()
+{
+    m_side_scrolled.fill(false);
+}
 
 void TileGen::reset_scroll()
 {
@@ -345,7 +348,24 @@ void TileGen::draw_sides(int line, std::span<const u32> regs, int primary, int l
         }
         const u32 colour = pixel(x);
         if (colour != 0) {
-            row[x + side] = colour;
+            row[x + side]                          = colour;
+            m_side_scrolled[static_cast<usize>(line)] = true;
+        }
+    }
+}
+
+void TileGen::keep_scrolled_sides()
+{
+    const usize width = wide_width();
+    const usize side  = m_side;
+    for (usize l = 0; l < 2; l++) {
+        for (usize y = 0; y < kHeight; y++) {
+            if (l == 0 && m_side_scrolled[y]) {
+                continue;
+            }
+            u32* const row = m_wide[l].data() + y * width;
+            std::fill(row, row + side, 0u);
+            std::fill(row + side + kVisibleWidth, row + width, 0u);
         }
     }
 }
