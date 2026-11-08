@@ -158,10 +158,12 @@ void FrameBuilder::build(const hw::model3::VideoFrame& frame, bool encode_depth)
     build_frame_plan(m_scene, encode_depth, {m_textures.page_blank(0), m_textures.page_blank(1)}, m_plan);
 
     // An opaque top layer hides the 3D (Le Mans 24's boot screen draws a full
-    // scene under it); skip it unless line-of-sight still needs the depth.
+    // scene under it, Scud Race's a white flash); skip it unless line-of-sight
+    // still needs the depth.
     if (!m_plan.los_active() && top_layer_hides_3d()) {
         m_plan.passes.clear();
         m_plan.fogs.clear();
+        m_plan.white_flash = false;
     }
     track_scroll();
     plan_layers();
