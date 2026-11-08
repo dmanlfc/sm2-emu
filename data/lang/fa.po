@@ -63,7 +63,7 @@ msgstr "حذف ناموفق بود: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "هیچ"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -113,7 +113,7 @@ msgstr "حالت تفنگ نوری"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(فقط Model 1 و 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -551,7 +551,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "پوشه ROM برای Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -559,6 +559,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"محل آرشیوهای ROM مربوط به Model 3.\n"
+"خالی یعنی پوشه ROM."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -582,7 +584,7 @@ msgstr "پوشه اسکرین‌شات‌ها"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "محل نوشتن اسکرین‌شات‌ها."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -674,7 +676,7 @@ msgstr "درباره"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "شبیه‌ساز آرکید Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2012,6 +2014,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"%s را نگه دارید تا در بازی به عقب بروید.\n"
+"تا روشن است، در هر فریم کمی از سرعت می‌کاهد."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2021,12 +2025,12 @@ msgstr "حافظه عقب‌بردن"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "خروجی‌های کابینت"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "خروجی‌های شبکه"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2035,16 +2039,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"چراغ‌ها، پس‌زنی تفنگ و خروجی برد محرک را به\n"
+"MAMEHooker، Hook Of The Reaper و ابزارهای مشابه\n"
+"با پروتکل خروجی شبکه MAME بفرستید."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "درگاه"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "خروجی‌های Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2052,46 +2059,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"همان خروجی‌ها از طریق پروتکل پیام Windows در MAME،\n"
+"برای ابزارهایی که این‌گونه به MAME متصل می‌شوند."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "میان‌برهای صفحه‌کلید"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "بازگشت به بازی‌ها"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "منوی تنظیمات"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "توقف"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "جلو بردن سریع (نگه‌داشتن)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "عقب‌بردن (نگه‌داشتن)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "یک کلید را فشار دهید..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "پاک کردن"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2099,6 +2108,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"روی یک کلید کلیک کنید، سپس کلید جدید را بزنید. Escape لغو می‌کند.\n"
+"کلیدی که بازی هم از آن استفاده می‌کند، هر دو کار را انجام می‌دهد."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2110,7 +2121,7 @@ msgstr "یک بازی بارگذاری کنید تا وضعیت آن را ذخی
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "کل دستگاه را در یک اسلات ذخیره و بعداً بازیابی کنید. ذخیره سریع %s و بارگذاری سریع %s است."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2190,7 +2201,7 @@ msgstr "لغو"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: نمایش/پنهان کردن منو"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2200,14 +2211,14 @@ msgstr "یک بازی انتخاب کنید"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: اجرا   %s: تنظیمات   %s: خروج"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "هیچ آرشیو ROM در پوشه‌های ROM پیدا نشد. آن‌ها را در تنظیمات (F1) > مسیرها تنظیم کنید، سپس دوباره اجرا کنید."
 
 #: src/osd/gui.cpp
 #, no-c-format

@@ -66,7 +66,7 @@ msgstr "Brisanje ni uspelo: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "brez"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -116,7 +116,7 @@ msgstr "Način svetlobne pištole"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(samo Model 1 in 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -554,7 +554,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Mapa ROM za Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -562,6 +562,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Kje so arhivi ROM za Model 3.\n"
+"Prazno pomeni mapo ROM."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -585,7 +587,7 @@ msgstr "Mapa posnetkov zaslona"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Kam se zapišejo posnetki zaslona."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -677,7 +679,7 @@ msgstr "O programu"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Emulator arkadnih avtomatov Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2020,6 +2022,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Držite %s za previjanje igre nazaj.\n"
+"Med vklopom vsaka sličica stane nekaj hitrosti."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2029,12 +2033,12 @@ msgstr "Pomnilnik previjanja"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Izhodi avtomata"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Omrežni izhodi"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2043,16 +2047,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Pošilja lučke, odsun pištole in izhod pogonske plošče\n"
+"v MAMEHooker, Hook Of The Reaper in podobna orodja\n"
+"prek protokola omrežnih izhodov MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Vrata"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Izhodi Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2060,46 +2067,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Isti izhodi prek protokola sporočil Windows iz MAME,\n"
+"za orodja, ki se na MAME priklopijo na ta način."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Bližnjice na tipkovnici"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Nazaj na igre"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Prekrivni sloj nastavitev"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Premor"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Previj naprej (držanje)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Previj nazaj (držanje)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "pritisnite tipko..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Počisti"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2107,6 +2116,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Kliknite tipko, nato pritisnite novo. Escape prekliče.\n"
+"Tipka, ki jo uporablja tudi igra, naredi oboje."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2118,7 +2129,7 @@ msgstr "Naložite igro, da shranite in obnovite njeno stanje."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Shranite celoten stroj v režo in ga pozneje obnovite. Hitro shranjevanje je %s, hitro nalaganje %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2198,7 +2209,7 @@ msgstr "Prekliči"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: preklop prekrivnega sloja"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2208,14 +2219,14 @@ msgstr "Izberite igro"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: zaženi   %s: nastavitve   %s: izhod"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "V mapah ROM ni bilo najdenih arhivov ROM. Nastavite jih v Nastavitve (F1) > Poti in znova zaženite."
 
 #: src/osd/gui.cpp
 #, no-c-format

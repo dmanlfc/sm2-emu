@@ -63,7 +63,7 @@ msgstr "Odstránenie zlyhalo: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "žiadna"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -113,7 +113,7 @@ msgstr "Režim svetelnej pištole"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(len Model 1 a 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -551,7 +551,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Priečinok ROM pre Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -559,6 +559,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Kde sú archívy ROM pre Model 3.\n"
+"Prázdne znamená priečinok ROM."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -582,7 +584,7 @@ msgstr "Priečinok snímok obrazovky"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Kam sa ukladajú snímky obrazovky."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -674,7 +676,7 @@ msgstr "O programe"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Emulátor arkádových automatov Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2013,6 +2015,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Podržaním %s sa vrátite v hre späť.\n"
+"Kým je zapnuté, stojí každý snímok trochu výkonu."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2022,12 +2026,12 @@ msgstr "Pamäť pretáčania"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Výstupy automatu"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Sieťové výstupy"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2036,16 +2040,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Posiela svetlá, spätný ráz pištole a výstup riadiacej dosky\n"
+"do MAMEHooker, Hook Of The Reaper a podobných nástrojov\n"
+"pomocou sieťového výstupného protokolu MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Výstupy pre Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2053,46 +2060,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Rovnaké výstupy cez protokol správ Windows z MAME,\n"
+"pre nástroje, ktoré sa na MAME napájajú týmto spôsobom."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Klávesové skratky"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Späť k hrám"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Prekrytie nastavení"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Pozastaviť"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Pretočiť dopredu (držať)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Pretočiť späť (držať)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "stlačte kláves..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Vymazať"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2100,6 +2109,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Kliknite na kláves a stlačte nový. Escape ruší.\n"
+"Kláves, ktorý používa aj hra, robí oboje."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2111,7 +2122,7 @@ msgstr "Načítajte hru, aby ste mohli ukladať a obnovovať jej stav."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Uloží celý stroj do pozície a neskôr ho obnoví. Rýchle uloženie je %s, rýchle načítanie %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2191,7 +2202,7 @@ msgstr "Zrušiť"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: prepnúť prekrytie"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2201,14 +2212,14 @@ msgstr "Vyberte hru"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: spustiť   %s: nastavenia   %s: ukončiť"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "V priečinkoch ROM sa nenašli žiadne archívy ROM. Nastavte ich v Nastavenia (F1) > Cesty a spustite znova."
 
 #: src/osd/gui.cpp
 #, no-c-format

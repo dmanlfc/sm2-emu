@@ -66,7 +66,7 @@ msgstr "Ištrinti nepavyko: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "nėra"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -116,7 +116,7 @@ msgstr "Šviesos ginklo režimas"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(tik Model 1 ir 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -554,7 +554,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Model 3 ROM aplankas"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -562,6 +562,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Kur yra Model 3 ROM archyvai.\n"
+"Tuščias reiškia ROM aplanką."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -585,7 +587,7 @@ msgstr "Ekrano nuotraukų aplankas"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Kur įrašomos ekrano nuotraukos."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -677,7 +679,7 @@ msgstr "Apie"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Sega Model 1, 2 & 3 arkadinių automatų emuliatorius"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2022,6 +2024,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Laikykite %s, kad atsuktumėte žaidimą atgal.\n"
+"Įjungus kiekvienas kadras šiek tiek sulėtėja."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2031,12 +2035,12 @@ msgstr "Atsukimo atmintis"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Automato išvestys"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Tinklo išvestys"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2045,16 +2049,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Siųsti lempas, ginklo atatranką ir pavaros plokštės išvestį\n"
+"į MAMEHooker, Hook Of The Reaper ir panašias programas\n"
+"naudojant MAME tinklo išvesties protokolą."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Prievadas"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows išvestys"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2062,46 +2069,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Tos pačios išvestys per MAME Windows pranešimų protokolą,\n"
+"programoms, kurios taip jungiasi prie MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Klaviatūros trumpiniai"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Atgal į žaidimus"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Nustatymų perdanga"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Pristabdyti"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Prasukimas (laikyti)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Atsukimas (laikyti)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "paspauskite klavišą..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Išvalyti"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2109,6 +2118,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Spustelėkite klavišą, tada paspauskite naują. Escape atšaukia.\n"
+"Klavišas, kurį naudoja ir žaidimas, atlieka abu veiksmus."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2120,7 +2131,7 @@ msgstr "Įkelkite žaidimą, kad galėtumėte išsaugoti ir atkurti jo būseną.
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Išsaugokite visą mašiną į lizdą ir atkurkite vėliau. Greitas išsaugojimas - %s, greitas įkėlimas - %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2201,7 +2212,7 @@ msgstr "Atšaukti"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: perjungti perdangą"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2211,14 +2222,14 @@ msgstr "Pasirinkite žaidimą"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: paleisti   %s: nustatymai   %s: išeiti"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "ROM aplankuose nerasta ROM archyvų. Nustatykite juos skiltyje Nustatymai (F1) > Keliai ir paleiskite iš naujo."
 
 #: src/osd/gui.cpp
 #, no-c-format

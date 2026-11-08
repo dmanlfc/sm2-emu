@@ -63,7 +63,7 @@ msgstr "Xóa thất bại: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "không có"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -113,7 +113,7 @@ msgstr "Chế độ súng ánh sáng"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(chỉ Model 1 & 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -551,7 +551,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Thư mục ROM Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -559,6 +559,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Nơi chứa các tệp ROM Model 3.\n"
+"Để trống nghĩa là thư mục ROM."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -582,7 +584,7 @@ msgstr "Thư mục ảnh chụp màn hình"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Nơi ghi ảnh chụp màn hình."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -674,7 +676,7 @@ msgstr "Giới thiệu"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Trình giả lập máy arcade Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2009,6 +2011,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Giữ %s để tua lại quá trình chơi.\n"
+"Khi bật, mỗi khung hình chậm đi một chút."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2018,12 +2022,12 @@ msgstr "Bộ nhớ tua lại"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Đầu ra tủ máy"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Đầu ra mạng"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2032,16 +2036,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Gửi đèn, độ giật súng và đầu ra bo dẫn động tới\n"
+"MAMEHooker, Hook Of The Reaper và các công cụ tương tự,\n"
+"qua giao thức đầu ra mạng của MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Cổng"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Đầu ra Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2049,46 +2056,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Cùng các đầu ra đó qua giao thức thông điệp Windows của MAME,\n"
+"dành cho công cụ kết nối với MAME theo cách đó."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Phím tắt bàn phím"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Về danh sách trò chơi"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Lớp phủ cài đặt"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Tạm dừng"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Tua nhanh (giữ)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Tua lại (giữ)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "nhấn một phím..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Xóa"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2096,6 +2105,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Nhấp vào một phím, rồi nhấn phím mới. Escape để hủy.\n"
+"Phím mà trò chơi cũng dùng sẽ làm cả hai việc."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2107,7 +2118,7 @@ msgstr "Tải một trò chơi để lưu và khôi phục trạng thái."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Lưu toàn bộ máy vào một khe và khôi phục sau. Lưu nhanh là %s, tải nhanh là %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2187,7 +2198,7 @@ msgstr "Hủy"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: bật/tắt lớp phủ"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2197,14 +2208,14 @@ msgstr "Chọn trò chơi"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: khởi chạy   %s: cài đặt   %s: thoát"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "Không tìm thấy tệp nén ROM nào trong các thư mục ROM. Đặt chúng trong Cài đặt (F1) > Đường dẫn, rồi khởi chạy lại."
 
 #: src/osd/gui.cpp
 #, no-c-format

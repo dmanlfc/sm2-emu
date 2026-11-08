@@ -63,7 +63,7 @@ msgstr "Error en suprimir: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "cap"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -113,7 +113,7 @@ msgstr "Mode pistola de llum"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(només Model 1 i 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -551,7 +551,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Directori de ROM de Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -559,6 +559,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"On són els arxius ROM de Model 3.\n"
+"Buit vol dir el directori de ROM."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -582,7 +584,7 @@ msgstr "Directori de captures de pantalla"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "On s'escriuen les captures de pantalla."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -674,7 +676,7 @@ msgstr "Quant a"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Un emulador de l'arcade Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2024,6 +2026,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Manteniu %s per retrocedir en la partida.\n"
+"Costa una mica de velocitat a cada fotograma mentre és actiu."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2033,12 +2037,12 @@ msgstr "Memòria de rebobinat"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Sortides de la cabina"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Sortides de xarxa"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2047,16 +2051,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Envia els llums, el retrocés de la pistola i la sortida\n"
+"de la placa motriu a MAMEHooker, Hook Of The Reaper\n"
+"i eines similars, amb el protocol de sortides de xarxa de MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Sortides de Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2064,46 +2071,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Les mateixes sortides pel protocol de missatges de Windows\n"
+"de MAME, per a eines que s'enganxen a MAME d'aquesta manera."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Dreceres de teclat"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Torna als jocs"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Superposició de configuració"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Pausa"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Avanç ràpid (mantingut)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Rebobina (mantingut)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "premeu una tecla..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Esborra"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2111,6 +2120,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Feu clic en una tecla i premeu la nova. Escape cancel·la.\n"
+"Una tecla que també fa servir un joc fa totes dues coses."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2122,7 +2133,7 @@ msgstr "Carregueu un joc per desar i restaurar-ne l'estat."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Deseu tota la màquina en una ranura i restaureu-la més tard. Desat ràpid és %s, càrrega ràpida és %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2202,7 +2213,7 @@ msgstr "Cancel·la"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: mostra/amaga la superposició"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2212,14 +2223,14 @@ msgstr "Seleccioneu un joc"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: inicia   %s: configuració   %s: surt"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "No s'ha trobat cap arxiu de ROM als directoris de ROM. Definiu-los a Configuració (F1) > Camins i reinicieu."
 
 #: src/osd/gui.cpp
 #, no-c-format

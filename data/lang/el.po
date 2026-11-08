@@ -67,7 +67,7 @@ msgstr "Αποτυχία διαγραφής: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "κανένα"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -117,7 +117,7 @@ msgstr "Λειτουργία όπλου φωτός"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(μόνο Model 1 & 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -556,7 +556,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Φάκελος ROM Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -564,6 +564,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Πού βρίσκονται τα αρχεία ROM του Model 3.\n"
+"Κενό σημαίνει τον φάκελο ROM."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -587,7 +589,7 @@ msgstr "Φάκελος στιγμιοτύπων"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Πού γράφονται τα στιγμιότυπα οθόνης."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -679,7 +681,7 @@ msgstr "Σχετικά"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Εξομοιωτής arcade Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2025,6 +2027,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Κρατήστε το %s για να γυρίσετε πίσω στο παιχνίδι.\n"
+"Κοστίζει λίγη ταχύτητα σε κάθε καρέ όσο είναι ενεργό."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2034,12 +2038,12 @@ msgstr "Μνήμη επαναφοράς"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Έξοδοι καμπίνας"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Έξοδοι δικτύου"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2048,16 +2052,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Αποστολή λαμπών, ανάκρουσης όπλου και εξόδου της πλακέτας\n"
+"κίνησης στα MAMEHooker, Hook Of The Reaper και παρόμοια\n"
+"εργαλεία, με το πρωτόκολλο εξόδων δικτύου του MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Θύρα"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Έξοδοι Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2065,46 +2072,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Οι ίδιες έξοδοι μέσω του πρωτοκόλλου μηνυμάτων Windows\n"
+"του MAME, για εργαλεία που συνδέονται έτσι στο MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Συντομεύσεις πληκτρολογίου"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Πίσω στα παιχνίδια"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Επικάλυψη ρυθμίσεων"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Παύση"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Γρήγορα εμπρός (κράτημα)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Επαναφορά πίσω (κράτημα)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "πατήστε ένα πλήκτρο..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Εκκαθάριση"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2112,6 +2121,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Κάντε κλικ σε ένα πλήκτρο και πατήστε το νέο. Το Escape ακυρώνει.\n"
+"Ένα πλήκτρο που χρησιμοποιεί και το παιχνίδι κάνει και τα δύο."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2125,7 +2136,7 @@ msgstr ""
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Αποθηκεύστε ολόκληρο το μηχάνημα σε μια θέση και επαναφέρετέ το αργότερα. Γρήγορη αποθήκευση με %s, γρήγορη φόρτωση με %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2206,7 +2217,7 @@ msgstr "Άκυρο"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: εναλλαγή επικάλυψης"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2216,14 +2227,14 @@ msgstr "Επιλέξτε παιχνίδι"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: εκκίνηση   %s: ρυθμίσεις   %s: έξοδος"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "Δεν βρέθηκαν αρχεία ROM στους φακέλους ROM. Ορίστε τους στις Ρυθμίσεις (F1) > Διαδρομές και επανεκκινήστε."
 
 #: src/osd/gui.cpp
 #, no-c-format

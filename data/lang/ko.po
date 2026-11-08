@@ -66,7 +66,7 @@ msgstr "삭제 실패: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "없음"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -116,7 +116,7 @@ msgstr "라이트건 모드"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(Model 1 및 2 전용)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -554,7 +554,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Model 3 ROM 디렉터리"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -562,6 +562,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Model 3 ROM 아카이브가 있는 곳입니다.\n"
+"비워 두면 ROM 디렉터리를 사용합니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -585,7 +587,7 @@ msgstr "스크린샷 디렉터리"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "스크린샷이 저장되는 위치입니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -677,7 +679,7 @@ msgstr "정보"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "세가 Model 1, 2 & 3 아케이드 에뮬레이터"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2011,6 +2013,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"%s를 누르고 있으면 플레이를 되감습니다.\n"
+"켜져 있으면 매 프레임 속도가 조금 떨어집니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2020,12 +2024,12 @@ msgstr "되감기 메모리"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "캐비닛 출력"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "네트워크 출력"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2034,16 +2038,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"램프, 건 반동, 드라이브 보드 출력을\n"
+"MAMEHooker, Hook Of The Reaper 등의 도구로\n"
+"MAME 네트워크 출력 프로토콜을 통해 보냅니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "포트"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows 출력"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2051,46 +2058,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"같은 출력을 MAME의 Windows 메시지 프로토콜로 보냅니다.\n"
+"그 방식으로 MAME에 연결하는 도구용입니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "키보드 단축키"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "게임 목록으로"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "설정 오버레이"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "일시 정지"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "빨리 감기 (누르고 있기)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "되감기 (누르고 있기)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "키를 누르세요..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "지우기"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2098,6 +2107,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"키를 클릭한 뒤 새 키를 누르세요. Escape는 취소합니다.\n"
+"게임도 쓰는 키는 두 동작을 모두 합니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2109,7 +2120,7 @@ msgstr "게임을 불러오면 상태를 저장하고 복원할 수 있습니다
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "기기 전체를 슬롯에 저장하고 나중에 복원합니다. 빠른 저장은 %s, 빠른 불러오기는 %s입니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2189,7 +2200,7 @@ msgstr "취소"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: 오버레이 전환"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2199,14 +2210,14 @@ msgstr "게임 선택"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: 실행   %s: 설정   %s: 종료"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "ROM 디렉터리에서 ROM 압축 파일을 찾을 수 없습니다. 설정(F1) > 경로에서 지정한 뒤 다시 실행하세요."
 
 #: src/osd/gui.cpp
 #, no-c-format

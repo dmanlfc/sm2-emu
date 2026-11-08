@@ -63,7 +63,7 @@ msgstr "המחיקה נכשלה: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "ללא"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -113,7 +113,7 @@ msgstr "מצב אקדח אור"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(Model 1 ו-2 בלבד)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -551,7 +551,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "תיקיית ROM של Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -559,6 +559,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"היכן נמצאים ארכיוני ה-ROM של Model 3.\n"
+"ריק פירושו תיקיית ה-ROM."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -582,7 +584,7 @@ msgstr "תיקיית צילומי מסך"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "המקום שבו נכתבים צילומי המסך."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -674,7 +676,7 @@ msgstr "אודות"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "אמולטור ארקייד של Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2006,6 +2008,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"החזיקו %s כדי לחזור אחורה במשחק.\n"
+"עולה מעט מהירות בכל פריים כשהאפשרות פעילה."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2015,12 +2019,12 @@ msgstr "זיכרון הרצה לאחור"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "פלטי הארקייד"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "פלטי רשת"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2029,16 +2033,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"שליחת נורות, רתע אקדח ופלט לוח ההנעה אל\n"
+"MAMEHooker, Hook Of The Reaper וכלים דומים,\n"
+"באמצעות פרוטוקול פלט הרשת של MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "פורט"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "פלטי Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2046,46 +2053,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"אותם פלטים דרך פרוטוקול ההודעות של Windows של MAME,\n"
+"עבור כלים שמתחברים ל-MAME בדרך זו."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "קיצורי מקלדת"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "חזרה למשחקים"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "תפריט ההגדרות"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "השהיה"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "הרצה קדימה (בהחזקה)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "הרצה לאחור (בהחזקה)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "לחצו על מקש..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "ניקוי"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2093,6 +2102,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"לחצו על מקש, ואז הקישו על המקש החדש. Escape מבטל.\n"
+"מקש שגם משחק משתמש בו עושה את שניהם."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2104,7 +2115,7 @@ msgstr "טענו משחק כדי לשמור ולשחזר את מצבו."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "שמירת המכונה כולה בחריץ ושחזורה מאוחר יותר. שמירה מהירה היא %s, טעינה מהירה היא %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2184,7 +2195,7 @@ msgstr "ביטול"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: הצגה/הסתרה של התפריט"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2194,14 +2205,14 @@ msgstr "בחרו משחק"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: הפעלה   %s: הגדרות   %s: יציאה"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "לא נמצאו ארכיוני ROM בתיקיות ה-ROM. הגדירו אותן בהגדרות (F1) > נתיבים, ואז הפעילו מחדש."
 
 #: src/osd/gui.cpp
 #, no-c-format

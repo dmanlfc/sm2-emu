@@ -68,7 +68,7 @@ msgstr "हटाना विफल: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "कोई नहीं"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -118,7 +118,7 @@ msgstr "लाइट-गन मोड"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(केवल Model 1 और 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -556,7 +556,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Model 3 ROM डायरेक्टरी"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -564,6 +564,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Model 3 ROM आर्काइव जहाँ रखे हैं।\n"
+"खाली का अर्थ है ROM डायरेक्टरी।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -587,7 +589,7 @@ msgstr "स्क्रीनशॉट डायरेक्टरी"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "स्क्रीनशॉट कहाँ लिखे जाते हैं।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -679,7 +681,7 @@ msgstr "परिचय"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Sega Model 1, 2 & 3 आर्केड एमुलेटर"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2014,6 +2016,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"गेमप्ले में पीछे जाने के लिए %s दबाए रखें।\n"
+"चालू रहने पर हर फ़्रेम में थोड़ी गति कम होती है।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2023,12 +2027,12 @@ msgstr "रिवाइंड मेमोरी"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "कैबिनेट आउटपुट"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "नेटवर्क आउटपुट"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2037,16 +2041,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"लैंप, गन रिकॉइल और ड्राइव बोर्ड आउटपुट को\n"
+"MAMEHooker, Hook Of The Reaper और ऐसे टूल्स पर भेजें,\n"
+"MAME के नेटवर्क आउटपुट प्रोटोकॉल से।"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "पोर्ट"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows आउटपुट"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2054,46 +2061,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"वही आउटपुट MAME के Windows मैसेज प्रोटोकॉल से,\n"
+"उन टूल्स के लिए जो MAME से इसी तरह जुड़ते हैं।"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "कीबोर्ड शॉर्टकट"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "गेम्स पर वापस जाएँ"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "सेटिंग्स ओवरले"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "रोकें"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "फ़ास्ट-फ़ॉरवर्ड (दबाए रखें)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "रिवाइंड (दबाए रखें)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "कोई कुंजी दबाएँ..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "हटाएँ"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2101,6 +2110,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"किसी कुंजी पर क्लिक करें, फिर नई कुंजी दबाएँ। Escape रद्द करता है।\n"
+"जो कुंजी गेम भी इस्तेमाल करता है, वह दोनों काम करती है।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2112,7 +2123,7 @@ msgstr "स्टेट सहेजने और बहाल करने क�
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "पूरी मशीन को एक स्लॉट में सहेजें और बाद में बहाल करें। त्वरित सेव %s है, त्वरित लोड %s है।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2192,7 +2203,7 @@ msgstr "रद्द करें"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: ओवरले टॉगल"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2202,14 +2213,14 @@ msgstr "गेम चुनें"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: चलाएँ   %s: सेटिंग्स   %s: बाहर"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "ROM डायरेक्टरियों में कोई ROM आर्काइव नहीं मिला। इन्हें सेटिंग्स (F1) > पाथ में सेट करें, फिर दोबारा चलाएँ।"
 
 #: src/osd/gui.cpp
 #, no-c-format

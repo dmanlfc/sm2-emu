@@ -66,7 +66,7 @@ msgstr "Neizdevās dzēst: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "nav"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -116,7 +116,7 @@ msgstr "Gaismas pistoles režīms"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(tikai Model 1 un 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -554,7 +554,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Model 3 ROM mape"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -562,6 +562,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Kur atrodas Model 3 ROM arhīvi.\n"
+"Tukšs nozīmē ROM mapi."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -585,7 +587,7 @@ msgstr "Ekrānuzņēmumu mape"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Kur tiek ierakstīti ekrānuzņēmumi."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -677,7 +679,7 @@ msgstr "Par"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Sega Model 1, 2 & 3 arkādes automātu emulators"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2019,6 +2021,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Turiet %s, lai atgrieztos spēlē atpakaļ.\n"
+"Kamēr ieslēgts, katrs kadrs nedaudz palēninās."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2028,12 +2032,12 @@ msgstr "Atpakaļattīšanas atmiņa"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Skapja izejas"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Tīkla izejas"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2042,16 +2046,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Sūtīt lampas, pistoles atsitienu un piedziņas plates izeju\n"
+"uz MAMEHooker, Hook Of The Reaper un līdzīgiem rīkiem,\n"
+"izmantojot MAME tīkla izeju protokolu."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Ports"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows izejas"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2059,46 +2066,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Tās pašas izejas pa MAME Windows ziņojumu protokolu\n"
+"rīkiem, kas šādi pieslēdzas MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Tastatūras saīsnes"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Atpakaļ uz spēlēm"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Iestatījumu pārklājums"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Pauze"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Paātrināt (turēt)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Attīt atpakaļ (turēt)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "nospiediet taustiņu..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Notīrīt"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2106,6 +2115,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Noklikšķiniet uz taustiņa, pēc tam nospiediet jauno. Escape atceļ.\n"
+"Taustiņš, ko izmanto arī spēle, dara abus."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2117,7 +2128,7 @@ msgstr "Ielādējiet spēli, lai saglabātu un atjaunotu tās stāvokli."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Saglabājiet visu mašīnu slotā un atjaunojiet vēlāk. Ātrā saglabāšana - %s, ātrā ielāde - %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2197,7 +2208,7 @@ msgstr "Atcelt"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: pārslēgt pārklājumu"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2207,14 +2218,14 @@ msgstr "Izvēlieties spēli"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: palaist   %s: iestatījumi   %s: iziet"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "ROM mapēs netika atrasts neviens ROM arhīvs. Iestatiet tās sadaļā Iestatījumi (F1) > Ceļi un palaidiet no jauna."
 
 #: src/osd/gui.cpp
 #, no-c-format

@@ -63,7 +63,7 @@ msgstr "Löschen fehlgeschlagen: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "keine"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -113,7 +113,7 @@ msgstr "Lightgun-Modus"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(nur Model 1 & 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -551,7 +551,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "ROM-Ordner für Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -559,6 +559,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Wo die Model-3-ROM-Archive liegen.\n"
+"Leer bedeutet den ROM-Ordner."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -582,7 +584,7 @@ msgstr "Screenshot-Ordner"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Wohin Screenshots geschrieben werden."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -674,7 +676,7 @@ msgstr "Über"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Ein Sega Model 1, 2 & 3 Arcade-Emulator"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2018,6 +2020,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"%s halten, um im Spielverlauf zurückzugehen.\n"
+"Kostet bei jedem Bild etwas Tempo, solange es aktiv ist."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2027,12 +2031,12 @@ msgstr "Zurückspul-Speicher"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Automaten-Ausgaben"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Netzwerk-Ausgaben"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2041,16 +2045,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Lampen, Gun-Rückstoß und Ausgaben der Antriebsplatine\n"
+"an MAMEHooker, Hook Of The Reaper und ähnliche Tools\n"
+"senden, über MAMEs Netzwerk-Ausgabeprotokoll."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows-Ausgaben"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2058,46 +2065,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Dieselben Ausgaben über MAMEs Windows-Nachrichtenprotokoll,\n"
+"für Tools, die sich so in MAME einklinken."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Tastenkürzel"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Zurück zu den Spielen"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Einstellungs-Overlay"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Pause"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Vorspulen (halten)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Zurückspulen (halten)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "Taste drücken..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Löschen"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2105,6 +2114,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Eine Taste anklicken, dann die neue drücken. Escape bricht ab.\n"
+"Eine Taste, die auch ein Spiel nutzt, macht beides."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2117,7 +2128,7 @@ msgstr ""
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Die ganze Maschine in einem Slot speichern und später wiederherstellen. Schnellspeichern ist %s, Schnellladen ist %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2199,7 +2210,7 @@ msgstr "Abbrechen"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: Overlay ein/aus"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2209,14 +2220,14 @@ msgstr "Spiel auswählen"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: starten   %s: Einstellungen   %s: beenden"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "In den ROM-Ordnern wurden keine ROM-Archive gefunden. Unter Einstellungen (F1) > Pfade festlegen und neu starten."
 
 #: src/osd/gui.cpp
 #, no-c-format

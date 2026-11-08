@@ -64,7 +64,7 @@ msgstr "Ștergere eșuată: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "niciuna"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -114,7 +114,7 @@ msgstr "Mod pistol optic"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(doar Model 1 și 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -553,7 +553,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Director ROM Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -561,6 +561,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Unde se află arhivele ROM Model 3.\n"
+"Gol înseamnă directorul ROM."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -584,7 +586,7 @@ msgstr "Director capturi de ecran"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Unde sunt scrise capturile de ecran."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -676,7 +678,7 @@ msgstr "Despre"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Un emulator arcade Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2019,6 +2021,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Țineți %s pentru a derula jocul înapoi.\n"
+"Costă puțină viteză la fiecare cadru cât e activ."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2028,12 +2032,12 @@ msgstr "Memorie derulare înapoi"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Ieșirile cabinetului"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Ieșiri de rețea"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2042,16 +2046,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Trimite lămpile, reculul pistolului și ieșirea plăcii de acționare\n"
+"către MAMEHooker, Hook Of The Reaper și unelte similare,\n"
+"folosind protocolul de ieșiri de rețea al MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Ieșiri Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2059,46 +2066,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Aceleași ieșiri prin protocolul de mesaje Windows al MAME,\n"
+"pentru uneltele care se conectează astfel la MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Scurtături de tastatură"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Înapoi la jocuri"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Suprapunerea de setări"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Pauză"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Derulare rapidă (ținut apăsat)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Derulare înapoi (ținut apăsat)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "apăsați o tastă..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Șterge"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2106,6 +2115,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Faceți clic pe o tastă, apoi apăsați-o pe cea nouă. Escape anulează.\n"
+"O tastă folosită și de un joc le face pe amândouă."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2117,7 +2128,7 @@ msgstr "Încărcați un joc pentru a-i salva și restaura starea."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Salvează întreaga mașină într-un slot și restaureaz-o mai târziu. Salvare rapidă cu %s, încărcare rapidă cu %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2197,7 +2208,7 @@ msgstr "Anulare"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: comută suprapunerea"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2207,14 +2218,14 @@ msgstr "Selectați un joc"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: pornește   %s: setări   %s: ieșire"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "Nu s-au găsit arhive ROM în directoarele ROM. Setați-le în Setări (F1) > Căi, apoi reporniți."
 
 #: src/osd/gui.cpp
 #, no-c-format

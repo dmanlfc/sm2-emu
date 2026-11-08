@@ -63,7 +63,7 @@ msgstr "Gagal memadam: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "tiada"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -113,7 +113,7 @@ msgstr "Mod senapang cahaya"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(Model 1 & 2 sahaja)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -552,7 +552,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Direktori ROM Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -560,6 +560,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Tempat arkib ROM Model 3 disimpan.\n"
+"Kosong bermaksud direktori ROM."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -583,7 +585,7 @@ msgstr "Direktori tangkapan skrin"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Tempat tangkapan skrin ditulis."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -675,7 +677,7 @@ msgstr "Perihal"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Emulator arked Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2016,6 +2018,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Tahan %s untuk mengundur permainan.\n"
+"Mengurangkan sedikit kelajuan setiap bingkai semasa aktif."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2025,12 +2029,12 @@ msgstr "Memori undur"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Output kabinet"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Output rangkaian"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2039,16 +2043,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Hantar lampu, sentakan senapang dan output papan pemacu ke\n"
+"MAMEHooker, Hook Of The Reaper dan alat serupa,\n"
+"menggunakan protokol output rangkaian MAME."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Output Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2056,46 +2063,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Output yang sama melalui protokol mesej Windows MAME,\n"
+"untuk alat yang bersambung ke MAME dengan cara itu."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Pintasan papan kekunci"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Kembali ke permainan"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Tindihan tetapan"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Jeda"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Laju ke depan (tahan)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Undur (tahan)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "tekan kekunci..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Kosongkan"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2103,6 +2112,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Klik kekunci, kemudian tekan yang baharu. Escape membatalkan.\n"
+"Kekunci yang turut digunakan permainan melakukan kedua-duanya."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2114,7 +2125,7 @@ msgstr "Muatkan permainan untuk menyimpan dan memulihkan keadaannya."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Simpan seluruh mesin ke slot dan pulihkannya kemudian. Simpan pantas ialah %s, muat pantas ialah %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2196,7 +2207,7 @@ msgstr "Batal"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: togol tindihan"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2206,14 +2217,14 @@ msgstr "Pilih permainan"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: lancar   %s: tetapan   %s: keluar"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "Tiada arkib ROM ditemui dalam direktori ROM. Tetapkannya dalam Tetapan (F1) > Laluan, kemudian lancar semula."
 
 #: src/osd/gui.cpp
 #, no-c-format

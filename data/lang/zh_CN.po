@@ -66,7 +66,7 @@ msgstr "删除失败：%s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "无"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -116,7 +116,7 @@ msgstr "光枪模式"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "（仅限 Model 1 和 2）"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -554,7 +554,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Model 3 ROM 目录"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -562,6 +562,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Model 3 ROM 压缩包所在的位置。\n"
+"留空表示 ROM 目录。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -585,7 +587,7 @@ msgstr "截图目录"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "截图的保存位置。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -677,7 +679,7 @@ msgstr "关于"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "世嘉 Model 1, 2 & 3 街机模拟器"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2003,6 +2005,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"按住 %s 可回退游戏进程。\n"
+"开启时每帧都会略微降低速度。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2012,12 +2016,12 @@ msgstr "倒带内存"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "机台输出"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "网络输出"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2026,16 +2030,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"将灯光、枪械后坐力和驱动板输出发送到\n"
+"MAMEHooker、Hook Of The Reaper 等类似工具，\n"
+"使用 MAME 的网络输出协议。"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "端口"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows 输出"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2043,46 +2050,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"通过 MAME 的 Windows 消息协议发送相同的输出，\n"
+"供以这种方式接入 MAME 的工具使用。"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "键盘快捷键"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "返回游戏列表"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "设置覆盖层"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "暂停"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "快进（按住）"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "倒带（按住）"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "请按一个键..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "清除"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2090,6 +2099,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"点击一个按键，然后按下新的按键。Escape 取消。\n"
+"游戏也使用的按键会同时执行两者。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2101,7 +2112,7 @@ msgstr "加载游戏后即可保存和恢复其状态。"
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "将整台机器保存到槽位，之后再恢复。快速保存为 %s，快速读取为 %s。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2181,7 +2192,7 @@ msgstr "取消"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s：切换覆盖层"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2191,14 +2202,14 @@ msgstr "选择游戏"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter：启动   %s：设置   %s：退出"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "在 ROM 目录中未找到 ROM 压缩包。请在 设置（F1）> 路径 中设置，然后重新启动。"
 
 #: src/osd/gui.cpp
 #, no-c-format

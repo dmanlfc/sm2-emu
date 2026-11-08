@@ -68,7 +68,7 @@ msgstr "நீக்குதல் தோல்வி: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "ஏதுமில்லை"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -118,7 +118,7 @@ msgstr "லைட்-கன் பயன்முறை"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(Model 1 & 2 மட்டும்)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -556,7 +556,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Model 3 ROM அடைவு"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -564,6 +564,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Model 3 ROM காப்பகங்கள் இருக்கும் இடம்.\n"
+"காலியெனில் ROM அடைவு."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -587,7 +589,7 @@ msgstr "திரைப்பிடிப்பு அடைவு"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "திரைப்பிடிப்புகள் எழுதப்படும் இடம்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -679,7 +681,7 @@ msgstr "பற்றி"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "ஒரு Sega Model 1, 2 & 3 ஆர்கேட் எமுலேட்டர்"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2018,6 +2020,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"ஆட்டத்தில் பின்னோக்கிச் செல்ல %s ஐ அழுத்திப் பிடிக்கவும்.\n"
+"இயக்கத்தில் இருக்கும்போது ஒவ்வொரு பிரேமிலும் சற்று வேகம் குறையும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2027,12 +2031,12 @@ msgstr "பின்னோக்கு நினைவகம்"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "கேபினட் வெளியீடுகள்"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "நெட்வொர்க் வெளியீடுகள்"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2041,16 +2045,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"விளக்குகள், துப்பாக்கி பின்னுதைப்பு, டிரைவ் போர்டு வெளியீட்டை\n"
+"MAMEHooker, Hook Of The Reaper போன்ற கருவிகளுக்கு\n"
+"MAME இன் நெட்வொர்க் வெளியீட்டு நெறிமுறையில் அனுப்பு."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "போர்ட்"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows வெளியீடுகள்"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2058,46 +2065,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"அதே வெளியீடுகள் MAME இன் Windows செய்தி நெறிமுறை வழியாக,\n"
+"அவ்வாறு MAME உடன் இணையும் கருவிகளுக்காக."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "விசைப்பலகை குறுக்குவழிகள்"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "கேம்களுக்குத் திரும்பு"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "அமைப்புகள் மேலடுக்கு"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "இடைநிறுத்து"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "வேகமாக முன்னோக்கு (அழுத்திப் பிடி)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "பின்னோக்கு (அழுத்திப் பிடி)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "ஒரு விசையை அழுத்தவும்..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "அழி"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2105,6 +2114,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"ஒரு விசையைக் கிளிக் செய்து, புதியதை அழுத்தவும். Escape ரத்து செய்யும்.\n"
+"கேமும் பயன்படுத்தும் விசை இரண்டையும் செய்யும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2116,7 +2127,7 @@ msgstr "நிலையைச் சேமிக்கவும் மீட்�
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "முழு இயந்திரத்தையும் ஒரு ஸ்லாட்டில் சேமித்து பின்னர் மீட்கவும். விரைவு-சேமிப்பு %s, விரைவு-ஏற்றம் %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2196,7 +2207,7 @@ msgstr "ரத்து"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: மேலடுக்கை மாற்று"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2206,14 +2217,14 @@ msgstr "ஒரு கேமைத் தேர்ந்தெடு"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: துவக்கு   %s: அமைப்புகள்   %s: வெளியேறு"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "ROM அடைவுகளில் ROM காப்பகங்கள் எதுவும் கிடைக்கவில்லை. அமைப்புகள் (F1) > பாதைகள் இல் அவற்றை அமைத்து, மீண்டும் துவக்கவும்."
 
 #: src/osd/gui.cpp
 #, no-c-format

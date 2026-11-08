@@ -63,7 +63,7 @@ msgstr "Silme başarısız: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "yok"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -113,7 +113,7 @@ msgstr "Işık tabancası modu"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(yalnızca Model 1 ve 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -552,7 +552,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Model 3 ROM dizini"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -560,6 +560,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Model 3 ROM arşivlerinin bulunduğu yer.\n"
+"Boş, ROM dizini demektir."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -583,7 +585,7 @@ msgstr "Ekran görüntüsü dizini"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Ekran görüntülerinin yazıldığı yer."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -675,7 +677,7 @@ msgstr "Hakkında"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Bir Sega Model 1, 2 & 3 atari emülatörü"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2014,6 +2016,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Oyunda geri gitmek için %s'i basılı tutun.\n"
+"Açıkken her karede biraz hız kaybettirir."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2023,12 +2027,12 @@ msgstr "Geri sarma belleği"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Kabin çıkışları"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Ağ çıkışları"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2037,16 +2041,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Lambaları, tabanca geri tepmesini ve sürüş kartı çıkışını\n"
+"MAME'in ağ çıkış protokolüyle MAMEHooker,\n"
+"Hook Of The Reaper ve benzeri araçlara gönderir."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows çıkışları"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2054,46 +2061,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Aynı çıkışlar, MAME'in Windows mesaj protokolü üzerinden;\n"
+"MAME'e bu şekilde bağlanan araçlar için."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Klavye kısayolları"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Oyunlara dön"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Ayarlar arayüzü"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Duraklat"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "İleri sar (basılı tut)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Geri sar (basılı tut)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "bir tuşa basın..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Temizle"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2101,6 +2110,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Bir tuşa tıklayın, sonra yenisine basın. Escape iptal eder.\n"
+"Bir oyunun da kullandığı tuş ikisini birden yapar."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2112,7 +2123,7 @@ msgstr "Durumunu kaydetmek ve geri yüklemek için bir oyun yükleyin."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Tüm makineyi bir yuvaya kaydedin ve daha sonra geri yükleyin. Hızlı kaydetme %s, hızlı yükleme %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2192,7 +2203,7 @@ msgstr "İptal"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: arayüzü aç/kapat"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2202,14 +2213,14 @@ msgstr "Bir oyun seçin"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: başlat   %s: ayarlar   %s: çıkış"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "ROM dizinlerinde ROM arşivi bulunamadı. Ayarlar (F1) > Yollar'dan ayarlayıp yeniden başlatın."
 
 #: src/osd/gui.cpp
 #, no-c-format

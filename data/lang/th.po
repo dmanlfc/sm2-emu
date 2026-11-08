@@ -68,7 +68,7 @@ msgstr "ลบไม่สำเร็จ: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "ไม่มี"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -118,7 +118,7 @@ msgstr "โหมดปืนแสง"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(เฉพาะ Model 1 และ 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -556,7 +556,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "ไดเรกทอรี ROM ของ Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -564,6 +564,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"ตำแหน่งที่เก็บไฟล์ ROM ของ Model 3\n"
+"เว้นว่างหมายถึงไดเรกทอรี ROM"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -587,7 +589,7 @@ msgstr "ไดเรกทอรีภาพหน้าจอ"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "ตำแหน่งที่บันทึกภาพหน้าจอ"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -679,7 +681,7 @@ msgstr "เกี่ยวกับ"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "อีมูเลเตอร์อาร์เคด Sega Model 1, 2 & 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2006,6 +2008,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"กด %s ค้างเพื่อย้อนการเล่นกลับ\n"
+"เมื่อเปิดใช้ จะช้าลงเล็กน้อยทุกเฟรม"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2015,12 +2019,12 @@ msgstr "หน่วยความจำย้อนกลับ"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "เอาต์พุตตู้เกม"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "เอาต์พุตเครือข่าย"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2029,16 +2033,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"ส่งไฟ แรงสะท้อนปืน และเอาต์พุตบอร์ดขับไปยัง\n"
+"MAMEHooker, Hook Of The Reaper และเครื่องมือที่คล้ายกัน\n"
+"ผ่านโปรโตคอลเอาต์พุตเครือข่ายของ MAME"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "พอร์ต"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "เอาต์พุต Windows"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2046,46 +2053,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"เอาต์พุตเดียวกันผ่านโปรโตคอลข้อความ Windows ของ MAME\n"
+"สำหรับเครื่องมือที่เชื่อมต่อกับ MAME ด้วยวิธีนั้น"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "ปุ่มลัดแป้นพิมพ์"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "กลับไปที่รายการเกม"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "โอเวอร์เลย์การตั้งค่า"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "หยุดชั่วคราว"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "เร่งความเร็ว (กดค้าง)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "ย้อนกลับ (กดค้าง)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "กดแป้น..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "ล้าง"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2093,6 +2102,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"คลิกแป้น แล้วกดแป้นใหม่ Escape เพื่อยกเลิก\n"
+"แป้นที่เกมใช้ด้วยจะทำทั้งสองอย่าง"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2104,7 +2115,7 @@ msgstr "โหลดเกมเพื่อบันทึกและกู้
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "บันทึกทั้งเครื่องลงช่องแล้วกู้คืนภายหลัง บันทึกด่วนคือ %s โหลดด่วนคือ %s"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2184,7 +2195,7 @@ msgstr "ยกเลิก"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: เปิด/ปิดโอเวอร์เลย์"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2194,14 +2205,14 @@ msgstr "เลือกเกม"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: เปิดเกม   %s: การตั้งค่า   %s: ออก"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "ไม่พบไฟล์ ROM ในไดเรกทอรี ROM ตั้งค่าได้ใน การตั้งค่า (F1) > พาธ แล้วเปิดใหม่"
 
 #: src/osd/gui.cpp
 #, no-c-format

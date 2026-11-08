@@ -66,7 +66,7 @@ msgstr "削除に失敗しました: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "なし"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -116,7 +116,7 @@ msgstr "ライトガンモード"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "（Model 1 と 2 のみ）"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -555,7 +555,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Model 3 ROM ディレクトリ"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -563,6 +563,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Model 3 の ROM アーカイブの場所。\n"
+"空の場合は ROM ディレクトリ。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -586,7 +588,7 @@ msgstr "スクリーンショットディレクトリ"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "スクリーンショットの保存先です。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -678,7 +680,7 @@ msgstr "情報"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "セガ Model 1, 2 & 3 アーケードエミュレーター"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2020,6 +2022,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"%s を押し続けるとプレイを巻き戻せます。\n"
+"有効中は毎フレーム少し速度が落ちます。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2029,12 +2033,12 @@ msgstr "巻き戻しメモリ"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "筐体出力"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "ネットワーク出力"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2043,16 +2047,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"ランプ、ガンのリコイル、ドライブボードの出力を\n"
+"MAMEHooker や Hook Of The Reaper などのツールに、\n"
+"MAME のネットワーク出力プロトコルで送信します。"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "ポート"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows 出力"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2060,46 +2067,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"同じ出力を MAME の Windows メッセージプロトコルで送ります。\n"
+"その方法で MAME に接続するツール向けです。"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "キーボードショートカット"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "ゲーム一覧に戻る"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "設定オーバーレイ"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "一時停止"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "早送り（押し続ける）"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "巻き戻し（押し続ける）"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "キーを押してください..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "クリア"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2107,6 +2116,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"キーをクリックしてから新しいキーを押します。Escape で取り消し。\n"
+"ゲームでも使うキーは両方の動作をします。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2118,7 +2129,7 @@ msgstr "ゲームを読み込むと、ステートの保存と復元ができま
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "マシン全体をスロットに保存し、後で復元します。クイックセーブは %s、クイックロードは %s です。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2198,7 +2209,7 @@ msgstr "キャンセル"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: オーバーレイ切替"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2208,14 +2219,14 @@ msgstr "ゲームを選択"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: 起動   %s: 設定   %s: 終了"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "ROM ディレクトリに ROM アーカイブが見つかりません。設定（F1）> パス で指定してから再起動してください。"
 
 #: src/osd/gui.cpp
 #, no-c-format

@@ -69,7 +69,7 @@ msgstr "Kunde inte ta bort: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "ingen"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -119,7 +119,7 @@ msgstr "Ljuspistolsläge"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(endast Model 1 och 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -558,7 +558,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "ROM-mapp för Model 3"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -566,6 +566,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Var Model 3-ROM-arkiven finns.\n"
+"Tom betyder ROM-mappen."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -589,7 +591,7 @@ msgstr "Mapp för skärmbilder"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Där skärmbilder sparas."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -681,7 +683,7 @@ msgstr "Om"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "En Sega Model 1, 2 & 3-arkademulator"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2020,6 +2022,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Håll %s för att spola tillbaka spelet.\n"
+"Kostar lite hastighet varje bildruta när det är på."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2029,12 +2033,12 @@ msgstr "Minne för tillbakaspolning"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Kabinettutgångar"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Nätverksutgångar"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2043,16 +2047,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"Skicka lampor, pistolrekyl och drivkortets utdata till\n"
+"MAMEHooker, Hook Of The Reaper och liknande verktyg\n"
+"via MAME:s protokoll för nätverksutdata."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows-utgångar"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2060,46 +2067,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Samma utgångar via MAME:s Windows-meddelandeprotokoll,\n"
+"för verktyg som kopplar in sig i MAME på det sättet."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Kortkommandon"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Tillbaka till spelen"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Inställningsoverlay"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Paus"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Snabbspola (håll)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Spola tillbaka (håll)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "tryck på en tangent..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Rensa"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2107,6 +2116,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Klicka på en tangent och tryck sedan på den nya. Escape avbryter.\n"
+"En tangent som ett spel också använder gör båda."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2118,7 +2129,7 @@ msgstr "Ladda ett spel för att spara och återställa dess läge."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Spara hela maskinen till en plats och återställ den senare. Snabbspara är %s, snabbladda är %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2198,7 +2209,7 @@ msgstr "Avbryt"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: visa/dölj overlay"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2208,14 +2219,14 @@ msgstr "Välj ett spel"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: starta   %s: inställningar   %s: avsluta"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "Inga ROM-arkiv hittades i ROM-mapparna. Ange dem i Inställningar (F1) > Sökvägar och starta om."
 
 #: src/osd/gui.cpp
 #, no-c-format

@@ -63,7 +63,7 @@ msgstr "Törlés sikertelen: %s"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "none"
-msgstr ""
+msgstr "nincs"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -113,7 +113,7 @@ msgstr "Fénypisztoly mód"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "(Model 1 & 2 only)"
-msgstr ""
+msgstr "(csak Model 1 és 2)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -551,7 +551,7 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Model 3 ROM directory"
-msgstr ""
+msgstr "Model 3 ROM-mappa"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -559,6 +559,8 @@ msgid ""
 "Where the Model 3 ROM archives live.\n"
 "Empty means the ROM directory."
 msgstr ""
+"Hol vannak a Model 3 ROM-archívumok.\n"
+"Az üres a ROM-mappát jelenti."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -582,7 +584,7 @@ msgstr "Képernyőképek mappája"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Where screenshots are written."
-msgstr ""
+msgstr "Ahová a képernyőképek kerülnek."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -674,7 +676,7 @@ msgstr "Névjegy"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr ""
+msgstr "Sega Model 1, 2 & 3 játékgép-emulátor"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2023,6 +2025,8 @@ msgid ""
 "Hold %s to step back through play.\n"
 "Costs a little speed on every frame while on."
 msgstr ""
+"Tartsa lenyomva a %s-t a játék visszatekeréséhez.\n"
+"Bekapcsolva minden képkockán kissé lassít."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2032,12 +2036,12 @@ msgstr "Visszatekerés memóriája"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Cabinet outputs"
-msgstr ""
+msgstr "Szekrénykimenetek"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Network outputs"
-msgstr ""
+msgstr "Hálózati kimenetek"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2046,16 +2050,19 @@ msgid ""
 "MAMEHooker, Hook Of The Reaper and similar tools,\n"
 "using MAME's network output protocol."
 msgstr ""
+"A lámpák, a pisztoly visszarúgása és a meghajtópanel kimenete\n"
+"a MAMEHooker, a Hook Of The Reaper és hasonló eszközök felé,\n"
+"a MAME hálózati kimeneti protokolljával."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Windows outputs"
-msgstr ""
+msgstr "Windows-kimenetek"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2063,46 +2070,48 @@ msgid ""
 "The same outputs over MAME's Windows message\n"
 "protocol, for tools that hook MAME that way."
 msgstr ""
+"Ugyanezek a kimenetek a MAME Windows-üzenetprotokollján,\n"
+"az így a MAME-hoz kapcsolódó eszközöknek."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Billentyűparancsok"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Back to games"
-msgstr ""
+msgstr "Vissza a játékokhoz"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Settings overlay"
-msgstr ""
+msgstr "Beállítások átfedés"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Pause"
-msgstr ""
+msgstr "Szünet"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Fast-forward (held)"
-msgstr ""
+msgstr "Előretekerés (nyomva tartva)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Rewind (held)"
-msgstr ""
+msgstr "Visszatekerés (nyomva tartva)"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "press a key..."
-msgstr ""
+msgstr "nyomjon meg egy billentyűt..."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Clear"
-msgstr ""
+msgstr "Törlés"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2110,6 +2119,8 @@ msgid ""
 "Click a key, then press the new one. Escape cancels.\n"
 "A key a game also uses does both."
 msgstr ""
+"Kattintson egy billentyűre, majd nyomja meg az újat. Az Escape megszakít.\n"
+"Az a billentyű, amelyet egy játék is használ, mindkettőt teszi."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2121,7 +2132,7 @@ msgstr "Töltsön be egy játékot az állapot mentéséhez és visszaállítás
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr ""
+msgstr "Az egész gép mentése egy helyre és későbbi visszaállítása. Gyorsmentés: %s, gyorsbetöltés: %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2201,7 +2212,7 @@ msgstr "Mégse"
 #: src/osd/gui.cpp
 #, c-format
 msgid "%s: toggle overlay"
-msgstr ""
+msgstr "%s: átfedés be/ki"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2211,14 +2222,14 @@ msgstr "Válasszon játékot"
 #: src/osd/gui.cpp
 #, c-format
 msgid "Enter: launch   %s: settings   %s: quit"
-msgstr ""
+msgstr "Enter: indítás   %s: beállítások   %s: kilépés"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr ""
+msgstr "Nem található ROM-archívum a ROM-mappákban. Állítsa be őket: Beállítások (F1) > Útvonalak, majd indítsa újra."
 
 #: src/osd/gui.cpp
 #, no-c-format
