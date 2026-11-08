@@ -216,8 +216,17 @@ void M68000::serialize(Archive& ar)
         // flushes whatever other instance was current into its own blob.
         make_current();
         m68k_get_context(m_context.data());
+        // m68ki_cpu_core ends with 13 host pointers (cycle tables, callbacks),
+        // rebound on load; zero them so a state does not depend on the process.
+        std::vector<u8> blob = m_context;
+        constexpr usize kPointerTail = 13 * sizeof(void*);
+        if (blob.size() >= kPointerTail) {
+            std::fill(blob.end() - static_cast<std::ptrdiff_t>(kPointerTail), blob.end(), u8{0});
+        }
+        ar.vector_pod(blob);
+    } else {
+        ar.vector_pod(m_context);
     }
-    ar.vector_pod(m_context);
     ar.raw(m_irq_mask);
     ar.raw(m_total_cycles);
     if (ar.loading() && !ar.failed()) {
@@ -229,7 +238,6 @@ void M68000::serialize(Archive& ar)
         // The blob holds host pointers from whichever process saved it.
         rebind_host_pointers();
         m68k_get_context(m_context.data());
-        apply_irq();
     }
 }
 
