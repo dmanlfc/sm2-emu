@@ -67,6 +67,19 @@ public:
     /// No non-zero texel has ever reached this page (page 0 or 1).
     [[nodiscard]] bool page_blank(u32 page) const { return !m_page_used[page]; }
 
+    /// Changes whenever texture RAM may have changed wholesale.
+    [[nodiscard]] u64 epoch() const { return m_epoch; }
+    /// The stamp of the latest texture write.
+    [[nodiscard]] u32 stamp() const { return m_stamp; }
+    /// Last write stamp of any 32x32 tile under a page's level-0 rectangle
+    /// (wrapping as the shader does).
+    [[nodiscard]] u32 region_stamp(u32 page, u32 x, u32 y, u32 width, u32 height) const;
+    /// The level-0 texel the shader fetches at (x, y) of a page.
+    [[nodiscard]] u16 texel(u32 page, u32 x, u32 y) const
+    {
+        return m_texels[(static_cast<usize>(page & 1) * kPageHeight + (y & (kPageHeight - 1))) * kSize + (x & (kPageWidth - 1))];
+    }
+
     [[nodiscard]] static constexpr u32 level_width(u32 level) { return kPageWidth >> level > 0 ? kPageWidth >> level : 1; }
     [[nodiscard]] static constexpr u32 level_height(u32 level) { return kPageHeight >> level > 0 ? kPageHeight >> level : 1; }
 
@@ -79,9 +92,12 @@ private:
     bool                      m_full_pending = true;
     std::array<bool, 2>       m_page_used{};
     u64                       m_last_frame   = 0;
+    u64                       m_epoch        = 1;
+    u32                       m_stamp        = 0;
+    std::vector<u32>          m_tile_stamps;
 };
 
-// R3DShaderCommon's ExtractColour() on the CPU (formats 0..11).
+// model3_r3d.frag's ExtractColour() on the CPU (formats 0..11).
 [[nodiscard]] std::array<float, 4> decode_texel(int type, u16 value);
 
 }  // namespace sm2::render::model3

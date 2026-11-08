@@ -26,12 +26,15 @@ namespace {
 
 /// Past this many queued rectangles a full upload is cheaper than replaying them.
 constexpr usize kMaxQueuedUploads = 4096;
+constexpr u32   kTileShift        = 5;
+constexpr u32   kTilesPerRow      = TextureSheets::kSize >> kTileShift;
 
 }  // namespace
 
 TextureSheets::TextureSheets()
 {
     m_texels.assign(static_cast<usize>(kSize) * kSize, 0);
+    m_tile_stamps.assign(static_cast<usize>(kTilesPerRow) * kTilesPerRow, 0);
     add_full_upload();
 }
 
@@ -39,6 +42,24 @@ void TextureSheets::invalidate()
 {
     m_uploads.clear();
     add_full_upload();
+    m_epoch++;
+}
+
+u32 TextureSheets::region_stamp(u32 page, u32 x, u32 y, u32 width, u32 height) const
+{
+    const u32 tw = std::min((width + ((x & 31u)) + 31u) >> kTileShift, kTilesPerRow);
+    const u32 th = std::min((height + ((y & 31u)) + 31u) >> kTileShift, kPageHeight >> kTileShift);
+    const u32 tx = (x & (kPageWidth - 1)) >> kTileShift;
+    const u32 ty = (y & (kPageHeight - 1)) >> kTileShift;
+    const u32 page_row = (page & 1) * (kPageHeight >> kTileShift);
+    u32 stamp = 0;
+    for (u32 j = 0; j < th; j++) {
+        const u32* row = &m_tile_stamps[static_cast<usize>(page_row + ((ty + j) & ((kPageHeight >> kTileShift) - 1))) * kTilesPerRow];
+        for (u32 i = 0; i < tw; i++) {
+            stamp = std::max(stamp, row[(tx + i) & (kTilesPerRow - 1)]);
+        }
+    }
+    return stamp;
 }
 
 // Whole-sheet upload: every stored level of both pages, each from its fixed
@@ -127,21 +148,33 @@ void TextureSheets::submit(const hw::model3::VideoFrame& frame)
                                             [](u16 t) { return t != 0; });
         }
         add_full_upload();
+        m_epoch++;
         return;
     }
 
+    if (!frame.texture_uploads.empty()) {
+        m_stamp++;
+    }
     for (const hw::model3::TextureRect& rect : frame.texture_uploads) {
         if (rect.x >= kSize || rect.y >= kSize) {
             continue;
         }
         const u32 w = std::min(rect.width, kSize - rect.x);
         const u32 h = std::min(rect.height, kSize - rect.y);
+        if (w == 0 || h == 0) {
+            continue;
+        }
         for (u32 row = 0; row < h; row++) {
             const usize offset = static_cast<usize>(rect.y + row) * kSize + rect.x;
             std::memcpy(&m_texels[offset], &ram[offset], w * sizeof(u16));
             bool& used = m_page_used[(rect.y + row) / kPageHeight];
             if (!used) {
                 used = std::any_of(&ram[offset], &ram[offset] + w, [](u16 t) { return t != 0; });
+            }
+        }
+        for (u32 ty = rect.y >> kTileShift; ty <= (rect.y + h - 1) >> kTileShift; ty++) {
+            for (u32 tx = rect.x >> kTileShift; tx <= (rect.x + w - 1) >> kTileShift; tx++) {
+                m_tile_stamps[static_cast<usize>(ty) * kTilesPerRow + tx] = m_stamp;
             }
         }
         if (!m_full_pending) {
