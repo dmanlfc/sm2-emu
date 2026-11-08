@@ -40,6 +40,7 @@ struct WindowConfig {
     u32         width       = kModel2Width * 2;
     u32         height      = kModel2Height * 2;
     bool        fullscreen  = false;
+    std::string fullscreen_resolution;  ///< "WxH" emulated mode, empty for the display's own
     bool        resizable   = true;
     GraphicsApi graphics_api = GraphicsApi::Vulkan;
 };
@@ -50,8 +51,7 @@ struct WindowConfig {
 ///
 /// create()/destroy() branch once each on WindowConfig::graphics_api to pick the
 /// SDL window flag (SDL_WINDOW_VULKAN vs SDL_WINDOW_OPENGL) and matching loader
-/// call. Follows the one-branch-at-one-call-site shape of Supermodel's
-/// CreateVideoScreen.
+/// call.
 class Window {
 public:
     Window() = default;
@@ -87,6 +87,8 @@ public:
 private:
     SDL_Window* m_window      = nullptr;
     bool        m_fullscreen  = false;
+    std::string m_fullscreen_resolution;
+    void        apply_fullscreen_resolution();
     bool        m_owns_sdl    = false;
     GraphicsApi m_graphics_api = GraphicsApi::Vulkan;
 };

@@ -17,6 +17,7 @@
 #include "core/log.h"
 #include "osd/app_icon.h"
 
+#include <cstdio>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 
@@ -85,7 +86,11 @@ bool Window::create(const WindowConfig& config)
         return false;
     }
 
-    m_fullscreen = config.fullscreen;
+    m_fullscreen            = config.fullscreen;
+    m_fullscreen_resolution = config.fullscreen_resolution;
+    if (m_fullscreen) {
+        apply_fullscreen_resolution();
+    }
 
     // Application icon. The pixels are a static constexpr array, so the surface
     // may reference them without copying; SDL_SetWindowIcon takes its own copy,
@@ -191,10 +196,37 @@ void Window::set_title(const std::string& title)
     }
 }
 
+void Window::apply_fullscreen_resolution()
+{
+    int w = 0;
+    int h = 0;
+    if (m_fullscreen_resolution.empty()
+        || std::sscanf(m_fullscreen_resolution.c_str(), "%dx%d", &w, &h) != 2) {
+        return;
+    }
+    int               count = 0;
+    SDL_DisplayMode** modes = SDL_GetFullscreenDisplayModes(SDL_GetDisplayForWindow(m_window), &count);
+    bool              found = false;
+    for (int i = 0; i < count && !found; i++) {
+        if (modes[i]->w == w && modes[i]->h == h) {
+            found = SDL_SetWindowFullscreenMode(m_window, modes[i]);
+        }
+    }
+    SDL_free(modes);
+    if (found) {
+        SM2_INFO("fullscreen at %dx%d", w, h);
+    } else {
+        SM2_WARN("fullscreen_resolution %s is not a mode this display offers; using its own", m_fullscreen_resolution.c_str());
+    }
+}
+
 void Window::set_fullscreen(bool enable)
 {
     if (m_window == nullptr || enable == m_fullscreen) {
         return;
+    }
+    if (enable) {
+        apply_fullscreen_resolution();
     }
     if (!SDL_SetWindowFullscreen(m_window, enable)) {
         SM2_WARN("SDL_SetWindowFullscreen failed: %s", SDL_GetError());

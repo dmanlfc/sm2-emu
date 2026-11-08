@@ -83,6 +83,9 @@ struct Config {
     bool throttle = true;
 
     bool fullscreen = false;
+    /// "WxH": fullscreen at a lower mode the compositor scales up to the
+    /// display (cheaper presents on slow GPUs); empty uses the display's own.
+    std::string fullscreen_resolution;
 
     /// Show the FPS counter overlay in the top-right corner.
     bool show_fps = false;

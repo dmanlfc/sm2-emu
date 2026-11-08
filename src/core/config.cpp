@@ -513,6 +513,8 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->throttle)) {
                 bad_value();
             }
+        } else if (key == "fullscreen_resolution") {
+            out->fullscreen_resolution = value;
         } else if (key == "fullscreen") {
             if (!parse_bool(value, &out->fullscreen)) {
                 bad_value();
@@ -1050,6 +1052,7 @@ bool save_config(const std::string& path, const Config& config)
         << "vsync = " << bool_text(config.vsync) << "\n"
         << "throttle = " << bool_text(config.throttle) << "\n"
         << "fullscreen = " << bool_text(config.fullscreen) << "\n"
+        << "fullscreen_resolution = " << config.fullscreen_resolution << "\n"
         << "window_width = " << config.window_width << "\n"
         << "window_height = " << config.window_height << "\n"
         << "show_fps = " << bool_text(config.show_fps) << "\n"

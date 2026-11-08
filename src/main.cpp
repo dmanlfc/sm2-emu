@@ -182,6 +182,7 @@ struct Options {
         bool vsync      = false;
         bool throttle   = false;
         bool fullscreen = false;
+        bool fullscreen_resolution = false;
         bool lightgun   = false;
         bool validation = false;
         bool log_level  = false;
@@ -298,6 +299,8 @@ void print_usage()
         "                      reading and saving settings\n"
         "      --dump-textures Write every 3D texture to <saves>/textures/<game>/dump\n"
         "      --fullscreen    Start filling the screen\n"
+        "      --fullscreen-resolution <WxH>  Fullscreen at a lower mode the\n"
+        "                      compositor scales up (faster on slow GPUs)\n"
         "      --game <name>   Load this set specifically, for archives that\n"
         "                      hold several revisions; with no path given, the\n"
         "                      archive is found in --rom-dir\n"
@@ -411,6 +414,8 @@ void print_usage()
         } else if (std::strcmp(arg, "--no-throttle") == 0) {
             out->config.throttle = false;
             out->given.throttle  = true;
+        } else if (takes_value("--fullscreen-resolution", &out->config.fullscreen_resolution)) {
+            out->given.fullscreen_resolution = true;
         } else if (std::strcmp(arg, "--fullscreen") == 0) {
             out->config.fullscreen = true;
             out->given.fullscreen  = true;
@@ -922,6 +927,9 @@ int main(int argc, char** argv)
     }
     if (!options.given.fullscreen) {
         options.config.fullscreen = from_file.fullscreen;
+    }
+    if (!options.given.fullscreen_resolution) {
+        options.config.fullscreen_resolution = from_file.fullscreen_resolution;
     }
     if (!options.given.lightgun) {
         options.config.lightgun = from_file.lightgun;
@@ -1908,6 +1916,7 @@ int main(int argc, char** argv)
         window_config.width      = options.config.window_width;
         window_config.height     = options.config.window_height;
         window_config.fullscreen = options.config.fullscreen;
+        window_config.fullscreen_resolution = options.config.fullscreen_resolution;
 
         // Which GPU backend presents. `software` only replaces the drawing,
         // so it presents through OpenGL where built, else Vulkan.
