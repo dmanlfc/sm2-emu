@@ -185,21 +185,27 @@ void TileGen::finish_wide()
         return;
     }
     // An edge within kSpread of one colour (a dithered gradient, a mask or
-    // frame on the top layer) is tiled out.
-    constexpr int kFlat   = 16;
-    constexpr int kSpread = 24;
-    const auto flat = [](const u32* p) {
-        int lo[3] = {255, 255, 255};
-        int hi[3] = {0, 0, 0};
+    // frame on the top layer) is tiled out, but only when every row the
+    // layer covers at that edge is, and the colour runs smoothly down it: a
+    // picture with a few flat rows would come out as stripes.
+    constexpr int kFlat    = 16;
+    constexpr int kSpread  = 24;
+    constexpr int kMinRows = 24;
+    constexpr int kJumps   = 4;
+    const auto flat = [](const u32* p, int* mean) {
+        int lo[3]  = {255, 255, 255};
+        int hi[3]  = {0, 0, 0};
+        int sum[3] = {};
         for (int i = 0; i < kFlat; i++) {
-            if ((p[i] >> 24) == 0) {
-                return false;
-            }
             for (int c = 0; c < 3; c++) {
                 const int v = static_cast<int>((p[i] >> (c * 8)) & 0xFF);
                 lo[c]       = std::min(lo[c], v);
                 hi[c]       = std::max(hi[c], v);
+                sum[c] += v;
             }
+        }
+        for (int c = 0; c < 3; c++) {
+            mean[c] = sum[c] / kFlat;
         }
         return hi[0] - lo[0] <= kSpread && hi[1] - lo[1] <= kSpread && hi[2] - lo[2] <= kSpread;
     };
@@ -207,31 +213,56 @@ void TileGen::finish_wide()
     const int side  = static_cast<int>(m_side);
     const int right = static_cast<int>(kVisibleWidth);
     for (usize l = 0; l < 2; l++) {
+        std::array<bool, kHeight> backdrop{};
         for (u32 y = 0; y < kHeight; y++) {
             u32* const       row    = m_wide[l].data() + static_cast<usize>(y) * static_cast<usize>(width);
             const u32* const centre = m_surface[l].data() + static_cast<usize>(y) * kWidth;
             std::memcpy(row + side, centre, kVisibleWidth * 4);
             // Behind the 3D, only rows the layers fill are carried out: a
             // backdrop, not a panel sliding across.
-            if (l == 0 && std::any_of(centre, centre + right, [](u32 v) { return (v >> 24) == 0; })) {
+            backdrop[y] = l != 0 || std::none_of(centre, centre + right, [](u32 v) { return (v >> 24) == 0; });
+            if (!backdrop[y]) {
                 std::fill(row, row + side, 0u);
                 std::fill(row + side + right, row + width, 0u);
-                continue;
             }
-            if (!m_extend_edges) {
-                continue;
-            }
-            if (flat(centre)) {
-                for (int x = 0; x < side; x++) {
-                    if (row[x] == 0) {
-                        row[x] = centre[(x - side) & (kFlat - 1)];
-                    }
+        }
+        if (!m_extend_edges) {
+            continue;
+        }
+        for (const int edge : {0, right - kFlat}) {
+            int  rows  = 0;
+            int  jumps = 0;
+            int  last[3] = {-1, -1, -1};
+            bool ok      = true;
+            for (u32 y = 0; y < kHeight && ok; y++) {
+                const u32* const p = m_surface[l].data() + static_cast<usize>(y) * kWidth + edge;
+                const int opaque   = static_cast<int>(std::count_if(p, p + kFlat, [](u32 v) { return (v >> 24) != 0; }));
+                if (!backdrop[y] || opaque == 0) {
+                    last[0] = -1;
+                    continue;
                 }
+                int mean[3];
+                ok = opaque == kFlat && flat(p, mean);
+                if (last[0] >= 0 && (std::abs(mean[0] - last[0]) > kSpread || std::abs(mean[1] - last[1]) > kSpread
+                                     || std::abs(mean[2] - last[2]) > kSpread)) {
+                    jumps++;
+                }
+                std::copy(mean, mean + 3, last);
+                rows++;
             }
-            if (flat(centre + right - kFlat)) {
-                for (int x = side + right; x < width; x++) {
+            if (!ok || rows < kMinRows || jumps > kJumps) {
+                continue;
+            }
+            const int from = edge == 0 ? 0 : side + right;
+            for (u32 y = 0; y < kHeight; y++) {
+                u32* const       row = m_wide[l].data() + static_cast<usize>(y) * static_cast<usize>(width);
+                const u32* const p   = m_surface[l].data() + static_cast<usize>(y) * kWidth + edge;
+                if (!backdrop[y] || (p[0] >> 24) == 0) {
+                    continue;
+                }
+                for (int x = from; x < from + side; x++) {
                     if (row[x] == 0) {
-                        row[x] = centre[right - kFlat + ((x - side - right) & (kFlat - 1))];
+                        row[x] = p[(x - from + (edge == 0 ? kFlat - side % kFlat : 0)) & (kFlat - 1)];
                     }
                 }
             }
