@@ -17,8 +17,11 @@
 #include "core/archive.h"
 #include "core/log.h"
 
+#include <miniz.h>
+
 #include <chrono>
 #include <cstdio>
+#include <cstring>
 #include <ctime>
 #include <filesystem>
 #include <utility>
@@ -29,6 +32,12 @@ namespace {
 
 /// "HOST", the tag of the host's section after the machine's payload.
 constexpr u32 kHostTag = 0x54534f48u;
+
+// A state file is the raw state deflated behind this magic and the raw size.
+// Files without it are read as they are.
+constexpr char  kPackedMagic[8] = {'S', 'M', '2', 'S', 'T', 'A', 'T', 'Z'};
+constexpr usize kPackedHeader   = sizeof(kPackedMagic) + sizeof(u64);
+constexpr u64   kMaxStateBytes  = u64{1} << 30;
 
 /// The host's serialize walk, when set.
 SerializeFn& host_state()
@@ -177,18 +186,32 @@ bool write_state_file(const std::string& path, std::span<const u8> data)
         std::filesystem::create_directories(parent, ec);
     }
 
+    mz_ulong        packed_size = mz_compressBound(static_cast<mz_ulong>(data.size()));
+    std::vector<u8> packed(kPackedHeader + packed_size);
+    if (mz_compress2(packed.data() + kPackedHeader, &packed_size, data.data(),
+                     static_cast<mz_ulong>(data.size()), MZ_BEST_SPEED)
+        != MZ_OK) {
+        SM2_ERROR("save-state: could not compress the state");
+        return false;
+    }
+    const u64 raw_size = data.size();
+    std::memcpy(packed.data(), kPackedMagic, sizeof(kPackedMagic));
+    std::memcpy(packed.data() + sizeof(kPackedMagic), &raw_size, sizeof(raw_size));
+    packed.resize(kPackedHeader + packed_size);
+
     std::FILE* handle = std::fopen(path.c_str(), "wb");
     if (handle == nullptr) {
         SM2_ERROR("save-state: could not open '%s' for writing", path.c_str());
         return false;
     }
-    const usize written = std::fwrite(data.data(), 1, data.size(), handle);
+    const usize written = std::fwrite(packed.data(), 1, packed.size(), handle);
     std::fclose(handle);
-    if (written != data.size()) {
+    if (written != packed.size()) {
         SM2_ERROR("save-state: short write to '%s'", path.c_str());
         return false;
     }
-    SM2_INFO("save-state: wrote %zu bytes to '%s'", data.size(), path.c_str());
+    SM2_INFO("save-state: wrote %zu bytes (%zu raw) to '%s'", packed.size(), data.size(),
+             path.c_str());
     return true;
 }
 
@@ -214,6 +237,25 @@ bool read_state_file(const std::string& path, std::vector<u8>& out)
         SM2_ERROR("save-state: short read from '%s'", path.c_str());
         return false;
     }
+    if (out.size() < kPackedHeader || std::memcmp(out.data(), kPackedMagic, sizeof(kPackedMagic)) != 0) {
+        return true;
+    }
+    u64 raw_size = 0;
+    std::memcpy(&raw_size, out.data() + sizeof(kPackedMagic), sizeof(raw_size));
+    if (raw_size == 0 || raw_size > kMaxStateBytes) {
+        SM2_ERROR("save-state: '%s' is corrupt (bad size)", path.c_str());
+        return false;
+    }
+    std::vector<u8> raw(static_cast<usize>(raw_size));
+    mz_ulong        raw_len = static_cast<mz_ulong>(raw_size);
+    if (mz_uncompress(raw.data(), &raw_len, out.data() + kPackedHeader,
+                      static_cast<mz_ulong>(out.size() - kPackedHeader))
+            != MZ_OK
+        || raw_len != raw_size) {
+        SM2_ERROR("save-state: '%s' is corrupt or truncated", path.c_str());
+        return false;
+    }
+    out = std::move(raw);
     return true;
 }
 

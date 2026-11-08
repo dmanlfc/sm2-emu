@@ -54,7 +54,8 @@ using SerializeFn = std::function<void(Archive&)>;
                                           u32 board, bool in_frame,
                                           const SerializeFn& serialize);
 
-/// A state file's bytes to and from disk. False (logged) on an I/O error.
+/// A state file's bytes to and from disk, deflated on write; an uncompressed
+/// file still reads. False (logged) on an I/O error or a corrupt file.
 [[nodiscard]] bool write_state_file(const std::string& path, std::span<const u8> data);
 [[nodiscard]] bool read_state_file(const std::string& path, std::vector<u8>& out);
 

@@ -326,6 +326,7 @@ target_link_libraries(sm2_hw
         sm2_ymfm
     PRIVATE
         sm2_warnings
+        sm2_miniz
 )
 
 # ---------------------------------------------------------------------------
