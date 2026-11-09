@@ -859,6 +859,37 @@ void configure_cabinet_link(sm2::hw::Machine& machine,
 
 }  // namespace
 
+/// The settings as written back: a value given on the command line holds for
+/// this run only, so the file keeps its own unless it was changed since launch.
+sm2::Config persisted_config(const sm2::Config& current, const Options& options,
+                             const sm2::Config& launched, const sm2::Config& from_file)
+{
+    using sm2::Config;
+    Config      c    = current;
+    const auto& g    = options.given;
+    auto        keep = [&](bool given, auto Config::*field) {
+        if (given && c.*field == launched.*field) {
+            c.*field = from_file.*field;
+        }
+    };
+    keep(g.vsync, &Config::vsync);
+    keep(g.throttle, &Config::throttle);
+    keep(g.fullscreen, &Config::fullscreen);
+    keep(g.fullscreen_resolution, &Config::fullscreen_resolution);
+    keep(g.lightgun, &Config::lightgun);
+    keep(g.validation, &Config::validation);
+    keep(g.log_level, &Config::log_level);
+    keep(g.gpu, &Config::gpu);
+    keep(g.rom_dir, &Config::rom_dir);
+    keep(g.model1_rom_dir, &Config::model1_rom_dir);
+    keep(g.model3_rom_dir, &Config::model3_rom_dir);
+    keep(g.nvram_dir, &Config::nvram_dir);
+    keep(g.screenshot_dir, &Config::screenshot_dir);
+    keep(g.render_scale, &Config::render_scale);
+    keep(g.graphics_backend, &Config::graphics_backend);
+    return c;
+}
+
 int main(int argc, char** argv)
 {
     using namespace sm2;
@@ -1102,13 +1133,18 @@ int main(int argc, char** argv)
         SM2_WARN("%s", problem.c_str());
     }
 
+    const Config launched = options.config;
+    const auto   to_save  = [&](const Config& current) {
+        return persisted_config(current, options, launched, from_file);
+    };
+
     // Make sure the settings and NVRAM locations exist. If there is no ini yet,
     // write one so there is a file to edit and later saves have somewhere to go;
     // an existing one is left untouched. save_config creates the parent dir.
     {
         std::error_code error;
         if ((!std::filesystem::exists(config_path, error) || error)
-            && !save_config(config_path, options.config)) {
+            && !save_config(config_path, to_save(options.config))) {
             SM2_WARN("could not create '%s'", config_path.c_str());
         }
         if (!options.config.nvram_dir.empty()) {
@@ -1805,6 +1841,7 @@ int main(int argc, char** argv)
         // above owns whichever GPU API actually draws what it builds.
         osd::Gui gui;
         gui.set_config_path(config_path);
+        gui.set_save_filter(to_save);
         gui.set_texture_backend(backend.get());
         // The renderers this build offers, most-preferred first. Software only
         // presents through a GPU backend, so it needs one present.
@@ -3407,7 +3444,7 @@ int main(int argc, char** argv)
 
         // Persist settings on exit, so changes made in the overlay (gun
         // bindings, wheel, video) stick without needing the Save button.
-        if (!save_config(config_path, options.config)) {
+        if (!save_config(config_path, to_save(options.config))) {
             SM2_WARN("could not save settings to '%s'", config_path.c_str());
         }
 

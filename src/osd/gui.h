@@ -19,6 +19,7 @@
 #include "render/backend.h"
 
 #include <array>
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
@@ -88,6 +89,12 @@ public:
     /// Where the Save button writes. Set to the path the config was loaded from
     /// so a saved file goes back to the same place (including a --config path).
     void set_config_path(std::string path) { m_config_path = std::move(path); }
+
+    /// What Save writes for the live settings (command-line values held back).
+    void set_save_filter(std::function<Config(const Config&)> filter)
+    {
+        m_save_filter = std::move(filter);
+    }
 
     /// The renderer names this build offers, for the Settings dropdown.
     void set_available_renderers(std::vector<std::string> names)
@@ -289,6 +296,7 @@ private:
     void refresh_dir_picker_entries();
 
     SDL_Window* m_window      = nullptr;
+    std::function<Config(const Config&)> m_save_filter;
     std::string m_config_path;  ///< where Save writes; empty -> default path.
     std::vector<std::string> m_available_renderers;  ///< for the Settings dropdown
     bool        m_visible     = false;

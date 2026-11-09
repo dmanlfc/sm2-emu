@@ -1132,7 +1132,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             if (ImGui::Button(tr_id("Save settings"))) {
                 const std::string path =
                     m_config_path.empty() ? default_config_path() : m_config_path;
-                if (save_config(path, config)) {
+                if (save_config(path, m_save_filter ? m_save_filter(config) : config)) {
                     SM2_INFO("gui: settings saved to %s", path.c_str());
                 } else {
                     SM2_ERROR("gui: could not save settings to %s", path.c_str());
