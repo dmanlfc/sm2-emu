@@ -79,6 +79,11 @@ void M2Comm::serialize(Archive& ar)
     ar.raw(m_frame_sync);
     ar.raw(m_frame_offset);
     ar.bytes(m_buffer.data(), m_buffer.size());
+    if (ar.version() >= 3) {
+        m_transport->serialize(ar);
+    } else if (ar.loading()) {
+        m_transport->reset();
+    }
 }
 
 void M2Comm::cn_write(u8 value)

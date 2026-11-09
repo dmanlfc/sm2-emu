@@ -61,6 +61,11 @@ void M1Comm::serialize(Archive& ar)
     ar.raw(m_linkcount);
     ar.raw(m_frame_sync);
     ar.bytes(m_buffer.data(), m_buffer.size());
+    if (ar.version() >= 3) {
+        m_transport->serialize(ar);
+    } else if (ar.loading()) {
+        m_transport->reset();
+    }
 }
 
 void M1Comm::cn_write(u8 value)

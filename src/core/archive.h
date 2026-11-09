@@ -88,6 +88,10 @@ public:
     /// Bytes written so far (Save) or consumed so far (Load).
     [[nodiscard]] usize position() const { return m_pos; }
 
+    /// The format version being read (always the current one when saving).
+    [[nodiscard]] u32 version() const { return m_version; }
+    void set_version(u32 version) { m_version = version; }
+
 private:
     void transfer(void* data, usize num_bytes);
 
@@ -100,8 +104,9 @@ private:
     const u8* m_in      = nullptr;
     usize     m_in_size = 0;
 
-    usize m_pos    = 0;
-    bool  m_failed = false;
+    usize m_pos     = 0;
+    bool  m_failed  = false;
+    u32   m_version = 3;
 };
 
 // ---------------------------------------------------------------------------
@@ -126,13 +131,16 @@ private:
 namespace state {
 
 inline constexpr char     kMagic[8]      = {'S', 'M', '2', 'S', 'T', 'A', 'T', 'E'};
-inline constexpr u32      kFormatVersion = 2;
+inline constexpr u32      kFormatVersion = 3;
+/// Oldest version still read; 3 added the link frames still in flight.
+inline constexpr u32      kOldestFormatVersion = 2;
 
 /// Header fields, in file order. The game name and board are supplied by the
 /// caller so this stays free of the rom layer.
 struct Header {
     std::string game;
-    u32         board = 0;
+    u32         board   = 0;
+    u32         version = kFormatVersion;
 };
 
 /// Write the header into `ar` (must be Save mode). Follows with the caller's

@@ -18,6 +18,7 @@
 // cabinet settles as node 1 of 1; comm_udp.h carries frames over a LAN instead.
 #pragma once
 
+#include "core/archive.h"
 #include "core/types.h"
 
 #include <cstddef>
@@ -48,6 +49,19 @@ public:
     /// Drop queued frames and return to the constructed state. Called when the
     /// board is enabled/disabled (the host cycles CN, it does not reset).
     virtual void reset() = 0;
+
+    /// Frames in flight: a count, then each frame. A network link saves none
+    /// and is cleared on load.
+    virtual void serialize(Archive& ar)
+    {
+        u32 count = 0;
+        ar.raw(count);
+        for (u32 i = 0; i < count && !ar.failed(); ++i) {
+            std::vector<u8> frame;
+            ar.vector_pod(frame);
+        }
+        if (ar.loading()) reset();
+    }
 };
 
 /// In-process loopback: a sent frame is read straight back by the same board,
@@ -66,6 +80,21 @@ public:
             return;
         }
         m_queue.emplace_back(frame.begin(), frame.end());
+    }
+
+    void serialize(Archive& ar) override
+    {
+        u32 count = static_cast<u32>(m_queue.size());
+        ar.raw(count);
+        if (ar.loading()) {
+            reset();
+            if (count > kDepth) {
+                ar.mark_failed();
+                return;
+            }
+            m_queue.resize(count);
+        }
+        for (auto& frame : m_queue) ar.vector_pod(frame);
     }
 
     std::optional<std::vector<u8>> recv() override

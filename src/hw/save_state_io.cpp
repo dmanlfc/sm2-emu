@@ -147,6 +147,7 @@ bool load_state_from_buffer(std::span<const u8> data, const std::string& game, u
     }
 
     Archive load_ar(data.data() + payload_offset, data.size() - payload_offset);
+    load_ar.set_version(parsed.version);
     serialize(load_ar);
     if (load_ar.failed()) {
         SM2_ERROR("save-state: state is truncated or corrupt — rolling back");

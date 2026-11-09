@@ -127,12 +127,13 @@ bool read_header(const u8* data, usize size, Header& out, usize& payload_offset)
         SM2_ERROR("save-state: truncated header (no version)");
         return false;
     }
-    if (version != kFormatVersion) {
-        SM2_ERROR("save-state: format version %u, this build reads %u; the file "
+    if (version < kOldestFormatVersion || version > kFormatVersion) {
+        SM2_ERROR("save-state: format version %u, this build reads %u to %u; the file "
                   "is from a different version and cannot be loaded",
-                  version, kFormatVersion);
+                  version, kOldestFormatVersion, kFormatVersion);
         return false;
     }
+    out.version = version;
 
     u32 game_len = 0;
     ar.raw(game_len);
