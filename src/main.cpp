@@ -2710,7 +2710,9 @@ int main(int argc, char** argv)
             // of the CPU-composited upload. Independent of need_cpu_compose
             // below: a --soft-render comparison run wants both the GPU path
             // exercised (this) and a fresh CPU oracle (that), in the same frame.
-            const bool cpu_tilemap = machine_iface && machine_iface->needs_cpu_tilemap();
+            const bool cpu_tilemap =
+                machine_iface
+                && (machine_iface->needs_cpu_tilemap() || !backend->capabilities().compute_shaders);
             const bool use_gpu_tilemap =
                 machine_iface && !use_software_renderer && !render_test && !cpu_tilemap;
 

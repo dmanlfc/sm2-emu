@@ -50,8 +50,9 @@ bool GlBackend::init(osd::Window& window, const BackendConfig& config)
     }
 
     // Set the version directive for all subsequent shader compilations.
-    set_version_directive(m_context.is_es() ? kEsVersionDirective
-                                            : kDesktopVersionDirective);
+    set_version_directive(m_context.is_es()         ? kEsVersionDirective
+                          : m_context.has_compute() ? kDesktopVersionDirective
+                                                    : kGl41VersionDirective);
 
     // Clamp to what the driver can allocate. The composite target is a texture
     // (GL_MAX_TEXTURE_SIZE) and its fill mask a renderbuffer
@@ -146,7 +147,7 @@ void GlBackend::shutdown()
 Capabilities GlBackend::capabilities() const
 {
     Capabilities caps;
-    caps.compute_shaders = true;
+    caps.compute_shaders = m_context.has_compute();
     // No GPU timer queries wired up yet (GL_TIME_ELAPSED could be added later).
     caps.gpu_timing = false;
     caps.anisotropy      = m_max_anisotropy > 1.0F;
@@ -347,7 +348,9 @@ void GlBackend::wait_idle()
 
 bool GlBackend::init_overlay(osd::Gui& /*gui*/)
 {
-    const char* imgui_version = m_context.is_es() ? "#version 300 es" : "#version 430 core";
+    const char* imgui_version = m_context.is_es()         ? "#version 300 es"
+                              : m_context.has_compute() ? "#version 430 core"
+                                                        : "#version 410 core";
     if (!ImGui_ImplOpenGL3_Init(imgui_version)) {
         SM2_ERROR("gl: ImGui_ImplOpenGL3_Init failed");
         return false;

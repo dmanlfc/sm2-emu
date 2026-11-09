@@ -109,13 +109,36 @@ struct PolyParams {
 layout(set = 0, binding = 0) uniform usampler2DArray uSheets;
 
 /// Luminance RAM, thirty-two kilobytes of tone curves, four bytes to a word.
+#ifdef SM2_GL41
+// GL 4.1 has no storage buffers: the three buffers are buffer textures there.
+layout(binding = 6) uniform usamplerBuffer uLumaBuffer;
+#define LUMA_WORD(i) texelFetch(uLumaBuffer, int(i)).r
+#else
 layout(std430, set = 0, binding = 1) readonly buffer Luma { uint uLuma[]; };
+#define LUMA_WORD(i) uLuma[i]
+#endif
 
 /// The colour translation table and the gamma ramp, flattened by the host: shade
 /// across, colour component down, one channel per component of the texel.
 layout(set = 0, binding = 2) uniform sampler2D uTone;
 
+#ifdef SM2_GL41
+layout(binding = 7) uniform usamplerBuffer uPolygonBuffer;
+
+PolyParams loadPolygon(uint i)
+{
+    uvec4 a = texelFetch(uPolygonBuffer, int(i) * 4);
+    uvec4 b = texelFetch(uPolygonBuffer, int(i) * 4 + 1);
+    uvec4 c = texelFetch(uPolygonBuffer, int(i) * 4 + 2);
+    uvec4 d = texelFetch(uPolygonBuffer, int(i) * 4 + 3);
+    return PolyParams(a.x, a.y, a.z, int(a.w), b.x, b.y, b.z, b.w,
+                      c.x, c.y, c.z, c.w, d.x, d.y, d.z, d.w);
+}
+#define POLYGON(i) loadPolygon(i)
+#else
 layout(std430, set = 0, binding = 3) readonly buffer Polys { PolyParams uPolygon[]; };
+#define POLYGON(i) uPolygon[i]
+#endif
 
 /// One polygon's screen-space vertex ring; see PolyGeom in render/geometry.h.
 struct PolyGeom {
@@ -128,7 +151,36 @@ struct PolyGeom {
     uint  pad[3];
 };
 
+#ifdef SM2_GL41
+layout(binding = 8) uniform usamplerBuffer uGeomBuffer;
+
+PolyGeom loadGeom(uint i)
+{
+    uint w[44];
+    for (int k = 0; k < 11; ++k) {
+        uvec4 t = texelFetch(uGeomBuffer, int(i) * 11 + k);
+        w[k * 4] = t.x;
+        w[k * 4 + 1] = t.y;
+        w[k * 4 + 2] = t.z;
+        w[k * 4 + 3] = t.w;
+    }
+    PolyGeom g;
+    for (int k = 0; k < 8; ++k) {
+        g.x[k]        = uintBitsToFloat(w[k]);
+        g.y[k]        = uintBitsToFloat(w[8 + k]);
+        g.oneOverZ[k] = uintBitsToFloat(w[16 + k]);
+        g.uOverZ[k]   = uintBitsToFloat(w[24 + k]);
+        g.vOverZ[k]   = uintBitsToFloat(w[32 + k]);
+    }
+    g.numVertices = w[40];
+    g.pad = uint[3](0u, 0u, 0u);
+    return g;
+}
+#define GEOM(i) geom
+#else
 layout(std430, set = 0, binding = 5) readonly buffer Geom { PolyGeom uGeom[]; };
+#define GEOM(i) uGeom[i]
+#endif
 
 /// Custom textures, packed into square layers with a wrapped gutter round each
 /// (render/texture_replace.cpp). Filtered and mipmapped like any modern texture.
@@ -364,7 +416,7 @@ int fastLog2(float value)
 /// One byte of luminance RAM.
 uint fetchLuma(uint index)
 {
-    const uint word = uLuma[index >> 2];
+    const uint word = LUMA_WORD(index >> 2);
     return (word >> ((index & 3u) * 8u)) & 0xffu;
 }
 
@@ -434,7 +486,10 @@ vec3 sampleReplacement(PolyParams p, vec2 texelUV, vec2 texelDx, vec2 texelDy)
 /// rightmost crossing, interpolate across in x. Returns vec3(u/z, v/z, 1/z).
 vec3 polygonInterpolate(uint idx, float fx, float fy)
 {
-    const uint n = uGeom[idx].numVertices;
+#ifdef SM2_GL41
+    PolyGeom geom = loadGeom(idx);
+#endif
+    const uint n = GEOM(idx).numVertices;
 
     float leftX  =  1.0e30;
     float rightX = -1.0e30;
@@ -444,8 +499,8 @@ vec3 polygonInterpolate(uint idx, float fx, float fy)
 
     for (uint i = 0u; i < n; ++i) {
         const uint  j  = (i + 1u == n) ? 0u : i + 1u;
-        const float y1 = uGeom[idx].y[i];
-        const float y2 = uGeom[idx].y[j];
+        const float y1 = GEOM(idx).y[i];
+        const float y2 = GEOM(idx).y[j];
         if (y1 == y2) {
             continue;
         }
@@ -457,17 +512,17 @@ vec3 polygonInterpolate(uint idx, float fx, float fy)
             continue;
         }
         const float t   = clamp((fy - y1) / (y2 - y1), 0.0, 1.0);
-        const float x   = mix(uGeom[idx].x[i], uGeom[idx].x[j], t);
-        const vec3  ppp = vec3(mix(uGeom[idx].uOverZ[i],   uGeom[idx].uOverZ[j],   t),
-                               mix(uGeom[idx].vOverZ[i],   uGeom[idx].vOverZ[j],   t),
-                               mix(uGeom[idx].oneOverZ[i], uGeom[idx].oneOverZ[j], t));
+        const float x   = mix(GEOM(idx).x[i], GEOM(idx).x[j], t);
+        const vec3  ppp = vec3(mix(GEOM(idx).uOverZ[i],   GEOM(idx).uOverZ[j],   t),
+                               mix(GEOM(idx).vOverZ[i],   GEOM(idx).vOverZ[j],   t),
+                               mix(GEOM(idx).oneOverZ[i], GEOM(idx).oneOverZ[j], t));
         any = true;
         if (x < leftX)  { leftX  = x; leftP  = ppp; }
         if (x > rightX) { rightX = x; rightP = ppp; }
     }
 
     if (!any) {
-        return vec3(uGeom[idx].uOverZ[0], uGeom[idx].vOverZ[0], uGeom[idx].oneOverZ[0]);
+        return vec3(GEOM(idx).uOverZ[0], GEOM(idx).vOverZ[0], GEOM(idx).oneOverZ[0]);
     }
 
     const float span = rightX - leftX;
@@ -477,7 +532,7 @@ vec3 polygonInterpolate(uint idx, float fx, float fy)
 
 void main()
 {
-    const PolyParams p = uPolygon[vPolygon];
+    const PolyParams p = POLYGON(vPolygon);
 
     // Texture coordinate from the edge walk, not the rasteriser's per-fan-
     // triangle interpolation of vTexel, which warps textured quads. The vertex

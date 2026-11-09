@@ -12,7 +12,7 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-// OpenGL 4.3 core context creation: the GL analogue of render::vk::Context,
+// OpenGL 4.3 core (4.1 on macOS) context creation: the GL analogue of render::vk::Context,
 // covering the same responsibility (own the platform handle, own the
 // swap/present-interval knob, know the device's name and capability limits)
 // against a GL context instead of a Vulkan device and swapchain.
@@ -33,7 +33,7 @@ namespace sm2::render::gl {
 
 struct ContextConfig {
     bool vsync   = true;
-    bool es_mode = false;  ///< Request a GLES 3.1 context instead of GL 4.3 core.
+    bool es_mode = false;  ///< Request a GLES 3.1 context instead of GL 4.3 (or 4.1) core.
 };
 
 /// Owns the GL context and the small amount of state that has nowhere else
@@ -54,7 +54,7 @@ public:
     Context(Context&&)                 = delete;
     Context& operator=(Context&&)      = delete;
 
-    /// Create a 4.3 core context on `window` (which must have been created
+    /// Create a 4.3 core context (else 4.1 core) on `window` (which must have been created
     /// with WindowConfig::graphics_api == osd::GraphicsApi::OpenGl) and
     /// resolve every GL function pointer this renderer calls.
     [[nodiscard]] bool init(osd::Window& window, const ContextConfig& config);
@@ -71,6 +71,10 @@ public:
     /// desktop GL 4.3 core.
     [[nodiscard]] bool is_es() const { return m_is_es; }
 
+    /// Compute shaders, storage buffers and image store: GLES 3.1 and GL 4.3.
+    /// False on a GL 4.1 context (macOS).
+    [[nodiscard]] bool has_compute() const { return m_has_compute; }
+
     [[nodiscard]] const std::string& device_name() const { return m_device_name; }
 
     /// Present the frame drawn since the last call, honouring the vsync
@@ -82,6 +86,7 @@ private:
     SDL_GLContext  m_context = nullptr;
     bool           m_has_buffer_storage = false;
     bool           m_is_es             = false;
+    bool           m_has_compute       = true;
     std::string    m_device_name;
 };
 

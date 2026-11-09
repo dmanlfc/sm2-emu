@@ -92,6 +92,13 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     m_context = SDL_GL_CreateContext(m_window);
+    if (m_context == nullptr && !config.es_mode) {
+        // macOS stops at 4.1 core: no compute, which the GPU tilemap and
+        // texture decode fall back from.
+        SM2_INFO("gl: no 4.3 core context (%s); trying 4.1 core", SDL_GetError());
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        m_context = SDL_GL_CreateContext(m_window);
+    }
     if (m_context == nullptr) {
         SM2_ERROR("SDL_GL_CreateContext failed: %s", SDL_GetError());
         return false;
@@ -149,22 +156,37 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
         GetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile_mask);
 
         const bool is_core = (profile_mask & GL_CONTEXT_CORE_PROFILE_BIT) != 0;
-        const bool meets_floor = (major > 4) || (major == 4 && minor >= 3);
+        const bool meets_floor = (major > 4) || (major == 4 && minor >= 1);
         if (!meets_floor || !is_core) {
-            SM2_ERROR("gl: context is %d.%d %s, but this backend requires 4.3 core "
-                      "or newer (compute shaders and storage buffers are not "
-                      "available below that line)",
+            SM2_ERROR("gl: context is %d.%d %s, but this backend requires 4.1 core "
+                      "or newer",
                       major, minor, is_core ? "core" : "not core");
             SDL_GL_DestroyContext(m_context);
             m_context = nullptr;
             return false;
         }
+        m_has_compute = (major > 4) || (major == 4 && minor >= 3);
         m_has_buffer_storage = has_gl_extension("GL_ARB_buffer_storage");
         m_device_name = "OpenGL " + std::to_string(major) + "." + std::to_string(minor)
                       + " core";
 
         SM2_INFO("gl: context %d.%d core, GL_ARB_buffer_storage %s", major, minor,
                  m_has_buffer_storage ? "present" : "absent (falling back to BufferSubData)");
+        if (!m_has_compute) {
+            SM2_INFO("gl: no compute shaders: CPU tilemap composite and texture decode, "
+                     "buffer textures for the 3D pass");
+        }
+    }
+
+    const bool texture_storage = config.es_mode || m_has_compute
+                              || has_gl_extension("GL_ARB_texture_storage");
+    std::string optional_error;
+    if (!resolve_optional_functions(SDL_GL_GetProcAddress, m_has_compute, texture_storage,
+                                    &optional_error)) {
+        SM2_ERROR("gl: %s", optional_error.c_str());
+        SDL_GL_DestroyContext(m_context);
+        m_context = nullptr;
+        return false;
     }
 
     SDL_GL_SetSwapInterval(config.vsync ? 1 : 0);

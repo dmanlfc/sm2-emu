@@ -48,7 +48,8 @@ bool TilemapPass::init(u32 columns)
     m_panorama.reset();
     m_sky_generation = 0;
     m_panorama_state = {};
-    return create_textures() && create_programs() && create_compute_resources();
+    // GL 4.1 has no compute: the caller uploads the CPU composite instead.
+    return create_textures() && create_programs() && (is_gl41() || create_compute_resources());
 }
 
 void TilemapPass::shutdown()
@@ -327,6 +328,9 @@ void TilemapPass::dispatch_compose(const hw::Model2MachineBase& machine,
 
 void TilemapPass::compute(const hw::Model2MachineBase& machine, const hw::Model2Video& video)
 {
+    if (m_compute_program == 0) {
+        return;
+    }
     dispatch_compose(machine, video);
 }
 

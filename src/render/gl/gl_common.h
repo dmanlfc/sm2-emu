@@ -12,7 +12,7 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-// The desktop OpenGL 4.3 core function pointers this renderer calls, and small
+// The desktop OpenGL 4.3 (or 4.1) core function pointers this renderer calls, and small
 // helpers shared by every gl_*_pass file.
 //
 // Function pointers rather than a generator-based loader (glad, GLEW, epoxy):
@@ -87,6 +87,9 @@ typedef void     (APIENTRYP SM2_PFNGLGETINTEGERVPROC)   (GLenum pname, GLint* pa
 typedef GLenum   (APIENTRYP SM2_PFNGLGETERRORPROC)      (void);
 typedef void     (APIENTRYP SM2_PFNGLFINISHPROC)        (void);
 typedef void     (APIENTRYP SM2_PFNGLPIXELSTOREIPROC)   (GLenum pname, GLint param);
+typedef void     (APIENTRYP SM2_PFNGLTEXIMAGE2DPROC)    (GLenum target, GLint level, GLint internalformat,
+                                                         GLsizei width, GLsizei height, GLint border,
+                                                         GLenum format, GLenum type, const void* pixels);
 // clang-format on
 
 // clang-format off
@@ -108,12 +111,15 @@ extern SM2_PFNGLGENTEXTURESPROC         GenTextures;
 extern SM2_PFNGLDELETETEXTURESPROC      DeleteTextures;
 extern SM2_PFNGLBINDTEXTUREPROC         BindTexture;
 extern PFNGLACTIVETEXTUREPROC           ActiveTexture;
+/// Resolved by resolve_optional_functions(); emulated with TexImage when the
+/// context has no texture storage (GL 4.1 without GL_ARB_texture_storage).
 extern PFNGLTEXSTORAGE2DPROC            TexStorage2D;
 extern PFNGLTEXSTORAGE3DPROC            TexStorage3D;
 extern PFNGLTEXSUBIMAGE3DPROC           TexSubImage3D;
 extern PFNGLGENERATEMIPMAPPROC          GenerateMipmap;
 extern SM2_PFNGLTEXSUBIMAGE2DPROC       TexSubImage2D;
 extern SM2_PFNGLTEXPARAMETERIPROC       TexParameteri;
+/// Resolved by resolve_optional_functions(); null below GL 4.3.
 extern PFNGLBINDIMAGETEXTUREPROC        BindImageTexture;
 extern PFNGLGENSAMPLERSPROC             GenSamplers;
 extern PFNGLDELETESAMPLERSPROC          DeleteSamplers;
@@ -145,8 +151,8 @@ extern PFNGLGETPROGRAMINFOLOGPROC       GetProgramInfoLog;
 extern PFNGLUSEPROGRAMPROC              UseProgram;
 extern PFNGLUNIFORMBLOCKBINDINGPROC     UniformBlockBinding;
 extern PFNGLGETUNIFORMBLOCKINDEXPROC    GetUniformBlockIndex;
-extern PFNGLDISPATCHCOMPUTEPROC         DispatchCompute;
-extern PFNGLMEMORYBARRIERPROC           MemoryBarrier;
+extern PFNGLDISPATCHCOMPUTEPROC         DispatchCompute;  ///< optional, as BindImageTexture
+extern PFNGLMEMORYBARRIERPROC           MemoryBarrier;    ///< optional, as BindImageTexture
 extern SM2_PFNGLDRAWARRAYSPROC          DrawArrays;
 extern SM2_PFNGLENABLEPROC              Enable;
 extern SM2_PFNGLDISABLEPROC             Disable;
@@ -175,6 +181,13 @@ extern PFNGLCLEARBUFFERFVPROC           ClearBufferfv;
 extern PFNGLCLEARBUFFERUIVPROC          ClearBufferuiv;
 extern PFNGLCLEARBUFFERFIPROC           ClearBufferfi;
 extern SM2_PFNGLPIXELSTOREIPROC         PixelStorei;
+// GL 4.1 fallbacks (buffer textures, sampler units set by uniform, TexImage storage).
+extern SM2_PFNGLTEXIMAGE2DPROC          TexImage2D;
+extern PFNGLTEXIMAGE3DPROC              TexImage3D;
+/// Resolved by resolve_optional_functions(); only without compute.
+extern PFNGLTEXBUFFERPROC               TexBuffer;
+extern PFNGLGETUNIFORMLOCATIONPROC      GetUniformLocation;
+extern PFNGLUNIFORM1IPROC               Uniform1i;
 
 /// Resolved by resolve_buffer_storage(), not load_gl_functions(). Null when
 /// the extension is absent; create_persistent_buffer() falls back to
@@ -206,6 +219,14 @@ extern PFNGLBUFFERSTORAGEPROC           BufferStorage;
 /// load_gl_functions() succeeds. A null result is not an error.
 void resolve_buffer_storage(SDL_FunctionPointer (*get_proc)(const char*), bool is_es);
 
+/// Resolves the entry points not every supported context has: compute and
+/// image store (`compute`: GL 4.3 / GLES 3.1) and immutable texture storage
+/// (`texture_storage`), which falls back to a TexImage emulation, or buffer
+/// textures without compute. Returns false if the path chosen can't be resolved.
+[[nodiscard]] bool resolve_optional_functions(SDL_FunctionPointer (*get_proc)(const char*),
+                                              bool compute, bool texture_storage,
+                                              std::string* out_error);
+
 /// Extension check that works on a core profile, where glGetString(GL_EXTENSIONS)
 /// was removed: iterates GetStringi(GL_EXTENSIONS, i) for i in
 /// [0, GL_NUM_EXTENSIONS) rather than parsing one space-separated string.
@@ -234,6 +255,15 @@ void resolve_buffer_storage(SDL_FunctionPointer (*get_proc)(const char*), bool i
 /// "#version 430 core" -- desktop GL's own version_directive for
 /// prepare_gl_source(), named so no call site repeats the literal.
 inline constexpr const char* kDesktopVersionDirective = "#version 430 core";
+
+/// "#version 410 core" -- the macOS fallback: no compute shaders, storage
+/// buffers, image store or layout(binding). prepare_gl_source() defines
+/// SM2_GL41 for it, and compile_program() turns binding qualifiers into
+/// uniform/block bindings after link.
+inline constexpr const char* kGl41VersionDirective = "#version 410 core";
+
+/// True when shaders target kGl41VersionDirective.
+[[nodiscard]] bool is_gl41();
 
 /// "#version 310 es" -- GLES 3.1's own version_directive for
 /// prepare_gl_source(). ES requires explicit precision qualifiers which are

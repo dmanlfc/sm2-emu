@@ -101,6 +101,8 @@ private:
     void               refresh_machine_data(const hw::Model2MachineBase& machine,
                                            const hw::Model2Video&       video);
     void               decode_textures();
+    /// GL 4.1: texel_decode.comp's unpacking on the CPU.
+    void               decode_textures_cpu(const std::vector<u32>& words);
     /// Bring the atlas in line with m_replacements.
     void               sync_replacements();
 
@@ -114,6 +116,10 @@ private:
     PersistentBuffer m_vertex_buffer;
     PersistentBuffer m_polygon_buffer;
     PersistentBuffer m_geometry_buffer;
+
+    /// GL 4.1: buffer textures over the luma, polygon and geometry buffers,
+    /// standing in for polygon.frag's storage buffers.
+    u32 m_buffer_textures[3] = {};
 
     // -- texture decode -----------------------------------------------------
 
