@@ -97,7 +97,9 @@ The hardware has no depth buffer, so a GPU has to shade every hidden pixel.
 That makes the **software renderer** the right choice on machines without a
 strong GPU; the GPU renderers only pull ahead on desktop-class graphics. A
 smaller window barely helps, because the CPU is the limit. The GPU renderers
-need OpenGL 4.3, OpenGL ES 3.1 or Vulkan.
+need OpenGL 4.3, OpenGL ES 3.1 or Vulkan. On macOS, which stops at OpenGL 4.1,
+the OpenGL renderer falls back to a 4.1 path; Vulkan (MoltenVK) is the better
+choice there, and the only one that widens 2D backgrounds in 16:9.
 
 ### By platform
 
@@ -290,7 +292,8 @@ Both are set up in the settings menu (`F10`):
 `F6` quick-saves and `F7` quick-loads, using one slot per game. The **States**
 tab has four more slots per game, each with Save, Load and Delete. States are
 stored as `<game>.<slot>.sm2state` in the `states` folder inside the saves
-folder, so they move with `--nvram` / `nvram_dir`.
+folder, so they move with `--nvram` / `nvram_dir`. States saved by v0.9.45
+or later still load; states from this build won't load in older ones.
 
 ### Rewind
 
