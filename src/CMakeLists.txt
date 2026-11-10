@@ -47,6 +47,7 @@ add_library(sm2_render STATIC
     render/model3/r3d_math.cpp
     render/model3/r3d_model.cpp
     render/model3/scene.cpp
+    render/model3/soft_render.cpp
     render/model3/texture_dump.cpp
     render/model3/texture_key.cpp
     render/model3/textures.cpp

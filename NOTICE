@@ -234,6 +234,7 @@ the code taken from Supermodel.
     src/render/model3/scene.cpp, .h, frame_plan.cpp, .h, textures.cpp, .h
     src/render/gl/model3_pass.cpp, .h
     src/render/vk/model3_pass.cpp, .h
+    src/render/model3/soft_render.cpp, .h
     shaders/model3_r3d.vert, model3_r3d.frag, model3_scroll_fog.frag,
             model3_composite_base.frag, model3_composite_trans.frag
 
