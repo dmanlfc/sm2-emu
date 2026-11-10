@@ -706,21 +706,23 @@ bool Model3Pass::create_pipelines()
 
 VkPipeline Model3Pass::r3d_pipeline(int layer, bool layered, u32 variant, bool float_depth)
 {
+    const bool  aniso = m_aniso_taps > 1;
     const usize slot =
-        ((static_cast<usize>(float_depth ? 1 : 0) * 3 + static_cast<usize>(layer)) * 2 + (layered ? 1 : 0)) * kR3DVariantCount
+        (((static_cast<usize>(aniso ? 1 : 0) * 2 + static_cast<usize>(float_depth ? 1 : 0)) * 3 + static_cast<usize>(layer)) * 2
+         + (layered ? 1 : 0)) * kR3DVariantCount
         + variant;
     VkPipeline& pipeline = m_r3d_pipelines[slot];
     if (pipeline != VK_NULL_HANDLE) {
         return pipeline;
     }
-    VkBool32                 values[7];
-    VkSpecializationMapEntry entries[7];
-    for (u32 i = 0; i < 7; i++) {
-        values[i]  = (variant >> i) & 1u;
+    VkBool32                 values[8];
+    VkSpecializationMapEntry entries[8];
+    for (u32 i = 0; i < 8; i++) {
+        values[i]  = i < 7 ? (variant >> i) & 1u : aniso;
         entries[i] = {i, i * static_cast<u32>(sizeof(VkBool32)), sizeof(VkBool32)};
     }
     VkSpecializationInfo spec{};
-    spec.mapEntryCount = 7;
+    spec.mapEntryCount = 8;
     spec.pMapEntries   = entries;
     spec.dataSize      = sizeof(values);
     spec.pData         = values;
@@ -1037,6 +1039,7 @@ bool Model3Pass::prepare_3d(FrameBuilder& frame, BuildSlot& f, bool on_worker)
             u8* u = static_cast<u8*>(f.uniforms.mapped);
             for (usize i = 0; i < plan.uniforms.size(); i++) {
                 std::memcpy(u + i * r3d_stride, &plan.uniforms[i], sizeof(R3DUniforms));
+                if (m_aniso_taps > 1) reinterpret_cast<R3DUniforms*>(u + i * r3d_stride)->anisoTaps = m_aniso_taps;
             }
             const VkDeviceSize fog_base = r3d_stride * std::max<usize>(plan.uniforms.size(), 1);
             for (usize i = 0; i < plan.fogs.size(); i++) {

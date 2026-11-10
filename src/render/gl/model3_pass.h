@@ -42,6 +42,8 @@ public:
     [[nodiscard]] bool ready() const { return m_ready; }
 
     void set_smooth_2d(bool smooth) { m_smooth_2d = smooth; }
+    /// Anisotropic taps in the 3D pass; 1 is the hardware's own filter.
+    void set_aniso_taps(u32 taps) { m_aniso_taps = taps; }
     void set_texture_replacements(TextureReplacements* replacements) { m_replacements = replacements; }
 
     void render(model3::FrameBuilder& frame, u32 native_fbo);
@@ -64,12 +66,14 @@ private:
 
     bool m_ready     = false;
     bool m_smooth_2d = false;
+    u32  m_aniso_taps = 1;
     u32  m_render_scale = 1;
     u32  m_width        = 0;  ///< Target size, scaled.
     u32  m_height       = 0;
 
     // programs
     u32 m_r3d_program       = 0;
+    u32 m_r3d_aniso_program = 0;
     u32 m_fog_program       = 0;
     u32 m_base_program      = 0;
     u32 m_trans_program     = 0;

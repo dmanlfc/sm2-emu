@@ -50,6 +50,8 @@ public:
     [[nodiscard]] bool encode_depth() const { return m_depth_format != VK_FORMAT_D32_SFLOAT_S8_UINT; }
 
     void set_smooth_2d(bool smooth) { m_smooth_2d = smooth; }
+    /// Anisotropic taps in the 3D pass; 1 is the hardware's own filter.
+    void set_aniso_taps(u32 taps) { m_aniso_taps = taps; }
     void set_texture_replacements(TextureReplacements* replacements) { m_replacements = replacements; }
 
     // The buffer writes run on the frame's worker while the commands are
@@ -138,6 +140,7 @@ private:
     u64      m_buffer_serial = 0;
     bool     m_ready        = false;
     bool     m_smooth_2d    = false;
+    u32      m_aniso_taps   = 1;
     u32      m_render_scale = 1;
     u32      m_width        = 0;
     u32      m_height       = 0;
@@ -192,7 +195,7 @@ private:
 
     // [layer 0 colour, 1 trans1, 2 trans2][layered]
     // [layer][layered][variant], created on first use.
-    std::array<VkPipeline, 2 * 3 * 2 * model3::kR3DVariantCount> m_r3d_pipelines{};
+    std::array<VkPipeline, 2 * 2 * 3 * 2 * model3::kR3DVariantCount> m_r3d_pipelines{};
     VkShaderModule m_r3d_vs = VK_NULL_HANDLE;
     VkShaderModule m_r3d_fs = VK_NULL_HANDLE;
     VkShaderModule m_r3d_fs_float = VK_NULL_HANDLE;

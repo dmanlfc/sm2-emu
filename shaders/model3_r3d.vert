@@ -66,6 +66,7 @@ layout(std140, set = 0, binding = 0) uniform R3DUniforms {
     uint  replaceInfo;
     uint  replaceXY;
     uint  replaceWH;
+    uint  anisoTaps;
 };
 
 #ifdef SM2_TARGET_GL

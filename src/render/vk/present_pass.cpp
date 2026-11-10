@@ -42,6 +42,7 @@ struct PushConstants {
     float crt_mask;
     float crt_glow;
     float crt_curvature;
+    float gain;
 };
 
 /// The sampler slot a scaling method needs. Nearest and Integer sample point
@@ -556,6 +557,7 @@ void PresentPass::record()
     push.crt_mask       = static_cast<float>(m_options.crt_mask_strength) / 100.0F;
     push.crt_glow       = static_cast<float>(m_options.crt_glow_strength) / 100.0F;
     push.crt_curvature  = static_cast<float>(m_options.crt_curvature) / 100.0F;
+    push.gain           = m_options.gain;
 
     const usize slot = sampler_for(m_options.scaling_method);
 

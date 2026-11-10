@@ -120,6 +120,7 @@ private:
     /// Shader texture-quality value for the current enhancement options, clamped
     /// to the device's anisotropy limit. 0 = faithful single-tap.
     [[nodiscard]] u32 effective_texture_quality() const;
+    [[nodiscard]] u32 model3_aniso_taps() const;
 
     osd::Window* m_window = nullptr;
 

@@ -54,10 +54,10 @@ u32 round_up(u32 v, u32 a)
     return (v + a - 1) / a * a;
 }
 
-u32 program(const char* vs, const char* fs)
+u32 program(const char* vs, const char* fs, const char* define = nullptr)
 {
-    const std::string v = prepare_gl_source(vs, active_version_directive());
-    const std::string f = prepare_gl_source(fs, active_version_directive());
+    const std::string v = prepare_gl_source(vs, active_version_directive(), define);
+    const std::string f = prepare_gl_source(fs, active_version_directive(), define);
     return compile_program(v.c_str(), f.c_str());
 }
 
@@ -108,7 +108,7 @@ void Model3Pass::shutdown(bool keep_atlas)
         m_atlas_generation = 0;
         m_atlas_live       = false;
     }
-    for (u32* p : {&m_r3d_program, &m_fog_program, &m_base_program, &m_trans_program, &m_layer_program}) {
+    for (u32* p : {&m_r3d_program, &m_r3d_aniso_program, &m_fog_program, &m_base_program, &m_trans_program, &m_layer_program}) {
         if (*p != 0) {
             DeleteProgram(*p);
             *p = 0;
@@ -375,7 +375,13 @@ void Model3Pass::upload_uniforms(const FramePlan& plan)
         BufferData(GL_UNIFORM_BUFFER, static_cast<GLsizeiptr>(m_ubo_size[slot]), nullptr, GL_STREAM_DRAW);
         BufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<GLsizeiptr>(bytes), staging.data());
     };
-    upload(kUboR3D, plan.uniforms.data(), plan.uniforms.size(), sizeof(R3DUniforms), m_uniform_stride);
+    if (m_aniso_taps > 1) {
+        std::vector<R3DUniforms> uniforms = plan.uniforms;
+        for (R3DUniforms& u : uniforms) u.anisoTaps = m_aniso_taps;
+        upload(kUboR3D, uniforms.data(), uniforms.size(), sizeof(R3DUniforms), m_uniform_stride);
+    } else {
+        upload(kUboR3D, plan.uniforms.data(), plan.uniforms.size(), sizeof(R3DUniforms), m_uniform_stride);
+    }
     upload(kUboModel, plan.models.data(), plan.models.size(), sizeof(R3DModelUniforms), m_model_stride);
     std::vector<ScrollFogUniforms> fogs;
     for (const FogDraw& f : plan.fogs) {
@@ -501,8 +507,11 @@ void Model3Pass::draw_3d(const FramePlan& plan, u64 frame_number)
         }
     }
 
-    // SetRenderStates()
-    UseProgram(m_r3d_program);
+    // Anisotropic filtering gets its own program so the default one stays small.
+    if (m_aniso_taps > 1 && m_r3d_aniso_program == 0) {
+        m_r3d_aniso_program = program(shaders::kModel3R3dVertGlsl, shaders::kModel3R3dFragGlsl, "SM2_ANISO");
+    }
+    UseProgram(m_aniso_taps > 1 && m_r3d_aniso_program != 0 ? m_r3d_aniso_program : m_r3d_program);
     BindVertexArray(m_vao);
     ActiveTexture(GL_TEXTURE1);
     BindTexture(GL_TEXTURE_2D_ARRAY, m_bank);

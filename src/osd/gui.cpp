@@ -718,14 +718,9 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
 
             {
                 int brightness = static_cast<int>(config.brightness);
-                if (m_model3_running) ImGui::BeginDisabled();
                 ImGui::SetNextItemWidth(220);
                 if (ImGui::SliderInt(tr_id("Brightness"), &brightness, 0, 100, "%d%%")) {
                     config.brightness = static_cast<u32>(std::clamp(brightness, 0, 100));
-                }
-                if (m_model3_running) {
-                    ImGui::EndDisabled();
-                    model12_only();
                 }
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
@@ -787,15 +782,10 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     tex_index             = 0;
                     ImGui::BeginDisabled();
                 }
-                if (m_model3_running) ImGui::BeginDisabled();
                 ImGui::SetNextItemWidth(160);
                 if (ImGui::Combo(tr_id("3D texture filter"), &tex_index, tr_all(kTexLabels).data(),
                                  static_cast<int>(kTexLabels.size()))) {
                     config.texture_filter = static_cast<TextureFilter>(tex_index);
-                }
-                if (m_model3_running) {
-                    ImGui::EndDisabled();
-                    model12_only();
                 }
                 if (!m_caps_anisotropy) {
                     ImGui::EndDisabled();

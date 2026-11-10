@@ -79,8 +79,10 @@ struct alignas(16) R3DUniforms {
     u32   replaceInfo;            // 372: custom texture atlas layer + 1 (0 = none), max LOD << 8
     u32   replaceXY;              // its rectangle in the layer, 16 bits each
     u32   replaceWH;
+    u32   anisoTaps;              // 384: anisotropic taps, 1 is the hardware filter
+    u32   pad[3];
 };
-static_assert(sizeof(R3DUniforms) == 384);
+static_assert(sizeof(R3DUniforms) == 400);
 static_assert(offsetof(R3DUniforms, baseTexInfo) == 160);
 static_assert(offsetof(R3DUniforms, spotRange) == 176);
 static_assert(offsetof(R3DUniforms, fragCoordYTransform) == 192);

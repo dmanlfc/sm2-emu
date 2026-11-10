@@ -67,6 +67,7 @@ layout(std140, set = 0, binding = 0) uniform R3DUniforms {
     uint  replaceInfo;
     uint  replaceXY;
     uint  replaceWH;
+    uint  anisoTaps;
 };
 
 #define textureInverted bool(b_textureInverted)
@@ -81,6 +82,11 @@ layout(std140, set = 0, binding = 0) uniform R3DUniforms {
 #define lightEnabled    bool(b_lightEnabled)
 #define specularEnabled bool(b_specularEnabled)
 #define textureReplaced (replaceInfo != 0u)
+#ifdef SM2_ANISO
+#define anisotropic     true
+#else
+#define anisotropic     false
+#endif
 #else
 // Pipeline specialisation: the bits of R3DDraw::variant (frame_plan.h).
 layout(constant_id = 0) const bool textureEnabled  = false;
@@ -90,6 +96,7 @@ layout(constant_id = 3) const bool alphaTest       = false;
 layout(constant_id = 4) const bool lightEnabled    = false;
 layout(constant_id = 5) const bool specularEnabled = false;
 layout(constant_id = 6) const bool textureReplaced = false;
+layout(constant_id = 7) const bool anisotropic     = false;
 #endif
 #define fixedShading    bool(b_fixedShading)
 #define smoothShading   bool(b_smoothShading)
@@ -283,51 +290,78 @@ vec4 ReplacementTexel(float lod)
     return texel;
 }
 
+vec4 SampleBank(vec2 texCoord, float lod)
+{
+    float numLevels = floor(log2(min(float(baseTexInfo.z), float(baseTexInfo.w)))) - 1.0;  // the Real3D only generates down to 2x2 for square textures, otherwise to the min dimension
+    float fLevel    = clamp(lod, 0.0, numLevels);
+    int   iLevel    = int(fLevel);
+
+    ivec2 tex1Pos  = GetTexturePosition(iLevel, baseTexInfo.xy);
+    ivec2 tex1Size = GetTextureSize(iLevel, baseTexInfo.zw);
+    vec4  tex1Data = texBiLinearBank(texturePage, textureWrapMode, vec2(tex1Size), tex1Pos, texCoord, iLevel);
+
+    // initialised to avoid undefined behaviour
+    vec4 tex2Data = vec4(0.0);
+
+    float blendFactor = 0.0;
+
+    // Blend with the next mip level only when the level has a fraction.
+    float ffL = fract(fLevel);
+    if (ffL > 0.0) {
+        ivec2 tex2Pos  = GetTexturePosition(iLevel + 1, baseTexInfo.xy);
+        ivec2 tex2Size = GetTextureSize(iLevel + 1, baseTexInfo.zw);
+        tex2Data = texBiLinearBank(texturePage, textureWrapMode, vec2(tex2Size), tex2Pos, texCoord, iLevel + 1);
+
+        blendFactor = ffL;
+    }
+    else if (microTexture && lod < 0.0) {
+        vec4 scaleIndex = vec4(2.0, 4.0, 16.0, 256.0);  // the last min LOD's 256x is a guess; no game seems to use it
+        vec2 scale      = (vec2(baseTexInfo.zw) / 128.0) * scaleIndex[int(microTextureMinLOD)];
+
+        // microtextures are always 128x128 and only use LOD 0 mipmap
+        ivec2 tex2Pos = GetMicroTexturePos(microTextureID);
+        tex2Data = texBiLinearBank((texturePage + 1) & 1, ivec2(0), vec2(128.0), tex2Pos, texCoord * scale, 0);
+
+        blendFactor = -lod * exp2(-microTextureMinLOD) * 0.5;
+        blendFactor = min(blendFactor, 0.5);
+    }
+
+    return mix(tex1Data, tex2Data, blendFactor);
+}
+
 vec4 GetTextureValue()
 {
-    float lod       = -log2(gl_FragCoord.w * gl_FragCoord.w * fsLODBase);
-    float numLevels = floor(log2(min(float(baseTexInfo.z), float(baseTexInfo.w)))) - 1.0;  // r3d only generates down to 2:2 for square textures, otherwise its the min dimension
-    float fLevel    = clamp(lod, 0.0, numLevels);
+    float lod = -log2(gl_FragCoord.w * gl_FragCoord.w * fsLODBase);
+
+    // Anisotropic enhancement: a sharper level, sampled along the footprint's
+    // long axis. One tap is the hardware's isotropic filter.
+    int  taps = 1;
+    vec2 axis = vec2(0.0);
+    if (anisotropic) {
+        vec2  texels = fsTexCoord * vec2(baseTexInfo.zw);
+        vec2  dx     = dFdx(texels);
+        vec2  dy     = dFdy(texels);
+        float lx    = length(dx);
+        float ly    = length(dy);
+        float ratio = max(lx, ly) / max(min(lx, ly), 1e-6);
+        taps        = int(min(ceil(ratio), float(anisoTaps)));
+        axis        = (lx > ly ? dx : dy) / vec2(baseTexInfo.zw);
+        lod        -= log2(float(taps));
+    }
 
     vec4 tex1Data;
     if (textureReplaced) {
         tex1Data = ReplacementTexel(lod);
     }
+    else if (taps <= 1) {
+        tex1Data = SampleBank(fsTexCoord, lod);
+    }
     else {
-        int iLevel = int(fLevel);
-
-        ivec2 tex1Pos  = GetTexturePosition(iLevel, baseTexInfo.xy);
-        ivec2 tex1Size = GetTextureSize(iLevel, baseTexInfo.zw);
-        tex1Data = texBiLinearBank(texturePage, textureWrapMode, vec2(tex1Size), tex1Pos, fsTexCoord, iLevel);
-
-        // init second texel with blank data to avoid any potentially undefined behavior
-        vec4 tex2Data = vec4(0.0);
-
-        float blendFactor = 0.0;
-
-        // if LOD < 0, no need to blend with next mipmap level; slight performance boost
-        //  while at it, just generalize to all cases where only one mip level needs to be touched
-        float ffL = fract(fLevel);
-        if (ffL > 0.0) {
-            ivec2 tex2Pos  = GetTexturePosition(iLevel + 1, baseTexInfo.xy);
-            ivec2 tex2Size = GetTextureSize(iLevel + 1, baseTexInfo.zw);
-            tex2Data = texBiLinearBank(texturePage, textureWrapMode, vec2(tex2Size), tex2Pos, fsTexCoord, iLevel + 1);
-
-            blendFactor = ffL;
+        tex1Data = vec4(0.0);
+        for (int i = 0; i < taps; i++) {
+            tex1Data += SampleBank(fsTexCoord + axis * ((float(i) + 0.5) / float(taps) - 0.5), lod);
         }
-        else if (microTexture && lod < 0.0) {
-            vec4 scaleIndex = vec4(2.0, 4.0, 16.0, 256.0);  // unsure if minLOD=4 has 256x scale? No games appear to use it
-            vec2 scale      = (vec2(baseTexInfo.zw) / 128.0) * scaleIndex[int(microTextureMinLOD)];
-
-            // microtextures are always 128x128 and only use LOD 0 mipmap
-            ivec2 tex2Pos = GetMicroTexturePos(microTextureID);
-            tex2Data = texBiLinearBank((texturePage + 1) & 1, ivec2(0), vec2(128.0), tex2Pos, fsTexCoord * scale, 0);
-
-            blendFactor = -lod * exp2(-microTextureMinLOD) * 0.5;
-            blendFactor = min(blendFactor, 0.5);
-        }
-
-        tex1Data = mix(tex1Data, tex2Data, blendFactor);
+        tex1Data /= float(taps);
     }
 
     if (textureInverted) {

@@ -2952,6 +2952,9 @@ int main(int argc, char** argv)
                 present.crt_mask_strength     = options.config.crt_mask_strength;
                 present.crt_glow_strength     = options.config.crt_glow_strength;
                 present.crt_curvature         = options.config.crt_curvature;
+                if (machine_m3) {
+                    present.gain = 0.5f + static_cast<float>(std::min(options.config.brightness, 100u)) / 100.0f;
+                }
                 backend->set_present_options(present);
 
                 render::EnhancementOptions enhancement;

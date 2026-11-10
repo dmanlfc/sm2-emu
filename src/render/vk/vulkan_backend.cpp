@@ -212,6 +212,7 @@ bool VulkanBackend::ensure_model3()
         m_model3_width = width;
     }
     m_model3.set_smooth_2d(m_enhancement_options.upscale_2d != Upscale2D::Faithful);
+    m_model3.set_aniso_taps(model3_aniso_taps());
     return true;
 }
 
@@ -291,6 +292,15 @@ void VulkanBackend::set_enhancement_options(const EnhancementOptions& options)
     m_polygons.set_texture_quality(effective_texture_quality());
     m_polygons.set_blend_translucency(options.translucency == Translucency::Blended);
     m_tilemaps.set_upscale_2d(static_cast<u32>(options.upscale_2d));
+    m_model3.set_aniso_taps(model3_aniso_taps());
+}
+
+u32 VulkanBackend::model3_aniso_taps() const
+{
+    // The Model 3 shader takes its own taps, so the sampler limit does not apply.
+    return m_enhancement_options.texture_filter == TextureFilter::Anisotropic
+               ? std::clamp(m_enhancement_options.anisotropy, 1u, 16u)
+               : 1u;
 }
 
 u32 VulkanBackend::effective_texture_quality() const

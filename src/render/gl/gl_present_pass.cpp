@@ -186,7 +186,7 @@ void PresentPass::present(u32 window_width, u32 window_height)
              static_cast<GLsizei>(box.width), static_cast<GLsizei>(box.height));
 
     // std140 layout of present.frag's Present block (see create_program()):
-    // two vec2s, method, crt_enabled, four floats, padded to 48 bytes.
+    // two vec2s, method, crt_enabled, five floats, padded to 48 bytes.
     struct PushBlock {
         float source_size[2];
         float target_size[2];
@@ -196,7 +196,8 @@ void PresentPass::present(u32 window_width, u32 window_height)
         float crt_mask;
         float crt_glow;
         float crt_curvature;
-        u32   pad[2];
+        float gain;
+        u32   pad;
     } push{};
     push.source_size[0] = static_cast<float>(m_native_width);
     push.source_size[1] = static_cast<float>(kHeight);
@@ -208,6 +209,7 @@ void PresentPass::present(u32 window_width, u32 window_height)
     push.crt_mask       = static_cast<float>(m_options.crt_mask_strength) / 100.0F;
     push.crt_glow       = static_cast<float>(m_options.crt_glow_strength) / 100.0F;
     push.crt_curvature  = static_cast<float>(m_options.crt_curvature) / 100.0F;
+    push.gain           = m_options.gain;
 
     UseProgram(m_program);
     BindBuffer(GL_UNIFORM_BUFFER, m_push_ubo);

@@ -52,6 +52,9 @@ layout(push_constant) uniform Present {
     float crt_mask;
     float crt_glow;
     float crt_curvature;
+    // Model 3 picture brightness; 1 is the hardware's own. Model 1 and 2 apply
+    // it to their colour ramp instead.
+    float gain;
 } pc;
 
 const uint kSharpBilinear = 2u;
@@ -98,7 +101,7 @@ void main()
 
     if (!kCrtVariant || pc.crt_enabled == 0u) {
         // Plain present path -- no added work when the filter is off.
-        fragColour = vec4(texture(uLayer, sample_uv(frame)).rgb, 1.0);
+        fragColour = vec4(texture(uLayer, sample_uv(frame)).rgb * pc.gain, 1.0);
         return;
     }
 
@@ -146,5 +149,5 @@ void main()
         colour *= mix(vec3(1.0), tint, pc.crt_mask);
     }
 
-    fragColour = vec4(colour, 1.0);
+    fragColour = vec4(colour * pc.gain, 1.0);
 }

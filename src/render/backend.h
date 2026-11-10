@@ -210,6 +210,10 @@ struct PresentOptions {
     u32  crt_mask_strength     = 30;
     u32  crt_glow_strength     = 20;
     u32  crt_curvature         = 0;
+
+    /// Picture gain, 1 unchanged. Only Model 3 sets it; Model 1/2 brightness
+    /// moves their colour ramp.
+    float gain = 1.0f;
 };
 
 /// Graphics enhancement settings, grouped like PresentOptions. All default to
