@@ -1243,13 +1243,18 @@ void Model3Pass::draw_3d(const FramePlan& plan, BuildSlot& f, VkCommandBuffer cm
             for (int i = 0; i < 3; i++) {
                 colour[i] = colour_attachment(m_colour[static_cast<usize>(i)].view, VK_ATTACHMENT_LOAD_OP_LOAD);
             }
+            // A tiler writes back only what a later pass reads: the line of
+            // sight when it is sampled, the depth when a translucency layer
+            // follows.
             colour[3] = colour_attachment(m_los_target.view, VK_ATTACHMENT_LOAD_OP_CLEAR);
+            if (!pass.los) colour[3].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             VkRenderingAttachmentInfo depth{};
             depth.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
             depth.imageView   = depth_img.view;
             depth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             depth.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            depth.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
+            depth.storeOp     = pass.trans1.empty() && pass.trans2.empty() ? VK_ATTACHMENT_STORE_OP_DONT_CARE
+                                                                           : VK_ATTACHMENT_STORE_OP_STORE;
             depth.clearValue.depthStencil = {0.0f, 0};
             VkRenderingInfo info{};
             info.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
@@ -1321,7 +1326,9 @@ void Model3Pass::draw_3d(const FramePlan& plan, BuildSlot& f, VkCommandBuffer cm
             depth.imageView   = depth_img.view;
             depth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             depth.loadOp      = VK_ATTACHMENT_LOAD_OP_LOAD;
-            depth.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
+            // Restored from the copy before the second layer, or never read
+            // again: the next pass clears it.
+            depth.storeOp     = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             VkRenderingInfo info{};
             info.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
             info.renderArea           = whole;
