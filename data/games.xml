@@ -7911,10 +7911,10 @@
       <!-- Hand written SEGA labels in this form:  TITLE: QQ  ROM NO: IC17  CHECK SUM: 551B  9/12-'99 -->
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="qq.ic20" offset="0x000000" crc="0xb12fe61c"/>
-        <file name="qq.ic19" offset="0x000002" crc="0xa646c7e5"/>
-        <file name="qq.ic18" offset="0x000004" crc="0x17b0bb2c"/>
-        <file name="qq.ic17" offset="0x000006" crc="0x420b5eb8"/>
-        <!-- Skips over cabinet network error -->
+        <file name="qq.ic19" offset="0x000002" crc="0xa646c7e5" alt_crc="0xca02f571"/>
+        <file name="qq.ic18" offset="0x000004" crc="0x17b0bb2c" alt_crc="0xe33da02f"/>
+        <file name="qq.ic17" offset="0x000006" crc="0x420b5eb8" alt_crc="0x1db889e0"/>
+        <!-- Skips the cabinet network error -->
         <patch offset="0x4a2b7c" value="0x60000000" bits="32" endian="big"/>
       </region>
       <!-- Hand written SEGA labels in this form:  TITLE: QQ  ROM NO: IC13  CHECK SUM: 6B84  9/12-'99 -->
@@ -7931,13 +7931,13 @@
         <file name="mpr-22874.5" offset="0x1000006" crc="0x5e990497"/>
         <!-- CROM3 -->
         <file name="qq.ic16" offset="0x3000000" crc="0x3634f178"/>
-        <file name="qq.ic15" offset="0x3000002" crc="0x91c5a2a1"/>
-        <file name="qq.ic14" offset="0x3000004" crc="0xb41db79b"/>
-        <file name="qq.ic13" offset="0x3000006" crc="0xbf3aca1b"/>
+        <file name="qq.ic15" offset="0x3000002" crc="0x91c5a2a1" alt_crc="0x6ee8af07"/>
+        <file name="qq.ic14" offset="0x3000004" crc="0xb41db79b" alt_crc="0x678b9c2c"/>
+        <file name="qq.ic13" offset="0x3000006" crc="0xbf3aca1b" alt_crc="0x75413a76"/>
       </region>
       <!-- Hand written SEGA labels in this form:  TITLE: QQ  ROM NO: IC21  CHECK SUM: 0994  9/12-'99 -->
       <region name="sound_program" stride="2" chunk="2" byte_swap="true">
-        <file name="qq.ic21" offset="0x000000" crc="0x0c55ca5f"/>
+        <file name="qq.ic21" offset="0x000000" crc="0x0c55ca5f" alt_crc="0xd8496bca"/>
       </region>
     </roms>
   </game>
