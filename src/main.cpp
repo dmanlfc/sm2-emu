@@ -47,6 +47,7 @@
 #include "osd/scraper.h"
 #include "osd/window.h"
 #include "render/backend.h"
+#include "render/model3/soft_backend.h"
 #include "render/model3/texture_dump.h"
 #include "render/texture_dump.h"
 #include "render/texture_replace.h"
@@ -1804,6 +1805,10 @@ int main(int argc, char** argv)
                 backend = render::create_vulkan_backend();
 #endif
             }
+            if (backend && options.start_in_software_renderer) {
+                // Model 3 draws on the CPU too; the GPU backend only presents.
+                backend = render::create_software_model3_backend(std::move(backend));
+            }
             if (!backend) {
                 SM2_ERROR("no GPU backend is available to present with. Build with "
                           "-DSM2_BUILD_VULKAN=ON and/or -DSM2_BUILD_OPENGL_DESKTOP=ON "
@@ -2138,9 +2143,12 @@ int main(int argc, char** argv)
         // switch: the two renderers are a launch-time choice.
         const bool use_software_renderer = options.start_in_software_renderer;
         // 16:9 widens the frame only on a GPU renderer; elsewhere it shows 4:3.
-        const bool can_widen = !use_software_renderer && backend->capabilities().widescreen;
+        // Model 3's software renderer widens as its GPU renderers do.
+        const auto can_widen = [&] {
+            return (!use_software_renderer || machine_m3 != nullptr) && backend->capabilities().widescreen;
+        };
         const auto shown_aspect = [&]() {
-            return options.config.aspect_mode == AspectMode::Widescreen && !can_widen
+            return options.config.aspect_mode == AspectMode::Widescreen && !can_widen()
                        ? AspectMode::FourThree
                        : options.config.aspect_mode;
         };
