@@ -786,9 +786,50 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
         }
     }
 
+    // -- other sets that list the missing chips ----------------------------
+    // Romsets name parents differently (MAME's bassdx is a clone of bass;
+    // here bassdx is the parent), so a chip still missing is looked for in
+    // the archive of any other game that lists it.
+    if (!score_game(archives, *chosen).complete()) {
+        std::unordered_set<u32> missing;
+        for (const RegionSpec& region : chosen->regions) {
+            for (const FileSpec& file : region.files) {
+                if (region.required && file.has_crc && archives.find(file) == nullptr) {
+                    missing.insert(file.crc32);
+                }
+            }
+        }
+        std::unordered_set<std::string> opened;
+        for (const GameSpec& other : database.games()) {
+            if (missing.empty() || score_game(archives, *chosen).complete()) {
+                break;
+            }
+            if (other.name == chosen->name || opened.count(other.name) != 0) {
+                continue;
+            }
+            bool holds = false;
+            for (const RegionSpec& region : other.regions) {
+                for (const FileSpec& file : region.files) {
+                    holds = holds || (file.has_crc && missing.count(file.crc32) != 0);
+                }
+            }
+            if (!holds) {
+                continue;
+            }
+            if (const auto path = find_sibling_archive(other.name)) {
+                opened.insert(other.name);
+                SM2_INFO("'%s' is missing chips that '%s' also uses; also reading %s",
+                         chosen->name.c_str(), other.name.c_str(), path->string().c_str());
+                if (!archives.open(path->string())) {
+                    continue;
+                }
+            }
+        }
+    }
+
     if (!board_implemented(chosen->board) && !options.allow_unimplemented_board) {
         SM2_ERROR("'%s' is a %s board, which is not implemented yet. Model 1, the "
-                  "original Model 2 and the CRX boards (2A, 2B and 2C) are supported.",
+                  "original Model 2, the CRX boards (2A, 2B and 2C) and Model 3 are supported.",
                   chosen->name.c_str(), board_name(chosen->board));
         failure.game    = chosen->name;
         failure.message = std::string("This is a ") + board_name(chosen->board)
