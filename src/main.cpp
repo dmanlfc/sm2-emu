@@ -2539,7 +2539,10 @@ int main(int argc, char** argv)
                 const auto drive_writes = machine_any->take_drive_board_writes();
                 input.update_drive_board(loaded->game, drive_writes.view());
                 outputs.update(machine_any->lamp_latch(), drive_writes.view(),
-                               machine_iface ? machine_iface->work_ram() : std::span<const u8>{});
+                               machine_iface ? osd::Outputs::RamView{machine_iface->work_ram()}
+                               : machine_m3  ? osd::Outputs::RamView{machine_m3->ram(), 0, true}
+                                             : osd::Outputs::RamView{},
+                               {machine_any->inputs().in0, machine_any->inputs().in1, machine_any->inputs().in2});
                 {
                     const hw::Machine::BoardOutputs& board = machine_any->board_outputs();
                     if (board.billboard) outputs.update_billboard(board.bill);

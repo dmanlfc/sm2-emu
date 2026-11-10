@@ -54,32 +54,32 @@ constexpr int kRawLamps   = -2;
 constexpr int kGameOutput = -3;  ///< One of the set's own, from games.xml.
 constexpr int kBillboard  = -4;  ///< A Model 3 billboard digit, from update_billboard().
 
-constexpr u32 kWorkRamBase = 0x00500000;
-
-/// The byte at a work RAM address, or zero when there is no such byte.
-u8 ram_byte(std::span<const u8> ram, u32 address)
+/// The byte at a RAM address, or zero when there is no such byte.
+u8 ram_byte(const Outputs::RamView& ram, u32 address)
 {
-    const u32 offset = address - kWorkRamBase;
-    return offset < ram.size() ? ram[offset] : 0;
+    const u32 offset = address - ram.base;
+    return offset < ram.bytes.size() ? ram.bytes[offset] : 0;
 }
 
-/// The value of one of a set's own outputs. The i960 is little-endian.
-s32 ram_value(std::span<const u8> ram, const rom::OutputSpec& spec)
+/// The value of one of a set's own outputs, in the CPU's byte order.
+s32 ram_value(const Outputs::RamView& ram, const rom::OutputSpec& spec)
 {
+    using Type = rom::OutputSpec::Type;
+    const u32 size = spec.type == Type::U8 ? 1 : spec.type == Type::U16 || spec.type == Type::S16 ? 2 : 4;
     u32 raw = 0;
-    for (u32 i = 0; i < 4; ++i) {
-        raw |= static_cast<u32>(ram_byte(ram, spec.address + i)) << (8 * i);
+    for (u32 i = 0; i < size; ++i) {
+        const u32 shift = ram.big_endian ? 8 * (size - 1 - i) : 8 * i;
+        raw |= static_cast<u32>(ram_byte(ram, spec.address + i)) << shift;
     }
     switch (spec.type) {
-    case rom::OutputSpec::Type::U8:
-        return static_cast<s32>(raw & 0xff);
-    case rom::OutputSpec::Type::U16:
-        return static_cast<s32>(raw & 0xffff);
-    case rom::OutputSpec::Type::S16:
+    case Type::U8:
+    case Type::U16:
+        return static_cast<s32>(raw);
+    case Type::S16:
         return std::max<s32>(static_cast<s16>(raw & 0xffff), 0);
-    case rom::OutputSpec::Type::U32:
+    case Type::U32:
         return static_cast<s32>(std::min<u32>(raw, 0x7fffffff));
-    case rom::OutputSpec::Type::Float: {
+    case Type::Float: {
         float value = 0.0f;
         std::memcpy(&value, &raw, sizeof value);
         // The comparison also turns a NaN into zero.
@@ -494,13 +494,13 @@ void Outputs::set_paused(bool paused)
     }
 }
 
-void Outputs::update(u8 lamp_latch, std::span<const u8> drive_writes,
-                     std::span<const u8> work_ram)
+void Outputs::update(u8 lamp_latch, std::span<const u8> drive_writes, RamView ram,
+                     std::array<u8, 3> ports)
 {
     if (m_game.empty() || (m_network == nullptr && m_windows == nullptr)) {
         return;
     }
-    update_game_outputs(lamp_latch, work_ram);
+    update_game_outputs(lamp_latch, ram, ports);
     for (usize i = 0; i < m_items.size(); ++i) {
         if (m_bits[i] >= 0) {
             set(i, (lamp_latch >> m_bits[i]) & 1);
@@ -520,7 +520,7 @@ void Outputs::update(u8 lamp_latch, std::span<const u8> drive_writes,
     }
 }
 
-void Outputs::update_game_outputs(u8 lamp_latch, std::span<const u8> work_ram)
+void Outputs::update_game_outputs(u8 lamp_latch, const RamView& ram, const std::array<u8, 3>& ports)
 {
     using Kind = rom::OutputSpec::Kind;
 
@@ -535,13 +535,18 @@ void Outputs::update_game_outputs(u8 lamp_latch, std::span<const u8> work_ram)
             output.value = (lamp_latch >> spec.bit) & 1;
             break;
 
-        case Kind::Value: {
-            output.live = !work_ram.empty();
+        case Kind::Value:
+        case Kind::Input: {
+            output.live = !ram.bytes.empty() || spec.when.empty();
             for (const rom::OutputSpec::When& when : spec.when) {
-                const u32 byte = ram_byte(work_ram, when.address) & when.mask;
+                const u32 byte = ram_byte(ram, when.address) & when.mask;
                 output.live    = output.live && (when.any ? byte != 0 : byte == when.value);
             }
-            output.value = output.live ? ram_value(work_ram, spec) : 0;
+            if (spec.kind == Kind::Input) {
+                output.value = output.live && ((ports[spec.port] >> spec.bit) & 1) == 0 ? 1 : 0;
+            } else {
+                output.value = output.live ? ram_value(ram, spec) : 0;
+            }
             break;
         }
 

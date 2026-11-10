@@ -22,6 +22,7 @@
     <outputs>
       <lamp name= bit=/>
       <value name= address= type=> <when address= mask= equals=/> ... </value>
+      <input name= port= bit=> <when .../> ... </input>
       <flag name= source=/>
       <pulse name= source= edge= frames=/>
     </outputs>
@@ -98,7 +99,8 @@
   `<outputs>` adds state the cabinet never latched but a peripheral wants: a
   Model 2 gun cabinet has no recoil, so nothing on the board says that a shot
   was fired. The program knows, and these read it from its work RAM
-  (0x00500000-0x005fffff), once a frame.
+  (0x00500000-0x005fffff), once a frame. A Model 3 title reads its PowerPC RAM
+  (0x00000000-0x007fffff), big-endian.
 
   `<lamp>` names one bit of the lamp latch. `<value>` is a number at `address`;
   `type` is "u8" (the default), "u16", "s16", "u32" or "float", little-endian,
@@ -108,7 +110,11 @@
   for variables that only mean something while a player is in the game. While
   one fails the value is zero.
 
-  `<flag>` is 1 while the `<value>` named by `source` is above zero. `<pulse>`
+  `<input>` is 1 while bit `bit` of input port `port` (0-2, IN0-IN2) is
+  pressed, under the same conditions; Model 3 gun games, whose programs keep no
+  shot count, drive their recoil from it.
+
+  `<flag>` is 1 while the `<value>` or `<input>` named by `source` is above zero. `<pulse>`
   is 1 for `frames` frames (default 3) each time that value falls, or with
   edge="rise" rises, from one frame to the next while its conditions hold. A
   source has to be declared before what follows it.
@@ -8219,6 +8225,20 @@
       <channel index="2" control="p1y" reverse="true"/>
       <channel index="3" control="p2y" reverse="true"/>
     </analog>
+    <!-- Outputs. The guns have no recoil of their own, so a shot follows the
+         trigger while the player is in the game. Addresses are this set's. -->
+    <outputs>
+      <lamp name="P1_LmpStart" bit="2"/>
+      <lamp name="P2_LmpStart" bit="3"/>
+      <input name="P1_Trigger" port="1" bit="0">
+        <when address="0x00733143" equals="3"/>
+      </input>
+      <flag name="P1_GunMotor" source="P1_Trigger"/>
+      <pulse name="P1_CtmRecoil" source="P1_Trigger" edge="rise"/>
+      <input name="P2_Trigger" port="2" bit="0"/>
+      <flag name="P2_GunMotor" source="P2_Trigger"/>
+      <pulse name="P2_CtmRecoil" source="P2_Trigger" edge="rise"/>
+    </outputs>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21486.20" offset="0x000000" crc="0x64de433f"/>
@@ -8369,6 +8389,20 @@
       <channel index="2" control="p2x"/>
       <channel index="3" control="p2y"/>
     </analog>
+    <!-- Outputs. The guns have no recoil of their own, so a shot follows the
+         trigger while the player is in the game. Addresses are this set's. -->
+    <outputs>
+      <lamp name="P1_LmpStart" bit="2"/>
+      <lamp name="P2_LmpStart" bit="3"/>
+      <input name="P1_Trigger" port="1" bit="0">
+        <when address="0x001fd935" equals="3"/>
+      </input>
+      <flag name="P1_GunMotor" source="P1_Trigger"/>
+      <pulse name="P1_CtmRecoil" source="P1_Trigger" edge="rise"/>
+      <input name="P2_Trigger" port="2" bit="0"/>
+      <flag name="P2_GunMotor" source="P2_Trigger"/>
+      <pulse name="P2_CtmRecoil" source="P2_Trigger" edge="rise"/>
+    </outputs>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-19936a.20" offset="0x000000" crc="0x2f1ca664"/>
@@ -8629,6 +8663,22 @@
       <input type="analog_gun1"/>
       <input type="analog_gun2"/>
     </inputs>
+    <!-- Outputs. The guns have no recoil of their own, so a shot follows the
+         trigger while the player is in the game. Addresses are this set's. -->
+    <outputs>
+      <lamp name="P1_LmpStart" bit="2"/>
+      <lamp name="P2_LmpStart" bit="3"/>
+      <value name="P1_Life" address="0x001fc9d0" type="float"/>
+      <pulse name="P1_Damaged" source="P1_Life" edge="fall"/>
+      <input name="P1_Trigger" port="1" bit="0">
+        <when address="0x001fc9d0"/>
+      </input>
+      <flag name="P1_GunMotor" source="P1_Trigger"/>
+      <pulse name="P1_CtmRecoil" source="P1_Trigger" edge="rise"/>
+      <input name="P2_Trigger" port="2" bit="0"/>
+      <flag name="P2_GunMotor" source="P2_Trigger"/>
+      <pulse name="P2_CtmRecoil" source="P2_Trigger" edge="rise"/>
+    </outputs>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21117.20" offset="0x000000" crc="0x58d985f1"/>

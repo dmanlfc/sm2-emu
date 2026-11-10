@@ -97,9 +97,39 @@ constexpr u32 kWorkRamSize = 0x00100000;
     return address >= kWorkRamBase && address - kWorkRamBase <= kWorkRamSize - width;
 }
 
-/// One child of <outputs>: <lamp>, <value>, <flag> or <pulse>. See OutputSpec.
+/// Model 3's outputs read its PowerPC RAM, 8 MiB from 0.
+constexpr u32 kModel3RamSize = 0x00800000;
+
+[[nodiscard]] bool in_ram(u32 address, u32 width, bool model3)
+{
+    return model3 ? address <= kModel3RamSize - width : in_work_ram(address, width);
+}
+
+/// The <when> children of a <value> or <input>.
+[[nodiscard]] bool parse_when(const pugi::xml_node& node, OutputSpec* output, bool model3, const char* context)
+{
+    for (const pugi::xml_node when_node : node.children("when")) {
+        OutputSpec::When when;
+        when.any = !when_node.attribute("equals");
+        if (!attribute_integer(when_node, "address", 0, &when.address, context)
+            || !attribute_integer(when_node, "mask", 0xff, &when.mask, context)
+            || !attribute_integer(when_node, "equals", 0, &when.value, context)) {
+            return false;
+        }
+        if (!in_ram(when.address, 1, model3)) {
+            SM2_ERROR("%s: output '%s' has a condition outside work RAM", context, output->name.c_str());
+            return false;
+        }
+        output->when.push_back(when);
+    }
+    return true;
+}
+
+/// One child of <outputs>: <lamp>, <value>, <input>, <flag> or <pulse>. See
+/// OutputSpec.
 [[nodiscard]] bool parse_output(const pugi::xml_node&    node,
                                 std::vector<OutputSpec>* outputs,
+                                bool                     model3,
                                 const char*              context)
 {
     OutputSpec output;
@@ -147,26 +177,29 @@ constexpr u32 kWorkRamSize = 0x00100000;
         if (!attribute_integer(node, "address", 0, &output.address, context)) {
             return false;
         }
-        if (!in_work_ram(output.address, width)) {
-            SM2_ERROR("%s: output '%s' is not inside work RAM (0x%08x-0x%08x)", context,
-                      output.name.c_str(), kWorkRamBase, kWorkRamBase + kWorkRamSize - 1);
+        if (!in_ram(output.address, width, model3)) {
+            SM2_ERROR("%s: output '%s' is not inside work RAM", context, output.name.c_str());
             return false;
         }
-
-        for (const pugi::xml_node when_node : node.children("when")) {
-            OutputSpec::When when;
-            when.any = !when_node.attribute("equals");
-            if (!attribute_integer(when_node, "address", 0, &when.address, context)
-                || !attribute_integer(when_node, "mask", 0xff, &when.mask, context)
-                || !attribute_integer(when_node, "equals", 0, &when.value, context)) {
-                return false;
-            }
-            if (!in_work_ram(when.address, 1)) {
-                SM2_ERROR("%s: output '%s' has a condition outside work RAM", context,
-                          output.name.c_str());
-                return false;
-            }
-            output.when.push_back(when);
+        if (!parse_when(node, &output, model3, context)) {
+            return false;
+        }
+    } else if (kind == "input") {
+        output.kind = OutputSpec::Kind::Input;
+        u32 port = 0;
+        u32 bit  = 0;
+        if (!attribute_integer(node, "port", 3, &port, context) || !attribute_integer(node, "bit", 8, &bit, context)) {
+            return false;
+        }
+        if (port > 2 || bit > 7) {
+            SM2_ERROR("%s: output '%s' needs a port from 0 to 2 and a bit from 0 to 7", context,
+                      output.name.c_str());
+            return false;
+        }
+        output.port = static_cast<u8>(port);
+        output.bit  = static_cast<u8>(bit);
+        if (!parse_when(node, &output, model3, context)) {
+            return false;
         }
     } else if (kind == "flag" || kind == "pulse") {
         output.kind = kind == "flag" ? OutputSpec::Kind::Flag : OutputSpec::Kind::Pulse;
@@ -174,14 +207,15 @@ constexpr u32 kWorkRamSize = 0x00100000;
         const std::string_view source = node.attribute("source").value();
         bool                   found  = false;
         for (usize i = 0; i < outputs->size(); ++i) {
-            if ((*outputs)[i].kind == OutputSpec::Kind::Value && (*outputs)[i].name == source) {
+            const OutputSpec::Kind k = (*outputs)[i].kind;
+            if ((k == OutputSpec::Kind::Value || k == OutputSpec::Kind::Input) && (*outputs)[i].name == source) {
                 output.source = static_cast<u32>(i);
                 found         = true;
             }
         }
         if (!found) {
-            SM2_ERROR("%s: output '%s' follows '%s', which is not a <value> defined "
-                      "before it", context, output.name.c_str(),
+            SM2_ERROR("%s: output '%s' follows '%s', which is not a <value> or <input> "
+                      "defined before it", context, output.name.c_str(),
                       node.attribute("source").value());
             return false;
         }
@@ -818,7 +852,7 @@ bool GameDatabase::load(const std::string& path)
             if (output_node.type() != pugi::node_element) {
                 continue;
             }
-            if (!parse_output(output_node, &game.outputs, context.c_str())) {
+            if (!parse_output(output_node, &game.outputs, game.board == Board::Model3, context.c_str())) {
                 return false;
             }
         }

@@ -207,6 +207,7 @@ struct OutputSpec {
         Value,  ///< A number read from work RAM.
         Flag,   ///< 1 while `source` is above zero.
         Pulse,  ///< 1 for `frames` frames each time `source` falls (or rises).
+        Input,  ///< 1 while an input bit is pressed (active low).
     };
 
     enum class Type : u8 { U8, U16, S16, U32, Float };
@@ -214,7 +215,8 @@ struct OutputSpec {
     std::string name;
     Kind        kind = Kind::Value;
 
-    u8 bit = 0;  ///< Lamp: the latch bit.
+    u8 bit  = 0;  ///< Lamp: the latch bit. Input: the port bit.
+    u8 port = 0;  ///< Input: 0 for IN0, 1 for IN1, 2 for IN2.
 
     /// Value: where it is and how wide. Little-endian, as the i960 stores it.
     /// A signed or floating-point value below zero is published as zero.

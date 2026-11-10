@@ -37,6 +37,7 @@
 #include "core/types.h"
 #include "rom/game.h"
 
+#include <array>
 #include <memory>
 #include <span>
 #include <string>
@@ -63,10 +64,18 @@ public:
 
     void set_paused(bool paused);
 
-    /// This frame's lamp latch and drive-board bytes, and the work RAM the
-    /// set's own outputs are read from.
-    void update(u8 lamp_latch, std::span<const u8> drive_writes,
-                std::span<const u8> work_ram = {});
+    /// The RAM a set's own outputs read: Model 2's i960 work RAM at
+    /// 0x00500000 (little-endian), Model 3's PowerPC RAM at 0 (big-endian).
+    struct RamView {
+        std::span<const u8> bytes;
+        u32                 base       = 0x00500000;
+        bool                big_endian = false;
+    };
+
+    /// This frame's lamp latch and drive-board bytes, the RAM the set's own
+    /// outputs are read from, and the input ports IN0-IN2 (active low).
+    void update(u8 lamp_latch, std::span<const u8> drive_writes, RamView ram,
+                std::array<u8, 3> ports = {0xff, 0xff, 0xff});
 
     /// A Model 3 billboard's digits and lamps, published as BillDigit1-5.
     /// Call after update().
@@ -87,7 +96,7 @@ public:
 private:
     void set(usize index, s32 value);
     void build_items(const std::string& parent);
-    void update_game_outputs(u8 lamp_latch, std::span<const u8> work_ram);
+    void update_game_outputs(u8 lamp_latch, const RamView& ram, const std::array<u8, 3>& ports);
 
     std::string m_game;
     bool        m_paused = false;
