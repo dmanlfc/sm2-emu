@@ -22,6 +22,8 @@
 #include "render/gl/gl_common.h"
 #include "render/model3/model3_frame.h"
 
+#include <array>
+
 namespace sm2::render {
 class TextureReplacements;
 }
@@ -112,6 +114,12 @@ private:
     bool                 m_atlas_live       = false;
 
     model3::LineOfSightMailbox m_los;
+    struct LosSlot {
+        model3::LineOfSight los;
+        bool                set = false;
+    };
+    std::array<LosSlot, 4> m_los_slots{};  // the Vulkan pass's kFramesInFlight + 1
+    u64                    m_los_records = 0;
 };
 
 }  // namespace sm2::render::gl

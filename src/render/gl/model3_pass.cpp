@@ -587,8 +587,16 @@ void Model3Pass::draw_3d(const FramePlan& plan, u64 frame_number)
     Disable(GL_DEPTH_TEST);
     Disable(GL_STENCIL_TEST);
     DrawBuffers(4, all);
-    m_los.publish(los);
+    // A layer not sampled this frame reads zero. Results are published as many
+    // frames late as the Vulkan pass reads its copies back, so a game sees the
+    // same results on either renderer.
     static_cast<void>(any_los);
+    const u64 r    = m_los_records++;
+    LosSlot&  read = m_los_slots[(r + 1) % m_los_slots.size()];
+    if (read.set) {
+        m_los.publish(read.los);
+    }
+    m_los_slots[r % m_los_slots.size()] = LosSlot{los, true};
 }
 
 void Model3Pass::render(FrameBuilder& frame, u32 native_fbo)
