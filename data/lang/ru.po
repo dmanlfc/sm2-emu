@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1929,6 +1929,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Задержка связи (кадры)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Только Model 3. На сколько кадров позже читаются\n"
+"данные других автоматов. Увеличьте, если гонка по\n"
+"Wi-Fi дёргается; уменьшите в проводной сети. Каждый\n"
+"кадр показывает другие машины на 1/60 с позже."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Следующий автомат в кольце"
 
@@ -2127,7 +2145,9 @@ msgstr "Загрузите игру, чтобы сохранять и загру
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Сохраните всю машину в слот и восстановите позже. Быстрое сохранение — %s, быстрая загрузка — %s."
+msgstr ""
+"Сохраните всю машину в слот и восстановите позже. Быстрое сохранение — %s, "
+"быстрая загрузка — %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2224,7 +2244,9 @@ msgstr "Enter: запуск   %s: настройки   %s: выход"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "В папках ROM не найдено архивов ROM. Укажите их в Настройки (F1) > Пути и перезапустите."
+msgstr ""
+"В папках ROM не найдено архивов ROM. Укажите их в Настройки (F1) > Пути и "
+"перезапустите."
 
 #: src/osd/gui.cpp
 #, no-c-format

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1929,6 +1929,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "இணைப்புத் தாமதம் (சட்டங்கள்)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Model 3 மட்டும். மற்ற கேபினட்களின் தரவு எத்தனை\n"
+"சட்டங்கள் தாமதமாகப் படிக்கப்படும். Wi-Fi-இல் பந்தயம்\n"
+"தடுமாறினால் உயர்த்துங்கள்; கம்பி LAN-இல் குறைக்கவும்.\n"
+"ஒவ்வொரு சட்டமும் மற்ற கார்களை 1/60 வினாடி பின்னர் காட்டும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "வளையத்தில் அடுத்த கேபினெட்"
 
@@ -2127,7 +2145,9 @@ msgstr "நிலையைச் சேமிக்கவும் மீட்�
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "முழு இயந்திரத்தையும் ஒரு ஸ்லாட்டில் சேமித்து பின்னர் மீட்கவும். விரைவு-சேமிப்பு %s, விரைவு-ஏற்றம் %s."
+msgstr ""
+"முழு இயந்திரத்தையும் ஒரு ஸ்லாட்டில் சேமித்து பின்னர் மீட்கவும். விரைவு-சேமிப்பு %s, "
+"விரைவு-ஏற்றம் %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2224,7 +2244,9 @@ msgstr "Enter: துவக்கு   %s: அமைப்புகள்   %s: 
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "ROM அடைவுகளில் ROM காப்பகங்கள் எதுவும் கிடைக்கவில்லை. அமைப்புகள் (F1) > பாதைகள் இல் அவற்றை அமைத்து, மீண்டும் துவக்கவும்."
+msgstr ""
+"ROM அடைவுகளில் ROM காப்பகங்கள் எதுவும் கிடைக்கவில்லை. அமைப்புகள் (F1) > பாதைகள் இல் "
+"அவற்றை அமைத்து, மீண்டும் துவக்கவும்."
 
 #: src/osd/gui.cpp
 #, no-c-format

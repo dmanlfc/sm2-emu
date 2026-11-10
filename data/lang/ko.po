@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1922,6 +1922,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "링크 지연(프레임)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Model 3 전용. 다른 기체의 데이터를 몇 프레임 늦게\n"
+"읽을지 정합니다. Wi-Fi 레이스가 끊기면 올리고,\n"
+"유선 LAN에서는 낮추세요. 1프레임마다 다른 차가\n"
+"1/60초 늦게 보입니다."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "링의 다음 기체"
 
@@ -2120,7 +2138,9 @@ msgstr "게임을 불러오면 상태를 저장하고 복원할 수 있습니다
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "기기 전체를 슬롯에 저장하고 나중에 복원합니다. 빠른 저장은 %s, 빠른 불러오기는 %s입니다."
+msgstr ""
+"기기 전체를 슬롯에 저장하고 나중에 복원합니다. 빠른 저장은 %s, 빠른 불러오기"
+"는 %s입니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2217,7 +2237,9 @@ msgstr "Enter: 실행   %s: 설정   %s: 종료"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "ROM 디렉터리에서 ROM 압축 파일을 찾을 수 없습니다. 설정(F1) > 경로에서 지정한 뒤 다시 실행하세요."
+msgstr ""
+"ROM 디렉터리에서 ROM 압축 파일을 찾을 수 없습니다. 설정(F1) > 경로에서 지정"
+"한 뒤 다시 실행하세요."
 
 #: src/osd/gui.cpp
 #, no-c-format

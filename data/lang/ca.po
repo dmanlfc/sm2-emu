@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1935,6 +1935,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Retard de l'enllaç (fotogrames)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Només Model 3. Quants fotogrames tard es llegeixen\n"
+"les dades dels altres armaris. Augmenta-ho si una\n"
+"cursa per Wi-Fi s'entretalla; redueix-ho amb cable.\n"
+"Cada fotograma mostra els altres cotxes 1/60 s més tard."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Màquina següent de l'anell"
 
@@ -2133,7 +2151,9 @@ msgstr "Carregueu un joc per desar i restaurar-ne l'estat."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Deseu tota la màquina en una ranura i restaureu-la més tard. Desat ràpid és %s, càrrega ràpida és %s."
+msgstr ""
+"Deseu tota la màquina en una ranura i restaureu-la més tard. Desat ràpid és "
+"%s, càrrega ràpida és %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2230,7 +2250,9 @@ msgstr "Enter: inicia   %s: configuració   %s: surt"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "No s'ha trobat cap arxiu de ROM als directoris de ROM. Definiu-los a Configuració (F1) > Camins i reinicieu."
+msgstr ""
+"No s'ha trobat cap arxiu de ROM als directoris de ROM. Definiu-los a "
+"Configuració (F1) > Camins i reinicieu."
 
 #: src/osd/gui.cpp
 #, no-c-format

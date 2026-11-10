@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: Spanish\n"
@@ -1929,6 +1929,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Retardo del enlace (fotogramas)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Solo Model 3. Cuántos fotogramas tarde se leen los\n"
+"datos de los otros muebles. Súbelo si una carrera\n"
+"por Wi-Fi da tirones; bájalo con cable.\n"
+"Cada fotograma muestra los otros coches 1/60 s más tarde."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Siguiente máquina del anillo"
 
@@ -2127,7 +2145,9 @@ msgstr "Carga un juego para guardar y restaurar su estado."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Guarda toda la máquina en una ranura y restáurala más tarde. Guardado rápido con %s, carga rápida con %s."
+msgstr ""
+"Guarda toda la máquina en una ranura y restáurala más tarde. Guardado rápido "
+"con %s, carga rápida con %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2224,7 +2244,9 @@ msgstr "Enter: iniciar   %s: ajustes   %s: salir"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "No se han encontrado archivos de ROM en las carpetas de ROM. Configúralas en Ajustes (F1) > Rutas y reinicia."
+msgstr ""
+"No se han encontrado archivos de ROM en las carpetas de ROM. Configúralas en "
+"Ajustes (F1) > Rutas y reinicia."
 
 #: src/osd/gui.cpp
 #, no-c-format

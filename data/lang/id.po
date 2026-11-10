@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1922,6 +1922,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Tunda tautan (frame)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Hanya Model 3. Berapa frame terlambat data kabinet\n"
+"lain dibaca. Naikkan jika balapan lewat Wi-Fi\n"
+"tersendat; turunkan pada LAN kabel. Setiap frame\n"
+"menampilkan mobil lain 1/60 detik lebih lambat."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Kabinet berikutnya di cincin"
 
@@ -2120,7 +2138,9 @@ msgstr "Muat game untuk menyimpan dan memulihkan state-nya."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Simpan seluruh mesin ke slot dan pulihkan nanti. Simpan cepat adalah %s, muat cepat adalah %s."
+msgstr ""
+"Simpan seluruh mesin ke slot dan pulihkan nanti. Simpan cepat adalah %s, "
+"muat cepat adalah %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2217,7 +2237,9 @@ msgstr "Enter: luncurkan   %s: pengaturan   %s: keluar"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Tidak ada arsip ROM di direktori ROM. Atur di Pengaturan (F1) > Jalur, lalu buka ulang."
+msgstr ""
+"Tidak ada arsip ROM di direktori ROM. Atur di Pengaturan (F1) > Jalur, lalu "
+"buka ulang."
 
 #: src/osd/gui.cpp
 #, no-c-format

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1926,6 +1926,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Lingi viivitus (kaadrid)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Ainult Model 3. Mitu kaadrit hiljem teiste\n"
+"kappide andmeid loetakse. Suurenda, kui Wi-Fi\n"
+"kaudu sõit hakib; kaabliga vähenda. Iga kaader\n"
+"näitab teisi autosid 1/60 s hiljem."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Järgmine kapp rõngas"
 
@@ -2124,7 +2142,9 @@ msgstr "Laadi mäng, et selle olekut salvestada ja taastada."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Salvesta kogu masin pessa ja taasta hiljem. Kiirsalvestus on %s, kiirlaadimine on %s."
+msgstr ""
+"Salvesta kogu masin pessa ja taasta hiljem. Kiirsalvestus on %s, "
+"kiirlaadimine on %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2221,7 +2241,9 @@ msgstr "Enter: käivita   %s: seaded   %s: välju"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "ROM-ide kaustadest ei leitud ühtegi ROM-arhiivi. Määra need jaotises Seaded (F1) > Teed ja käivita uuesti."
+msgstr ""
+"ROM-ide kaustadest ei leitud ühtegi ROM-arhiivi. Määra need jaotises Seaded "
+"(F1) > Teed ja käivita uuesti."
 
 #: src/osd/gui.cpp
 #, no-c-format

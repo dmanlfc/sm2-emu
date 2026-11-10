@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1931,6 +1931,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Zakasnitev povezave (sličice)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Samo Model 3. Za koliko sličic pozneje se berejo\n"
+"podatki drugih avtomatov. Povečajte, če dirka prek\n"
+"Wi-Fi zatika; na žičnem omrežju zmanjšajte. Vsaka\n"
+"sličica prikaže druge avtomobile 1/60 s pozneje."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Naslednji avtomat v obroču"
 
@@ -2129,7 +2147,9 @@ msgstr "Naložite igro, da shranite in obnovite njeno stanje."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Shranite celoten stroj v režo in ga pozneje obnovite. Hitro shranjevanje je %s, hitro nalaganje %s."
+msgstr ""
+"Shranite celoten stroj v režo in ga pozneje obnovite. Hitro shranjevanje je "
+"%s, hitro nalaganje %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2226,7 +2246,9 @@ msgstr "Enter: zaženi   %s: nastavitve   %s: izhod"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "V mapah ROM ni bilo najdenih arhivov ROM. Nastavite jih v Nastavitve (F1) > Poti in znova zaženite."
+msgstr ""
+"V mapah ROM ni bilo najdenih arhivov ROM. Nastavite jih v Nastavitve (F1) > "
+"Poti in znova zaženite."
 
 #: src/osd/gui.cpp
 #, no-c-format

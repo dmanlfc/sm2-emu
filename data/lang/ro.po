@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1930,6 +1930,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Întârziere legătură (cadre)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Doar Model 3. Cu câte cadre mai târziu se citesc\n"
+"datele celorlalte automate. Măriți dacă o cursă prin\n"
+"Wi-Fi sacadează; micșorați pe rețea cu fir. Fiecare\n"
+"cadru arată celelalte mașini cu 1/60 s mai târziu."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Următorul automat din inel"
 
@@ -2128,7 +2146,9 @@ msgstr "Încărcați un joc pentru a-i salva și restaura starea."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Salvează întreaga mașină într-un slot și restaureaz-o mai târziu. Salvare rapidă cu %s, încărcare rapidă cu %s."
+msgstr ""
+"Salvează întreaga mașină într-un slot și restaureaz-o mai târziu. Salvare "
+"rapidă cu %s, încărcare rapidă cu %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2225,7 +2245,9 @@ msgstr "Enter: pornește   %s: setări   %s: ieșire"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Nu s-au găsit arhive ROM în directoarele ROM. Setați-le în Setări (F1) > Căi, apoi reporniți."
+msgstr ""
+"Nu s-au găsit arhive ROM în directoarele ROM. Setați-le în Setări (F1) > "
+"Căi, apoi reporniți."
 
 #: src/osd/gui.cpp
 #, no-c-format

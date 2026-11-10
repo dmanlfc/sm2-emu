@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1925,6 +1925,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Opóźnienie łącza (klatki)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Tylko Model 3. O ile klatek później są odczytywane\n"
+"dane innych automatów. Zwiększ, jeśli wyścig przez\n"
+"Wi-Fi się tnie; zmniejsz w sieci kablowej. Każda\n"
+"klatka pokazuje inne auta 1/60 s później."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Następny automat w pierścieniu"
 
@@ -2123,7 +2141,9 @@ msgstr "Wczytaj grę, aby zapisywać i przywracać jej stan."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Zapisz całą maszynę do slotu i przywróć ją później. Szybki zapis to %s, szybkie wczytanie to %s."
+msgstr ""
+"Zapisz całą maszynę do slotu i przywróć ją później. Szybki zapis to %s, "
+"szybkie wczytanie to %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2220,7 +2240,9 @@ msgstr "Enter: uruchom   %s: ustawienia   %s: wyjście"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Nie znaleziono archiwów ROM w katalogach ROM. Ustaw je w Ustawienia (F1) > Ścieżki i uruchom ponownie."
+msgstr ""
+"Nie znaleziono archiwów ROM w katalogach ROM. Ustaw je w Ustawienia (F1) > "
+"Ścieżki i uruchom ponownie."
 
 #: src/osd/gui.cpp
 #, no-c-format

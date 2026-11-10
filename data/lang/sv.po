@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1931,6 +1931,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Länkfördröjning (bildrutor)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Endast Model 3. Hur många bildrutor senare de andra\n"
+"kabinettens data läses. Höj den om ett race över\n"
+"Wi-Fi hackar; sänk den på trådbundet nät. Varje\n"
+"bildruta visar de andra bilarna 1/60 s senare."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Nästa kabinett i ringen"
 
@@ -2129,7 +2147,9 @@ msgstr "Ladda ett spel för att spara och återställa dess läge."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Spara hela maskinen till en plats och återställ den senare. Snabbspara är %s, snabbladda är %s."
+msgstr ""
+"Spara hela maskinen till en plats och återställ den senare. Snabbspara är "
+"%s, snabbladda är %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2226,7 +2246,9 @@ msgstr "Enter: starta   %s: inställningar   %s: avsluta"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Inga ROM-arkiv hittades i ROM-mapparna. Ange dem i Inställningar (F1) > Sökvägar och starta om."
+msgstr ""
+"Inga ROM-arkiv hittades i ROM-mapparna. Ange dem i Inställningar (F1) > "
+"Sökvägar och starta om."
 
 #: src/osd/gui.cpp
 #, no-c-format

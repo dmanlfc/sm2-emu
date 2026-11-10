@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1923,6 +1923,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "تأخیر اتصال (فریم)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"فقط Model 3. داده‌های کابینت‌های دیگر چند فریم\n"
+"دیرتر خوانده شود. اگر مسابقه روی Wi-Fi لگ دارد\n"
+"بیشترش کنید؛ روی شبکهٔ سیمی کمترش کنید. هر فریم\n"
+"خودروهای دیگر را 1/60 ثانیه دیرتر نشان می‌دهد."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "کابینت بعدی در حلقه"
 
@@ -2121,7 +2139,9 @@ msgstr "یک بازی بارگذاری کنید تا وضعیت آن را ذخی
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "کل دستگاه را در یک اسلات ذخیره و بعداً بازیابی کنید. ذخیره سریع %s و بارگذاری سریع %s است."
+msgstr ""
+"کل دستگاه را در یک اسلات ذخیره و بعداً بازیابی کنید. ذخیره سریع %s و بارگذاری "
+"سریع %s است."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2218,7 +2238,9 @@ msgstr "Enter: اجرا   %s: تنظیمات   %s: خروج"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "هیچ آرشیو ROM در پوشه‌های ROM پیدا نشد. آن‌ها را در تنظیمات (F1) > مسیرها تنظیم کنید، سپس دوباره اجرا کنید."
+msgstr ""
+"هیچ آرشیو ROM در پوشه‌های ROM پیدا نشد. آن‌ها را در تنظیمات (F1) > مسیرها "
+"تنظیم کنید، سپس دوباره اجرا کنید."
 
 #: src/osd/gui.cpp
 #, no-c-format

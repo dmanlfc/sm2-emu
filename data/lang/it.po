@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: Italian\n"
@@ -1926,6 +1926,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Ritardo del collegamento (fotogrammi)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Solo Model 3. Con quanti fotogrammi di ritardo si\n"
+"leggono i dati degli altri cabinati. Aumentalo se una\n"
+"gara via Wi-Fi scatta; riducilo via cavo. Ogni\n"
+"fotogramma mostra le altre auto 1/60 s dopo."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Cabinato successivo nell'anello"
 
@@ -2124,7 +2142,9 @@ msgstr "Carica un gioco per salvarne e ripristinarne lo stato."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Salva l'intera macchina in uno slot e ripristinala in seguito. Salvataggio rapido con %s, caricamento rapido con %s."
+msgstr ""
+"Salva l'intera macchina in uno slot e ripristinala in seguito. Salvataggio "
+"rapido con %s, caricamento rapido con %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2221,7 +2241,9 @@ msgstr "Enter: avvia   %s: impostazioni   %s: esci"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Nessun archivio ROM trovato nelle cartelle ROM. Impostale in Impostazioni (F1) > Percorsi, poi riavvia."
+msgstr ""
+"Nessun archivio ROM trovato nelle cartelle ROM. Impostale in Impostazioni "
+"(F1) > Percorsi, poi riavvia."
 
 #: src/osd/gui.cpp
 #, no-c-format

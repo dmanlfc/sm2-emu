@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1934,6 +1934,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Összekötés késleltetése (képkocka)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Csak Model 3. Hány képkockával később olvassa a\n"
+"többi gép adatait. Növelje, ha a Wi-Fi-s verseny\n"
+"akad; vezetékes hálózaton csökkentse. Minden\n"
+"képkocka 1/60 mp-vel később mutatja a többi autót."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Következő gép a gyűrűben"
 
@@ -2132,7 +2150,9 @@ msgstr "Töltsön be egy játékot az állapot mentéséhez és visszaállítás
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Az egész gép mentése egy helyre és későbbi visszaállítása. Gyorsmentés: %s, gyorsbetöltés: %s."
+msgstr ""
+"Az egész gép mentése egy helyre és későbbi visszaállítása. Gyorsmentés: %s, "
+"gyorsbetöltés: %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2229,7 +2249,9 @@ msgstr "Enter: indítás   %s: beállítások   %s: kilépés"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Nem található ROM-archívum a ROM-mappákban. Állítsa be őket: Beállítások (F1) > Útvonalak, majd indítsa újra."
+msgstr ""
+"Nem található ROM-archívum a ROM-mappákban. Állítsa be őket: Beállítások "
+"(F1) > Útvonalak, majd indítsa újra."
 
 #: src/osd/gui.cpp
 #, no-c-format

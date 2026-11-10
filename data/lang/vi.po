@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1920,6 +1920,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Độ trễ liên kết (khung hình)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Chỉ Model 3. Dữ liệu của các tủ máy khác được đọc\n"
+"trễ bao nhiêu khung hình. Tăng lên nếu đua qua Wi-Fi\n"
+"bị giật; giảm xuống khi dùng LAN có dây. Mỗi khung\n"
+"hình hiển thị các xe khác trễ 1/60 giây."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Máy kế tiếp trong vòng"
 
@@ -2118,7 +2136,9 @@ msgstr "Tải một trò chơi để lưu và khôi phục trạng thái."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Lưu toàn bộ máy vào một khe và khôi phục sau. Lưu nhanh là %s, tải nhanh là %s."
+msgstr ""
+"Lưu toàn bộ máy vào một khe và khôi phục sau. Lưu nhanh là %s, tải nhanh là "
+"%s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2215,7 +2235,9 @@ msgstr "Enter: khởi chạy   %s: cài đặt   %s: thoát"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Không tìm thấy tệp nén ROM nào trong các thư mục ROM. Đặt chúng trong Cài đặt (F1) > Đường dẫn, rồi khởi chạy lại."
+msgstr ""
+"Không tìm thấy tệp nén ROM nào trong các thư mục ROM. Đặt chúng trong Cài "
+"đặt (F1) > Đường dẫn, rồi khởi chạy lại."
 
 #: src/osd/gui.cpp
 #, no-c-format

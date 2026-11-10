@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1925,6 +1925,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Bağlantı gecikmesi (kare)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Yalnızca Model 3. Diğer kabinlerin verisinin kaç kare\n"
+"geç okunacağı. Wi-Fi üzerinden yarış takılıyorsa\n"
+"artırın; kablolu ağda azaltın. Her kare diğer\n"
+"arabaları 1/60 sn daha geç gösterir."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Halkadaki sonraki kabin"
 
@@ -2123,7 +2141,9 @@ msgstr "Durumunu kaydetmek ve geri yüklemek için bir oyun yükleyin."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Tüm makineyi bir yuvaya kaydedin ve daha sonra geri yükleyin. Hızlı kaydetme %s, hızlı yükleme %s."
+msgstr ""
+"Tüm makineyi bir yuvaya kaydedin ve daha sonra geri yükleyin. Hızlı kaydetme "
+"%s, hızlı yükleme %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2220,7 +2240,9 @@ msgstr "Enter: başlat   %s: ayarlar   %s: çıkış"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "ROM dizinlerinde ROM arşivi bulunamadı. Ayarlar (F1) > Yollar'dan ayarlayıp yeniden başlatın."
+msgstr ""
+"ROM dizinlerinde ROM arşivi bulunamadı. Ayarlar (F1) > Yollar'dan ayarlayıp "
+"yeniden başlatın."
 
 #: src/osd/gui.cpp
 #, no-c-format

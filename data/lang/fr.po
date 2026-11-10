@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: French\n"
@@ -1934,6 +1934,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Délai du lien (images)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Model 3 uniquement. Avec combien d'images de retard\n"
+"les données des autres bornes sont lues. Augmentez-le\n"
+"si une course en Wi-Fi saccade ; réduisez-le en filaire.\n"
+"Chaque image montre les autres voitures 1/60 s plus tard."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Borne suivante dans l'anneau"
 
@@ -2132,7 +2150,9 @@ msgstr "Chargez un jeu pour sauvegarder et restaurer son état."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Sauvegardez toute la machine dans un emplacement et restaurez-la plus tard. Sauvegarde rapide : %s, chargement rapide : %s."
+msgstr ""
+"Sauvegardez toute la machine dans un emplacement et restaurez-la plus tard. "
+"Sauvegarde rapide : %s, chargement rapide : %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2229,7 +2249,9 @@ msgstr "Enter : lancer   %s : paramètres   %s : quitter"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Aucune archive ROM trouvée dans les dossiers des ROM. Définissez-les dans Paramètres (F1) > Chemins, puis relancez."
+msgstr ""
+"Aucune archive ROM trouvée dans les dossiers des ROM. Définissez-les dans "
+"Paramètres (F1) > Chemins, puis relancez."
 
 #: src/osd/gui.cpp
 #, no-c-format

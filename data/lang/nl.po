@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1935,6 +1935,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Linkvertraging (frames)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Alleen Model 3. Hoeveel frames later de gegevens van\n"
+"de andere kasten worden gelezen. Verhoog dit als een\n"
+"race via wifi hapert; verlaag het op een bekabeld LAN.\n"
+"Elk frame toont de andere auto's 1/60 s later."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Volgende kast in de ring"
 
@@ -2133,7 +2151,9 @@ msgstr "Laad een spel om de status op te slaan en te herstellen."
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Sla de hele machine op in een slot en herstel later. Snel opslaan is %s, snel laden is %s."
+msgstr ""
+"Sla de hele machine op in een slot en herstel later. Snel opslaan is %s, "
+"snel laden is %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2230,7 +2250,9 @@ msgstr "Enter: starten   %s: instellingen   %s: afsluiten"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Geen ROM-archieven gevonden in de ROM-mappen. Stel deze in via Instellingen (F1) > Paden en start opnieuw."
+msgstr ""
+"Geen ROM-archieven gevonden in de ROM-mappen. Stel deze in via Instellingen "
+"(F1) > Paden en start opnieuw."
 
 #: src/osd/gui.cpp
 #, no-c-format

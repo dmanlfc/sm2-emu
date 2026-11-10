@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1936,6 +1936,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "Καθυστέρηση σύνδεσης (καρέ)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"Μόνο Model 3. Πόσα καρέ αργότερα διαβάζονται τα\n"
+"δεδομένα των άλλων καμπινών. Αυξήστε το αν ένας\n"
+"αγώνας μέσω Wi-Fi κολλάει· μειώστε το με καλώδιο.\n"
+"Κάθε καρέ δείχνει τα άλλα αυτοκίνητα 1/60 s αργότερα."
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "Επόμενη καμπίνα στον δακτύλιο"
 
@@ -2136,7 +2154,9 @@ msgstr ""
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "Αποθηκεύστε ολόκληρο το μηχάνημα σε μια θέση και επαναφέρετέ το αργότερα. Γρήγορη αποθήκευση με %s, γρήγορη φόρτωση με %s."
+msgstr ""
+"Αποθηκεύστε ολόκληρο το μηχάνημα σε μια θέση και επαναφέρετέ το αργότερα. "
+"Γρήγορη αποθήκευση με %s, γρήγορη φόρτωση με %s."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2234,7 +2254,9 @@ msgstr "Enter: εκκίνηση   %s: ρυθμίσεις   %s: έξοδος"
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "Δεν βρέθηκαν αρχεία ROM στους φακέλους ROM. Ορίστε τους στις Ρυθμίσεις (F1) > Διαδρομές και επανεκκινήστε."
+msgstr ""
+"Δεν βρέθηκαν αρχεία ROM στους φακέλους ROM. Ορίστε τους στις Ρυθμίσεις (F1) "
+"> Διαδρομές και επανεκκινήστε."
 
 #: src/osd/gui.cpp
 #, no-c-format

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1914,6 +1914,24 @@ msgstr ""
 "ตำแหน่งของตู้นี้ในวงแหวน (เริ่มจาก 0)\n"
 "ใช้สำหรับจดบันทึกของคุณเอง เกมจะต่อรอง\n"
 "link id จริงจากวงแหวน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link delay (frames)"
+msgstr "หน่วงการเชื่อมต่อ (เฟรม)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"เฉพาะ Model 3 อ่านข้อมูลของตู้อื่นช้ากี่เฟรม\n"
+"เพิ่มค่าหากการแข่งผ่าน Wi-Fi กระตุก\n"
+"ลดค่าเมื่อใช้ LAN แบบสาย แต่ละเฟรมทำให้\n"
+"รถคันอื่นแสดงช้าลง 1/60 วินาที"
 
 #: src/osd/gui.cpp
 #, no-c-format

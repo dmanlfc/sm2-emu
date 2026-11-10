@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-09 01:59+1000\n"
+"POT-Creation-Date: 2026-11-10 17:25+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -1927,6 +1927,24 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Link delay (frames)"
+msgstr "লিঙ্ক বিলম্ব (ফ্রেম)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets'\n"
+"data is read. Raise it if a race over Wi-Fi stutters;\n"
+"lower it on a wired LAN. Each frame shows the other\n"
+"cars 1/60 s later."
+msgstr ""
+"শুধু Model 3। অন্য ক্যাবিনেটের ডেটা কত ফ্রেম\n"
+"পরে পড়া হবে। Wi-Fi-তে রেস আটকালে বাড়ান;\n"
+"তারযুক্ত LAN-এ কমান। প্রতি ফ্রেমে অন্য গাড়িগুলি\n"
+"1/60 সেকেন্ড পরে দেখায়।"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Next cabinet in the ring"
 msgstr "রিংয়ের পরের ক্যাবিনেট"
 
@@ -2124,7 +2142,8 @@ msgstr "স্টেট সংরক্ষণ ও পুনরুদ্ধার
 msgid ""
 "Save the whole machine to a slot and restore it later. Quick-save is %s, "
 "quick-load is %s."
-msgstr "পুরো মেশিন একটি স্লটে সংরক্ষণ করুন ও পরে পুনরুদ্ধার করুন। দ্রুত-সংরক্ষণ %s, দ্রুত-লোড %s।"
+msgstr ""
+"পুরো মেশিন একটি স্লটে সংরক্ষণ করুন ও পরে পুনরুদ্ধার করুন। দ্রুত-সংরক্ষণ %s, দ্রুত-লোড %s।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2221,7 +2240,9 @@ msgstr "Enter: চালু   %s: সেটিংস   %s: প্রস্থা
 msgid ""
 "No ROM archives were found in the ROM directories. Set them in Settings (F1) "
 "> Paths, then relaunch."
-msgstr "ROM ফোল্ডারগুলোতে কোনো ROM আর্কাইভ পাওয়া যায়নি। সেটিংস (F1) > পাথ-এ সেগুলো সেট করুন, তারপর আবার চালু করুন।"
+msgstr ""
+"ROM ফোল্ডারগুলোতে কোনো ROM আর্কাইভ পাওয়া যায়নি। সেটিংস (F1) > পাথ-এ সেগুলো সেট "
+"করুন, তারপর আবার চালু করুন।"
 
 #: src/osd/gui.cpp
 #, no-c-format
