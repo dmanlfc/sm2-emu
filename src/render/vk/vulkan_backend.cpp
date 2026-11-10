@@ -258,7 +258,9 @@ void VulkanBackend::blit_to_swapchain()
     record_image_barrier(m_context.cmd(), m_context.swapchain_image(),
                          VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                         VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, 0,
+                         // The acquire semaphore is waited at this stage; the
+                         // transition must come after it.
+                         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, 0,
                          VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
                          VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
     m_present.record();

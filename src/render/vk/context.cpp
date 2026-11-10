@@ -1188,7 +1188,7 @@ bool Context::end_frame()
     VkSemaphoreSubmitInfo signal{};
     signal.sType     = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
     signal.semaphore = m_render_finished[m_image_index];
-    signal.stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+    signal.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;  // covers the transition to present
 
     VkCommandBufferSubmitInfo command_info{};
     command_info.sType         = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
