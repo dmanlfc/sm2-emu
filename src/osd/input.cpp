@@ -2218,9 +2218,13 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         inputs->gun_p2y = fraction_to_gun(p2.y, spec.p2y);
     }
 
-    // Triggers, active low: player 1 on IN1 bit 0, player 2 on IN1 bit 1.
+    // Triggers, active low: player 1 on IN1 bit 0, player 2 on IN1 bit 1
+    // (Model 3: each on bit 0 of their own port).
     if (p1.trigger) inputs->in1 &= static_cast<u8>(~kButton1);
-    if (p2.trigger) inputs->in1 &= static_cast<u8>(~kButton2);
+    if (p2.trigger) {
+        if (game.board == rom::Board::Model3) inputs->in2 &= static_cast<u8>(~kButton1);
+        else inputs->in1 &= static_cast<u8>(~kButton2);
+    }
 
     // Missile (bel): P1 IN1 0x10, P2 IN1 0x20.
     if (p1.missile) inputs->in1 &= static_cast<u8>(~0x10);

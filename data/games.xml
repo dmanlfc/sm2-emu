@@ -8216,8 +8216,8 @@
     <analog>
       <channel index="0" control="p1x"/>
       <channel index="1" control="p2x"/>
-      <channel index="2" control="p1y"/>
-      <channel index="3" control="p2y"/>
+      <channel index="2" control="p1y" reverse="true"/>
+      <channel index="3" control="p2y" reverse="true"/>
     </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
@@ -8365,9 +8365,9 @@
     </inputs>
     <analog>
       <channel index="0" control="p1x"/>
-      <channel index="1" control="p1y" reverse="true"/>
+      <channel index="1" control="p1y"/>
       <channel index="2" control="p2x"/>
-      <channel index="3" control="p2y" reverse="true"/>
+      <channel index="3" control="p2y"/>
     </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
@@ -8438,12 +8438,6 @@
       <input type="analog_gun1"/>
       <input type="analog_gun2"/>
     </inputs>
-    <analog>
-      <channel index="0" control="p1x"/>
-      <channel index="1" control="p1y" reverse="true"/>
-      <channel index="2" control="p2x"/>
-      <channel index="3" control="p2y" reverse="true"/>
-    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="ic20.20" offset="0x000000" crc="0x50a5fd1d"/>
@@ -8567,8 +8561,8 @@
     <analog>
       <channel index="0" control="p1x"/>
       <channel index="1" control="p2x"/>
-      <channel index="2" control="p1y"/>
-      <channel index="3" control="p2y"/>
+      <channel index="2" control="p1y" reverse="true"/>
+      <channel index="3" control="p2y" reverse="true"/>
     </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
@@ -8635,12 +8629,6 @@
       <input type="analog_gun1"/>
       <input type="analog_gun2"/>
     </inputs>
-    <analog>
-      <channel index="0" control="p1x"/>
-      <channel index="1" control="p2x"/>
-      <channel index="2" control="p1y"/>
-      <channel index="3" control="p2y"/>
-    </analog>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
         <file name="epr-21117.20" offset="0x000000" crc="0x58d985f1"/>
