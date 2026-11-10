@@ -63,6 +63,7 @@ public:
     [[nodiscard]] void*         texture_imgui_id(TextureHandle handle) const override;
 
     [[nodiscard]] bool begin_frame() override;
+    [[nodiscard]] bool device_lost() const override { return m_context.device_lost(); }
     void compute_tilemap(const hw::Model2MachineBase& machine,
                         const hw::Model2Video&       video) override;
     void upload_tilemap(std::span<const u32> below, std::span<const u32> above) override;

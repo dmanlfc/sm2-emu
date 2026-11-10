@@ -2677,6 +2677,12 @@ int main(int argc, char** argv)
                 auto scope = core::maybe_scope(stage_present_wait, profile_sample);
                 begin_ok = backend->begin_frame();
             }
+            if (!begin_ok && backend->device_lost()) {
+                SM2_ERROR("the GPU driver reset the device; quitting. If it happens again, try "
+                          "--graphics-backend opengl");
+                exit_code = 1;
+                break;
+            }
             if (!begin_ok) {
                 // Minimised or the swapchain was rebuilt. Yield rather than
                 // spinning on a window we cannot draw into, and abandon the pacing

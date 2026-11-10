@@ -1110,12 +1110,12 @@ bool Context::begin_frame()
 
     // Wait for the frame that last used this slot, so its command buffer and
     // per-frame resources are free to overwrite.
-    SM2_VK_TRY(vkWaitForFences(m_device, 1, &m_in_flight[m_frame_index], VK_TRUE, UINT64_MAX));
+    SM2_VK_TRY(note(vkWaitForFences(m_device, 1, &m_in_flight[m_frame_index], VK_TRUE, UINT64_MAX)));
 
     u32            image_index = 0;
-    const VkResult acquire     = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX,
-                                                       m_image_available[m_frame_index],
-                                                       VK_NULL_HANDLE, &image_index);
+    const VkResult acquire     = note(vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX,
+                                                            m_image_available[m_frame_index],
+                                                            VK_NULL_HANDLE, &image_index));
     if (acquire == VK_ERROR_OUT_OF_DATE_KHR) {
         // The semaphore was not signalled, so it is safe to reuse next frame.
         return recreate_swapchain() ? begin_frame() : false;
@@ -1136,8 +1136,8 @@ bool Context::begin_frame()
     // may still be owned by a different in-flight frame.
     if (m_images_in_flight[image_index] != VK_NULL_HANDLE
         && m_images_in_flight[image_index] != m_in_flight[m_frame_index]) {
-        SM2_VK_TRY(vkWaitForFences(m_device, 1, &m_images_in_flight[image_index],
-                                   VK_TRUE, UINT64_MAX));
+        SM2_VK_TRY(note(vkWaitForFences(m_device, 1, &m_images_in_flight[image_index],
+                                        VK_TRUE, UINT64_MAX)));
     }
     m_images_in_flight[image_index] = m_in_flight[m_frame_index];
 
@@ -1203,7 +1203,7 @@ bool Context::end_frame()
     submit.signalSemaphoreInfoCount = 1;
     submit.pSignalSemaphoreInfos    = &signal;
 
-    SM2_VK_TRY(device_functions().queue_submit2(m_graphics_queue, 1, &submit, m_in_flight[m_frame_index]));
+    SM2_VK_TRY(note(device_functions().queue_submit2(m_graphics_queue, 1, &submit, m_in_flight[m_frame_index])));
 
     VkPresentInfoKHR present{};
     present.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1213,7 +1213,7 @@ bool Context::end_frame()
     present.pSwapchains        = &m_swapchain;
     present.pImageIndices      = &m_image_index;
 
-    const VkResult result = vkQueuePresentKHR(m_present_queue, &present);
+    const VkResult result = note(vkQueuePresentKHR(m_present_queue, &present));
 
     // Advance regardless of the present result: the submission happened and its
     // fence belongs to this slot.

@@ -73,6 +73,9 @@ public:
     /// Finish recording, submit and present.
     [[nodiscard]] bool end_frame();
 
+    /// The driver reset the GPU; nothing more can be drawn on this device.
+    [[nodiscard]] bool device_lost() const { return m_device_lost; }
+
     /// Rebuild the swapchain against the window's current drawable size.
     [[nodiscard]] bool recreate_swapchain();
 
@@ -241,6 +244,14 @@ private:
     /// never had its pair written, so both come back unavailable rather than
     /// needing a separate written-flag to track the same fact twice.
     GpuStageTimes m_last_stage_times{};
+
+    /// Passes a frame call's result through, noting a lost device.
+    VkResult note(VkResult result)
+    {
+        if (result == VK_ERROR_DEVICE_LOST) m_device_lost = true;
+        return result;
+    }
+    bool m_device_lost = false;
 };
 
 }  // namespace sm2::render::vk

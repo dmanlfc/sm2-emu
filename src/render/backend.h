@@ -322,6 +322,9 @@ public:
 
     [[nodiscard]] virtual bool begin_frame() = 0;
 
+    /// The GPU driver reset the device, so no frame can be drawn again.
+    [[nodiscard]] virtual bool device_lost() const { return false; }
+
     /// GPU tilemap composite: dispatches the compute shader
     /// against tile RAM, character RAM and the pen table if their generation
     /// counters changed.
