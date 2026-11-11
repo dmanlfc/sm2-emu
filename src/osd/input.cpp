@@ -2305,6 +2305,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     // not the generic IN1 button nibble. It gets its own key and pad map below
     // and is excluded from the generic ones so those bits are not driven twice.
     const bool is_ski = game.name == "skisuprg" || game.parent == "skisuprg";
+    const bool is_skichamp = rom::has_input(game.inputs, rom::InputFlags::Ski);
 
     // Sega Water Ski: six buttons on their own IN0/IN1 bits (two Pitch/trick,
     // Select Up/Down, Set), not the generic nibble. Own map below, excluded
@@ -2327,7 +2328,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         gather_keys(&ports[0], keys, key_count, kOperatorKeys);
         // These fly or steer on the arrows' analog driver and keep their own
         // buttons.
-        if (!is_ski && !is_wski && !is_skytgt && !is_vr && !is_wingwar && !is_swa) {
+        if (!is_ski && !is_skichamp && !is_wski && !is_skytgt && !is_vr && !is_wingwar && !is_swa) {
             gather_keys(&ports[1], keys, key_count, kPlayerOneKeys);
         }
         gather_keys(&ports[2], keys, key_count, kPlayerTwoKeys);
@@ -2379,7 +2380,8 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
 
     // Virtual On is a single-cabinet twin-stick title: both 8-way sticks and all
     // four buttons are player one's, split across IN1 and IN2.
-    const bool is_von = game.name == "von" || game.parent == "von";
+    const bool is_von = game.name == "von" || game.parent == "von"
+                     || rom::has_input(game.inputs, rom::InputFlags::TwinJoysticks);
 
     // Desert Tank is a single-cabinet vehicle title whose buttons do not follow
     // the generic per-player layout.
@@ -2405,7 +2407,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
 
     for (const Pad& pad : m_pads) {
         if (!plays(pad) || pad.player >= kPlayers || is_von || is_desert
-            || is_ski || is_wski || is_skytgt) {
+            || is_ski || is_skichamp || is_wski || is_skytgt) {
             continue;
         }
         u8& port = ports[1 + pad.player];
@@ -2564,6 +2566,47 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             if (!operator_chord(pad, &ports[0])) {
                 if (start) ports[0] &= static_cast<u8>(~kTest);   // no start button; Test advances
                 if (back)  ports[0] &= static_cast<u8>(~kCoin1);
+            }
+        }
+    }
+
+    // Ski Champ: the left pole and the three Selects share IN0 with Start 1/2,
+    // and the right pole is IN1 0x01. The poles go on the shoulders (the gear
+    // roles, which it has no use for) and the Selects on X/Y/B, as on Ski
+    // Super G. Keyboard: Q/E poles, Z/X/C Selects.
+    if (is_skichamp) {
+        struct SkiBit { u8 port; u8 bit; };
+        constexpr SkiBit kPoleLeft {0, 0x20};
+        constexpr SkiBit kPoleRight{1, 0x01};
+        constexpr SkiBit kSelect1  {0, 0x40};
+        constexpr SkiBit kSelect2  {0, 0x80};
+        constexpr SkiBit kSelect3  {0, 0x10};
+        const auto press = [&](SkiBit b) { ports[b.port] &= static_cast<u8>(~b.bit); };
+
+        if (keys != nullptr) {
+            const auto kdown = [&](SDL_Scancode sc) {
+                return static_cast<int>(sc) < key_count && keys[sc];
+            };
+            if (kdown(SDL_SCANCODE_Q)) press(kPoleLeft);
+            if (kdown(SDL_SCANCODE_E)) press(kPoleRight);
+            if (kdown(SDL_SCANCODE_Z)) press(kSelect1);
+            if (kdown(SDL_SCANCODE_X)) press(kSelect2);
+            if (kdown(SDL_SCANCODE_C)) press(kSelect3);
+        }
+
+        for (const Pad& pad : m_pads) {
+            if (!plays(pad) || pad.player != 0) {
+                continue;
+            }
+            const auto held = [&](SDL_GamepadButton b) { return pad_button_held(pad, b); };
+            if (held(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER))  press(kPoleLeft);
+            if (held(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)) press(kPoleRight);
+            if (held(SDL_GAMEPAD_BUTTON_WEST))           press(kSelect1);
+            if (held(SDL_GAMEPAD_BUTTON_NORTH))          press(kSelect2);
+            if (held(SDL_GAMEPAD_BUTTON_EAST))           press(kSelect3);
+            if (!operator_chord(pad, &ports[0])) {
+                if (held(SDL_GAMEPAD_BUTTON_START)) ports[0] &= static_cast<u8>(~kStart1);
+                if (held(SDL_GAMEPAD_BUTTON_BACK))  ports[0] &= static_cast<u8>(~kCoin1);
             }
         }
     }
@@ -3010,10 +3053,10 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             if (pad_button_held(pad, SDL_GAMEPAD_BUTTON_EAST))  in2 |= kRight;
 
             // Shots on the triggers, dashes (boost) on the bumpers.
-            if (SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > kPedalFloor) {
+            if (pad_pedal_pressed(pad.handle, 0, Config::PadAxisRole::Brake)) {
                 in1 |= kButton1;  // Left Shot
             }
-            if (SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > kPedalFloor) {
+            if (pad_pedal_pressed(pad.handle, 0, Config::PadAxisRole::Accel)) {
                 in2 |= kButton1;  // Right Shot (IN2 0x01)
             }
             if (pad_button_held(pad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER)) {

@@ -241,6 +241,28 @@ std::string language_label(const i18n::Language& language)
                      || is(F::Fishing) || is(F::TwinJoysticks) || is(F::MagTruck) || is(F::Ski)
                      || is(F::Shift4) || is(F::ShiftUpDown) || is(F::AnalogGun1);
 
+    // Virtual On's twin sticks, both on one pad.
+    if (is(F::TwinJoysticks) || family.key == "von") {
+        struct Named { const char* slot; const char* name; };
+        static const Named kVon[] = {
+            {"Move Up", N_("Left Lever Up")},       {"Move Down", N_("Left Lever Down")},
+            {"Move Left", N_("Left Lever Left")},   {"Move Right", N_("Left Lever Right")},
+            {"Button 4", N_("Right Lever Up")},     {"Button 1", N_("Right Lever Down")},
+            {"Button 3", N_("Right Lever Left")},   {"Button 2", N_("Right Lever Right")},
+            {"Brake", N_("Left Shot")},             {"Accelerator", N_("Right Shot")},
+            {"Gear Down", N_("Left Dash")},         {"Gear Up", N_("Right Dash")},
+            {"Steer / Aim", N_("Left Lever")},      {"Right Lever", N_("Right Lever")},
+        };
+        for (const Named& named : kVon) {
+            if (at(named.slot)) return named.name;
+        }
+        return slot;
+    }
+    if (is(F::Ski)) {
+        if (at("Gear Down")) return N_("Left Pole");
+        if (at("Gear Up")) return N_("Right Pole");
+    }
+
     if (at("Brake")) return family.gun || family.brake ? slot : nullptr;
     if (at("Accelerator")) return family.gun || family.accel ? slot : nullptr;
     if (at("Gear Up") || at("Gear Down")) return family.gears ? slot : nullptr;
@@ -263,7 +285,6 @@ std::string language_label(const i18n::Language& language)
         static const char* const kSpikeOut[] = {N_("Beat"), N_("Charge"), N_("Shift"), N_("Jump")};
         static const char* const kSoccer[]   = {N_("Long Pass"), N_("Shoot"), N_("Short Pass"), nullptr};
         static const char* const kVr[]       = {N_("VR1 (red)"), N_("VR2 (blue)"), N_("VR3 (yellow)"), N_("VR4 (green)")};
-        static const char* const kTwin[]     = {N_("Shot"), N_("Turbo"), nullptr, nullptr};
         static const char* const kSkyStick[] = {N_("Event 1"), N_("Event 2"), nullptr, nullptr};
         static const char* const kFishing[]  = {N_("Cast"), N_("Select"), nullptr, nullptr};
         const usize i = static_cast<usize>(button - 1);
@@ -271,19 +292,19 @@ std::string language_label(const i18n::Language& language)
         if (is(F::SpikeOut)) return kSpikeOut[i];
         if (is(F::Soccer)) return kSoccer[i];
         if (is(F::Vr4)) return kVr[i];
-        if (is(F::TwinJoysticks)) return kTwin[i];
         if (is(F::AnalogJoystick)) return kSkyStick[i];
         if (is(F::Fishing)) return kFishing[i];
         if (is(F::Harley)) return button == 1 ? N_("Music Select") : button == 2 ? N_("View") : nullptr;
         if (button == 1 && is(F::ViewChange)) return N_("View");
         if (button == 2 && is(F::Handbrake)) return N_("Handbrake");
         if (button == 1 && is(F::MagTruck)) return N_("Pedal");
-        if (button == 1 && is(F::Ski)) return N_("Right Pole");
+        if (is(F::Ski)) return button == 3 ? N_("Select 1") : button == 4 ? N_("Select 2")
+                             : button == 2 ? N_("Select 3") : nullptr;
         return nullptr;
     }
 
     // The directions.
-    if (!model3 || is(F::Fighting) || is(F::SpikeOut) || is(F::Soccer) || is(F::TwinJoysticks)) {
+    if (!model3 || is(F::Fighting) || is(F::SpikeOut) || is(F::Soccer)) {
         return slot;
     }
     if (is(F::AnalogJoystick)) {
@@ -2207,8 +2228,6 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
             {"wingwar", "Brake", N_("Throttle back")}, {"wingwar", "Accelerator", N_("Throttle forward")},
             {"wingwar", "Gear Up", nullptr},        {"wingwar", "Gear Down", nullptr},
             {"wingwar", "Steer / Aim", N_("Stick")}, {"wingwar", "Right Lever", N_("Throttle")},
-            {"von", "Gear Down", N_("Left Dash")},   {"von", "Gear Up", N_("Right Dash")},
-            {"von", "Right Lever", N_("Right Lever")},
             {"desert", "Gear Down", N_("Machine Gun")}, {"desert", "Gear Up", N_("Cannon")},
             {"segawski", "Gear Down", N_("Pitch Left")}, {"segawski", "Gear Up", N_("Pitch Right")},
             {"powsled", "Gear Down", N_("Cancel Error")}, {"powsled", "Gear Up", N_("Cancel Network")},
