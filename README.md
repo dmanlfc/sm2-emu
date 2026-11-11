@@ -32,15 +32,15 @@ does Model 1: Virtua Racing, Virtua Formula, Virtua Fighter, Star Wars Arcade
 and Wing War. NetMerc runs but is nearly silent, because one of its sample ROM
 dumps is blank. The database has 164 sets (100 Model 1 and 2, 64 Model 3), and
 most of them play with full 3D and sound on all three GPU renderers (Vulkan,
-OpenGL and OpenGL ES); Model 1 and 2 also run on the software renderer.
+OpenGL and OpenGL ES) and on the software renderer.
 
 **Model 3:** of the 54 sets tried so far, 52 reach gameplay. The two Sega Rally
 2 prototypes can't run on any existing dump. The drive boards, the billboard,
 the net board (as a single cabinet) and the DSB1/DSB2 music boards all work.
-The PowerPC runs through a JIT on arm64; x86-64 uses the interpreter until its
-JIT lands. None of the sets need operator setup in the test menu. Star Wars
-Trilogy's flight-stick firmware isn't dumped, so the stick is simulated for the
-handshake and has no force feedback.
+The PowerPC runs through a JIT on arm64 and x86-64. None of the sets need
+operator setup in the test menu. Star Wars Trilogy's flight-stick firmware
+isn't dumped, so the stick is simulated for the handshake and has no force
+feedback.
 
 Emulated hardware:
 
@@ -243,10 +243,19 @@ The keyboard works at the same time, so a second player can use it:
 | `Tab` (held) | Fast-forward |
 | `Backspace` (held) | Rewind, when on |
 
-**Virtual On** on the keyboard: `W` `A` `S` `D` is the left lever, the arrows
-the right lever, `Q` / `E` the left shot / dash and `Right Shift` /
-`Right Ctrl` the right shot / dash. On a pad, the sticks are the levers, the
-triggers the shots and the bumpers the dashes.
+**Virtual On** and **Virtual On 2** on the keyboard: `W` `A` `S` `D` is the
+left lever, the arrows the right lever, `Q` / `E` the left shot / dash and
+`Right Shift` / `Right Ctrl` the right shot / dash. On one pad, the sticks (or
+the d-pad and Y/A/X/B) are the levers, the triggers the shots and the bumpers
+the dashes.
+
+**Ski Champ:** the bumpers are the left and right poles (`Q` / `E`), and X / Y /
+B the three Select buttons (`Z` `X` `C`).
+
+**Star Wars Trilogy:** the stick flies, the triggers fire, and A / B are the
+event buttons. **Sega Bass Fishing:** the left stick is the rod, the right stick
+the cabinet's joystick, the right trigger the reel, the left trigger the line
+tension (Get Bass), and A casts.
 
 **Flying games:** Star Wars Arcade and Wing War have a throttle lever on the
 right stick: push to accelerate, pull back to slow down, and Wing War hovers
@@ -267,8 +276,10 @@ Both are set up in the settings menu (`F10`):
     get recoil.
   - **Aim:** a gun calibrated to the whole screen is mapped onto the picture.
     Shooting a side bar or past the edge counts as off screen, so it can
-    reload. A Sinden border is available, and the mouse always works as a
-    fallback.
+    reload. A Sinden border is available.
+  - **Without a gun**, player 1 aims with the mouse (left button fires, right
+    reloads) and player 2 with a gamepad. A gun game shows the crosshair and
+    hides the mouse pointer by itself.
   - **Calibration:** Batocera's gun calibration tools draw their targets in
     game.
   - **Crosshairs:** custom PNGs go in the crosshairs folder (Paths tab), named
@@ -330,7 +341,8 @@ Set in the **Video** tab and applied live:
   draws the 3D wider and keeps the 2D in the middle (experimental).
 - **Render scale:** draws the 3D at up to 8x native (GPU renderers only). The
   2D stays pixel-sharp.
-- **Brightness:** where the Model 2 picture's black sits; 50% is the default.
+- **Brightness:** where the Model 2 picture's black sits, and the overall
+  brightness on Model 3; 50% is the default.
 - **Extended draw distance:** Daytona USA draws scenery to the edge of the
   course instead of the arcade's short range.
 - **Fullscreen resolution:** `fullscreen_resolution = 1280x720` in the ini (or
@@ -338,8 +350,6 @@ Set in the **Video** tab and applied live:
   scales up. On a slow GPU (Raspberry Pi 5 with Vulkan) this is much faster, at
   the cost of a slightly softer picture.
 
-Brightness, extended draw distance, the 3D texture filter and translucency are
-Model 1 and 2 settings; the menu greys them out while a Model 3 game runs.
 - **CRT filter:** optional scanlines, mask, glow and curvature.
 - **Bezels:** artwork around the 4:3 picture, fullscreen only. Put PNGs in the
   bezels folder (Paths tab), named after the set (`daytona.png`), its parent,
@@ -355,6 +365,10 @@ Off by default, so a fresh install looks like the arcade. GPU renderers only:
 - **2D upscale:** xBR or ScaleFX smooth the 2D layers (HUD, text, menus).
 - **Translucency:** the hardware draws see-through surfaces as a checkerboard.
   Blended draws them as the 50% see-through look it's aiming for.
+
+Extended draw distance and translucency are Model 1 and 2 settings; the menu
+greys them out while a Model 3 game runs. On Model 3, the 2D upscale smooths
+the 2D layers without using xBR or ScaleFX.
 
 ### Audio
 
@@ -428,12 +442,13 @@ it isn't rollback netplay.
 Model 3 link games (Daytona USA 2, Scud Race, Sega Rally 2, Le Mans 24,
 Spikeout, Harley-Davidson, Ski Champ, Virtual On 2, Dirt Devils) use the same
 settings; set LINK ID (MASTER on one cabinet) in the game's test menu.
-Cabinets can start in any order. Every frame each one waits, if it must, for
+Cabinets can start in any order. Every frame, each one waits if it must for
 the others' last few frames, so a linked race runs at the slowest machine's
 speed. A lost packet is asked for again, so Wi-Fi works. Daytona USA 2 has been
-raced between a Mac and a Raspberry Pi 5, and three-way between a Mac and two
-Android-class handhelds running Batocera, with a third handheld as the LIVE
-monitor.
+raced between a Mac and a Raspberry Pi 5, and Daytona USA 2, Scud Race and Le
+Mans 24 four ways over Wi-Fi between a Mac and three Android-class handhelds
+running Batocera (Daytona USA 2 with one of them as the LIVE monitor). The other
+link games haven't been tried linked yet.
 
 ## Frame pacing
 
