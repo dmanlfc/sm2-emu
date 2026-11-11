@@ -348,6 +348,15 @@ public:
     static constexpr usize kPadRoles = Config::kPadRoleCount;
     static constexpr usize kPadAxes  = Config::kPadAxisCount;
 
+    /// The pad analogue role a game control reads, or PadAxisRole::kCount for
+    /// none. `one_player` as for sample_channel().
+    [[nodiscard]] static Config::PadAxisRole pad_axis_role(rom::AnalogControl control, bool one_player);
+
+    /// The layout a game plays with: its own if it has one, else the default
+    /// with that game's logical changes (`inputs` is its rom::InputFlags).
+    [[nodiscard]] static Config::PadLayout game_layout(const Config& config, const std::string& family,
+                                                       u32 inputs);
+
     /// The running game's gamepad layout, pushed from the config each frame.
     void set_pad_layout(const Config::PadLayout& layout)
     {
@@ -535,7 +544,9 @@ private:
 
     /// Sample one logical control and scale it into an analogue channel's own
     /// calibrated range, with the stick deadzone and curve shaping a stick axis.
-    [[nodiscard]] u8 sample_channel(const rom::AnalogChannel& channel, float curve) const;
+    /// `one_player` puts a second stick on player 1's right stick (the lever).
+    [[nodiscard]] u8 sample_channel(const rom::AnalogChannel& channel, float curve,
+                                    bool one_player = false) const;
 
     void gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) const;
 

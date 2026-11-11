@@ -121,6 +121,14 @@ public:
         std::string title;  ///< the parent's title, shown in lists
         bool        gun     = false;
         bool        missile = false;
+        u32         inputs  = 0;  ///< rom::InputFlags of its sets
+        /// Which pad controls the family reads: its analogue controls on the
+        /// aim stick, pedals and right lever, and a gear shift.
+        bool        aim     = false;
+        bool        accel   = false;
+        bool        brake   = false;
+        bool        lever   = false;
+        bool        gears   = false;
     };
 
     void set_game_families(std::vector<GameFamily> families)

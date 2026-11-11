@@ -226,6 +226,72 @@ std::string language_label(const i18n::Language& language)
     return shown + " (" + language.english_name + ")";
 }
 
+// What a Gamepad tab slot does in a game, named after the cabinet control:
+// the slot's own name when it keeps its generic one, nullptr when the game
+// does not read it.
+[[nodiscard]] const char* typed_slot_name(const Gui::GameFamily& family, const char* slot)
+{
+    const auto is = [&](rom::InputFlags flag) {
+        return rom::has_input(static_cast<rom::InputFlags>(family.inputs), flag);
+    };
+    const auto at = [&](const char* name) { return std::strcmp(slot, name) == 0; };
+    using F = rom::InputFlags;
+    const bool model3 = is(F::Fighting) || is(F::SpikeOut) || is(F::Soccer) || is(F::Vr4)
+                     || is(F::ViewChange) || is(F::Handbrake) || is(F::Harley) || is(F::AnalogJoystick)
+                     || is(F::Fishing) || is(F::TwinJoysticks) || is(F::MagTruck) || is(F::Ski)
+                     || is(F::Shift4) || is(F::ShiftUpDown) || is(F::AnalogGun1);
+
+    if (at("Brake")) return family.gun || family.brake ? slot : nullptr;
+    if (at("Accelerator")) return family.gun || family.accel ? slot : nullptr;
+    if (at("Gear Up") || at("Gear Down")) return family.gears ? slot : nullptr;
+    if (at("Right Lever")) return family.lever ? (is(F::Fishing) ? N_("Joystick") : slot) : nullptr;
+    if (at("Steer / Aim")) {
+        if (family.gun) return N_("Aim");
+        if (!family.aim) return nullptr;
+        return is(F::Vehicle) ? N_("Steer") : is(F::Fishing) ? N_("Rod") : slot;
+    }
+    if (at("Start") || at("Coin")) return slot;
+
+    const int button = at("Button 1") ? 1 : at("Button 2") ? 2 : at("Button 3") ? 3 : at("Button 4") ? 4 : 0;
+    if (button != 0) {
+        if (family.gun) {
+            if (button == 1) return N_("Trigger");
+            if (button == 2) return family.missile ? N_("Missile") : N_("Gun Reload");
+        }
+        if (!model3) return slot;
+        static const char* const kFighting[] = {N_("Punch"), N_("Kick"), N_("Guard"), N_("Escape")};
+        static const char* const kSpikeOut[] = {N_("Beat"), N_("Charge"), N_("Shift"), N_("Jump")};
+        static const char* const kSoccer[]   = {N_("Long Pass"), N_("Shoot"), N_("Short Pass"), nullptr};
+        static const char* const kVr[]       = {N_("VR1 (red)"), N_("VR2 (blue)"), N_("VR3 (yellow)"), N_("VR4 (green)")};
+        static const char* const kTwin[]     = {N_("Shot"), N_("Turbo"), nullptr, nullptr};
+        static const char* const kSkyStick[] = {N_("Event 1"), N_("Event 2"), nullptr, nullptr};
+        static const char* const kFishing[]  = {N_("Cast"), N_("Select"), nullptr, nullptr};
+        const usize i = static_cast<usize>(button - 1);
+        if (is(F::Fighting)) return kFighting[i];
+        if (is(F::SpikeOut)) return kSpikeOut[i];
+        if (is(F::Soccer)) return kSoccer[i];
+        if (is(F::Vr4)) return kVr[i];
+        if (is(F::TwinJoysticks)) return kTwin[i];
+        if (is(F::AnalogJoystick)) return kSkyStick[i];
+        if (is(F::Fishing)) return kFishing[i];
+        if (is(F::Harley)) return button == 1 ? N_("Music Select") : button == 2 ? N_("View") : nullptr;
+        if (button == 1 && is(F::ViewChange)) return N_("View");
+        if (button == 2 && is(F::Handbrake)) return N_("Handbrake");
+        if (button == 1 && is(F::MagTruck)) return N_("Pedal");
+        if (button == 1 && is(F::Ski)) return N_("Right Pole");
+        return nullptr;
+    }
+
+    // The directions.
+    if (!model3 || is(F::Fighting) || is(F::SpikeOut) || is(F::Soccer) || is(F::TwinJoysticks)) {
+        return slot;
+    }
+    if (is(F::AnalogJoystick)) {
+        return at("Move Up") ? N_("Trigger 1") : at("Move Down") ? N_("Trigger 2") : nullptr;
+    }
+    return nullptr;
+}
+
 // Name an evdev key code for the gun-button UI; hex fallback for anything odd.
 [[nodiscard]] std::string evdev_button_name(u32 code)
 {
@@ -405,9 +471,8 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
         }
     }
 
-    // In light-gun mode draw the aiming crosshair(s) and hide the OS cursor, so
-    // only the crosshair is visible. gun_aims() is inactive for non-gun titles,
-    // so a non-gun game shows nothing even with the mode on.
+    // A gun game draws the aiming crosshair(s) and hides the OS cursor, so
+    // only the crosshair shows.
     //
     // The cursor is only hidden while the settings overlay is CLOSED: with the
     // overlay open the real pointer is needed to click its buttons and the close
@@ -419,7 +484,15 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
     // touching the cursor, and then SDL_HideCursor() sticks.
     // Not while the picker is up: grabbing the pointer there would confine it to
     // the window, making the title bar and resize edges unreachable.
-    const bool hide_cursor = config.lightgun && !m_visible && !m_picker_enabled
+    const GameFamily* playing = nullptr;
+    for (const GameFamily& f : m_families) {
+        if (f.key == m_current_family && !m_current_game.empty()) {
+            playing = &f;
+        }
+    }
+    using Mode          = Config::LightgunMode;
+    const bool gun_game = playing != nullptr && playing->gun && config.lightgun != Mode::Off;
+    const bool hide_cursor = (gun_game || config.lightgun == Mode::On) && !m_visible && !m_picker_enabled
                           && !m_load_error.has_value();
     if (hide_cursor != m_cursor_hidden) {
         ImGuiIO& io = ImGui::GetIO();
@@ -449,7 +522,7 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
         draw_bezel(config);
     }
 
-    if (config.lightgun && !m_picker_enabled) {
+    if ((gun_game || config.lightgun == Mode::On) && !m_picker_enabled) {
         draw_sinden_border(config);
         if (config.lightgun_crosshair) {
             draw_crosshairs(config, input);
@@ -511,7 +584,6 @@ void Gui::draw_menu_bar(Config& config)
             ImGui::MenuItem(tr_id("FPS counter"), hotkey_name(config, Config::Hotkey::Fps),
                             &config.show_fps);
             ImGui::MenuItem(tr_id("On-screen notifications"), nullptr, &config.show_notifications);
-            ImGui::MenuItem(tr_id("Light-gun mode"), nullptr, &config.lightgun);
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -1855,7 +1927,20 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         ImGui::EndCombo();
     }
 
-    // A game without its own layout is edited as a copy of the default, kept once changed.
+    const GameFamily* family = nullptr;
+    for (const GameFamily& f : m_families) {
+        if (f.key == m_pad_family) {
+            family = &f;
+        }
+    }
+    // A game without its own layout is edited as a copy of its default (the
+    // default layout with the game's logical changes), kept once changed.
+    Config::PadLayout game_default = config.pad;
+    if (!m_pad_family.empty()) {
+        Config without = config;
+        without.pad_layouts.erase(m_pad_family);
+        game_default = Input::game_layout(without, m_pad_family, family != nullptr ? family->inputs : 0);
+    }
     Config::PadLayout  scratch;
     Config::PadLayout* binds = &config.pad;
     if (!m_pad_family.empty()) {
@@ -1863,7 +1948,7 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         if (found != config.pad_layouts.end()) {
             binds = &found->second;
         } else {
-            scratch = config.pad;
+            scratch = game_default;
             binds   = &scratch;
         }
     }
@@ -1895,7 +1980,7 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         ImGui::BeginDisabled(binds == &scratch);
         if (ImGui::Button(tr_id("Use Default Layout"))) {
             config.pad_layouts.erase(m_pad_family);
-            scratch                   = config.pad;
+            scratch                   = game_default;
             binds                     = &scratch;
             m_pad_capture_player      = -1;
             m_pad_axis_capture_player = -1;
@@ -1981,12 +2066,7 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
     int          rows[4]   = {0, 0, 0, 0};
     const std::span<const Slot> slots =
         m_pad_shortcuts_view ? std::span<const Slot>{} : std::span<const Slot>(kSlots);
-    const GameFamily* gun_family = nullptr;
-    for (const GameFamily& family : m_families) {
-        if (family.key == m_pad_family && family.gun) {
-            gun_family = &family;
-        }
-    }
+    const GameFamily* gun_family = family != nullptr && family->gun ? family : nullptr;
     for (const Slot& slot : slots) {
         const int row = rows[slot.column]++;
         ImVec2    pos;
@@ -2127,8 +2207,21 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
             {"wingwar", "Brake", N_("Throttle back")}, {"wingwar", "Accelerator", N_("Throttle forward")},
             {"wingwar", "Gear Up", nullptr},        {"wingwar", "Gear Down", nullptr},
             {"wingwar", "Steer / Aim", N_("Stick")}, {"wingwar", "Right Lever", N_("Throttle")},
+            {"von", "Gear Down", N_("Left Dash")},   {"von", "Gear Up", N_("Right Dash")},
+            {"von", "Right Lever", N_("Right Lever")},
+            {"desert", "Gear Down", N_("Machine Gun")}, {"desert", "Gear Up", N_("Cannon")},
+            {"segawski", "Gear Down", N_("Pitch Left")}, {"segawski", "Gear Up", N_("Pitch Right")},
+            {"powsled", "Gear Down", N_("Cancel Error")}, {"powsled", "Gear Up", N_("Cancel Network")},
         };
         bool unused = false;
+        if (family != nullptr) {
+            const char* typed = typed_slot_name(*family, slot.name);
+            if (typed == nullptr) {
+                unused = true;
+            } else if (typed != slot.name) {
+                name = typed;
+            }
+        }
         for (const Named& named : kNamed) {
             if (m_pad_family == named.family && std::strcmp(slot.name, named.slot) == 0) {
                 name   = named.name != nullptr ? named.name : slot.name;
@@ -2207,7 +2300,7 @@ void Gui::draw_gamepad_tab(Config& config, Input* input)
         }
         ImGui::PopID();
     }
-    if (binds == &scratch && scratch != config.pad) {
+    if (binds == &scratch && scratch != game_default) {
         config.pad_layouts[m_pad_family] = scratch;
     }
 
@@ -2487,16 +2580,28 @@ void Gui::draw_audio_tab(Config& config)
 
 void Gui::draw_lightgun_tab(Config& config, Input* input)
 {
-    ImGui::Checkbox(tr_id("Light-gun mode"), &config.lightgun);
-    ImGui::SameLine();
-    ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered()) {
-        tooltip(tr("Show the aiming crosshair and hide the mouse cursor,\n"
-                   "for the light-gun titles (Virtua Cop 2, House of the\n"
-                   "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."));
+    {
+        static const char* const kModes[] = {N_("Auto"), N_("On"), N_("Off")};
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(tr("Gun mode"));
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(120.0f * (m_ui_scale > 0.0f ? m_ui_scale : 1.0f));
+        if (ImGui::BeginCombo("##gun_mode", tr(kModes[static_cast<usize>(config.lightgun)]))) {
+            for (u32 m = 0; m < 3; ++m) {
+                if (ImGui::Selectable(tr(kModes[m]), static_cast<u32>(config.lightgun) == m)) {
+                    config.lightgun = static_cast<Config::LightgunMode>(m);
+                }
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered()) {
+            tooltip(tr("The aiming crosshair, with the mouse pointer hidden.\n"
+                       "Auto turns it on in a gun game; On hides the pointer in\n"
+                       "every game; Off never shows a crosshair."));
+        }
     }
-
-    ImGui::BeginDisabled(!config.lightgun);
     ImGui::Checkbox(tr_id("Show crosshair"), &config.lightgun_crosshair);
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
@@ -2505,7 +2610,6 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
                    "has its own sight (e.g. a Sinden). Positional-gun\n"
                    "titles always draw their own regardless."));
     }
-    ImGui::EndDisabled();
 
     ImGui::Checkbox(tr_id("Centred stick aim"), &config.lightgun_pad_centred);
     ImGui::SameLine();
@@ -2529,8 +2633,8 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
 #ifndef SM2_HAVE_LIGHTGUNS
     (void)input;
     ImGui::Separator();
-    text_wrapped("Player 1 aims with the mouse; the left button fires and the right "
-                 "button reloads (shoot off screen).");
+    text_wrapped("By default player 1 aims with the mouse (the left button fires and the "
+                 "right reloads by shooting off screen) and player 2 with a gamepad.");
 #else
     ImGui::Separator();
     ImGui::TextUnformatted(tr("Recoil"));

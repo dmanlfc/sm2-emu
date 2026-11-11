@@ -854,7 +854,37 @@ bool Input::sample_wheel_channel(const rom::AnalogChannel& channel, u8* out) con
     return true;
 }
 
-u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve) const
+Config::PadAxisRole Input::pad_axis_role(rom::AnalogControl control, bool one_player)
+{
+    switch (host_axis_for(control)) {
+        case HostAxis::PadLeftX:     return Config::PadAxisRole::AimX;
+        case HostAxis::PadLeftY:     return Config::PadAxisRole::AimY;
+        case HostAxis::Pad2LeftX:    return one_player ? Config::PadAxisRole::LeverX : Config::PadAxisRole::AimX;
+        case HostAxis::Pad2LeftY:    return one_player ? Config::PadAxisRole::LeverY : Config::PadAxisRole::AimY;
+        case HostAxis::RightTrigger: return Config::PadAxisRole::Accel;
+        case HostAxis::LeftTrigger:  return Config::PadAxisRole::Brake;
+        default:                     return Config::PadAxisRole::kCount;
+    }
+}
+
+Config::PadLayout Input::game_layout(const Config& config, const std::string& family, u32 inputs)
+{
+    if (const auto found = config.pad_layouts.find(family); found != config.pad_layouts.end()) {
+        return found->second;
+    }
+    Config::PadLayout layout = config.pad;
+    // Star Wars Trilogy's triggers sit where the stick's up and down switches
+    // would: put them on the pad's triggers.
+    if (rom::has_input(static_cast<rom::InputFlags>(inputs), rom::InputFlags::AnalogJoystick)) {
+        for (auto& buttons : layout.buttons) {
+            buttons[static_cast<u32>(Config::PadRole::Up)]   = Config::kPadAxisPlus + SDL_GAMEPAD_AXIS_RIGHT_TRIGGER;
+            buttons[static_cast<u32>(Config::PadRole::Down)] = Config::kPadAxisPlus + SDL_GAMEPAD_AXIS_LEFT_TRIGGER;
+        }
+    }
+    return layout;
+}
+
+u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve, bool one_player) const
 {
     // A wheel, when present, owns the driving controls; everything else, and any
     // control the wheel has no axis for, falls through to the gamepad.
@@ -867,9 +897,9 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve) const
         return channel.rest;
     }
 
-    SDL_Gamepad* pad = pad_for(axis == HostAxis::Pad2LeftX || axis == HostAxis::Pad2LeftY
-                                   ? 1u
-                                   : 0u);
+    const bool second = axis == HostAxis::Pad2LeftX || axis == HostAxis::Pad2LeftY;
+    const bool lever  = second && one_player;
+    SDL_Gamepad* pad = pad_for(second && !lever ? 1u : 0u);
     if (pad == nullptr) {
         // No pad for this control: hand back the value the hardware reads with
         // nobody touching it. A wheel at rest is centred and a pedal is
@@ -894,9 +924,7 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve) const
 
     // The axis a role reads: the user's override, else the default. Player
     // two's aim reads its own pad.
-    const u32 which_player = (axis == HostAxis::Pad2LeftX || axis == HostAxis::Pad2LeftY)
-                                 ? 1u
-                                 : 0u;
+    const u32 which_player = second && !lever ? 1u : 0u;
     const auto role_axis = [&](Config::PadAxisRole role, SDL_GamepadAxis fallback,
                                bool* inverted) {
         const s32 override_axis = m_pad_axes[which_player][static_cast<u32>(role)];
@@ -910,7 +938,8 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve) const
         case HostAxis::Pad2LeftX: {
             bool inv = false;
             const SDL_GamepadAxis sdl =
-                role_axis(Config::PadAxisRole::AimX, SDL_GAMEPAD_AXIS_LEFTX, &inv);
+                lever ? role_axis(Config::PadAxisRole::LeverX, SDL_GAMEPAD_AXIS_RIGHTX, &inv)
+                      : role_axis(Config::PadAxisRole::AimX, SDL_GAMEPAD_AXIS_LEFTX, &inv);
             s16 raw = SDL_GetGamepadAxis(pad, sdl);
             if (inv) raw = static_cast<s16>(-static_cast<int>(raw));
             fraction = centred(raw);
@@ -920,7 +949,8 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve) const
         case HostAxis::Pad2LeftY: {
             bool inv = false;
             const SDL_GamepadAxis sdl =
-                role_axis(Config::PadAxisRole::AimY, SDL_GAMEPAD_AXIS_LEFTY, &inv);
+                lever ? role_axis(Config::PadAxisRole::LeverY, SDL_GAMEPAD_AXIS_RIGHTY, &inv)
+                      : role_axis(Config::PadAxisRole::AimY, SDL_GAMEPAD_AXIS_LEFTY, &inv);
             s16 raw = SDL_GetGamepadAxis(pad, sdl);
             if (inv) raw = static_cast<s16>(-static_cast<int>(raw));
             fraction = centred(raw);
@@ -1882,22 +1912,33 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         }
         return gi;
     };
-    GunInput p1 = from_mouse();
-    GunInput p2 = from_mouse();
+    // Each player aims with their own light gun, else the mouse for player 1
+    // and a gamepad for player 2, so one mouse never fires both players.
+    usize guns = 0;
+#ifdef SM2_HAVE_LIGHTGUNS
+    if (m_guns) {
+        m_guns->poll();
+        guns = m_guns->count();
+    }
+#endif
+    const std::array<bool, kPlayers> on_gun   = {guns >= 1, guns >= 2};
+    std::array<bool, kPlayers>       on_mouse = {guns == 0, false};
+    GunInput p1 = on_mouse[0] ? from_mouse() : GunInput{};
+    GunInput p2;
 
     // Moving the mouse hands the aim back to it from the pad/keyboard cursor.
     if (pointer.x != m_gun_last_ptr_x || pointer.y != m_gun_last_ptr_y) {
-        m_gun_cursor_owns = {false, false};
-        m_gun_last_ptr_x  = pointer.x;
-        m_gun_last_ptr_y  = pointer.y;
+        for (usize p = 0; p < kPlayers; ++p) {
+            // A gun moves the pointer too.
+            if (on_mouse[p] || on_gun[p]) m_gun_cursor_owns[p] = false;
+        }
+        m_gun_last_ptr_x = pointer.x;
+        m_gun_last_ptr_y = pointer.y;
     }
-    std::array<bool, kPlayers> on_mouse = {true, true};
 
 #ifdef SM2_HAVE_LIGHTGUNS
-    // Gun 0 drives player 1, gun 1 player 2. A gun also moves the system
-    // pointer, so with one gun player 2 leaves the mouse alone.
+    // Gun 0 drives player 1, gun 1 player 2.
     if (m_guns) {
-        m_guns->poll();
 
         // A gun reports where it points on the whole screen, so map that through
         // the window onto the letterboxed image; aiming at a side bar then reads
@@ -1982,16 +2023,12 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
             gi.right = held(GrHatRight);
             return gi;
         };
-        if (m_guns->count() >= 1) {
-            p1          = from_gun(m_guns->gun(0), 0);
-            on_mouse[0] = false;
+        if (on_gun[0]) {
+            p1 = from_gun(m_guns->gun(0), 0);
         }
-        if (m_guns->count() >= 2) {
+        if (on_gun[1]) {
             p2 = from_gun(m_guns->gun(1), 1);
-        } else {
-            p2 = GunInput{};
         }
-        on_mouse[1] = false;
 
         // Recoil: pulse a gun's motor once on the trigger's press edge, keyed on
         // the bound trigger code (not reload) so racking off-screen does not kick.
@@ -2016,6 +2053,10 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
     // untouched when the pad/keys are idle.
     {
         const auto aim_from = [&](usize player, GunInput& gi) {
+            // Without a mouse or gun under it, the cursor is the aim from the start.
+            if (!on_mouse[player] && !on_gun[player]) {
+                m_gun_cursor_owns[player] = true;
+            }
             bool active = false;
             float dx = 0.0f;
             float dy = 0.0f;
@@ -2111,10 +2152,7 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
     // Record the aim (before the reload snap) for the crosshair overlay. Player
     // 2's crosshair only shows when a second gun is actually aiming it, so a
     // single-mouse session does not paint two overlapping crosshairs.
-    bool p2_active = pad_for(1) != nullptr;  // a 2nd pad aims player 2
-#ifdef SM2_HAVE_LIGHTGUNS
-    p2_active = p2_active || (m_guns && m_guns->count() >= 2);
-#endif
+    const bool p2_active = on_gun[1] || pad_for(1) != nullptr;
     // Positional-gun titles draw their own in-game crosshair, so suppress ours
     // to avoid two overlapping reticles; the RS-422 lightgun titles do not.
     // Widescreen: how far past the screen's edges, as a fraction of its width,
@@ -2353,6 +2391,18 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                                         return c.control == rom::AnalogControl::Gun1X;
                                     });
 
+    // A left stick that is one of the game's analogue controls is read for
+    // that alone: also pressing the direction bits would fire Star Wars
+    // Trilogy's triggers or shift a sequential gearbox.
+    std::array<bool, kPlayers> stick_analog{};
+    for (const rom::AnalogChannel& channel : game.analog) {
+        for (const ControlBinding& binding : kControlBindings) {
+            if (binding.control != channel.control) continue;
+            if (binding.axis == HostAxis::PadLeftX || binding.axis == HostAxis::PadLeftY) stick_analog[0] = true;
+            if (binding.axis == HostAxis::Pad2LeftX || binding.axis == HostAxis::Pad2LeftY) stick_analog[1] = true;
+        }
+    }
+
     for (const Pad& pad : m_pads) {
         if (!plays(pad) || pad.player >= kPlayers || is_von || is_desert
             || is_ski || is_wski || is_skytgt) {
@@ -2417,7 +2467,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
 
         // The left stick drives the same four switches as the d-pad, so either works
         // and holding both is harmless.
-        if (!own_controls) {
+        if (!own_controls && !stick_analog[pad.player]) {
             port &= static_cast<u8>(
                 ~stick_bits(SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTX),
                             SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFTY)));
@@ -2642,11 +2692,14 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     const bool  fine_stick = game.name == "topskatr" || game.parent == "topskatr"
                           || game.name == "vr" || game.parent == "vr";
     const float curve      = fine_stick ? 2.0f : 1.0f;
+    // Bass Fishing is one angler: the cabinet's joystick is on the same pad's
+    // right stick, beside the rod on the left.
+    const bool one_player = rom::has_input(game.inputs, rom::InputFlags::Fishing);
     for (usize channel = 0; channel < inputs->analog.size(); ++channel) {
         const rom::AnalogChannel& wiring = game.analog[channel];
         inputs->analog[channel] = wiring.control == rom::AnalogControl::None
                                       ? 0x00
-                                      : sample_channel(wiring, curve);
+                                      : sample_channel(wiring, curve, one_player);
     }
 
     // Throttle lever on the flying games: forward accelerates, back slows.

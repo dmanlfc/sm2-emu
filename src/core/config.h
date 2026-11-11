@@ -115,10 +115,11 @@ struct Config {
     /// "auto" to follow the system's preferred languages.
     std::string language = "auto";
 
-    /// Light-gun mode: draw the aiming crosshair(s) and hide the OS mouse cursor
-    /// over the window, for the gun titles. Off leaves the crosshair hidden and
-    /// the cursor visible (aiming still works, it is just not shown).
-    bool lightgun = false;
+    /// Gun mode: the aiming crosshair, and the OS cursor hidden. Auto turns it
+    /// on in a gun game, hiding the cursor while a player aims with the mouse
+    /// or a light gun; On also hides the cursor in every game; Off never.
+    enum class LightgunMode : u32 { Auto, On, Off };
+    LightgunMode lightgun = LightgunMode::Auto;
 
     /// Draw sm2-emu's own aiming crosshair in light-gun mode. On by default;
     /// turn it off when the gun provides its own aiming (e.g. a Sinden with a

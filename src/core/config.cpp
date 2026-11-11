@@ -200,6 +200,8 @@ constexpr std::array<const char*, Config::kPadRoleCount> kPadRoleNames = {
     "up", "down", "left", "right", "start", "coin", "gear_up", "gear_down",
 };
 
+constexpr std::array<const char*, 3> kLightgunModeNames = {"auto", "on", "off"};
+
 /// Shortcut names in the ini, after "key_", in Config::Hotkey order.
 constexpr std::array<const char*, Config::kHotkeyCount> kHotkeyNames = {
     "exit", "quit", "overlay", "fullscreen", "screenshot", "pause",
@@ -550,8 +552,22 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
                 bad_value();
             }
         } else if (key == "lightgun") {
-            if (!parse_bool(value, &out->lightgun)) {
-                bad_value();
+            // An older file's true is On, and its false the default.
+            bool flag = false;
+            const std::string v = lowered(value);
+            bool known = false;
+            for (u32 m = 0; m < kLightgunModeNames.size(); ++m) {
+                if (v == kLightgunModeNames[m]) {
+                    out->lightgun = static_cast<Config::LightgunMode>(m);
+                    known         = true;
+                }
+            }
+            if (!known) {
+                if (parse_bool(value, &flag)) {
+                    out->lightgun = flag ? Config::LightgunMode::On : Config::LightgunMode::Auto;
+                } else {
+                    bad_value();
+                }
             }
         } else if (key == "lightgun_crosshair") {
             if (!parse_bool(value, &out->lightgun_crosshair)) {
@@ -1140,7 +1156,7 @@ bool save_config(const std::string& path, const Config& config)
         << "wheel_button_service = " << wheel_button(Config::WheelRole::Service) << "\n"
         << "wheel_button_menu = " << wheel_button(Config::WheelRole::Menu) << "\n"
         << "\n[lightgun]\n"
-        << "lightgun = " << bool_text(config.lightgun) << "\n"
+        << "lightgun = " << kLightgunModeNames[static_cast<usize>(config.lightgun)] << "\n"
         << "lightgun_crosshair = " << bool_text(config.lightgun_crosshair) << "\n"
         << "lightgun_hide_flash = " << bool_text(config.lightgun_hide_flash) << "\n"
         << "lightgun_pad_centred = " << bool_text(config.lightgun_pad_centred) << "\n"

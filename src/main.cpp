@@ -308,8 +308,9 @@ void print_usage()
         "      --graphics-backend <software|vulkan|opengl>\n"
         "                      Which renderer to use. 'opengl' means whichever GL\n"
         "                      flavour this binary was built with\n"
-        "      --lightgun      Light-gun mode: show the aiming crosshair and\n"
-        "                      hide the mouse cursor (for the gun titles)\n"
+        "      --lightgun, --no-lightgun  Gun mode (crosshair, hidden cursor) on\n"
+        "                      in every game, or off; by default a gun game turns\n"
+        "                      it on by itself\n"
         "      --list-gamepads Show which gamepads were recognised and which\n"
         "                      player each would drive\n"
         "      --list-games    List the games in the ROM database\n"
@@ -421,8 +422,8 @@ void print_usage()
         } else if (std::strcmp(arg, "--fullscreen") == 0) {
             out->config.fullscreen = true;
             out->given.fullscreen  = true;
-        } else if (std::strcmp(arg, "--lightgun") == 0) {
-            out->config.lightgun = true;
+        } else if (std::strcmp(arg, "--lightgun") == 0 || std::strcmp(arg, "--no-lightgun") == 0) {
+            out->config.lightgun = arg[2] == 'n' ? sm2::Config::LightgunMode::Off : sm2::Config::LightgunMode::On;
             out->given.lightgun  = true;
         } else if (std::strcmp(arg, "--log-unmapped") == 0) {
             out->log_unmapped = true;
@@ -1870,6 +1871,7 @@ int main(int argc, char** argv)
             static const std::set<std::string> kNoVolume = {"rascot2"};
             std::map<std::string, std::string> titles;
             std::map<std::string, std::pair<bool, bool>> guns;
+            std::map<std::string, osd::Gui::GameFamily>  uses;
             for (const rom::GameSpec& game : database.games()) {
                 const std::string family = game_family(game);
                 if (kNoVolume.count(family) != 0) {
@@ -1886,13 +1888,32 @@ int main(int argc, char** argv)
                 if (gun) {
                     guns[family] = {true, game.gun_missile};
                 }
+                osd::Gui::GameFamily& use = uses[family];
+                use.inputs |= static_cast<u32>(game.inputs);
+                const bool one_player = rom::has_input(game.inputs, rom::InputFlags::Fishing);
+                for (const rom::AnalogChannel& channel : game.analog) {
+                    switch (osd::Input::pad_axis_role(channel.control, one_player)) {
+                        case Config::PadAxisRole::AimX:
+                        case Config::PadAxisRole::AimY:   use.aim = true; break;
+                        case Config::PadAxisRole::Accel:  use.accel = true; break;
+                        case Config::PadAxisRole::Brake:  use.brake = true; break;
+                        case Config::PadAxisRole::LeverX:
+                        case Config::PadAxisRole::LeverY: use.lever = true; break;
+                        default: break;
+                    }
+                }
+                use.gears = use.gears || game.gearbox || game.shift_buttons;
             }
             std::vector<osd::Gui::GameFamily> families;
             for (auto& [key, title] : titles) {
                 const std::string shown = game_title_without_cabinet(title);
                 const auto        gun   = guns.find(key);
-                families.push_back({key, shown.empty() ? key : shown, gun != guns.end(),
-                                    gun != guns.end() && gun->second.second});
+                osd::Gui::GameFamily family = uses[key];
+                family.key     = key;
+                family.title   = shown.empty() ? key : shown;
+                family.gun     = gun != guns.end();
+                family.missile = gun != guns.end() && gun->second.second;
+                families.push_back(std::move(family));
             }
             std::sort(families.begin(), families.end(),
                       [](const osd::Gui::GameFamily& a, const osd::Gui::GameFamily& b) {
@@ -2527,7 +2548,8 @@ int main(int argc, char** argv)
                                  options.config.lightgun_recoil_strength);
                 input.set_gun_buttons(options.config.gun_buttons);
                 input.set_pad_aim_centred(options.config.lightgun_pad_centred);
-                input.set_pad_layout(options.config.pad_layout_for(game_family(loaded->game)));
+                input.set_pad_layout(osd::Input::game_layout(options.config, game_family(loaded->game),
+                                                             static_cast<u32>(loaded->game.inputs)));
                 input.set_pad_stick_sensitivity(options.config.pad_stick_sensitivity);
                 input.set_pad_stick_deadzone(options.config.pad_stick_deadzone);
                 input.set_pad_rumble(options.config.pad_rumble,
