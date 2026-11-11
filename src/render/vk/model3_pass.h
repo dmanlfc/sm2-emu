@@ -200,6 +200,8 @@ private:
     VkShaderModule m_r3d_fs = VK_NULL_HANDLE;
     VkShaderModule m_r3d_fs_float = VK_NULL_HANDLE;
     VkPipeline m_fog_pipeline   = VK_NULL_HANDLE;
+    // The fog quads drawn inside the first layer pass, by depth format (D24S8, float).
+    std::array<VkPipeline, 2> m_layer_fog_pipelines{};
     VkPipeline m_base_pipeline  = VK_NULL_HANDLE;
     VkPipeline m_trans_pipeline = VK_NULL_HANDLE;
     VkPipeline m_layer_pipeline = VK_NULL_HANDLE;

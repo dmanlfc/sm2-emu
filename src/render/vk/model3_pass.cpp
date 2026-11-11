@@ -272,7 +272,8 @@ void Model3Pass::shutdown(bool keep_atlas)
         if (*m != VK_NULL_HANDLE) vkDestroyShaderModule(device, *m, nullptr);
         *m = VK_NULL_HANDLE;
     }
-    for (VkPipeline* p : {&m_fog_pipeline, &m_base_pipeline, &m_trans_pipeline, &m_layer_pipeline}) {
+    for (VkPipeline* p : {&m_fog_pipeline, &m_layer_fog_pipelines[0], &m_layer_fog_pipelines[1], &m_base_pipeline,
+                          &m_trans_pipeline, &m_layer_pipeline}) {
         if (*p != VK_NULL_HANDLE) vkDestroyPipeline(device, *p, nullptr);
         *p = VK_NULL_HANDLE;
     }
@@ -691,6 +692,14 @@ bool Model3Pass::create_pipelines()
     const VkFormat native[1]      = {kNativeColourFormat};
 
     m_fog_pipeline   = make_pipeline(mods.m[2], mods.m[3], m_fog_layout, fog_pass, VK_FORMAT_UNDEFINED, false, false, 0, false);
+    // The same quads drawn inside a layer pass, which also has the line of sight.
+    const VkFormat layer_pass[4] = {kColourFormat, kColourFormat, kColourFormat, kLosFormat};
+    m_layer_fog_pipelines[0] =
+        make_pipeline(mods.m[2], mods.m[3], m_fog_layout, layer_pass, m_depth_format, false, false, 0, false);
+    if (m_float_depth_format != VK_FORMAT_UNDEFINED) {
+        m_layer_fog_pipelines[1] = make_pipeline(mods.m[2], mods.m[3], m_fog_layout, layer_pass, m_float_depth_format,
+                                                 false, false, 0, false);
+    }
     m_base_pipeline  = make_pipeline(mods.m[2], mods.m[4], m_one_tex_pl_layout, native, VK_FORMAT_UNDEFINED, false, true, 0, false);
     m_trans_pipeline = make_pipeline(mods.m[2], mods.m[5], m_two_tex_pl_layout, native, VK_FORMAT_UNDEFINED, false, true, 0, false);
     m_layer_pipeline = make_pipeline(mods.m[2], mods.m[6], m_layer_layout, native, VK_FORMAT_UNDEFINED, false, true, 0, false);
@@ -700,7 +709,9 @@ bool Model3Pass::create_pipelines()
     if (r3d_pipeline(0, false, 0x11, false) == VK_NULL_HANDLE) {
         return false;
     }
-    return m_fog_pipeline != VK_NULL_HANDLE && m_base_pipeline != VK_NULL_HANDLE && m_trans_pipeline != VK_NULL_HANDLE
+    return m_fog_pipeline != VK_NULL_HANDLE && m_layer_fog_pipelines[0] != VK_NULL_HANDLE
+           && (m_float_depth_format == VK_FORMAT_UNDEFINED || m_layer_fog_pipelines[1] != VK_NULL_HANDLE)
+           && m_base_pipeline != VK_NULL_HANDLE && m_trans_pipeline != VK_NULL_HANDLE
            && m_layer_pipeline != VK_NULL_HANDLE;
 }
 
@@ -1192,8 +1203,30 @@ void Model3Pass::draw_3d(const FramePlan& plan, BuildSlot& f, VkCommandBuffer cm
         fn.cmd_pipeline_barrier2(cmd, &dep);
     };
 
-    // glClear(GL_COLOR_BUFFER_BIT) of the colour targets, then the fog quads.
-    {
+    auto draw_fogs = [&](VkPipeline pipeline) {
+        if (plan.fogs.empty()) {
+            return;
+        }
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        const VkDeviceSize r3d_stride = round_up(sizeof(R3DUniforms), m_ubo_alignment);
+        const VkDeviceSize fog_stride = round_up(sizeof(ScrollFogUniforms), m_ubo_alignment);
+        const VkDeviceSize fog_base   = r3d_stride * std::max<usize>(plan.uniforms.size(), 1);
+        for (usize i = 0; i < plan.fogs.size(); i++) {
+            const ViewportRect& vp = plan.viewports[plan.fogs[i].viewport];
+            const VkViewport    v  = plain_viewport(vp.viewport);
+            const VkRect2D      s  = to_rect(vp.scissor);
+            vkCmdSetViewport(cmd, 0, 1, &v);
+            vkCmdSetScissor(cmd, 0, 1, &s);
+            const u32 offset = static_cast<u32>(fog_base + i * fog_stride);
+            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_fog_layout, 0, 1, &f.fog_set, 1, &offset);
+            vkCmdDraw(cmd, 3, 1, 0, 0);
+        }
+    };
+
+    // Clear the colour targets, then draw the fog quads.
+    // With a layer pass to follow, both happen at its start instead: a tiler
+    // then skips a store and reload of all three targets.
+    if (plan.passes.empty()) {
         VkRenderingAttachmentInfo colour[3];
         for (int i = 0; i < 3; i++) {
             colour[i] = colour_attachment(m_colour[static_cast<usize>(i)].view, VK_ATTACHMENT_LOAD_OP_CLEAR);
@@ -1205,26 +1238,12 @@ void Model3Pass::draw_3d(const FramePlan& plan, BuildSlot& f, VkCommandBuffer cm
         info.colorAttachmentCount = 3;
         info.pColorAttachments    = colour;
         fn.cmd_begin_rendering(cmd, &info);
-        if (!plan.fogs.empty()) {
-            vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_fog_pipeline);
-            const VkDeviceSize r3d_stride = round_up(sizeof(R3DUniforms), m_ubo_alignment);
-            const VkDeviceSize fog_stride = round_up(sizeof(ScrollFogUniforms), m_ubo_alignment);
-            const VkDeviceSize fog_base   = r3d_stride * std::max<usize>(plan.uniforms.size(), 1);
-            for (usize i = 0; i < plan.fogs.size(); i++) {
-                const ViewportRect& vp = plan.viewports[plan.fogs[i].viewport];
-                const VkViewport    v  = plain_viewport(vp.viewport);
-                const VkRect2D      s  = to_rect(vp.scissor);
-                vkCmdSetViewport(cmd, 0, 1, &v);
-                vkCmdSetScissor(cmd, 0, 1, &s);
-                const u32 offset = static_cast<u32>(fog_base + i * fog_stride);
-                vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_fog_layout, 0, 1, &f.fog_set, 1, &offset);
-                vkCmdDraw(cmd, 3, 1, 0, 0);
-            }
-        }
+        draw_fogs(m_fog_pipeline);
         fn.cmd_end_rendering(cmd);
         attachments_written();
     }
 
+    bool first = true;
     for (const LayerPass& pass : plan.passes) {
         bool needs_stencil = false;
         for (const DrawRange* r : {&pass.colour, &pass.trans1, &pass.trans2}) {
@@ -1241,7 +1260,8 @@ void Model3Pass::draw_3d(const FramePlan& plan, BuildSlot& f, VkCommandBuffer cm
         {
             VkRenderingAttachmentInfo colour[4];
             for (int i = 0; i < 3; i++) {
-                colour[i] = colour_attachment(m_colour[static_cast<usize>(i)].view, VK_ATTACHMENT_LOAD_OP_LOAD);
+                colour[i] = colour_attachment(m_colour[static_cast<usize>(i)].view,
+                                              first ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD);
             }
             // A tiler writes back only what a later pass reads: the line of
             // sight when it is sampled, the depth when a translucency layer
@@ -1265,6 +1285,10 @@ void Model3Pass::draw_3d(const FramePlan& plan, BuildSlot& f, VkCommandBuffer cm
             info.pDepthAttachment     = &depth;
             info.pStencilAttachment   = fd ? nullptr : &depth;
             fn.cmd_begin_rendering(cmd, &info);
+            if (first) {
+                draw_fogs(m_layer_fog_pipelines[fd ? 1 : 0]);
+                first = false;
+            }
             draw_range(plan, pass.colour, 0, f, cmd, fd);
             fn.cmd_end_rendering(cmd);
             attachments_written();

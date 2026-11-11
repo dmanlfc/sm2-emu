@@ -33,6 +33,7 @@ layout(std140, set = 0, binding = 0) uniform ScrollFogUniforms {
 layout(location = 0) out vec4 out0;  // opaque
 layout(location = 1) out vec4 out1;  // trans layer 1
 layout(location = 2) out vec4 out2;  // trans layer 2
+layout(location = 3) out uvec2 outLos;  // the clear value, when drawn inside a layer pass
 
 vec2 ScreenFragCoord()
 {
@@ -46,6 +47,7 @@ void WriteOutputs(vec4 colour)
     out0 = colour;
     out1 = blank;
     out2 = blank;
+    outLos = uvec2(0u);
 }
 
 void main()
