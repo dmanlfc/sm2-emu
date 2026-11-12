@@ -1239,17 +1239,22 @@ void Scene::calc_viewport(Viewport* vp)
     const float t = vp->angle_top;
     const float b = vp->angle_bottom;
 
-    vp->projectionMatrix.load_identity();  // reset matrix
+    vp->projectionMatrix.load_identity();
 
     if (widens(*vp)) {
-        // Grow the frustum by the same angle on each side, so the 4:3 picture
-        // stays where it was, and cull against the wider one by mapping x back.
-        const float scale = static_cast<float>(m_totalXRes) / static_cast<float>(m_xRes);
-        const float grow  = (r - l) * (scale - 1.0f) * 0.5f;
-        const float wl    = l - grow;
-        const float wr    = r + grow;
-        m_planes.correction = 1.0f / scale;
-        m_planes.shift      = wl / scale - l;
+        // Grow the frustum out to the edges of the wide target at the 4:3
+        // viewport's own scale, so the 4:3 picture stays exactly where it was
+        // (scaling l and r would shift an off-centre one, and stretch a 495-wide
+        // viewport by a pixel), and cull against the wider
+        // one by mapping x back.
+        const int   left   = static_cast<int>(m_xOffs) + static_cast<int>(vp->vpX * m_xRatio);
+        const int   width  = static_cast<int>(vp->vpWidth * m_xRatio);
+        const float per_px = (r - l) / static_cast<float>(width);
+        const float wl     = l - static_cast<float>(left) * per_px;
+        const float wr     = r + (static_cast<float>(m_totalXRes) - static_cast<float>(left + width)) * per_px;
+        const float ratio  = (r - l) / (wr - wl);
+        m_planes.correction = ratio;
+        m_planes.shift      = wl * ratio - l;
 
         vp->x      = 0;
         vp->y      = static_cast<int>(m_yOffs) + static_cast<int>((384.0f - (vp->vpY + vp->vpHeight)) * m_yRatio);
