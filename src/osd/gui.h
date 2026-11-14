@@ -384,7 +384,7 @@ private:
     u32 m_pad_capture_role   = 0;
     int m_pad_edit_player    = 0;
     int  m_capture_hotkey     = -1;     ///< Config::Hotkey waiting for a key, or -1
-    int  m_pad_view     = 1;      ///< the Gamepad page's picture: 0 pad, 1 cabinet (the default), 2 shortcuts
+    int  m_pad_view     = 0;      ///< the Gamepad page's picture: 0 pad (the default), 1 cabinet, 2 shortcuts
     bool m_pad_show_all = false;  ///< the slots a cabinet has no control for, too
     // Map all, and a single capture: the slots to ask for, which one now,
     // how long it has waited.
