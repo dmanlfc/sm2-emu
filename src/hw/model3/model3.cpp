@@ -246,7 +246,7 @@ bool Model3::init(const rom::GameSpec& game, rom::RomSet roms)
 #if SM2_MODEL3_HAVE_SOUND
     if (!m_sound) m_sound = create_sound_port(game, m_roms);
 #endif
-    if (!m_drive) m_drive = create_drive_board(game, m_roms, m_inputs, m_board_outputs);
+    if (!m_drive) m_drive = create_drive_board(m_game, m_roms, m_inputs, m_board_outputs);
     if (!m_net) attach_net_board(create_net_board(game, m_net_ram));
 
     m_initialised = true;
