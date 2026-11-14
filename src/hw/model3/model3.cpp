@@ -601,7 +601,7 @@ CpuStatus Model3::main_cpu_status() const
 //   0x04 bank 1   in3 bit 6 service B, bit 7 test B; bit 5 EEPROM DO
 //   0x08 / 0x0C   in1 / in2: G2x / G3x (G3x ANDed with the drive board)
 //   0x3C          analog[channel], auto-incrementing
-//   light guns    gun_p*; off-screen bits from set_gun_offscreen() (Inputs
+//   light guns    gun_p*; off-screen bits from Inputs::gun_offscreen (Inputs
 //                 is stored raw in Model 1/2 states, so no field there)
 
 // Gear shifter codes on G24-G26.
@@ -729,7 +729,10 @@ void Model3::write_inputs(unsigned reg, u8 data)
                             case 5: m_serial_fifo2 = static_cast<u8>((m_inputs.gun_p2y >> 8) & 3); break;
                             case 6: m_serial_fifo2 = static_cast<u8>(m_inputs.gun_p2x & 0xFF); break;
                             case 7: m_serial_fifo2 = static_cast<u8>((m_inputs.gun_p2x >> 8) & 3); break;
-                            case 8: m_serial_fifo2 = static_cast<u8>(m_gun_offscreen & 3); break;
+                            case 8:
+                                m_gun_offscreen = static_cast<u8>(m_inputs.gun_offscreen & 3);
+                                m_serial_fifo2  = m_gun_offscreen;
+                                break;
                             default: SM2_DEBUG("model3: unknown gun register %X", m_gun_reg); break;
                         }
                     }

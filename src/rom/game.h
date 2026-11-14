@@ -468,12 +468,6 @@ struct GameSpec {
     /// Lines: IN1 bits 0x10/0x20) rather than an off-screen reload.
     bool gun_missile = false;
 
-    /// True when the positional gun is hand-held and aimed freely (The Lost
-    /// World) rather than mounted with a sight of its own. Keisho draws its
-    /// crosshair, and a shot off the screen reloads: the gun board raises the
-    /// player port's second bit when the gun sees no screen.
-    bool gun_handheld = false;
-
     /// True when the title will not start until its motion base answers on the
     /// I/O controller's ports D and E (Rail Chase 2). Acknowledged as MAME does.
     bool motion_base = false;

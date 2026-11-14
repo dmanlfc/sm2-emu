@@ -119,9 +119,6 @@ public:
     /// Unix seconds; emulated time thereafter (saved in states and NVRAM).
     void set_rtc_time(s64 unix_seconds) { m_rtc.set_time(unix_seconds); }
 
-    /// Bit 0 P1, bit 1 P2 off screen; read via gun register 8.
-    void set_gun_offscreen(u8 bits) { m_gun_offscreen = bits; }
-
     void attach_cpu(std::unique_ptr<MainCpu> cpu);
     void attach_sound(std::unique_ptr<SoundPort> sound);
     void attach_drive_board(std::unique_ptr<DriveBoardPort> board);

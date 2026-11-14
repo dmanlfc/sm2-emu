@@ -1832,10 +1832,6 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         }
     }
     const bool positional = pos_gun_ch[0] >= 0 || pos_gun_ch[1] >= 0;
-    // A hand-held positional gun (The Lost World) is aimed like a lightgun: it
-    // gets the crosshair and an off-screen reload, unlike the mounted guns of
-    // Gunblade NY or L.A. Machineguns, which draw their own sight.
-    const bool handheld = positional && game.gun_handheld;
 
     if (!spec.present && !positional) {
         m_gun_aims[0].active = false;
@@ -2132,9 +2128,8 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
     // Record the aim (before the reload snap) for the crosshair overlay. Player 2's
     // shows only when a second gun or pad aims it.
     const bool p2_active = on_gun[1] || pad_for(1) != nullptr;
-    // Mounted positional guns draw their own crosshair; a hand-held one gets
-    // Keisho's. `side` is how far the widescreen picture reaches past the
-    // screen, as a fraction of its width.
+    // Positional-gun titles draw their own crosshair. `side` is how far the
+    // widescreen picture reaches past the screen, as a fraction of its width.
     const float side = static_cast<float>(m_wide_columns) / static_cast<float>(render::kNativeWidth);
     const auto record = [side](bool active, bool mouse, const GunInput& g) {
         return GunAim{active, mouse, std::clamp(g.x, -side, 1.0f + side),
@@ -2156,16 +2151,15 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         }
         return !m_gun_used[player] || now - m_gun_last_use_ms[player] > kIdleMs;
     };
-    const bool sight = !positional || handheld;
-    m_gun_aims[0] = record(sight, on_mouse[0], p1);
-    m_gun_aims[1] = record(p2_active && sight, on_mouse[1], p2);
+    m_gun_aims[0] = record(!positional, on_mouse[0], p1);
+    m_gun_aims[1] = record(p2_active && !positional, on_mouse[1], p2);
     m_gun_aims[0].idle = idle(0, p1);
     m_gun_aims[1].idle = idle(1, p2);
 
     if (positional) {
         // Positional gun: scale the aim into each channel's calibrated travel,
-        // overriding the stick. X reaches into the widescreen columns as far as
-        // the 8-bit value allows.
+        // overriding the stick. No off-screen reload. X reaches into the widescreen
+        // columns as far as the 8-bit value allows.
         const auto write_channel = [&](int idx, float fraction, float reach) {
             if (idx < 0) {
                 return;
@@ -2197,25 +2191,6 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         write_channel(pos_gun_ch[1], p1.y, 0.0f);
         write_channel(pos_gun_ch[2], p2.x, side);
         write_channel(pos_gun_ch[3], p2.y, 0.0f);
-
-        // A hand-held gun fired off the screen reloads. The mouse and a gun both
-        // clamp at the picture's edge, so the outermost ADC steps stand in for
-        // off screen (as Supermodel reads them too).
-        if (handheld) {
-            const auto off_screen = [&](int idx) {
-                if (idx < 0) {
-                    return false;
-                }
-                const u8 value = inputs->analog[static_cast<usize>(idx)];
-                return value <= 2 || value >= 253;
-            };
-            if (p1.trigger && (off_screen(pos_gun_ch[0]) || off_screen(pos_gun_ch[1]))) {
-                p1.reload = true;
-            }
-            if (p2.trigger && (off_screen(pos_gun_ch[2]) || off_screen(pos_gun_ch[3]))) {
-                p2.reload = true;
-            }
-        }
     } else {
         // X across the whole picture, which in widescreen reaches past the
         // screen; the X axes' travel grows to match.
@@ -2245,6 +2220,11 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         // RS-422 lightgun: off-screen reload snaps the aim past the corner.
         if (p1.reload) { p1.x = -1.0f; p1.y = -1.0f; }
         if (p2.reload) { p2.x = -1.0f; p2.y = -1.0f; }
+        // Past the picture (the widescreen columns included) is off screen.
+        const auto off_screen = [](const GunInput& g) {
+            return g.x < 0.0f || g.x > 1.0f || g.y < 0.0f || g.y > 1.0f;
+        };
+        inputs->gun_offscreen = static_cast<u8>((off_screen(p1) ? 1 : 0) | (off_screen(p2) ? 2 : 0));
         inputs->gun_p1x = fraction_to_gun(p1.x, p1x);
         inputs->gun_p1y = fraction_to_gun(p1.y, spec.p1y);
         inputs->gun_p2x = fraction_to_gun(p2.x, p2x);
@@ -2257,13 +2237,6 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
     if (p2.trigger) {
         if (game.board == rom::Board::Model3) inputs->in2 &= static_cast<u8>(~kButton1);
         else inputs->in1 &= static_cast<u8>(~kButton2);
-    }
-
-    // A hand-held gun's reload line, bit 1 of the player's port: raised by the
-    // gun board when the gun is fired off the screen, here also by Reload.
-    if (handheld) {
-        if (p1.reload) inputs->in1 &= static_cast<u8>(~kButton2);
-        if (p2.reload) inputs->in2 &= static_cast<u8>(~kButton2);
     }
 
     // Missile (bel): P1 IN1 0x10, P2 IN1 0x20.

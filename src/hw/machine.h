@@ -87,6 +87,11 @@ struct Inputs {
     u16 gun_p1y = 0;
     u16 gun_p2x = 0;
     u16 gun_p2y = 0;
+
+    /// Bit 0: player 1 aims off the picture, bit 1: player 2. The Model 3 gun
+    /// board reports these in its register 8 (The Lost World reloads on them);
+    /// Model 2 derives the same from the positions against the axes.
+    u8 gun_offscreen = 0;
 };
 
 /// A type-erased snapshot of the machine's main CPU state.

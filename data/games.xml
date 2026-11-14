@@ -8372,7 +8372,7 @@
     </roms>
   </game>
 
-  <game name="lostwsga" board="model3" gun_handheld="true">
+  <game name="lostwsga" board="model3">
     <title>The Lost World</title>
     <version>Japan, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -8380,15 +8380,18 @@
     <model3 step="1.5" audio="quad-front-rear"/>
     <inputs>
       <input type="common"/>
-      <input type="analog_gun1"/>
-      <input type="analog_gun2"/>
+      <input type="gun1"/>
+      <input type="gun2"/>
     </inputs>
-    <analog>
-      <channel index="0" control="p1x"/>
-      <channel index="1" control="p1y"/>
-      <channel index="2" control="p2x"/>
-      <channel index="3" control="p2y"/>
-    </analog>
+    <!-- Hand-held lightguns on the serial gun board, as MAME wires them. The
+         game maps the 10-bit position to its screen 1:1 (its GUN MARK CHECK
+         shows screen = X - 400, 272 - Y), so these are the picture's edges. -->
+    <lightgun>
+      <axis name="p1y" min="0x050" max="0x1d0" rest="0x110"/>
+      <axis name="p1x" min="0x098" max="0x288" rest="0x190"/>
+      <axis name="p2y" min="0x050" max="0x1d0" rest="0x110"/>
+      <axis name="p2x" min="0x098" max="0x288" rest="0x190"/>
+    </lightgun>
     <!-- Outputs. The guns have no recoil of their own, so a shot follows the
          trigger while the player is in the game. Addresses are this set's. -->
     <outputs>
@@ -8460,7 +8463,7 @@
     </roms>
   </game>
 
-  <game name="lostwsgp" parent="lostwsga" board="model3" gun_handheld="true">
+  <game name="lostwsgp" parent="lostwsga" board="model3">
     <!-- build 1997/06/24, location test or preview version, about half of game is available, Stage 3-2 ends with "Coming Soon?" -->
     <title>The Lost World</title>
     <version>Location Test</version>
@@ -8469,8 +8472,8 @@
     <model3 step="1.5" audio="quad-front-rear"/>
     <inputs>
       <input type="common"/>
-      <input type="analog_gun1"/>
-      <input type="analog_gun2"/>
+      <input type="gun1"/>
+      <input type="gun2"/>
     </inputs>
     <roms>
       <region name="crom" stride="8" chunk="2" byte_swap="true">
