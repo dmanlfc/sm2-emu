@@ -849,6 +849,11 @@ const std::string& current()
     return state().code;
 }
 
+std::filesystem::path fonts_dir()
+{
+    return state().dir.empty() ? std::filesystem::path{} : state().dir / "fonts";
+}
+
 std::string current_tag()
 {
     std::string tag = state().code;

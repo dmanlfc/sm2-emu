@@ -496,6 +496,11 @@ if(SM2_PLATFORM_MACOS)
     target_sources(sm2-emu PRIVATE ${SM2_LANG_FILES})
     set_source_files_properties(${SM2_LANG_FILES}
         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lang")
+    # Fonts for scripts a system may lack, in Contents/Resources/lang/fonts.
+    file(GLOB SM2_LANG_FONTS CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/data/lang/fonts/*")
+    target_sources(sm2-emu PRIVATE ${SM2_LANG_FONTS})
+    set_source_files_properties(${SM2_LANG_FONTS}
+        PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lang/fonts")
 elseif(SM2_PLATFORM_WINDOWS)
     # Compile the .ico into the .exe so Explorer/taskbar show it. MSVC builds
     # any .rc listed as a source automatically. The window icon while running is
@@ -584,6 +589,7 @@ endif()
 #   share/sm2-emu/games.xml              the ROM database (GameDatabase::locate
 #                                        searches ../share/sm2-emu for it)
 #   share/sm2-emu/lang/*.po              the overlay's translations
+#   share/sm2-emu/lang/fonts/*.ttf       fonts for scripts the system may lack
 # plus the desktop-integration icons per platform (below). The in-window icon 
 # is compiled in separately (src/osd/app_icon.h) and does not depend on any of 
 # this being installed.
@@ -603,7 +609,7 @@ elseif(SM2_PLATFORM_WINDOWS)
     install(TARGETS sm2-emu RUNTIME DESTINATION ".")
     install(FILES "${CMAKE_SOURCE_DIR}/data/games.xml" DESTINATION ".")
     install(DIRECTORY "${CMAKE_SOURCE_DIR}/data/lang" DESTINATION "."
-            FILES_MATCHING PATTERN "*.po")
+            FILES_MATCHING PATTERN "*.po" PATTERN "*.ttf" PATTERN "OFL.txt")
     install(FILES "${SM2_ICON_DIR}/sm2-emu.ico" DESTINATION ".")
 else()
     install(TARGETS sm2-emu RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
@@ -611,7 +617,7 @@ else()
             DESTINATION "${CMAKE_INSTALL_DATADIR}/sm2-emu")
     install(DIRECTORY "${CMAKE_SOURCE_DIR}/data/lang"
             DESTINATION "${CMAKE_INSTALL_DATADIR}/sm2-emu"
-            FILES_MATCHING PATTERN "*.po")
+            FILES_MATCHING PATTERN "*.po" PATTERN "*.ttf" PATTERN "OFL.txt")
 endif()
 
 if(SM2_PLATFORM_LINUX)

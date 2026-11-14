@@ -14,6 +14,7 @@
 //
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -55,6 +56,9 @@ void init();
 /// system's preferred languages that has a catalog. Returns the code in effect,
 /// "en" when nothing matched.
 std::string set_language(const std::string& code);
+
+/// Fonts shipped for scripts a system may lack, beside the catalogs.
+[[nodiscard]] std::filesystem::path fonts_dir();
 
 /// The language in effect, "en" when untranslated.
 [[nodiscard]] const std::string& current();

@@ -325,7 +325,9 @@ both. Menu changes are saved on exit, and command-line options always win.
 
 The menu follows the system language, or the one set under **Video → Language**
 or `language` in the ini (`en`, `de`, `ja`, `pt_BR`, ...). It switches live and
-uses the system's fonts for scripts the built-in font doesn't cover.
+uses the system's fonts for scripts the built-in font doesn't cover, and the
+Noto fonts in `data/lang/fonts/` for Thai, Hindi, Bengali, Tamil and Urdu
+where the system has none (as on Batocera).
 
 Translations live in `data/lang/` as gettext `.po` files. They started out
 machine-translated, so fixes from native speakers are very welcome: edit the
