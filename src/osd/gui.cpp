@@ -263,7 +263,10 @@ std::string language_label(const i18n::Language& language)
         if (at("Gear Up")) return N_("Right Pole");
     }
 
-    if (at("Brake")) return family.gun || family.brake ? slot : nullptr;
+    if (at("Brake")) {
+        if (family.brake && is(F::Fishing)) return N_("Line Tension");
+        return family.gun || family.brake ? slot : nullptr;
+    }
     if (at("Accelerator")) return family.gun || family.accel ? slot : nullptr;
     if (at("Gear Up") || at("Gear Down")) return family.gears ? slot : nullptr;
     if (at("Right Lever")) return family.lever ? (is(F::Fishing) ? N_("Joystick") : slot) : nullptr;

@@ -7331,7 +7331,7 @@
     <analog>
       <channel index="0" control="sticky"/>
       <channel index="1" control="stickx"/>
-      <channel index="2" control="slide"/>
+      <channel index="2" control="brake"/>
       <channel index="3" control="throttle"/>
       <channel index="4" control="stick2y"/>
       <channel index="5" control="stick2x"/>
@@ -7401,7 +7401,7 @@
     <analog>
       <channel index="0" control="sticky"/>
       <channel index="1" control="stickx"/>
-      <channel index="2" control="slide"/>
+      <channel index="2" control="brake"/>
       <channel index="3" control="throttle"/>
       <channel index="4" control="stick2y"/>
       <channel index="5" control="stick2x"/>
@@ -7429,7 +7429,7 @@
     <analog>
       <channel index="0" control="sticky"/>
       <channel index="1" control="stickx"/>
-      <channel index="2" control="slide"/>
+      <channel index="2" control="brake"/>
       <channel index="3" control="throttle"/>
       <channel index="4" control="stick2y"/>
       <channel index="5" control="stick2x"/>
@@ -7463,7 +7463,7 @@
     <analog>
       <channel index="0" control="sticky"/>
       <channel index="1" control="stickx"/>
-      <channel index="2" control="slide"/>
+      <channel index="2" control="brake"/>
       <channel index="3" control="throttle"/>
       <channel index="4" control="stick2y"/>
       <channel index="5" control="stick2x"/>
