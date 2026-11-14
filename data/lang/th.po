@@ -1,13 +1,13 @@
-# Thai translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Thai translations for sm2-emu package.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Thai translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Thai translations for Keisho package.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -774,10 +774,10 @@ msgstr "ไดเรกทอรีการตั้งค่า"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"ตำแหน่งที่อ่านและบันทึก sm2-emu.ini\n"
+"ตำแหน่งที่อ่านและบันทึก keisho.ini\n"
 "ตั้งด้วย --config <dir> เปลี่ยนที่นี่ไม่ได้"
 
 #: src/osd/gui.cpp
@@ -855,10 +855,10 @@ msgstr "ไดเรกทอรีกรอบ"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "ภาพกรอบ: <game>.png, ภาพของชุดแม่ หรือ default.png\n"
-"เว้นว่างหมายถึงโฟลเดอร์ bezels ข้าง sm2-emu.ini"
+"เว้นว่างหมายถึงโฟลเดอร์ bezels ข้าง keisho.ini"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -872,13 +872,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "ภาพเป้าเล็ง: <game>-p1.png (-p2 สำหรับผู้เล่น 2) หรือ\n"
 "<game>.png สำหรับทั้งคู่ แล้วของชุดหลัก แล้ว default\n"
 "วาดตามขนาดของภาพเองบนภาพ 1080 เส้น หากไม่มี\n"
 "จะวาดเป้าเล็งในตัว\n"
-"ว่างหมายถึงโฟลเดอร์ crosshairs ข้าง sm2-emu.ini"
+"ว่างหมายถึงโฟลเดอร์ crosshairs ข้าง keisho.ini"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -889,12 +889,12 @@ msgstr "ดึงภาพปกจากออนไลน์"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "ให้ตัวเลือกเกมดึงภาพปกและคำอธิบายจาก\n"
-"ArcadeDB ผ่านเครือข่าย ปิดไว้ sm2-emu จะออฟไลน์:\n"
+"ArcadeDB ผ่านเครือข่าย ปิดไว้ Keisho จะออฟไลน์:\n"
 "ตัวเลือกยังแสดงและเปิดได้ทุกเกม โดยใช้ภาพแทน\n"
 "และไม่มีคำอธิบาย"
 
@@ -945,8 +945,8 @@ msgstr "สัญญาอนุญาต GPL-3.0-or-later ดู LICENSE"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu เกิดขึ้นได้เพราะโอเพนซอร์สที่แบ่งปันกับชุมชน"
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho เกิดขึ้นได้เพราะโอเพนซอร์สที่แบ่งปันกับชุมชน"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1953,11 +1953,11 @@ msgstr "แสดงเป้าเล็ง"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"วาดเป้าเล็งของ sm2-emu เอง ปิดไว้หากปืน\n"
+"วาดเป้าเล็งของ Keisho เอง ปิดไว้หากปืน\n"
 "มีศูนย์เล็งของตัวเอง (เช่น Sinden) เกมปืน\n"
 "แบบระบุตำแหน่งจะวาดเป้าของตัวเองเสมอ"
 

@@ -1,10 +1,10 @@
-# Lithuanian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# This file is distributed under the same license as the sm2-emu package.
+# Lithuanian translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# This file is distributed under the same license as the Keisho package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -772,10 +772,10 @@ msgstr "Konfigūracijos aplankas"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Iš kur skaitomas ir kur įrašomas sm2-emu.ini.\n"
+"Iš kur skaitomas ir kur įrašomas keisho.ini.\n"
 "Nustatoma su --config <dir>; čia pakeisti negalima."
 
 #: src/osd/gui.cpp
@@ -853,10 +853,10 @@ msgstr "Rėmelių aplankas"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Rėmelių paveikslėliai: <game>.png, pagrindinio rinkinio arba default.png.\n"
-"Tuščias reiškia aplanką bezels šalia sm2-emu.ini."
+"Tuščias reiškia aplanką bezels šalia keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -870,13 +870,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Taikiklių vaizdai: <game>-p1.png (-p2 2 žaidėjui) arba\n"
 "<game>.png abiem, tada tėvinio rinkinio, tada default.\n"
 "Piešiami savo dydžiu 1080 eilučių vaizde. Be\n"
 "jo piešiamas įtaisytas taikiklis.\n"
-"Tuščia reiškia aplanką crosshairs šalia sm2-emu.ini."
+"Tuščia reiškia aplanką crosshairs šalia keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -887,12 +887,12 @@ msgstr "Atsisiųsti iliustracijas internetu"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Leisti žaidimų sąrašui atsisiųsti viršelius ir aprašymus\n"
-"iš ArcadeDB per tinklą. Išjungus sm2-emu lieka neprisijungęs:\n"
+"iš ArcadeDB per tinklą. Išjungus Keisho lieka neprisijungęs:\n"
 "sąrašas vis tiek rodo ir paleidžia visus žaidimus, su\n"
 "vietos rezervavimo plytelėmis ir be aprašymų."
 
@@ -943,9 +943,9 @@ msgstr "GPL-3.0-or-later licencija. Žr. LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
+msgid "Keisho exists because of open source shared with the community."
 msgstr ""
-"sm2-emu egzistuoja dėka atvirojo kodo, kuriuo dalijamasi su bendruomene."
+"Keisho egzistuoja dėka atvirojo kodo, kuriuo dalijamasi su bendruomene."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1963,11 +1963,11 @@ msgstr "Rodyti taikiklį"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Piešti sm2-emu taikiklį. Išjunkite, jei ginklas\n"
+"Piešti Keisho taikiklį. Išjunkite, jei ginklas\n"
 "turi savo taikiklį (pvz., Sinden). Pozicinių ginklų\n"
 "žaidimai visada piešia savo taikiklį."
 

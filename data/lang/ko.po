@@ -1,11 +1,11 @@
-# Korean translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Korean translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -772,10 +772,10 @@ msgstr "설정 디렉터리"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"sm2-emu.ini를 읽고 저장하는 위치입니다.\n"
+"keisho.ini를 읽고 저장하는 위치입니다.\n"
 "--config <dir>로 지정하며, 여기서는 변경할 수 없습니다."
 
 #: src/osd/gui.cpp
@@ -853,10 +853,10 @@ msgstr "베젤 디렉터리"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "베젤 이미지: <game>.png, 부모 세트의 이미지, 또는 default.png.\n"
-"비워 두면 sm2-emu.ini 옆의 bezels 폴더를 사용합니다."
+"비워 두면 keisho.ini 옆의 bezels 폴더를 사용합니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -870,13 +870,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "조준선 이미지: <game>-p1.png (플레이어 2는 -p2) 또는\n"
 "둘 다 <game>.png, 그다음 부모 세트의 것, 그다음 default.\n"
 "1080줄 화면에서 원래 크기로 그려집니다. 이미지가\n"
 "없으면 내장 조준선을 그립니다.\n"
-"비워 두면 sm2-emu.ini 옆의 crosshairs 폴더입니다."
+"비워 두면 keisho.ini 옆의 crosshairs 폴더입니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -887,12 +887,12 @@ msgstr "온라인에서 아트워크 가져오기"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "게임 선택 화면이 네트워크를 통해 ArcadeDB에서\n"
-"박스 아트와 설명을 가져옵니다. 끄면 sm2-emu는\n"
+"박스 아트와 설명을 가져옵니다. 끄면 Keisho는\n"
 "오프라인을 유지합니다: 모든 게임을 표시하고 실행할 수\n"
 "있지만, 임시 타일이 표시되고 설명은 없습니다."
 
@@ -943,8 +943,8 @@ msgstr "GPL-3.0-or-later 라이선스. LICENSE를 참고하세요."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu는 커뮤니티와 공유된 오픈 소스 덕분에 존재합니다."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho는 커뮤니티와 공유된 오픈 소스 덕분에 존재합니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1953,11 +1953,11 @@ msgstr "조준점 표시"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"sm2-emu 자체 조준점을 그립니다. 건에 자체 조준기가\n"
+"Keisho 자체 조준점을 그립니다. 건에 자체 조준기가\n"
 "있으면 끄세요 (예: Sinden). 위치 감지형 건 게임은\n"
 "설정과 관계없이 항상 자체 조준점을 그립니다."
 

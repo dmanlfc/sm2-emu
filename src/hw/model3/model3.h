@@ -9,9 +9,9 @@
 // 2003-2026 The Supermodel Team (Model3.cpp) and Copyright (c) 2011-2021 Bart
 // Trzynadlowski, Nik Henson, Ian Curtis, Harry Tuttle, and Spindizzi
 // (Model3.h).
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // Notes:
 //   - Implements hw::Machine; publishes a VideoFrame per run_frame().
@@ -25,9 +25,9 @@
 //   - Virtual RTC; inputs come from hw::Inputs, with game remaps done in the
 //     input layer.
 //   - Sound, drive and net boards attach through ports.h.
-//   - sm2-emu's 93C46 and 315-5881, with a short EEPROM busy delay.
+//   - Keisho's 93C46 and 315-5881, with a short EEPROM busy delay.
 //   - Archive save states; NVRAM in the .nv block layout plus an
-//     "sm2-emu RTC" block.
+//     "Keisho RTC" block.
 #pragma once
 
 #include "cpu/page_map.h"

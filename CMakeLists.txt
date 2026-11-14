@@ -1,21 +1,23 @@
 cmake_minimum_required(VERSION 3.24)
 
-#  ____  __  __  ____         _____ __  __ _   _
-# / ___||  \/  ||___ \       | ____|  \/  | | | |
-# \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-#  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-# |____/|_|  |_||_____|      |_____|_|  |_|\___/
+# ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+# ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+# █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+# ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+# ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+# ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+#            継 承  ( k e i s h ō )
 #
-# sm2-emu — A Sega Model 1 & 2 arcade emulator.
+# A Sega Model 1, 2 & 3 arcade emulator.
 # Copyright (c) 2025+ Daniel Martin (dmanlfc)
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# This header must not be removed. sm2-emu is licensed under the GNU General
+# This header must not be removed. Keisho is licensed under the GNU General
 # Public License, version 3 or later, with additional terms under section 7 of
 # that licence. See LICENSE and NOTICE.
 #
 
-project(sm2-emu
+project(keisho
     VERSION     0.9.59
     DESCRIPTION "Sega Model 1, 2 & 3 arcade emulator"
     LANGUAGES   C CXX
@@ -112,8 +114,13 @@ elseif(WIN32)
     # macros that break std::min/std::max, and is huge by default. Suppress both
     # globally so any translation unit that ends up including it is unaffected.
     add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN)
+    # Source files are UTF-8 (the file banner); MSVC otherwise reads them in
+    # the system code page.
+    if(MSVC)
+        add_compile_options(/utf-8)
+    endif()
 else()
-    message(WARNING "sm2-emu has not been tested on ${CMAKE_SYSTEM_NAME}")
+    message(WARNING "Keisho has not been tested on ${CMAKE_SYSTEM_NAME}")
 endif()
 
 # evdev light guns need libudev, which only exists on Linux.
@@ -153,7 +160,7 @@ endif()
 # ---------------------------------------------------------------------------
 
 message(STATUS "")
-message(STATUS "sm2-emu ${PROJECT_VERSION}")
+message(STATUS "Keisho ${PROJECT_VERSION}")
 message(STATUS "  system          : ${CMAKE_SYSTEM_NAME} / ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "  build type      : ${CMAKE_BUILD_TYPE}")
 message(STATUS "  compiler        : ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")

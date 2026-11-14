@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -547,8 +549,15 @@ void apply_bindings(u32 program, const std::vector<BindingFixup>& fixups)
 /// failure, matching compile_program()'s own convention.
 [[nodiscard]] u32 compile_stage(u32 stage_type, const char* source)
 {
-    const u32 shader = CreateShader(stage_type);
-    ShaderSource(shader, 1, &source, nullptr);
+    // Non-ASCII only appears in comments (the file banner); not every GLSL
+    // compiler accepts it there.
+    std::string ascii(source);
+    for (char& c : ascii) {
+        if (static_cast<unsigned char>(c) >= 0x80) c = ' ';
+    }
+    const char* text   = ascii.c_str();
+    const u32   shader = CreateShader(stage_type);
+    ShaderSource(shader, 1, &text, nullptr);
     CompileShader(shader);
 
     s32 ok = 0;

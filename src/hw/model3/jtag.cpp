@@ -5,9 +5,9 @@
 // Derived from Supermodel's Src/Model3/JTAG.cpp
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c)
 // 2003-2024 The Supermodel Team.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // Which JTAG standard the device follows is unclear (and probably does not
 // matter), so IEEE 1149.1-1990 is assumed. All the video board ASICs and the

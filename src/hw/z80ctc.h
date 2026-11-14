@@ -13,7 +13,7 @@
 // reads a channel back. So the read path exists for completeness and the
 // interrupting timer is the part that has to be right.
 //
-// MAME drives each channel from a scheduler timer. sm2-emu has no scheduler, so
+// MAME drives each channel from a scheduler timer. Keisho has no scheduler, so
 // this counts host cycles instead, the way hw::I8251 does; a channel fires when
 // its accumulated prescaler ticks reach the time constant.
 //

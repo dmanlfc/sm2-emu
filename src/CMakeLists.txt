@@ -1,14 +1,16 @@
-#  ____  __  __  ____         _____ __  __ _   _
-# / ___||  \/  ||___ \       | ____|  \/  | | | |
-# \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-#  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-# |____/|_|  |_||_____|      |_____|_|  |_|\___/
+# ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+# ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+# █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+# ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+# ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+# ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+#            継 承  ( k e i s h ō )
 #
-# A Sega Model 1 & 2 arcade emulator.
+# A Sega Model 1, 2 & 3 arcade emulator.
 # Copyright (c) 2025+ Daniel Martin (dmanlfc)
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# This header must not be removed. sm2-emu is licensed under the GNU General
+# This header must not be removed. Keisho is licensed under the GNU General
 # Public License, version 3 or later, with additional terms under section 7 of
 # that licence. See LICENSE and NOTICE.
 #
@@ -135,7 +137,7 @@ if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
         render/gl/model3_pass.cpp
     )
     # sm2_hw is used through headers only (types forward-declared), so it is
-    # not linked here -- sm2-emu's own link line supplies it. sm2_render (not
+    # not linked here -- keisho's own link line supplies it. sm2_render (not
     # sm2_render_vk) carries render::triangulate(), so the GL backend builds
     # with Vulkan absent.
     target_link_libraries(sm2_render_gl
@@ -462,10 +464,10 @@ if(SM2_HAVE_CURL)
 endif()
 
 # ---------------------------------------------------------------------------
-# sm2-emu — the executable
+# Keisho — the executable
 # ---------------------------------------------------------------------------
 
-add_executable(sm2-emu
+add_executable(keisho
     main.cpp
 )
 
@@ -473,18 +475,19 @@ add_executable(sm2-emu
 # app is double-clickable. The .icns is carried inside the bundle as a resource
 # and named in Info.plist; games.xml is staged into Contents/Resources below.
 if(SM2_PLATFORM_MACOS)
-    set(SM2_MACOS_ICNS "${CMAKE_SOURCE_DIR}/data/icons/sm2-emu.icns")
-    set_target_properties(sm2-emu PROPERTIES
+    set(SM2_MACOS_ICNS "${CMAKE_SOURCE_DIR}/data/icons/keisho.icns")
+    set_target_properties(keisho PROPERTIES
+        OUTPUT_NAME   "Keisho"
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_INFO_PLIST      "${CMAKE_SOURCE_DIR}/cmake/Info.plist.in"
-        MACOSX_BUNDLE_BUNDLE_NAME     "SM2 Emulator"
-        MACOSX_BUNDLE_GUI_IDENTIFIER  "dev.dmanlfc.sm2-emu"
+        MACOSX_BUNDLE_BUNDLE_NAME     "Keisho"
+        MACOSX_BUNDLE_GUI_IDENTIFIER  "io.github.keisho-emu.keisho"
         MACOSX_BUNDLE_BUNDLE_VERSION        "${PROJECT_VERSION}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING  "${PROJECT_VERSION}"
-        MACOSX_BUNDLE_ICON_FILE       "sm2-emu.icns")
+        MACOSX_BUNDLE_ICON_FILE       "keisho.icns")
     # Package the icns and the ROM database into Contents/Resources so the
     # bundle is self-contained (and stays so when installed/copied).
-    target_sources(sm2-emu PRIVATE
+    target_sources(keisho PRIVATE
         "${SM2_MACOS_ICNS}"
         "${CMAKE_SOURCE_DIR}/data/games.xml")
     set_source_files_properties(
@@ -493,29 +496,29 @@ if(SM2_PLATFORM_MACOS)
         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     # The overlay's translations, in Contents/Resources/lang.
     file(GLOB SM2_LANG_FILES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/data/lang/*.po")
-    target_sources(sm2-emu PRIVATE ${SM2_LANG_FILES})
+    target_sources(keisho PRIVATE ${SM2_LANG_FILES})
     set_source_files_properties(${SM2_LANG_FILES}
         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lang")
     # Fonts for scripts a system may lack, in Contents/Resources/lang/fonts.
     file(GLOB SM2_LANG_FONTS CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/data/lang/fonts/*")
-    target_sources(sm2-emu PRIVATE ${SM2_LANG_FONTS})
+    target_sources(keisho PRIVATE ${SM2_LANG_FONTS})
     set_source_files_properties(${SM2_LANG_FONTS}
         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lang/fonts")
 elseif(SM2_PLATFORM_WINDOWS)
     # Compile the .ico into the .exe so Explorer/taskbar show it. MSVC builds
     # any .rc listed as a source automatically. The window icon while running is
     # set separately in osd/window.cpp.
-    set(SM2_WIN_ICON "${CMAKE_SOURCE_DIR}/data/icons/sm2-emu.ico")
+    set(SM2_WIN_ICON "${CMAKE_SOURCE_DIR}/data/icons/keisho.ico")
     configure_file(
-        "${CMAKE_SOURCE_DIR}/cmake/sm2-emu.rc.in"
-        "${CMAKE_BINARY_DIR}/sm2-emu.rc"
+        "${CMAKE_SOURCE_DIR}/cmake/keisho.rc.in"
+        "${CMAKE_BINARY_DIR}/keisho.rc"
         @ONLY)
-    target_sources(sm2-emu PRIVATE "${CMAKE_BINARY_DIR}/sm2-emu.rc")
+    target_sources(keisho PRIVATE "${CMAKE_BINARY_DIR}/keisho.rc")
     # Delay-load the Vulkan loader: an old or missing vulkan-1.dll lacks the
     # 1.3 exports and would stop the exe starting, even for OpenGL/software.
     if(MSVC AND SM2_BUILD_VULKAN)
-        target_link_options(sm2-emu PRIVATE "/DELAYLOAD:vulkan-1.dll")
-        target_link_libraries(sm2-emu PRIVATE delayimp)
+        target_link_options(keisho PRIVATE "/DELAYLOAD:vulkan-1.dll")
+        target_link_libraries(keisho PRIVATE delayimp)
     endif()
 endif()
 # sm2_core is not listed: sm2_osd and sm2_hw expose it PUBLIC, and naming it
@@ -523,7 +526,7 @@ endif()
 # sm2_cpu and sm2_rom the same way. sm2_render (backend-neutral geometry) is
 # linked directly so it is present whichever GPU backends are, or are not,
 # built.
-target_link_libraries(sm2-emu
+target_link_libraries(keisho
     PRIVATE
         sm2_osd
         sm2_render
@@ -533,37 +536,37 @@ target_link_libraries(sm2-emu
         sm2_warnings
 )
 if(SM2_BUILD_VULKAN)
-    target_link_libraries(sm2-emu PRIVATE sm2_render_vk)
+    target_link_libraries(keisho PRIVATE sm2_render_vk)
 endif()
 if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
-    target_link_libraries(sm2-emu PRIVATE sm2_render_gl)
+    target_link_libraries(keisho PRIVATE sm2_render_gl)
 endif()
 
-target_compile_definitions(sm2-emu PRIVATE
+target_compile_definitions(keisho PRIVATE
     $<$<BOOL:${SM2_BUILD_VULKAN}>:SM2_HAVE_VULKAN=1>
     $<$<BOOL:${SM2_BUILD_OPENGL_DESKTOP}>:SM2_HAVE_OPENGL_DESKTOP=1>
     $<$<BOOL:${SM2_BUILD_OPENGL_ES}>:SM2_HAVE_OPENGL_ES=1>
 )
 
 # Keep games.xml beside the binary so a freshly built tree runs without any
-# environment set up. GameDatabase::locate also looks in ../share/sm2-emu for
+# environment set up. GameDatabase::locate also looks in ../share/keisho for
 # installed builds. On macOS games.xml is packaged into the bundle's
 # Contents/Resources instead (see the bundle setup above), so this staging is
 # only for the non-bundle layouts.
 if(NOT SM2_PLATFORM_MACOS)
-    add_custom_command(TARGET sm2-emu POST_BUILD
+    add_custom_command(TARGET keisho POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${CMAKE_SOURCE_DIR}/data/games.xml"
-                "$<TARGET_FILE_DIR:sm2-emu>/games.xml"
+                "$<TARGET_FILE_DIR:keisho>/games.xml"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 "${CMAKE_SOURCE_DIR}/data/lang"
-                "$<TARGET_FILE_DIR:sm2-emu>/lang"
+                "$<TARGET_FILE_DIR:keisho>/lang"
         COMMENT "Staging games.xml and translations"
         VERBATIM
     )
 endif()
 
-target_compile_definitions(sm2-emu PRIVATE
+target_compile_definitions(keisho PRIVATE
     SM2_VERSION="${PROJECT_VERSION}"
     $<$<BOOL:${SM2_ENABLE_VALIDATION}>:SM2_ENABLE_VALIDATION=1>
 )
@@ -575,7 +578,7 @@ if(SM2_PLATFORM_MACOS AND SM2_BUILD_VULKAN)
     get_target_property(sm2_vulkan_library Vulkan::Vulkan IMPORTED_LOCATION)
     if(sm2_vulkan_library)
         get_filename_component(sm2_vulkan_dir "${sm2_vulkan_library}" DIRECTORY)
-        set_target_properties(sm2-emu PROPERTIES
+        set_target_properties(keisho PROPERTIES
             BUILD_RPATH   "${sm2_vulkan_dir}"
             INSTALL_RPATH "${sm2_vulkan_dir}")
     endif()
@@ -585,11 +588,11 @@ endif()
 # Installation
 # ---------------------------------------------------------------------------
 # `cmake --install` lays the emulator out in a standard prefix:
-#   bin/sm2-emu                          the executable
-#   share/sm2-emu/games.xml              the ROM database (GameDatabase::locate
-#                                        searches ../share/sm2-emu for it)
-#   share/sm2-emu/lang/*.po              the overlay's translations
-#   share/sm2-emu/lang/fonts/*.ttf       fonts for scripts the system may lack
+#   bin/keisho                          the executable
+#   share/keisho/games.xml              the ROM database (GameDatabase::locate
+#                                        searches ../share/keisho for it)
+#   share/keisho/lang/*.po              the overlay's translations
+#   share/keisho/lang/fonts/*.ttf       fonts for scripts the system may lack
 # plus the desktop-integration icons per platform (below). The in-window icon 
 # is compiled in separately (src/osd/app_icon.h) and does not depend on any of 
 # this being installed.
@@ -602,46 +605,46 @@ if(SM2_PLATFORM_MACOS)
     # The .app is self-contained (executable + icns + games.xml inside it), so
     # it installs to a Applications-style bundle directory and needs nothing
     # alongside it.
-    install(TARGETS sm2-emu BUNDLE DESTINATION ".")
+    install(TARGETS keisho BUNDLE DESTINATION ".")
 elseif(SM2_PLATFORM_WINDOWS)
     # Keep games.xml beside the .exe (GameDatabase::locate checks the exe dir)
     # so the install prefix is one self-contained folder to zip and run.
-    install(TARGETS sm2-emu RUNTIME DESTINATION ".")
+    install(TARGETS keisho RUNTIME DESTINATION ".")
     install(FILES "${CMAKE_SOURCE_DIR}/data/games.xml" DESTINATION ".")
     install(DIRECTORY "${CMAKE_SOURCE_DIR}/data/lang" DESTINATION "."
             FILES_MATCHING PATTERN "*.po" PATTERN "*.ttf" PATTERN "OFL.txt")
-    install(FILES "${SM2_ICON_DIR}/sm2-emu.ico" DESTINATION ".")
+    install(FILES "${SM2_ICON_DIR}/keisho.ico" DESTINATION ".")
 else()
-    install(TARGETS sm2-emu RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    install(TARGETS keisho RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
     install(FILES "${CMAKE_SOURCE_DIR}/data/games.xml"
-            DESTINATION "${CMAKE_INSTALL_DATADIR}/sm2-emu")
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/keisho")
     install(DIRECTORY "${CMAKE_SOURCE_DIR}/data/lang"
-            DESTINATION "${CMAKE_INSTALL_DATADIR}/sm2-emu"
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/keisho"
             FILES_MATCHING PATTERN "*.po" PATTERN "*.ttf" PATTERN "OFL.txt")
 endif()
 
 if(SM2_PLATFORM_LINUX)
     # Freedesktop hicolor icon theme: one PNG per size under
     # share/icons/hicolor/<size>x<size>/apps/, named after the .desktop's Icon
-    # key (sm2-emu). The desktop environment picks the best size automatically.
+    # key (keisho). The desktop environment picks the best size automatically.
     foreach(sz 48 128 256 512)
-        install(FILES "${SM2_ICON_DIR}/sm2-emu-${sz}.png"
+        install(FILES "${SM2_ICON_DIR}/keisho-${sz}.png"
                 DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${sz}x${sz}/apps"
-                RENAME "sm2-emu.png")
+                RENAME "keisho.png")
     endforeach()
     # Scalable slot: our SVG carries the exact artwork, so hand it to themes
     # that prefer scalable icons.
-    install(FILES "${SM2_ICON_DIR}/sm2-emu.svg"
+    install(FILES "${SM2_ICON_DIR}/keisho.svg"
             DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps")
 
     # A .desktop launcher so the icon and app show up in the applications menu.
     configure_file(
-        "${CMAKE_SOURCE_DIR}/cmake/sm2-emu.desktop.in"
-        "${CMAKE_BINARY_DIR}/sm2-emu.desktop"
+        "${CMAKE_SOURCE_DIR}/cmake/keisho.desktop.in"
+        "${CMAKE_BINARY_DIR}/keisho.desktop"
         @ONLY)
-    install(FILES "${CMAKE_BINARY_DIR}/sm2-emu.desktop"
+    install(FILES "${CMAKE_BINARY_DIR}/keisho.desktop"
             DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
 endif()
 
-# macOS needs nothing extra here: the icon (sm2-emu.icns) and games.xml are
+# macOS needs nothing extra here: the icon (keisho.icns) and games.xml are
 # packaged inside the .app bundle above.

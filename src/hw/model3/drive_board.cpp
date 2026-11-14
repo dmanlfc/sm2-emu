@@ -9,9 +9,9 @@
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c)
 // 2011-2021 Bart Trzynadlowski, Nik Henson, Ian Curtis, Harry Tuttle, and
 // Spindizzi (Z80CTC: Copyright (c) 2003-2026 The Supermodel Team).
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // The Z80's interrupt-acknowledge cycle drops INT. The boards are always
 // enabled, since games complain when one is missing. Forces and billboard

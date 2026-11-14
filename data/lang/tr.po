@@ -1,8 +1,8 @@
-# Turkish translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Turkish translation of the Keisho overlay. Machine-translated seed; corrections welcome.
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -770,10 +770,10 @@ msgstr "Yapılandırma dizini"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"sm2-emu.ini dosyasının okunduğu ve kaydedildiği yer.\n"
+"keisho.ini dosyasının okunduğu ve kaydedildiği yer.\n"
 "--config <dir> ile ayarlanır; burada değiştirilemez."
 
 #: src/osd/gui.cpp
@@ -851,10 +851,10 @@ msgstr "Çerçeve dizini"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Çerçeve resimleri: <game>.png, ana setinki veya default.png.\n"
-"Boş, sm2-emu.ini yanındaki bezels klasörü demektir."
+"Boş, keisho.ini yanındaki bezels klasörü demektir."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -868,13 +868,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Nişangâh resimleri: <game>-p1.png (oyuncu 2 için -p2) veya\n"
 "ikisi için <game>.png, sonra ana setinki, sonra default.\n"
 "1080 satırlık görüntüde kendi boyutlarında çizilir. Yoksa\n"
 "yerleşik nişangâh çizilir.\n"
-"Boş, sm2-emu.ini yanındaki crosshairs klasörü demektir."
+"Boş, keisho.ini yanındaki crosshairs klasörü demektir."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -885,12 +885,12 @@ msgstr "Görselleri çevrim içi indir"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Oyun seçicinin ağ üzerinden ArcadeDB'den kutu resimleri ve\n"
-"açıklamalar almasına izin verir. Kapalıyken sm2-emu çevrim\n"
+"açıklamalar almasına izin verir. Kapalıyken Keisho çevrim\n"
 "dışı kalır: seçici yine tüm oyunları listeler ve başlatır,\n"
 "yer tutucu kutucuklarla ve açıklamasız."
 
@@ -941,8 +941,8 @@ msgstr "GPL-3.0-or-later lisansı. Bkz. LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu, toplulukla paylaşılan açık kaynak sayesinde var."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho, toplulukla paylaşılan açık kaynak sayesinde var."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1956,11 +1956,11 @@ msgstr "Nişangâhı göster"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"sm2-emu'nun kendi nişangâhını çizer. Tabancanın kendi\n"
+"Keisho'nun kendi nişangâhını çizer. Tabancanın kendi\n"
 "nişangâhı varsa (ör. Sinden) kapatın. Konumsal tabanca\n"
 "oyunları her durumda kendi nişangâhlarını çizer."
 

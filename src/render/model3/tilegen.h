@@ -6,9 +6,9 @@
 // hardware description from Src/Graphics/Render2D.cpp
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later.
 // Copyright (c) 2011-2012 Bart Trzynadlowski, Nik Henson.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // Draws from a VideoFrame's VRAM and registers. Palettes persist across
 // frames and are updated from VRAM changes; VRAM stores made during active

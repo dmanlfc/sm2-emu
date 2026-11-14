@@ -1,8 +1,8 @@
-# Catalan translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Catalan translation of the Keisho overlay. Machine-translated seed; corrections welcome.
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -769,10 +769,10 @@ msgstr "Directori de configuració"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"On es llegeix i es desa sm2-emu.ini.\n"
+"On es llegeix i es desa keisho.ini.\n"
 "Es defineix amb --config <dir>; no es pot canviar aquí."
 
 #: src/osd/gui.cpp
@@ -850,10 +850,10 @@ msgstr "Directori de bezels"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Imatges de bezel: <game>.png, la del joc pare o default.png.\n"
-"Buit vol dir una carpeta bezels al costat de sm2-emu.ini."
+"Buit vol dir una carpeta bezels al costat de keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -867,13 +867,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Imatges de punt de mira: <game>-p1.png (-p2 per al jugador 2) o\n"
 "<game>.png per a tots dos, després la del joc pare, després default.\n"
 "Es dibuixen a la seva mida en una imatge de 1080 línies. Sense\n"
 "cap, es dibuixa el punt de mira integrat.\n"
-"Buit vol dir una carpeta crosshairs al costat de sm2-emu.ini."
+"Buit vol dir una carpeta crosshairs al costat de keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -884,12 +884,12 @@ msgstr "Obtén imatges en línia"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Permet que el selector de jocs obtingui portades i descripcions\n"
-"d'ArcadeDB per la xarxa. Desactivat manté sm2-emu fora de línia:\n"
+"d'ArcadeDB per la xarxa. Desactivat manté Keisho fora de línia:\n"
 "el selector encara llista i inicia tots els jocs, amb miniatures\n"
 "genèriques i sense descripcions."
 
@@ -940,8 +940,8 @@ msgstr "Llicència GPL-3.0-or-later. Vegeu LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu existeix gràcies al codi obert compartit amb la comunitat."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho existeix gràcies al codi obert compartit amb la comunitat."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1964,11 +1964,11 @@ msgstr "Mostra el punt de mira"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Dibuixa el punt de mira propi d'sm2-emu. Desactiveu-lo si\n"
+"Dibuixa el punt de mira propi d'Keisho. Desactiveu-lo si\n"
 "la pistola té mira pròpia (p. ex. una Sinden). Els jocs de\n"
 "pistola posicional sempre dibuixen el seu igualment."
 

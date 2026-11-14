@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -672,7 +674,7 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
         chosen = database.find(preferred_game);
         if (chosen == nullptr) {
             SM2_ERROR("'%s' is not in the ROM database", preferred_game.c_str());
-            failure.message = "'" + preferred_game + "' is not a game sm2-emu knows.";
+            failure.message = "'" + preferred_game + "' is not a game Keisho knows.";
             return std::nullopt;
         }
     } else {
@@ -706,11 +708,11 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
         }
 
         if (best == nullptr) {
-            SM2_ERROR("'%s' does not contain any game sm2-emu recognises",
+            SM2_ERROR("'%s' does not contain any game Keisho recognises",
                       archive_path.c_str());
             SM2_ERROR("Identification is by CRC32, so this means none of the "
                       "expected chips were found, not that the name is wrong.");
-            failure.message = file_name + " does not hold any game sm2-emu "
+            failure.message = file_name + " does not hold any game Keisho "
                               "recognises. Games are matched by their chips' CRC32, "
                               "not by the file name.";
             return std::nullopt;
@@ -833,7 +835,7 @@ std::optional<LoadResult> RomLoader::load(const GameDatabase& database,
                   chosen->name.c_str(), board_name(chosen->board));
         failure.game    = chosen->name;
         failure.message = std::string("This is a ") + board_name(chosen->board)
-                        + " game, which sm2-emu does not run yet.";
+                        + " game, which Keisho does not run yet.";
         return std::nullopt;
     }
     if (chosen->preliminary) {

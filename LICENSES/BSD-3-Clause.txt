@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Applies to the code in sm2-emu that is derived from the MAME project
+Applies to the code in Keisho that is derived from the MAME project
 (https://github.com/mamedev/mame). Each such file is marked
 "SPDX-License-Identifier: GPL-3.0-or-later AND BSD-3-Clause" and names its
 original MAME copyright holders in its header.

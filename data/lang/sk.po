@@ -1,8 +1,8 @@
-# Slovak translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Slovak translation of the Keisho overlay. Machine-translated seed; corrections welcome.
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -769,10 +769,10 @@ msgstr "Priečinok konfigurácie"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Odkiaľ sa sm2-emu.ini načítava a kam sa ukladá.\n"
+"Odkiaľ sa keisho.ini načítava a kam sa ukladá.\n"
 "Nastavuje sa cez --config <dir>; tu sa nedá zmeniť."
 
 #: src/osd/gui.cpp
@@ -850,10 +850,10 @@ msgstr "Priečinok rámikov"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Obrázky rámikov: <game>.png, rodičovskej sady alebo default.png.\n"
-"Prázdne znamená priečinok bezels vedľa sm2-emu.ini."
+"Prázdne znamená priečinok bezels vedľa keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -867,13 +867,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Obrázky zameriavačov: <game>-p1.png (-p2 pre hráča 2) alebo\n"
 "<game>.png pre oboch, potom rodičovskej sady, potom default.\n"
 "Kreslia sa vo vlastnej veľkosti na obraz s 1080 riadkami. Bez\n"
 "nich sa kreslí vstavaný zameriavač.\n"
-"Prázdne znamená priečinok crosshairs vedľa sm2-emu.ini."
+"Prázdne znamená priečinok crosshairs vedľa keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -884,12 +884,12 @@ msgstr "Sťahovať obrázky online"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Umožní výberu hier sťahovať obaly a popisy z\n"
-"ArcadeDB cez sieť. Vypnuté drží sm2-emu offline:\n"
+"ArcadeDB cez sieť. Vypnuté drží Keisho offline:\n"
 "výber stále zobrazí a spustí každú hru, so\n"
 "zástupnými dlaždicami a bez popisov."
 
@@ -940,8 +940,8 @@ msgstr "Licencia GPL-3.0-or-later. Pozri LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu existuje vďaka otvorenému kódu zdieľanému s komunitou."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho existuje vďaka otvorenému kódu zdieľanému s komunitou."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1955,11 +1955,11 @@ msgstr "Zobraziť zameriavač"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Kreslí vlastný zameriavač sm2-emu. Vypnite, ak má\n"
+"Kreslí vlastný zameriavač Keisho. Vypnite, ak má\n"
 "pištoľ vlastné mieridlá (napr. Sinden). Hry s pozičnými\n"
 "pištoľami kreslia svoj vždy."
 

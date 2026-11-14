@@ -7,9 +7,9 @@
 // Bart Trzynadlowski, Nik Henson. Port handling and mixing from Supermodel's
 // Src/Model3/Model3.cpp, Src/Model3/DSB.cpp and Src/OSD/SDL/Audio.cpp,
 // Copyright (c) 2003-2026 The Supermodel Team.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // Notes on the sample ROM banking:
 //

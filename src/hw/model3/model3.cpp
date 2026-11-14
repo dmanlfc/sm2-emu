@@ -5,9 +5,9 @@
 // Derived from Supermodel's Src/Model3/Model3.cpp
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c)
 // 2003-2026 The Supermodel Team.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // PowerPC address map (may be incomplete):
 //
@@ -1283,7 +1283,7 @@ void Model3::mmio_write32(u32 addr, u32 data)
 //
 // Blocks of: u32 total length, u32 name length, u32 comment length (both with
 // NUL), name, comment, data. A header block, "93C46", "Backup RAM"
-// (word-reversed) and "sm2-emu RTC" (s64), which other readers ignore.
+// (word-reversed) and "Keisho RTC" (s64), which other readers ignore.
 
 namespace {
 
@@ -1294,7 +1294,7 @@ void put_u32(std::vector<u8>& out, u32 v)
 
 void put_block(std::vector<u8>& out, const std::string& name, std::span<const u8> data)
 {
-    const std::string comment = "sm2-emu";
+    const std::string comment = "Keisho";
     put_u32(out, static_cast<u32>(12 + name.size() + 1 + comment.size() + 1 + data.size()));
     put_u32(out, static_cast<u32>(name.size() + 1));
     put_u32(out, static_cast<u32>(comment.size() + 1));
@@ -1376,7 +1376,7 @@ std::vector<u8> Model3::nvram_image() const
     std::vector<u8> rtc(8);
     const s64 t = m_rtc.time();
     std::memcpy(rtc.data(), &t, 8);
-    put_block(out, "sm2-emu RTC", rtc);
+    put_block(out, "Keisho RTC", rtc);
     return out;
 }
 
@@ -1391,7 +1391,7 @@ bool Model3::apply_nvram_image(std::span<const u8> image)
     }
     const auto backup = find_block(image, "Backup RAM");
     if (backup.size() >= kBackupRamSize) reverse_words(backup.first(kBackupRamSize), m_backup_ram);
-    const auto rtc = find_block(image, "sm2-emu RTC");
+    const auto rtc = find_block(image, "Keisho RTC");
     if (rtc.size() >= 8) {
         s64 t = 0;
         std::memcpy(&t, rtc.data(), 8);

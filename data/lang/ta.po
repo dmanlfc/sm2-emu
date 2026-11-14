@@ -1,13 +1,13 @@
-# Tamil translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Tamil translations for sm2-emu package.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Tamil translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Tamil translations for Keisho package.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -774,10 +774,10 @@ msgstr "கட்டமைப்பு அடைவு"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"sm2-emu.ini படிக்கப்பட்டு சேமிக்கப்படும் இடம்.\n"
+"keisho.ini படிக்கப்பட்டு சேமிக்கப்படும் இடம்.\n"
 "--config <dir> மூலம் அமைக்கவும்; இங்கே மாற்ற முடியாது."
 
 #: src/osd/gui.cpp
@@ -855,10 +855,10 @@ msgstr "சட்டக அடைவு"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "சட்டகப் படங்கள்: <game>.png, பெற்றோர் தொகுப்பின் படம், அல்லது default.png.\n"
-"காலியெனில் sm2-emu.ini அருகிலுள்ள bezels கோப்புறை."
+"காலியெனில் keisho.ini அருகிலுள்ள bezels கோப்புறை."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -872,13 +872,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "குறிவைப்பு படங்கள்: <game>-p1.png (வீரர் 2-க்கு -p2) அல்லது\n"
 "இருவருக்கும் <game>.png, பின் மூல தொகுப்பினுடையது, பின் default.\n"
 "1080-வரி படத்தில் சொந்த அளவில் வரையப்படும். இல்லையெனில்\n"
 "உள்ளமைந்த குறிவைப்பு வரையப்படும்.\n"
-"காலியாக இருந்தால் sm2-emu.ini அருகே crosshairs கோப்புறை."
+"காலியாக இருந்தால் keisho.ini அருகே crosshairs கோப்புறை."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -889,12 +889,12 @@ msgstr "ஆன்லைனில் கலைப்படங்களைப் �
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "கேம் தேர்வி பெட்டிப் படங்களையும் விளக்கங்களையும் நெட்வொர்க் வழியாக\n"
-"ArcadeDB இலிருந்து பெற அனுமதி. அணைத்தால் sm2-emu ஆஃப்லைனில் இருக்கும்:\n"
+"ArcadeDB இலிருந்து பெற அனுமதி. அணைத்தால் Keisho ஆஃப்லைனில் இருக்கும்:\n"
 "தேர்வி இன்னும் எல்லா கேம்களையும் பட்டியலிட்டுத் துவக்கும், இடம்பிடி\n"
 "ஓடுகளுடன், விளக்கங்கள் இல்லாமல்."
 
@@ -945,8 +945,8 @@ msgstr "GPL-3.0-or-later உரிமம். LICENSE ஐப் பார்க�
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "சமூகத்துடன் பகிரப்பட்ட திறந்த மூலத்தால்தான் sm2-emu உள்ளது."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "சமூகத்துடன் பகிரப்பட்ட திறந்த மூலத்தால்தான் Keisho உள்ளது."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1959,11 +1959,11 @@ msgstr "குறுக்குக்கோட்டைக் காட்ட�
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"sm2-emu இன் சொந்தக் குறுக்குக்கோட்டை வரை. கன்னுக்குச் சொந்தக்\n"
+"Keisho இன் சொந்தக் குறுக்குக்கோட்டை வரை. கன்னுக்குச் சொந்தக்\n"
 "குறிகாட்டி இருந்தால் (எ.கா. Sinden) அணைக்கவும். நிலை-கன்\n"
 "கேம்கள் எப்படியும் தங்களுடையதை எப்போதும் வரையும்."
 

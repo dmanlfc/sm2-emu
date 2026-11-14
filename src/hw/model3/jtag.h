@@ -6,9 +6,9 @@
 // Derived from Supermodel's Src/Model3/JTAG.cpp and JTAG.h
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c)
 // 2003-2024 The Supermodel Team.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // The shift register is a u64, since no register exceeds 32 bits. Modewords
 // reach the Real3D through a callback interface.

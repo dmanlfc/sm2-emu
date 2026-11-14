@@ -1,8 +1,8 @@
-# Spanish translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Spanish translation of the Keisho overlay. Machine-translated seed; corrections welcome.
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -771,10 +771,10 @@ msgstr "Carpeta de configuración"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Desde donde se lee y guarda sm2-emu.ini.\n"
+"Desde donde se lee y guarda keisho.ini.\n"
 "Se fija con --config <dir>; no se puede cambiar aquí."
 
 #: src/osd/gui.cpp
@@ -852,10 +852,10 @@ msgstr "Carpeta de bezels"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Imágenes de bezel: <game>.png, la del juego padre o default.png.\n"
-"Vacío significa una carpeta bezels junto a sm2-emu.ini."
+"Vacío significa una carpeta bezels junto a keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -869,13 +869,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Imágenes de mira: <game>-p1.png (-p2 para el jugador 2) o\n"
 "<game>.png para ambos, luego las del juego padre, luego default.\n"
 "Se dibujan a su tamaño en una imagen de 1080 líneas. Sin\n"
 "ninguna, se dibuja la mira integrada.\n"
-"Vacío significa una carpeta crosshairs junto a sm2-emu.ini."
+"Vacío significa una carpeta crosshairs junto a keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -886,12 +886,12 @@ msgstr "Descargar carátulas en línea"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Permite que el selector descargue carátulas y descripciones\n"
-"de ArcadeDB por la red. Desactivado, sm2-emu no usa la red:\n"
+"de ArcadeDB por la red. Desactivado, Keisho no usa la red:\n"
 "el selector sigue listando e iniciando todos los juegos, con\n"
 "imágenes genéricas y sin descripciones."
 
@@ -942,8 +942,8 @@ msgstr "Licencia GPL-3.0-or-later. Consulta LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu existe gracias al código abierto compartido con la comunidad."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho existe gracias al código abierto compartido con la comunidad."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1958,11 +1958,11 @@ msgstr "Mostrar mira"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Dibuja la mira propia de sm2-emu. Desactívala si la\n"
+"Dibuja la mira propia de Keisho. Desactívala si la\n"
 "pistola tiene su propia mira (p. ej. una Sinden). Los\n"
 "juegos de pistola posicional siempre dibujan la suya."
 

@@ -6,7 +6,7 @@
 //
 // The arithmetic below is deliberately MAME's, in MAME's order, including the
 // parts that look like rounding accidents: the point of this file is that any
-// difference from MAME is a difference in sm2-emu, not in the port.
+// difference from MAME is a difference in Keisho, not in the port.
 
 #include "hw/model2_softrender.h"
 

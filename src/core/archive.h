@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -115,7 +117,7 @@ private:
 // A save-state file is a small header followed by the machine's serialize()
 // payload:
 //
-//   magic     8 bytes  "SM2STATE"
+//   magic     8 bytes  "KEISHOST" ("SM2STATE" in files from sm2-emu)
 //   version   u32      bumped on any serialize-layout change (req 4.2)
 //   game_len  u32
 //   game      game_len bytes  (GameSpec::name)
@@ -130,7 +132,9 @@ private:
 
 namespace state {
 
-inline constexpr char     kMagic[8]      = {'S', 'M', '2', 'S', 'T', 'A', 'T', 'E'};
+inline constexpr char     kMagic[8]      = {'K', 'E', 'I', 'S', 'H', 'O', 'S', 'T'};
+/// The magic of states saved by sm2-emu, still read.
+inline constexpr char     kLegacyMagic[8] = {'S', 'M', '2', 'S', 'T', 'A', 'T', 'E'};
 inline constexpr u32      kFormatVersion = 3;
 /// Oldest version still read; 3 added the link frames still in flight.
 inline constexpr u32      kOldestFormatVersion = 2;

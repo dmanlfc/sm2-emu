@@ -5,9 +5,9 @@
 // Derived from Supermodel's Src/Model3/Real3D.cpp
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c)
 // 2003-2026 The Supermodel Team.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // PCI IDs: the PCI configuration space appears to return the PCI ID of Mercury
 // (0x16C311DB) on Step 1.x and of the DMA device (0x178611DB) on Step 2.x, while

@@ -5,9 +5,9 @@
 // Derived from Supermodel's Src/Model3/RTC72421.cpp and RTC72421.h
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c) 2011
 // Bart Trzynadlowski, Nik Henson.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // Time is virtual (a base Unix time plus emulated cycles) and is saved in
 // states and NVRAM; the host clock is never read. The UTC calendar uses

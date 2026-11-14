@@ -1,6 +1,6 @@
 name: Build
 
-# Builds sm2-emu on every push/PR to main (catches build breaks early) and
+# Builds Keisho on every push/PR to main (catches build breaks early) and
 # packages release artifacts on every run: a Linux x86_64 AppImage + tarball,
 # a Linux aarch64 AppImage + tarball, and a macOS dmg. Pushing a `v*` tag
 # publishes those five artifacts to a proper GitHub Release. A plain push to
@@ -86,34 +86,34 @@ jobs:
           chmod +x linuxdeploy-x86_64.AppImage
           ./linuxdeploy-x86_64.AppImage --appimage-extract-and-run \
             --appdir AppDir \
-            --executable AppDir/usr/bin/sm2-emu \
-            --desktop-file AppDir/usr/share/applications/sm2-emu.desktop \
-            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/sm2-emu.png \
+            --executable AppDir/usr/bin/keisho \
+            --desktop-file AppDir/usr/share/applications/keisho.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/keisho.png \
             --output appimage
           mkdir -p out
-          mv "$(find . -maxdepth 1 -name '*.AppImage' ! -name 'linuxdeploy-*.AppImage')" out/sm2-emu-x86_64.AppImage
+          mv "$(find . -maxdepth 1 -name '*.AppImage' ! -name 'linuxdeploy-*.AppImage')" out/keisho-x86_64.AppImage
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sm2-emu-linux-x86_64-appimage
-          path: out/sm2-emu-x86_64.AppImage
+          name: keisho-linux-x86_64-appimage
+          path: out/keisho-x86_64.AppImage
 
       # A plain, non-AppImage package for anyone who'd rather just untar and
       # run against their own system libraries — a second, independent
       # `cmake --install` into its own directory, from the same build tree
       # already compiled above (no rebuild).
       - name: Install for tarball
-        run: cmake --install build --prefix "sm2-emu-${VERSION}-linux-x86_64"
+        run: cmake --install build --prefix "keisho-${VERSION}-linux-x86_64"
 
       - name: Build tarball
         run: |
           mkdir -p out
-          tar czf "out/sm2-emu-${VERSION}-linux-x86_64.tar.gz" "sm2-emu-${VERSION}-linux-x86_64"
+          tar czf "out/keisho-${VERSION}-linux-x86_64.tar.gz" "keisho-${VERSION}-linux-x86_64"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sm2-emu-linux-x86_64-tarball
-          path: out/sm2-emu-${{ env.VERSION }}-linux-x86_64.tar.gz
+          name: keisho-linux-x86_64-tarball
+          path: out/keisho-${{ env.VERSION }}-linux-x86_64.tar.gz
 
   # ---------------------------------------------------------------------
   # Linux aarch64 — software + OpenGL ES 3.1 + Vulkan, packaged as an
@@ -172,34 +172,34 @@ jobs:
           chmod +x linuxdeploy-aarch64.AppImage
           ./linuxdeploy-aarch64.AppImage --appimage-extract-and-run \
             --appdir AppDir \
-            --executable AppDir/usr/bin/sm2-emu \
-            --desktop-file AppDir/usr/share/applications/sm2-emu.desktop \
-            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/sm2-emu.png \
+            --executable AppDir/usr/bin/keisho \
+            --desktop-file AppDir/usr/share/applications/keisho.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/keisho.png \
             --output appimage
           mkdir -p out
-          mv "$(find . -maxdepth 1 -name '*.AppImage' ! -name 'linuxdeploy-*.AppImage')" out/sm2-emu-aarch64.AppImage
+          mv "$(find . -maxdepth 1 -name '*.AppImage' ! -name 'linuxdeploy-*.AppImage')" out/keisho-aarch64.AppImage
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sm2-emu-linux-aarch64-appimage
-          path: out/sm2-emu-aarch64.AppImage
+          name: keisho-linux-aarch64-appimage
+          path: out/keisho-aarch64.AppImage
 
       # A plain, non-AppImage package for anyone who'd rather just untar and
       # run against their own system libraries — a second, independent
       # `cmake --install` into its own directory, from the same build tree
       # already compiled above (no rebuild).
       - name: Install for tarball
-        run: cmake --install build --prefix "sm2-emu-${VERSION}-linux-aarch64"
+        run: cmake --install build --prefix "keisho-${VERSION}-linux-aarch64"
 
       - name: Build tarball
         run: |
           mkdir -p out
-          tar czf "out/sm2-emu-${VERSION}-linux-aarch64.tar.gz" "sm2-emu-${VERSION}-linux-aarch64"
+          tar czf "out/keisho-${VERSION}-linux-aarch64.tar.gz" "keisho-${VERSION}-linux-aarch64"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sm2-emu-linux-aarch64-tarball
-          path: out/sm2-emu-${{ env.VERSION }}-linux-aarch64.tar.gz
+          name: keisho-linux-aarch64-tarball
+          path: out/keisho-${{ env.VERSION }}-linux-aarch64.tar.gz
 
   # ---------------------------------------------------------------------
   # macOS (Apple Silicon) — Vulkan backend via MoltenVK, packaged as a dmg.
@@ -238,31 +238,31 @@ jobs:
       - name: Install app bundle
         run: |
           cmake --install build --prefix install
-          cmake/macos-bundle.sh install/sm2-emu.app
+          cmake/macos-bundle.sh install/Keisho.app
 
       - name: Check the bundle is self-contained
         run: |
-          otool -L install/sm2-emu.app/Contents/MacOS/sm2-emu
-          if otool -L install/sm2-emu.app/Contents/MacOS/sm2-emu install/sm2-emu.app/Contents/Frameworks/*.dylib \
+          otool -L install/Keisho.app/Contents/MacOS/Keisho
+          if otool -L install/Keisho.app/Contents/MacOS/Keisho install/Keisho.app/Contents/Frameworks/*.dylib \
                | grep -E '/opt/homebrew|/usr/local/(opt|Cellar|lib)'; then
             echo "the app still links against Homebrew" >&2
             exit 1
           fi
-          VK_LOADER_DEBUG=driver install/sm2-emu.app/Contents/MacOS/sm2-emu --list-gpus \
+          VK_LOADER_DEBUG=driver install/Keisho.app/Contents/MacOS/Keisho --list-gpus \
             || echo "no usable GPU on the runner"
 
       - name: Build dmg
         run: |
           mkdir -p dmg-root
-          cp -R install/sm2-emu.app dmg-root/
+          cp -R install/Keisho.app dmg-root/
           ln -s /Applications dmg-root/Applications
-          hdiutil create -volname "SM2 Emulator" -srcfolder dmg-root \
-            -ov -format UDZO sm2-emu-macos.dmg
+          hdiutil create -volname "Keisho" -srcfolder dmg-root \
+            -ov -format UDZO keisho-macos.dmg
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sm2-emu-macos-dmg
-          path: sm2-emu-macos.dmg
+          name: keisho-macos-dmg
+          path: keisho-macos.dmg
 
   # ---------------------------------------------------------------------
   # Windows x86_64 (MSVC) — software + OpenGL 4.3 + Vulkan, packaged as a zip.
@@ -321,27 +321,27 @@ jobs:
         run: cmake --build build
 
       - name: Install
-        run: cmake --install build --prefix "sm2-emu-${{ env.VERSION }}-windows-x86_64"
+        run: cmake --install build --prefix "keisho-${{ env.VERSION }}-windows-x86_64"
 
       # The binary must start, print usage and load the game database.
       - name: Smoke test
         run: |
-          $exe = "sm2-emu-${{ env.VERSION }}-windows-x86_64\sm2-emu.exe"
+          $exe = "keisho-${{ env.VERSION }}-windows-x86_64\keisho.exe"
           & $exe --help
-          if ($LASTEXITCODE -ne 0) { throw "sm2-emu --help exited $LASTEXITCODE" }
+          if ($LASTEXITCODE -ne 0) { throw "keisho --help exited $LASTEXITCODE" }
           & $exe --list-games
-          if ($LASTEXITCODE -ne 0) { throw "sm2-emu --list-games exited $LASTEXITCODE" }
+          if ($LASTEXITCODE -ne 0) { throw "keisho --list-games exited $LASTEXITCODE" }
 
       - name: Build zip
         run: |
           New-Item -ItemType Directory -Force -Path out | Out-Null
-          Compress-Archive -Path "sm2-emu-${{ env.VERSION }}-windows-x86_64" `
-            -DestinationPath "out\sm2-emu-${{ env.VERSION }}-windows-x86_64.zip"
+          Compress-Archive -Path "keisho-${{ env.VERSION }}-windows-x86_64" `
+            -DestinationPath "out\keisho-${{ env.VERSION }}-windows-x86_64.zip"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sm2-emu-windows-x86_64-zip
-          path: out/sm2-emu-${{ env.VERSION }}-windows-x86_64.zip
+          name: keisho-windows-x86_64-zip
+          path: out/keisho-${{ env.VERSION }}-windows-x86_64.zip
 
   # ---------------------------------------------------------------------
   # Tag push only: gather the artifacts above onto a GitHub Release.
@@ -363,12 +363,12 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            artifacts/sm2-emu-linux-x86_64-appimage/*
-            artifacts/sm2-emu-linux-x86_64-tarball/*
-            artifacts/sm2-emu-linux-aarch64-appimage/*
-            artifacts/sm2-emu-linux-aarch64-tarball/*
-            artifacts/sm2-emu-macos-dmg/*
-            artifacts/sm2-emu-windows-x86_64-zip/*
+            artifacts/keisho-linux-x86_64-appimage/*
+            artifacts/keisho-linux-x86_64-tarball/*
+            artifacts/keisho-linux-aarch64-appimage/*
+            artifacts/keisho-linux-aarch64-tarball/*
+            artifacts/keisho-macos-dmg/*
+            artifacts/keisho-windows-x86_64-zip/*
 
   # ---------------------------------------------------------------------
   # Plain push to main (no tag): roll a single "dev" pre-release forward to
@@ -411,12 +411,12 @@ jobs:
       # VERSION (the commit SHA here), so those two need renaming.
       - name: Normalize asset filenames
         run: |
-          mv artifacts/sm2-emu-linux-x86_64-tarball/*.tar.gz \
-             artifacts/sm2-emu-linux-x86_64-tarball/sm2-emu-linux-x86_64.tar.gz
-          mv artifacts/sm2-emu-linux-aarch64-tarball/*.tar.gz \
-             artifacts/sm2-emu-linux-aarch64-tarball/sm2-emu-linux-aarch64.tar.gz
-          mv artifacts/sm2-emu-windows-x86_64-zip/*.zip \
-             artifacts/sm2-emu-windows-x86_64-zip/sm2-emu-windows-x86_64.zip
+          mv artifacts/keisho-linux-x86_64-tarball/*.tar.gz \
+             artifacts/keisho-linux-x86_64-tarball/keisho-linux-x86_64.tar.gz
+          mv artifacts/keisho-linux-aarch64-tarball/*.tar.gz \
+             artifacts/keisho-linux-aarch64-tarball/keisho-linux-aarch64.tar.gz
+          mv artifacts/keisho-windows-x86_64-zip/*.zip \
+             artifacts/keisho-windows-x86_64-zip/keisho-windows-x86_64.zip
 
       - name: Publish dev pre-release
         uses: softprops/action-gh-release@v2
@@ -426,9 +426,9 @@ jobs:
           body: "Automated rolling build of the latest main branch (commit ${{ github.sha }})."
           prerelease: true
           files: |
-            artifacts/sm2-emu-linux-x86_64-appimage/*
-            artifacts/sm2-emu-linux-x86_64-tarball/*
-            artifacts/sm2-emu-linux-aarch64-appimage/*
-            artifacts/sm2-emu-linux-aarch64-tarball/*
-            artifacts/sm2-emu-macos-dmg/*
-            artifacts/sm2-emu-windows-x86_64-zip/*
+            artifacts/keisho-linux-x86_64-appimage/*
+            artifacts/keisho-linux-x86_64-tarball/*
+            artifacts/keisho-linux-aarch64-appimage/*
+            artifacts/keisho-linux-aarch64-tarball/*
+            artifacts/keisho-macos-dmg/*
+            artifacts/keisho-windows-x86_64-zip/*

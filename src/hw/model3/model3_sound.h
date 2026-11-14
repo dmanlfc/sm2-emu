@@ -10,9 +10,9 @@
 // follow Supermodel's Src/Model3/Model3.cpp, Src/Model3/DSB.cpp (Copyright (c)
 // 2003-2026 The Supermodel Team; "based on code donated by R. Belmont") and
 // Src/OSD/SDL/Audio.cpp.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // The 68000 is Musashi and the SCSPs come from MAME; the slave SCSP's IRQs
 // are unconnected. Memory is kept big-endian. The board runs in host-cycle

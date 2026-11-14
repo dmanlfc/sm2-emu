@@ -8,9 +8,9 @@
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c)
 // 2011-2020 Bart Trzynadlowski, Nik Henson, Ian Curtis, Harry Tuttle, and
 // Spindizzi.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // Cabinets talk over a hw::CommTransport, and a LoopbackTransport makes a ring
 // of one. Non-blocking transports get a short bounded poll. The board is always

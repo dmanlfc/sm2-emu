@@ -1,14 +1,14 @@
-# Swedish translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Swedish translations for sm2-emu package
-# Svenska översättningar för paket sm2-emu.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Swedish translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Swedish translations for Keisho package
+# Svenska översättningar för paket Keisho.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -776,10 +776,10 @@ msgstr "Konfigurationsmapp"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Där sm2-emu.ini läses från och sparas till.\n"
+"Där keisho.ini läses från och sparas till.\n"
 "Anges med --config <dir>; kan inte ändras här."
 
 #: src/osd/gui.cpp
@@ -857,10 +857,10 @@ msgstr "Mapp för bezels"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Bezel-bilder: <game>.png, föräldersetets eller default.png.\n"
-"Tom betyder en bezels-mapp bredvid sm2-emu.ini."
+"Tom betyder en bezels-mapp bredvid keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -874,13 +874,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Siktesbilder: <game>-p1.png (-p2 för spelare 2) eller\n"
 "<game>.png för båda, sedan föräldrasetets, sedan default.\n"
 "Ritas i sin egen storlek på en bild med 1080 linjer. Utan\n"
 "bild ritas det inbyggda siktet.\n"
-"Tomt betyder en mapp crosshairs bredvid sm2-emu.ini."
+"Tomt betyder en mapp crosshairs bredvid keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -891,12 +891,12 @@ msgstr "Hämta omslagsbilder online"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Låt spelväljaren hämta omslagsbilder och beskrivningar från\n"
-"ArcadeDB via nätverket. Av håller sm2-emu offline: väljaren\n"
+"ArcadeDB via nätverket. Av håller Keisho offline: väljaren\n"
 "listar och startar fortfarande alla spel, med platshållar-\n"
 "rutor och utan beskrivningar."
 
@@ -947,8 +947,8 @@ msgstr "GPL-3.0-or-later-licens. Se LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu finns tack vare öppen källkod som delats med gemenskapen."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho finns tack vare öppen källkod som delats med gemenskapen."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1962,11 +1962,11 @@ msgstr "Visa sikte"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Rita sm2-emus eget sikte. Stäng av om pistolen\n"
+"Rita Keishos eget sikte. Stäng av om pistolen\n"
 "har ett eget sikte (t.ex. en Sinden). Spel med\n"
 "positionspistol ritar alltid sitt eget ändå."
 

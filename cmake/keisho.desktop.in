@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=SM2 Emulator
+Name=Keisho
 GenericName=Arcade Emulator
 Comment=Sega Model 1, 2 & 3 arcade emulator
-Exec=sm2-emu %f
-Icon=sm2-emu
+Exec=keisho %f
+Icon=keisho
 Terminal=false
 Categories=Game;Emulator;
-Keywords=sega;model1;model2;arcade;emulator;
+Keywords=sega;model1;model2;model3;arcade;emulator;

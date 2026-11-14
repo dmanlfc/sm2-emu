@@ -6,9 +6,9 @@
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c)
 // 2011-2019 Bart Trzynadlowski, Nik Henson, Ian Curtis (MPC10x) and Copyright
 // (c) 2011 Bart Trzynadlowski, Nik Henson (PCI).
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // A minimal implementation for the Model 3, not a full emulation of the
 // device. Accesses smaller than 32 bits are probably handled wrongly,

@@ -1,12 +1,12 @@
-# Greek translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Greek translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -774,10 +774,10 @@ msgstr "Φάκελος ρυθμίσεων"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Από πού διαβάζεται και πού αποθηκεύεται το sm2-emu.ini.\n"
+"Από πού διαβάζεται και πού αποθηκεύεται το keisho.ini.\n"
 "Ορίζεται με --config <dir>· δεν αλλάζει από εδώ."
 
 #: src/osd/gui.cpp
@@ -855,10 +855,10 @@ msgstr "Φάκελος πλαισίων"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Εικόνες πλαισίου: <game>.png, του γονικού σετ ή default.png.\n"
-"Κενό σημαίνει φάκελο bezels δίπλα στο sm2-emu.ini."
+"Κενό σημαίνει φάκελο bezels δίπλα στο keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -872,13 +872,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Εικόνες σταυρονήματος: <game>-p1.png (-p2 για τον παίκτη 2) ή\n"
 "<game>.png και για τους δύο, μετά του γονικού σετ, μετά default.\n"
 "Σχεδιάζονται στο δικό τους μέγεθος σε εικόνα 1080 γραμμών. Χωρίς\n"
 "εικόνα σχεδιάζεται το ενσωματωμένο σταυρόνημα.\n"
-"Κενό σημαίνει φάκελο crosshairs δίπλα στο sm2-emu.ini."
+"Κενό σημαίνει φάκελο crosshairs δίπλα στο keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -889,13 +889,13 @@ msgstr "Λήψη εξωφύλλων online"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Επιτρέπει στον επιλογέα παιχνιδιών να φέρνει εξώφυλλα και\n"
 "περιγραφές από το ArcadeDB μέσω δικτύου. Όταν είναι κλειστό,\n"
-"το sm2-emu μένει εκτός δικτύου: ο επιλογέας δείχνει και ξεκινά\n"
+"το Keisho μένει εκτός δικτύου: ο επιλογέας δείχνει και ξεκινά\n"
 "όλα τα παιχνίδια, με κενά πλακίδια και χωρίς περιγραφές."
 
 #: src/osd/gui.cpp
@@ -945,9 +945,9 @@ msgstr "Άδεια GPL-3.0-or-later. Δείτε το LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
+msgid "Keisho exists because of open source shared with the community."
 msgstr ""
-"Το sm2-emu υπάρχει χάρη στον ανοιχτό κώδικα που μοιράζεται με την κοινότητα."
+"Το Keisho υπάρχει χάρη στον ανοιχτό κώδικα που μοιράζεται με την κοινότητα."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1966,11 +1966,11 @@ msgstr "Εμφάνιση στόχαστρου"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Σχεδίαση του στόχαστρου του sm2-emu. Κλείστε το αν το\n"
+"Σχεδίαση του στόχαστρου του Keisho. Κλείστε το αν το\n"
 "όπλο έχει δικό του σκόπευτρο (π.χ. Sinden). Τα παιχνίδια\n"
 "με όπλο θέσης σχεδιάζουν πάντα το δικό τους."
 

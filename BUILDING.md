@@ -1,11 +1,13 @@
 ```
-  ____  __  __  ____         _____ __  __ _   _
- / ___||  \/  ||___ \       | ____|  \/  | | | |
- \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-  ___) | |  | | / __/|_____|| |___| |  | | |_| |
- |____/|_|  |_||_____|      |_____|_|  |_|\___/
+██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+█████╔╝ █████╗  ██║███████╗███████║██║   ██║
+██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+           継 承  ( k e i s h ō )
 
- A   S E G A   M O D E L   2   E M U L A T O R
+       A SEGA MODEL 1, 2 & 3 EMULATOR
 ```
 
 # Building
@@ -40,7 +42,7 @@ with no network access at configure time — nothing is downloaded on the fly.
 Clone accordingly:
 
 ```sh
-git clone --recurse-submodules https://github.com/dmanlfc/sm2-emu.git
+git clone --recurse-submodules https://github.com/Keisho-Emu/Keisho.git
 # or, in an existing checkout:
 git submodule update --init --recursive
 ```
@@ -213,8 +215,8 @@ Step by step, from a clean machine:
 3. **Clone with submodules** (see the top of this document):
 
    ```sh
-   git clone --recurse-submodules https://github.com/dmanlfc/sm2-emu.git
-   cd sm2-emu
+   git clone --recurse-submodules https://github.com/Keisho-Emu/Keisho.git
+   cd Keisho
    ```
 
 4. **Configure and build** with Vulkan enabled:
@@ -229,11 +231,11 @@ Step by step, from a clean machine:
 5. **Run**, selecting a renderer. Both present through MoltenVK:
 
    ```sh
-   ./build/bin/sm2-emu --graphics-backend vulkan   vf2.zip
-   ./build/bin/sm2-emu --graphics-backend software vf2.zip
+   ./build/bin/keisho --graphics-backend vulkan   vf2.zip
+   ./build/bin/keisho --graphics-backend software vf2.zip
    ```
 
-   Confirm MoltenVK was found with `./build/bin/sm2-emu --list-gpus`; it should
+   Confirm MoltenVK was found with `./build/bin/keisho --list-gpus`; it should
    name your Metal device. Nothing needs to be sourced to run the binary — on
    macOS the build records the loader's path in the executable. If `--list-gpus`
    reports that no Vulkan devices were found, `molten-vk` is missing: install it
@@ -245,7 +247,7 @@ Step by step, from a clean machine:
 
    ```sh
    cmake --install build --prefix install
-   cmake/macos-bundle.sh install/sm2-emu.app
+   cmake/macos-bundle.sh install/Keisho.app
    ```
 
    That copies the dylibs and MoltenVK into `Contents/Frameworks`, registers
@@ -257,7 +259,7 @@ Step by step, from a clean machine:
 Windows builds with **MSVC** (Visual Studio 2022's toolchain) and Ninja. SDL3
 has no system package on Windows, so it is built static from the vendored
 `3rdparty/SDL` submodule automatically — the finished build is a single
-self-contained folder (`sm2-emu.exe` + `games.xml`) with no DLLs to ship
+self-contained folder (`keisho.exe` + `games.xml`) with no DLLs to ship
 alongside it.
 
 > The Windows build is exercised on CI on every push — it compiles, links and
@@ -309,7 +311,7 @@ cmake -S . -B build -G Ninja ^
 
 ## Cross-compilation (Buildroot, Yocto, Batocera, embedded)
 
-sm2-emu builds for `x86_64`, `aarch64` and `riscv64`. Cross-compiling needs no
+Keisho builds for `x86_64`, `aarch64` and `riscv64`. Cross-compiling needs no
 special dependency handling: pass a toolchain file and build.
 
 ```sh

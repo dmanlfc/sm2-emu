@@ -5,9 +5,9 @@
 // Derived from Supermodel's Src/Model3/TileGen.cpp
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c)
 // 2011-2012 Bart Trzynadlowski, Nik Henson.
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 
 #include "hw/model3/tilegen.h"
 

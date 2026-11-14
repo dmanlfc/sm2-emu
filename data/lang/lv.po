@@ -1,10 +1,10 @@
-# Latvian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# This file is distributed under the same license as the sm2-emu package.
+# Latvian translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# This file is distributed under the same license as the Keisho package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -772,10 +772,10 @@ msgstr "Konfigurācijas mape"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"No kurienes sm2-emu.ini tiek nolasīts un kur saglabāts.\n"
+"No kurienes keisho.ini tiek nolasīts un kur saglabāts.\n"
 "Iestata ar --config <dir>; šeit mainīt nevar."
 
 #: src/osd/gui.cpp
@@ -853,10 +853,10 @@ msgstr "Rāmju mape"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Rāmju attēli: <game>.png, vecākkopas attēls vai default.png.\n"
-"Tukšs nozīmē mapi bezels blakus sm2-emu.ini."
+"Tukšs nozīmē mapi bezels blakus keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -870,13 +870,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Tēmekļu attēli: <game>-p1.png (-p2 2. spēlētājam) vai\n"
 "<game>.png abiem, tad vecākkopas, tad default.\n"
 "Zīmēti savā izmērā uz 1080 rindu attēla. Bez\n"
 "tā tiek zīmēts iebūvētais tēmeklis.\n"
-"Tukšs nozīmē mapi crosshairs blakus sm2-emu.ini."
+"Tukšs nozīmē mapi crosshairs blakus keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -887,12 +887,12 @@ msgstr "Lejupielādēt attēlus tiešsaistē"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Ļaut spēļu izvēlnei ielādēt vāku attēlus un aprakstus no\n"
-"ArcadeDB caur tīklu. Izslēgts saglabā sm2-emu bezsaistē:\n"
+"ArcadeDB caur tīklu. Izslēgts saglabā Keisho bezsaistē:\n"
 "izvēlne joprojām parāda un palaiž visas spēles, ar\n"
 "aizvietotāju flīzēm un bez aprakstiem."
 
@@ -943,8 +943,8 @@ msgstr "GPL-3.0-or-later licence. Skatīt LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu pastāv, pateicoties atvērtajam kodam, ar ko dalās kopiena."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho pastāv, pateicoties atvērtajam kodam, ar ko dalās kopiena."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1961,11 +1961,11 @@ msgstr "Rādīt tēmēkli"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Zīmēt sm2-emu tēmēkli. Izslēdziet, ja pistolei\n"
+"Zīmēt Keisho tēmēkli. Izslēdziet, ja pistolei\n"
 "ir savs tēmēklis (piem., Sinden). Pozicionālo pistoļu\n"
 "spēles vienmēr zīmē savu."
 

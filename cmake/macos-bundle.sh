@@ -1,31 +1,33 @@
 #!/bin/sh
 
-#  ____  __  __  ____         _____ __  __ _   _
-# / ___||  \/  ||___ \       | ____|  \/  | | | |
-# \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-#  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-# |____/|_|  |_||_____|      |_____|_|  |_|\___/
+# ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+# ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+# █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+# ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+# ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+# ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+#            継 承  ( k e i s h ō )
 #
-# sm2-emu — A Sega Model 1 & 2 arcade emulator.
+# A Sega Model 1, 2 & 3 arcade emulator.
 # Copyright (c) 2025+ Daniel Martin (dmanlfc)
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# This header must not be removed. sm2-emu is licensed under the GNU General
+# This header must not be removed. Keisho is licensed under the GNU General
 # Public License, version 3 or later, with additional terms under section 7 of
 # that licence. See LICENSE and NOTICE.
 #
-# Make an installed sm2-emu.app self-contained: copy its non-system dylibs and
+# Make an installed Keisho.app self-contained: copy its non-system dylibs and
 # MoltenVK into Contents/Frameworks, register MoltenVK with the bundled Vulkan
 # loader, and re-sign the bundle ad hoc. Needs dylibbundler (brew install
 # dylibbundler) and MoltenVK from Homebrew or the Vulkan SDK.
 #
 #   cmake --install build --prefix install
-#   cmake/macos-bundle.sh install/sm2-emu.app
+#   cmake/macos-bundle.sh install/Keisho.app
 #
 set -eu
 
-app=${1:?usage: macos-bundle.sh path/to/sm2-emu.app}
-exe="$app/Contents/MacOS/sm2-emu"
+app=${1:?usage: macos-bundle.sh path/to/Keisho.app}
+exe="$app/Contents/MacOS/$(basename "$app" .app)"
 frameworks="$app/Contents/Frameworks"
 icd_dir="$app/Contents/Resources/vulkan/icd.d"
 

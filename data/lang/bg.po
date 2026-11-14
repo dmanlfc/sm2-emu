@@ -1,12 +1,12 @@
-# Bulgarian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Bulgarian translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -773,10 +773,10 @@ msgstr "Папка с конфигурация"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Откъде се чете и къде се записва sm2-emu.ini.\n"
+"Откъде се чете и къде се записва keisho.ini.\n"
 "Задава се с --config <dir>; не може да се промени тук."
 
 #: src/osd/gui.cpp
@@ -854,10 +854,10 @@ msgstr "Папка за рамки"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Изображения за рамка: <game>.png, на родителския набор или default.png.\n"
-"Празно означава папка bezels до sm2-emu.ini."
+"Празно означава папка bezels до keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -871,13 +871,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Изображения на мерници: <game>-p1.png (-p2 за играч 2) или\n"
 "<game>.png за двамата, след това на родителския набор, после default.\n"
 "Рисуват се в собствения си размер върху картина от 1080 реда. Без\n"
 "такова се рисува вградената мерник.\n"
-"Празно означава папка crosshairs до sm2-emu.ini."
+"Празно означава папка crosshairs до keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -888,12 +888,12 @@ msgstr "Изтегляне на обложки онлайн"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Позволява на избора на игри да изтегля обложки и описания\n"
-"от ArcadeDB по мрежата. Изключено държи sm2-emu офлайн:\n"
+"от ArcadeDB по мрежата. Изключено държи Keisho офлайн:\n"
 "изборът пак показва и стартира всяка игра, с\n"
 "заместващи плочки и без описания."
 
@@ -944,9 +944,9 @@ msgstr "Лиценз GPL-3.0-or-later. Вижте LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
+msgid "Keisho exists because of open source shared with the community."
 msgstr ""
-"sm2-emu съществува благодарение на отворения код, споделен с общността."
+"Keisho съществува благодарение на отворения код, споделен с общността."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1960,11 +1960,11 @@ msgstr "Покажи мерника"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Рисува собствения мерник на sm2-emu. Изключете, ако\n"
+"Рисува собствения мерник на Keisho. Изключете, ако\n"
 "пистолетът има свой мерник (напр. Sinden). Игрите с\n"
 "позиционен пистолет винаги рисуват своя."
 

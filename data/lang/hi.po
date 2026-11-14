@@ -1,13 +1,13 @@
-# Hindi translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Hindi translations for sm2-emu package.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Hindi translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Hindi translations for Keisho package.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -774,10 +774,10 @@ msgstr "कॉन्फ़िग डायरेक्टरी"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"sm2-emu.ini कहाँ से पढ़ी और कहाँ सहेजी जाती है।\n"
+"keisho.ini कहाँ से पढ़ी और कहाँ सहेजी जाती है।\n"
 "--config <dir> से सेट करें; यहाँ बदली नहीं जा सकती।"
 
 #: src/osd/gui.cpp
@@ -855,10 +855,10 @@ msgstr "बेज़ल डायरेक्टरी"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "बेज़ल इमेज: <game>.png, पैरेंट सेट की इमेज, या default.png।\n"
-"खाली का अर्थ है sm2-emu.ini के पास bezels फ़ोल्डर।"
+"खाली का अर्थ है keisho.ini के पास bezels फ़ोल्डर।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -872,13 +872,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "क्रॉसहेयर चित्र: <game>-p1.png (खिलाड़ी 2 के लिए -p2) या\n"
 "दोनों के लिए <game>.png, फिर पैरेंट सेट का, फिर default।\n"
 "1080-लाइन चित्र पर अपने आकार में बनाए जाते हैं। इनके बिना\n"
 "बिल्ट-इन क्रॉसहेयर बनाया जाता है।\n"
-"खाली का अर्थ है sm2-emu.ini के पास crosshairs फ़ोल्डर।"
+"खाली का अर्थ है keisho.ini के पास crosshairs फ़ोल्डर।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -889,12 +889,12 @@ msgstr "ऑनलाइन आर्टवर्क लाएँ"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "गेम चयनकर्ता को नेटवर्क से ArcadeDB से बॉक्स आर्ट और विवरण\n"
-"लाने दें। बंद रखने पर sm2-emu ऑफ़लाइन रहता है: चयनकर्ता\n"
+"लाने दें। बंद रखने पर Keisho ऑफ़लाइन रहता है: चयनकर्ता\n"
 "फिर भी हर गेम दिखाता और चलाता है, प्लेसहोल्डर\n"
 "टाइल के साथ और बिना विवरण के।"
 
@@ -945,8 +945,8 @@ msgstr "GPL-3.0-or-later लाइसेंस। LICENSE देखें।"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu समुदाय के साथ साझा किए गए ओपन सोर्स की बदौलत मौजूद है।"
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho समुदाय के साथ साझा किए गए ओपन सोर्स की बदौलत मौजूद है।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1958,11 +1958,11 @@ msgstr "क्रॉसहेयर दिखाएँ"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"sm2-emu का अपना क्रॉसहेयर बनाएँ। यदि गन का\n"
+"Keisho का अपना क्रॉसहेयर बनाएँ। यदि गन का\n"
 "अपना साइट हो (जैसे Sinden) तो बंद करें। पोज़िशनल-गन\n"
 "गेम हमेशा अपना क्रॉसहेयर स्वयं बनाते हैं।"
 

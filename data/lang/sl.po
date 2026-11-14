@@ -1,10 +1,10 @@
-# Slovenian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# This file is distributed under the same license as the sm2-emu package.
+# Slovenian translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# This file is distributed under the same license as the Keisho package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -772,10 +772,10 @@ msgstr "Mapa nastavitev"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Od kod se sm2-emu.ini bere in kam se shranjuje.\n"
+"Od kod se keisho.ini bere in kam se shranjuje.\n"
 "Nastavi se z --config <dir>; tu ga ni mogoče spremeniti."
 
 #: src/osd/gui.cpp
@@ -853,10 +853,10 @@ msgstr "Mapa okvirjev"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Slike okvirjev: <game>.png, nadrejenega nabora ali default.png.\n"
-"Prazno pomeni mapo bezels poleg sm2-emu.ini."
+"Prazno pomeni mapo bezels poleg keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -870,13 +870,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Slike merkov: <game>-p1.png (-p2 za igralca 2) ali\n"
 "<game>.png za oba, nato starševskega kompleta, nato default.\n"
 "Narisane v svoji velikosti na sliki s 1080 vrsticami. Brez\n"
 "slike se nariše vgrajeni merek.\n"
-"Prazno pomeni mapo crosshairs poleg sm2-emu.ini."
+"Prazno pomeni mapo crosshairs poleg keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -887,12 +887,12 @@ msgstr "Prenašaj slike s spleta"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Dovoli izbirniku iger, da prek omrežja iz ArcadeDB prenese\n"
-"slike škatel in opise. Izklopljeno ohrani sm2-emu brez\n"
+"slike škatel in opise. Izklopljeno ohrani Keisho brez\n"
 "povezave: izbirnik še vedno prikaže in zažene vse igre,\n"
 "z nadomestnimi ploščicami in brez opisov."
 
@@ -943,8 +943,8 @@ msgstr "Licenca GPL-3.0-or-later. Glejte LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu obstaja zaradi odprte kode, deljene s skupnostjo."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho obstaja zaradi odprte kode, deljene s skupnostjo."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1962,11 +1962,11 @@ msgstr "Prikaži merek"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Riši lasten merek sm2-emu. Izklopite, če ima pištola\n"
+"Riši lasten merek Keisho. Izklopite, če ima pištola\n"
 "svoj merek (npr. Sinden). Igre s pozicijskimi pištolami\n"
 "vedno rišejo svojega."
 

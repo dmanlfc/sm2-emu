@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -355,7 +357,7 @@ bool Gui::init(SDL_Window* window, const std::string& language)
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-    io.IniFilename = nullptr;  // No imgui.ini — settings live in sm2-emu.ini.
+    io.IniFilename = nullptr;  // No imgui.ini — settings live in keisho.ini.
 
     // Dark style with some tweaks.
     ImGui::StyleColorsDark();
@@ -1054,7 +1056,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 ImGui::SameLine();
                 ImGui::TextDisabled("(?)");
                 if (ImGui::IsItemHovered()) {
-                    tooltip(tr("Where sm2-emu.ini is read from and saved to.\n"
+                    tooltip(tr("Where keisho.ini is read from and saved to.\n"
                                "Set with --config <dir>; cannot be changed here."));
                 }
                 ImGui::Spacing();
@@ -1087,7 +1089,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             dir_field(N_("Bezels directory"), "##bezels", config.bezel_dir,
                       DirPickerTarget::BezelDir,
                       N_("Bezel images: <game>.png, the parent set's, or default.png.\n"
-                         "Empty means a bezels folder beside sm2-emu.ini."));
+                         "Empty means a bezels folder beside keisho.ini."));
             ImGui::Spacing();
             dir_field(N_("Crosshairs directory"), "##crosshairs", config.crosshair_dir,
                       DirPickerTarget::CrosshairDir,
@@ -1095,7 +1097,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                          "<game>.png for both, then the parent set's, then default.\n"
                          "Drawn at their own size on a 1080-line picture. Without\n"
                          "one the built-in crosshair is drawn.\n"
-                         "Empty means a crosshairs folder beside sm2-emu.ini."));
+                         "Empty means a crosshairs folder beside keisho.ini."));
 
             ImGui::Spacing();
             ImGui::Separator();
@@ -1105,7 +1107,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::TextDisabled("(?)");
             if (ImGui::IsItemHovered()) {
                 tooltip(tr("Let the game picker fetch box art and descriptions from\n"
-                           "ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+                           "ArcadeDB over the network. Off keeps Keisho offline: the\n"
                            "picker still lists and launches every game, with placeholder\n"
                            "tiles and no descriptions."));
             }
@@ -1153,11 +1155,11 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
         bool on_about_tab = false;
         if (ImGui::BeginTabItem(tr_id("About"))) {
             on_about_tab = true;
-            ImGui::Text(" ____  __  __  ____         _____ __  __ _   _");
-            ImGui::Text("/ ___||  \\/  ||___ \\       | ____|  \\/  | | | |");
-            ImGui::Text("\\___ \\| |\\/| |  __) |_____ |  _| | |\\/| | | | |");
-            ImGui::Text(" ___) | |  | | / __/|_____|| |___| |  | | |_| |");
-            ImGui::Text("|____/|_|  |_||_____|      |_____|_|  |_|\\___/");
+            ImGui::TextUnformatted(" _  _______ ___ ____  _   _  ___");
+            ImGui::TextUnformatted("| |/ / ____|_ _/ ___|| | | |/ _ \\");
+            ImGui::TextUnformatted("| ' /|  _|  | |\\___ \\| |_| | | | |");
+            ImGui::TextUnformatted("| . \\| |___ | | ___) |  _  | |_| |");
+            ImGui::TextUnformatted("|_|\\_\\_____|___|____/|_| |_|\\___/");
             ImGui::Spacing();
             ImGui::TextUnformatted(tr("A Sega Model 1, 2 & 3 arcade emulator"));
             ImGui::Spacing();
@@ -1166,7 +1168,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            ImGui::TextUnformatted(tr("sm2-emu exists because of open source shared with the community."));
+            ImGui::TextUnformatted(tr("Keisho exists because of open source shared with the community."));
             ImGui::TextUnformatted(tr("With thanks to the projects whose code makes it possible:"));
             ImGui::Spacing();
             ImGui::BulletText("%s", tr("The MAME project - Sega Model 2 emulation guidance"));
@@ -2628,7 +2630,7 @@ void Gui::draw_lightgun_tab(Config& config, Input* input)
     ImGui::SameLine();
     ImGui::TextDisabled("(?)");
     if (ImGui::IsItemHovered()) {
-        tooltip(tr("Draw sm2-emu's own crosshair. Turn off if the gun\n"
+        tooltip(tr("Draw Keisho's own crosshair. Turn off if the gun\n"
                    "has its own sight (e.g. a Sinden). Positional-gun\n"
                    "titles always draw their own regardless."));
     }

@@ -1,14 +1,14 @@
-# Bengali translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Bengali translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Bengali translations for sm2-emu package.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Bengali translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Bengali translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Bengali translations for Keisho package.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -775,10 +775,10 @@ msgstr "কনফিগ ফোল্ডার"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"sm2-emu.ini কোথা থেকে পড়া ও কোথায় সংরক্ষণ করা হয়।\n"
+"keisho.ini কোথা থেকে পড়া ও কোথায় সংরক্ষণ করা হয়।\n"
 "--config <dir> দিয়ে নির্ধারিত; এখানে বদলানো যায় না।"
 
 #: src/osd/gui.cpp
@@ -856,10 +856,10 @@ msgstr "বেজেল ফোল্ডার"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "বেজেল ছবি: <game>.png, প্যারেন্ট সেটের ছবি, বা default.png।\n"
-"খালি থাকলে sm2-emu.ini-এর পাশের bezels ফোল্ডার।"
+"খালি থাকলে keisho.ini-এর পাশের bezels ফোল্ডার।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -873,13 +873,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "ক্রসহেয়ার ছবি: <game>-p1.png (খেলোয়াড় 2-এর জন্য -p2) অথবা\n"
 "দুজনের জন্য <game>.png, তারপর প্যারেন্ট সেটের, তারপর default।\n"
 "1080-লাইনের ছবিতে নিজস্ব আকারে আঁকা হয়। না থাকলে\n"
 "বিল্ট-ইন ক্রসহেয়ার আঁকা হয়।\n"
-"খালি মানে sm2-emu.ini-এর পাশে একটি crosshairs ফোল্ডার।"
+"খালি মানে keisho.ini-এর পাশে একটি crosshairs ফোল্ডার।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -890,12 +890,12 @@ msgstr "অনলাইনে আর্টওয়ার্ক আনুন"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "গেম নির্বাচককে নেটওয়ার্কের মাধ্যমে ArcadeDB থেকে বক্স আর্ট\n"
-"ও বিবরণ আনতে দেয়। বন্ধ থাকলে sm2-emu অফলাইন থাকে:\n"
+"ও বিবরণ আনতে দেয়। বন্ধ থাকলে Keisho অফলাইন থাকে:\n"
 "নির্বাচক তবুও সব গেম দেখায় ও চালু করে, তবে প্লেসহোল্ডার\n"
 "ছবি সহ এবং কোনো বিবরণ ছাড়া।"
 
@@ -946,8 +946,8 @@ msgstr "GPL-3.0-or-later লাইসেন্স। LICENSE দেখুন।"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "কমিউনিটির সাথে ভাগ করা ওপেন সোর্সের কারণেই sm2-emu সম্ভব হয়েছে।"
+msgid "Keisho exists because of open source shared with the community."
+msgstr "কমিউনিটির সাথে ভাগ করা ওপেন সোর্সের কারণেই Keisho সম্ভব হয়েছে।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1959,11 +1959,11 @@ msgstr "ক্রসহেয়ার দেখান"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"sm2-emu-এর নিজস্ব ক্রসহেয়ার আঁকে। গানের নিজস্ব নিশানা\n"
+"Keisho-এর নিজস্ব ক্রসহেয়ার আঁকে। গানের নিজস্ব নিশানা\n"
 "থাকলে (যেমন Sinden) বন্ধ করুন। পজিশনাল-গান গেমগুলো\n"
 "সবসময় নিজেদের ক্রসহেয়ার আঁকে।"
 

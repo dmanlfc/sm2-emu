@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -27,7 +29,12 @@
 namespace sm2 {
 namespace {
 
-constexpr const char* kFileName = "sm2-emu.ini";
+constexpr const char* kFileName = "keisho.ini";
+#if defined(_WIN32) || defined(__APPLE__)
+constexpr const char* kDirName = "Keisho";
+#else
+constexpr const char* kDirName = "keisho";
+#endif
 
 /// Mirrors render::kMaxRenderScale; kept local to avoid pulling in the render
 /// backend header just for a clamp bound.
@@ -236,25 +243,29 @@ constexpr std::array<const char*, Config::kPadAxisCount> kPadAxisNames = {
     return (value != nullptr && value[0] != '\0') ? value : nullptr;
 }
 
+[[nodiscard]] std::filesystem::path app_directory(const std::filesystem::path& parent)
+{
+    return parent / kDirName;
+}
+
 /// The platform's config directory. Not SDL's preferences path, which on Linux
 /// is the XDG *data* directory; config belongs in the config directory.
 [[nodiscard]] std::filesystem::path config_directory()
 {
 #if defined(_WIN32)
     if (const char* appdata = environment("APPDATA")) {
-        return std::filesystem::path(appdata) / "sm2-emu";
+        return app_directory(appdata);
     }
 #elif defined(__APPLE__)
     if (const char* home = environment("HOME")) {
-        return std::filesystem::path(home) / "Library" / "Application Support"
-             / "sm2-emu";
+        return app_directory(std::filesystem::path(home) / "Library" / "Application Support");
     }
 #else
     if (const char* xdg = environment("XDG_CONFIG_HOME")) {
-        return std::filesystem::path(xdg) / "sm2-emu";
+        return app_directory(xdg);
     }
     if (const char* home = environment("HOME")) {
-        return std::filesystem::path(home) / ".config" / "sm2-emu";
+        return app_directory(std::filesystem::path(home) / ".config");
     }
 #endif
     return std::filesystem::path();  // no home directory; caller falls back to cwd
@@ -281,6 +292,11 @@ bool parse_log_level(const std::string& name, log::Level* out_level)
     return true;
 }
 
+std::string config_file_in(const std::string& directory)
+{
+    return (std::filesystem::path(directory) / kFileName).string();
+}
+
 std::string default_config_path()
 {
     // A file in the working directory wins, keeping a checked-out copy self-contained.
@@ -293,7 +309,7 @@ std::string default_config_path()
     if (directory.empty()) {
         return kFileName;
     }
-    return (directory / kFileName).string();
+    return config_file_in(directory.string());
 }
 
 std::string data_directory(bool config_in_cwd)
@@ -305,20 +321,19 @@ std::string data_directory(bool config_in_cwd)
 
 #if defined(_WIN32)
     if (const char* appdata = environment("APPDATA")) {
-        return (std::filesystem::path(appdata) / "sm2-emu").string();
+        return app_directory(appdata).string();
     }
 #elif defined(__APPLE__)
     if (const char* home = environment("HOME")) {
-        return (std::filesystem::path(home) / "Library" / "Application Support"
-                / "sm2-emu").string();
+        return app_directory(std::filesystem::path(home) / "Library" / "Application Support").string();
     }
 #else
     // XDG_DATA_HOME, not the config dir's XDG_CONFIG_HOME.
     if (const char* xdg = environment("XDG_DATA_HOME")) {
-        return (std::filesystem::path(xdg) / "sm2-emu").string();
+        return app_directory(xdg).string();
     }
     if (const char* home = environment("HOME")) {
-        return (std::filesystem::path(home) / ".local" / "share" / "sm2-emu").string();
+        return app_directory(std::filesystem::path(home) / ".local" / "share").string();
     }
 #endif
     // No home directory: fall back to the working directory.
@@ -1067,7 +1082,7 @@ bool save_config(const std::string& path, const Config& config)
         return config.wheel_buttons[cfg_role(role)];
     };
 
-    out << "# sm2-emu settings\n"
+    out << "# Keisho settings\n"
         << "\n[video]\n"
         << "graphics_backend = " << config.graphics_backend << "\n"
         << "gpu = " << config.gpu << "\n"

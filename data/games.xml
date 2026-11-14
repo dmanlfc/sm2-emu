@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  sm2-emu ROM database.
+  Keisho ROM database.
 
   ROM layouts are transcribed from MAME's Sega Model 2 driver
   (src/mame/sega/model2.cpp), which is BSD-3-Clause. See the NOTICE file.
@@ -848,7 +848,7 @@
   <!-- =================================================================
        The remaining games below were generated from MAME's ROM_START
        definitions. All are marked preliminary: none has been tested in
-       sm2-emu and many need hardware not yet implemented (SHARC copro,
+       Keisho and many need hardware not yet implemented (SHARC copro,
        MB86235 copro, Model 1 sound board, drive board, protection chip,
        analogue inputs, lightgun interface).
        ================================================================= -->

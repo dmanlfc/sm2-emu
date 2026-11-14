@@ -1,8 +1,8 @@
-# Persian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Persian translation of the Keisho overlay. Machine-translated seed; corrections welcome.
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -769,10 +769,10 @@ msgstr "پوشه پیکربندی"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"محل خواندن و ذخیره sm2-emu.ini.\n"
+"محل خواندن و ذخیره keisho.ini.\n"
 "با --config <dir> تنظیم می‌شود؛ اینجا قابل تغییر نیست."
 
 #: src/osd/gui.cpp
@@ -850,10 +850,10 @@ msgstr "پوشه قاب‌ها"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "تصاویر قاب: <game>.png، تصویر مجموعه والد یا default.png.\n"
-"خالی یعنی پوشه bezels کنار sm2-emu.ini."
+"خالی یعنی پوشه bezels کنار keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -867,13 +867,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "تصاویر نشانگر هدف: <game>-p1.png (-p2 برای بازیکن 2) یا\n"
 "<game>.png برای هر دو، سپس مال مجموعه والد، سپس default.\n"
 "با اندازه خودشان روی تصویر 1080 خطی کشیده می‌شوند. بدون\n"
 "آن، نشانگر داخلی کشیده می‌شود.\n"
-"خالی یعنی پوشه crosshairs کنار sm2-emu.ini."
+"خالی یعنی پوشه crosshairs کنار keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -884,12 +884,12 @@ msgstr "دریافت تصاویر از اینترنت"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "اجازه می‌دهد انتخابگر بازی تصویر جلد و توضیحات را\n"
-"از ArcadeDB از طریق شبکه دریافت کند. خاموش، sm2-emu را آفلاین\n"
+"از ArcadeDB از طریق شبکه دریافت کند. خاموش، Keisho را آفلاین\n"
 "نگه می‌دارد: انتخابگر همچنان همه بازی‌ها را فهرست و اجرا\n"
 "می‌کند، با کاشی‌های جایگزین و بدون توضیحات."
 
@@ -940,8 +940,8 @@ msgstr "مجوز GPL-3.0-or-later. LICENSE را ببینید."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu به لطف متن‌باز به اشتراک‌گذاشته‌شده با جامعه وجود دارد."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho به لطف متن‌باز به اشتراک‌گذاشته‌شده با جامعه وجود دارد."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1954,11 +1954,11 @@ msgstr "نمایش نشانگر هدف"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"نشانگر هدف خود sm2-emu را رسم می‌کند. اگر تفنگ\n"
+"نشانگر هدف خود Keisho را رسم می‌کند. اگر تفنگ\n"
 "نشانگر خودش را دارد (مثلاً Sinden) خاموش کنید. بازی‌های\n"
 "تفنگ موقعیتی همیشه نشانگر خود را رسم می‌کنند."
 

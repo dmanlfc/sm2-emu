@@ -4,9 +4,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>SM2 Emulator</string>
+    <string>Keisho</string>
     <key>CFBundleDisplayName</key>
-    <string>SM2 Emulator</string>
+    <string>Keisho</string>
     <key>CFBundleExecutable</key>
     <string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
     <key>CFBundleIdentifier</key>

@@ -1,13 +1,13 @@
-# Serbian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Преводи на српски језик за пакет „sm2-emu“.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Serbian translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Преводи на српски језик за пакет „Keisho“.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -775,10 +775,10 @@ msgstr "Фасцикла подешавања"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Одакле се чита и где се чува sm2-emu.ini.\n"
+"Одакле се чита и где се чува keisho.ini.\n"
 "Поставља се са --config <dir>; не може се мењати овде."
 
 #: src/osd/gui.cpp
@@ -856,10 +856,10 @@ msgstr "Фасцикла оквира"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Слике оквира: <game>.png, родитељског скупа или default.png.\n"
-"Празно значи фасциклу bezels поред sm2-emu.ini."
+"Празно значи фасциклу bezels поред keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -873,13 +873,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Слике нишана: <game>-p1.png (-p2 за играча 2) или\n"
 "<game>.png за оба, затим родитељског сета, затим default.\n"
 "Цртају се у својој величини на слици од 1080 линија. Без\n"
 "слике црта се уграђени нишан.\n"
-"Празно значи фасцикла crosshairs поред sm2-emu.ini."
+"Празно значи фасцикла crosshairs поред keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -890,12 +890,12 @@ msgstr "Преузимај омоте са мреже"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Дозвољава бирачу игара да преузима омоте и описе са\n"
-"ArcadeDB преко мреже. Искључено држи sm2-emu ван мреже:\n"
+"ArcadeDB преко мреже. Искључено држи Keisho ван мреже:\n"
 "бирач и даље приказује и покреће сваку игру, са\n"
 "заменским плочицама и без описа."
 
@@ -946,8 +946,8 @@ msgstr "GPL-3.0-or-later лиценца. Погледајте LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu постоји захваљујући отвореном коду подељеном са заједницом."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho постоји захваљујући отвореном коду подељеном са заједницом."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1958,11 +1958,11 @@ msgstr "Прикажи нишан"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Црта сопствени нишан sm2-emu. Искључите ако пиштољ\n"
+"Црта сопствени нишан Keisho. Искључите ако пиштољ\n"
 "има свој нишан (нпр. Sinden). Игре са позиционим\n"
 "пиштољем увек цртају свој."
 

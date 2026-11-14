@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -40,7 +42,7 @@ namespace sm2::hw {
 /// decides the direction.
 using SerializeFn = std::function<void(Archive&)>;
 
-/// Write `serialize`'s payload, behind an SM2STATE header keyed by `game` /
+/// Write `serialize`'s payload, behind a state header keyed by `game` /
 /// `board`, into `out`. `in_frame` must be false (save only between frames).
 [[nodiscard]] bool save_state_to_buffer(std::vector<u8>& out, const std::string& game,
                                         u32 board, bool in_frame,
@@ -68,7 +70,7 @@ void set_host_state(SerializeFn serialize);
 // Slots
 // ---------------------------------------------------------------------------
 // A game gets one reserved quick-save slot plus a few numbered slots. Files are
-// named `<game>.<slot>.sm2state` under the states directory (data dir / states).
+// named `<game>.<slot>.kstate` under the states directory (data dir / states).
 
 /// The reserved quick-save slot name.
 inline constexpr const char* kQuickSlot = "quick";
@@ -76,8 +78,9 @@ inline constexpr const char* kQuickSlot = "quick";
 /// How many numbered slots ("1".."kNumberedSlots") a game has.
 inline constexpr int kNumberedSlots = 4;
 
-/// Absolute path of one slot's file: `<dir>/<game>.<slot>.sm2state`. `dir` is
+/// Absolute path of one slot's file: `<dir>/<game>.<slot>.kstate`. `dir` is
 /// the states directory (resolve_default_paths derives it as data dir/states).
+/// An sm2-emu `.sm2state` for the slot is converted to it first.
 [[nodiscard]] std::string state_slot_path(const std::string& dir, const std::string& game,
                                           const std::string& slot);
 

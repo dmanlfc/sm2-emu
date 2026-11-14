@@ -5,9 +5,9 @@
 // Derived from Supermodel's Src/Graphics/New3D/Mat4.cpp and R3DFloat.cpp
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later.
 // Copyright (c) 2003-2026 The Supermodel Team (New3D by Ian Curtis).
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 
 #include "render/model3/r3d_math.h"
 

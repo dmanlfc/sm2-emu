@@ -1,11 +1,11 @@
-# Chinese (Simplified) translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Chinese (Simplified) translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -772,10 +772,10 @@ msgstr "配置目录"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"读取和保存 sm2-emu.ini 的位置。\n"
+"读取和保存 keisho.ini 的位置。\n"
 "通过 --config <dir> 设置；此处无法更改。"
 
 #: src/osd/gui.cpp
@@ -853,10 +853,10 @@ msgstr "边框目录"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "边框图片：<game>.png、父版本的图片或 default.png。\n"
-"留空表示 sm2-emu.ini 旁边的 bezels 文件夹。"
+"留空表示 keisho.ini 旁边的 bezels 文件夹。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -870,13 +870,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "准星图片：<game>-p1.png（玩家 2 用 -p2）或\n"
 "两人共用 <game>.png，其次是母版的，然后是 default。\n"
 "按图片原尺寸绘制在 1080 行画面上。\n"
 "没有图片时绘制内置准星。\n"
-"留空表示 sm2-emu.ini 旁的 crosshairs 文件夹。"
+"留空表示 keisho.ini 旁的 crosshairs 文件夹。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -887,12 +887,12 @@ msgstr "在线获取封面图"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "让游戏选择界面通过网络从 ArcadeDB 获取\n"
-"封面图和简介。关闭后 sm2-emu 保持离线：\n"
+"封面图和简介。关闭后 Keisho 保持离线：\n"
 "选择界面仍会列出并启动所有游戏，\n"
 "但使用占位图块且没有简介。"
 
@@ -943,8 +943,8 @@ msgstr "GPL-3.0-or-later 许可证。请参阅 LICENSE。"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu 的存在得益于与社区共享的开源项目。"
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho 的存在得益于与社区共享的开源项目。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1950,11 +1950,11 @@ msgstr "显示准星"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"绘制 sm2-emu 自己的准星。如果光枪自带\n"
+"绘制 Keisho 自己的准星。如果光枪自带\n"
 "瞄准器（如 Sinden），请关闭此项。位置式光枪\n"
 "游戏无论如何都会绘制自己的准星。"
 

@@ -1,15 +1,17 @@
-sm2-emu — Sega Model 1, 2 & 3 arcade emulator
-==============================================
+Keisho — Sega Model 1, 2 & 3 arcade emulator
+============================================
 
-Copyright (c) 2025+ Daniel Martin (dmanlfc) and the sm2-emu contributors.
+Keisho was formerly named sm2-emu.
 
-sm2-emu is free software: you can redistribute it and/or modify it under the
+Copyright (c) 2025+ Daniel Martin (dmanlfc) and the Keisho contributors.
+
+Keisho is free software: you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later
 version, together with the additional terms below. See LICENSE for the full
 text of the GPL.
 
-sm2-emu is distributed in the hope that it will be useful, but WITHOUT ANY
+Keisho is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
@@ -20,26 +22,26 @@ notice in each source file's header.
 Additional terms (GNU GPL version 3, section 7)
 -----------------------------------------------
 
-These terms apply to sm2-emu and to every work based on it, in source or
-object form. They cover only the material whose copyright the sm2-emu authors
+These terms apply to Keisho and to every work based on it, in source or
+object form. They cover only the material whose copyright the Keisho authors
 hold. Code taken from Supermodel (see "Derived from Supermodel" below) stays
 under the GNU GPL version 3 or later alone, as its authors released it; these
-terms apply to sm2-emu's changes to that code, not to the code itself.
+terms apply to Keisho's changes to that code, not to the code itself.
 
   1. Attribution (section 7(b)). Keep intact the copyright notices and author
      attributions in the source files, in this NOTICE file, and on the
      program's About screen. A version without an About screen must show them
      somewhere equivalent that users can reach from the program.
 
-  2. Origin (section 7(c)). Do not misrepresent the origin of sm2-emu, or
+  2. Origin (section 7(c)). Do not misrepresent the origin of Keisho, or
      present it or a work based on it as entirely your own work. A modified
      version must be marked as modified, both in its source and on its About
-     screen, and must state that it is based on sm2-emu, with a link to
-     https://github.com/dmanlfc/sm2-emu.
+     screen, and must state that it is based on Keisho, with a link to
+     https://github.com/Keisho-Emu/Keisho.
 
-  3. Name (section 7(e)). This licence grants no rights to the name "sm2-emu"
+  3. Name (section 7(e)). This licence grants no rights to the name "Keisho"
      or its logo. A modified version distributed to others must use a
-     different name; describing it as "based on sm2-emu" is fine. Copies built
+     different name; describing it as "based on Keisho" is fine. Copies built
      from unmodified source, or changed only to build, package or install it
      on a particular system (such as a Linux distribution or Batocera), may
      keep the name.
@@ -51,7 +53,7 @@ which the MAME authors released under the BSD 3-Clause License. Their copyright
 notices are preserved in the individual source files that carry derived code.
 Those files are marked "SPDX-License-Identifier: GPL-3.0-or-later AND
 BSD-3-Clause": the code taken from MAME remains under the BSD 3-Clause License
-(see LICENSES/BSD-3-Clause.txt), and sm2-emu's changes to it are under the GPL.
+(see LICENSES/BSD-3-Clause.txt), and Keisho's changes to it are under the GPL.
 
 Derived from MAME (https://github.com/mamedev/mame), BSD-3-Clause
 -----------------------------------------------------------------
@@ -170,9 +172,9 @@ into its device framework in ways a port would have to unpick.
 Derived from Supermodel (https://github.com/trzy/Supermodel), GPL-3.0-or-later
 -------------------------------------------------------------------------------
 
-sm2-emu's Sega Model 3 support is ported from Supermodel at commit 24d2ffc
+Keisho's Sega Model 3 support is ported from Supermodel at commit 24d2ffc
 ("Fix initializer order (#325)", 26 July 2026). Supermodel is licensed under
-the GNU GPL version 3 or later, the same licence as sm2-emu, and the files
+the GNU GPL version 3 or later, the same licence as Keisho, and the files
 below keep their authors' copyright notices. Those files are marked
 "SPDX-License-Identifier: GPL-3.0-or-later" and name the Supermodel file they
 come from. As stated above, the section 7 additional terms do not extend to
@@ -228,7 +230,7 @@ the code taken from Supermodel.
                                               PolyHeader.h, PolyHeader.cpp, R3DData.h
     src/render/model3/tilegen.cpp, .h         Src/Model3/TileGen.cpp, TileGen.h,
                                               Src/Graphics/Render2D.cpp (drawing)
-    Under the sm2-emu header, with portions of New3D (New3D.cpp, R3DShader.cpp,
+    Under the Keisho header, with portions of New3D (New3D.cpp, R3DShader.cpp,
     R3DShaderCommon.h, R3DShaderTriangles.h, R3DFrameBuffers.cpp,
     R3DScrollFog.cpp, TextureBank.cpp):
     src/render/model3/scene.cpp, .h, frame_plan.cpp, .h, textures.cpp, .h
@@ -239,7 +241,7 @@ the code taken from Supermodel.
             model3_composite_base.frag, model3_composite_trans.frag
 
 The 315-5881 cipher is ported directly from MAME and is credited under
-"Derived from MAME" above. The PowerPC core is written for sm2-emu.
+"Derived from MAME" above. The PowerPC core is written for Keisho.
 
 Third-party dependencies
 ------------------------
@@ -268,6 +270,6 @@ Third-party dependencies
     LICENSES/OFL-1.1.txt)
 
 Sega, Model 1, Model 2, Virtua Fighter, Virtua Cop and Daytona USA are
-trademarks of their respective owners. sm2-emu is an independent work and is
+trademarks of their respective owners. Keisho is an independent work and is
 not affiliated with or endorsed by Sega. No copyrighted game data is
 distributed with this software.

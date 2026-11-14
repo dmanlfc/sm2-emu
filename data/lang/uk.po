@@ -1,12 +1,12 @@
-# Ukrainian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Ukrainian translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -774,10 +774,10 @@ msgstr "Тека конфігурації"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Звідки читається і куди зберігається sm2-emu.ini.\n"
+"Звідки читається і куди зберігається keisho.ini.\n"
 "Задається через --config <dir>; тут не змінити."
 
 #: src/osd/gui.cpp
@@ -855,10 +855,10 @@ msgstr "Тека рамок"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Зображення рамок: <game>.png, батьківського набору або default.png.\n"
-"Порожньо — тека bezels поруч із sm2-emu.ini."
+"Порожньо — тека bezels поруч із keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -872,13 +872,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Зображення прицілів: <game>-p1.png (-p2 для гравця 2) або\n"
 "<game>.png для обох, далі батьківського набору, далі default.\n"
 "Малюються у власному розмірі на зображенні з 1080 рядків. Без\n"
 "них малюється вбудований приціл.\n"
-"Порожньо означає теку crosshairs поруч із sm2-emu.ini."
+"Порожньо означає теку crosshairs поруч із keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -889,12 +889,12 @@ msgstr "Завантажувати обкладинки з мережі"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Дозволити вибору ігор завантажувати обкладинки й описи з\n"
-"ArcadeDB через мережу. Якщо вимкнено, sm2-emu працює офлайн:\n"
+"ArcadeDB через мережу. Якщо вимкнено, Keisho працює офлайн:\n"
 "усі ігри так само видно і вони запускаються, але із\n"
 "заглушками замість обкладинок і без описів."
 
@@ -945,8 +945,8 @@ msgstr "Ліцензія GPL-3.0-or-later. Див. LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu існує завдяки відкритому коду, яким діляться зі спільнотою."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho існує завдяки відкритому коду, яким діляться зі спільнотою."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1960,11 +1960,11 @@ msgstr "Показувати приціл"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Малювати власний приціл sm2-emu. Вимкніть, якщо в\n"
+"Малювати власний приціл Keisho. Вимкніть, якщо в\n"
 "пістолета свій приціл (напр. Sinden). Ігри з позиційним\n"
 "пістолетом завжди малюють свій."
 

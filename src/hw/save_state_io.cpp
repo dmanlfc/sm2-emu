@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -35,7 +37,12 @@ constexpr u32 kHostTag = 0x54534f48u;
 
 // A state file is the raw state deflated behind this magic and the raw size.
 // Files without it are read as they are.
-constexpr char  kPackedMagic[8] = {'S', 'M', '2', 'S', 'T', 'A', 'T', 'Z'};
+constexpr char  kPackedMagic[8] = {'K', 'E', 'I', 'S', 'H', 'O', 'S', 'Z'};
+/// The packed magic of states saved by sm2-emu, still read.
+constexpr char  kLegacyPackedMagic[8] = {'S', 'M', '2', 'S', 'T', 'A', 'T', 'Z'};
+
+constexpr const char* kExtension       = ".kstate";
+constexpr const char* kLegacyExtension = ".sm2state";
 constexpr usize kPackedHeader   = sizeof(kPackedMagic) + sizeof(u64);
 constexpr u64   kMaxStateBytes  = u64{1} << 30;
 
@@ -238,7 +245,9 @@ bool read_state_file(const std::string& path, std::vector<u8>& out)
         SM2_ERROR("save-state: short read from '%s'", path.c_str());
         return false;
     }
-    if (out.size() < kPackedHeader || std::memcmp(out.data(), kPackedMagic, sizeof(kPackedMagic)) != 0) {
+    if (out.size() < kPackedHeader
+        || (std::memcmp(out.data(), kPackedMagic, sizeof(kPackedMagic)) != 0
+            && std::memcmp(out.data(), kLegacyPackedMagic, sizeof(kLegacyPackedMagic)) != 0)) {
         return true;
     }
     u64 raw_size = 0;
@@ -267,7 +276,27 @@ bool read_state_file(const std::string& path, std::vector<u8>& out)
 std::string state_slot_path(const std::string& dir, const std::string& game,
                             const std::string& slot)
 {
-    return (std::filesystem::path(dir) / (game + "." + slot + ".sm2state")).string();
+    const std::filesystem::path path   = std::filesystem::path(dir) / (game + "." + slot + kExtension);
+    const std::filesystem::path legacy = std::filesystem::path(dir) / (game + "." + slot + kLegacyExtension);
+    std::error_code             ec;
+    if (std::filesystem::exists(path, ec) || !std::filesystem::exists(legacy, ec)) {
+        return path.string();
+    }
+    // An sm2-emu state for this slot: rewrite it in the new format, then drop it.
+    std::vector<u8> data;
+    if (!read_state_file(legacy.string(), data)) {
+        return path.string();
+    }
+    if (data.size() >= sizeof(state::kLegacyMagic)
+        && std::memcmp(data.data(), state::kLegacyMagic, sizeof(state::kLegacyMagic)) == 0) {
+        std::memcpy(data.data(), state::kMagic, sizeof(state::kMagic));
+    }
+    if (write_state_file(path.string(), data)) {
+        std::filesystem::remove(legacy, ec);
+        SM2_INFO("save-state: converted '%s' to '%s'", legacy.filename().string().c_str(),
+                 path.filename().string().c_str());
+    }
+    return path.string();
 }
 
 std::vector<SlotInfo> list_state_slots(const std::string& dir, const std::string& game)

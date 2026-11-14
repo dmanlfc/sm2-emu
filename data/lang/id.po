@@ -1,8 +1,8 @@
-# Indonesian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Indonesian translation of the Keisho overlay. Machine-translated seed; corrections welcome.
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -770,10 +770,10 @@ msgstr "Direktori konfigurasi"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Tempat sm2-emu.ini dibaca dan disimpan.\n"
+"Tempat keisho.ini dibaca dan disimpan.\n"
 "Diatur dengan --config <dir>; tidak dapat diubah di sini."
 
 #: src/osd/gui.cpp
@@ -851,10 +851,10 @@ msgstr "Direktori bezel"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Gambar bezel: <game>.png, milik set induk, atau default.png.\n"
-"Kosong berarti folder bezels di samping sm2-emu.ini."
+"Kosong berarti folder bezels di samping keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -868,13 +868,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Gambar crosshair: <game>-p1.png (-p2 untuk pemain 2) atau\n"
 "<game>.png untuk keduanya, lalu milik set induk, lalu default.\n"
 "Digambar pada ukurannya sendiri di gambar 1080 baris. Tanpa\n"
 "itu, crosshair bawaan yang digambar.\n"
-"Kosong berarti folder crosshairs di samping sm2-emu.ini."
+"Kosong berarti folder crosshairs di samping keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -885,12 +885,12 @@ msgstr "Ambil artwork secara online"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Biarkan pemilih game mengambil sampul dan deskripsi dari\n"
-"ArcadeDB melalui jaringan. Mati membuat sm2-emu tetap offline:\n"
+"ArcadeDB melalui jaringan. Mati membuat Keisho tetap offline:\n"
 "pemilih tetap menampilkan dan meluncurkan semua game, dengan\n"
 "gambar pengganti dan tanpa deskripsi."
 
@@ -941,8 +941,8 @@ msgstr "Lisensi GPL-3.0-or-later. Lihat LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu ada berkat open source yang dibagikan bersama komunitas."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho ada berkat open source yang dibagikan bersama komunitas."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1952,11 +1952,11 @@ msgstr "Tampilkan crosshair"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Gambar crosshair milik sm2-emu. Matikan jika senjata\n"
+"Gambar crosshair milik Keisho. Matikan jika senjata\n"
 "punya bidikan sendiri (mis. Sinden). Game senjata\n"
 "posisional selalu menggambar milik sendiri."
 

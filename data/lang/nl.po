@@ -1,14 +1,14 @@
-# Dutch translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
-# Dutch translations for sm2-emu package
-# Nederlandse vertalingen voor het pakket sm2-emu.
-# Copyright (C) 2026 THE sm2-emu'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the sm2-emu package.
+# Dutch translation of the Keisho overlay. Machine-translated seed; corrections welcome.
+# Dutch translations for Keisho package
+# Nederlandse vertalingen voor het pakket Keisho.
+# Copyright (C) 2026 THE Keisho'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Keisho package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -775,10 +775,10 @@ msgstr "Configuratiemap"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Waar sm2-emu.ini wordt gelezen en opgeslagen.\n"
+"Waar keisho.ini wordt gelezen en opgeslagen.\n"
 "In te stellen met --config <dir>; hier niet te wijzigen."
 
 #: src/osd/gui.cpp
@@ -856,10 +856,10 @@ msgstr "Map voor bezels"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Bezelafbeeldingen: <game>.png, die van de ouderset of default.png.\n"
-"Leeg betekent een map bezels naast sm2-emu.ini."
+"Leeg betekent een map bezels naast keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -873,13 +873,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Vizierafbeeldingen: <game>-p1.png (-p2 voor speler 2) of\n"
 "<game>.png voor beide, dan die van de ouderset, dan default.\n"
 "Op eigen grootte getekend op een beeld van 1080 lijnen. Zonder\n"
 "afbeelding wordt het ingebouwde vizier getekend.\n"
-"Leeg betekent een map crosshairs naast sm2-emu.ini."
+"Leeg betekent een map crosshairs naast keisho.ini."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -890,12 +890,12 @@ msgstr "Artwork online ophalen"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "Laat de spelkiezer hoesafbeeldingen en beschrijvingen ophalen\n"
-"van ArcadeDB via het netwerk. Uit houdt sm2-emu offline: de\n"
+"van ArcadeDB via het netwerk. Uit houdt Keisho offline: de\n"
 "kiezer toont en start nog steeds elk spel, met tijdelijke\n"
 "tegels en zonder beschrijvingen."
 
@@ -946,8 +946,8 @@ msgstr "GPL-3.0-or-later-licentie. Zie LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu bestaat dankzij open source die met de gemeenschap is gedeeld."
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho bestaat dankzij open source die met de gemeenschap is gedeeld."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1965,11 +1965,11 @@ msgstr "Richtkruis tonen"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Teken het eigen richtkruis van sm2-emu. Zet uit als het\n"
+"Teken het eigen richtkruis van Keisho. Zet uit als het\n"
 "pistool een eigen vizier heeft (bijv. een Sinden). Spellen\n"
 "met positiepistolen tekenen altijd hun eigen."
 

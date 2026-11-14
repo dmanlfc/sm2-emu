@@ -1,8 +1,8 @@
-# Hungarian translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Hungarian translation of the Keisho overlay. Machine-translated seed; corrections welcome.
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -769,10 +769,10 @@ msgstr "Konfigurációs mappa"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"Ahonnan az sm2-emu.ini betöltődik és ahová mentődik.\n"
+"Ahonnan az keisho.ini betöltődik és ahová mentődik.\n"
 "A --config <dir> kapcsolóval állítható; itt nem módosítható."
 
 #: src/osd/gui.cpp
@@ -850,10 +850,10 @@ msgstr "Keretek mappája"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "Keretképek: <game>.png, a szülő készleté vagy default.png.\n"
-"Az üres egy bezels mappát jelent az sm2-emu.ini mellett."
+"Az üres egy bezels mappát jelent az keisho.ini mellett."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -867,13 +867,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "Célkereszt képek: <game>-p1.png (-p2 a 2. játékosnak) vagy\n"
 "<game>.png mindkettőnek, aztán a szülő készleté, aztán default.\n"
 "Saját méretükben rajzolódnak egy 1080 soros képen. Ha\n"
 "nincs, a beépített célkereszt rajzolódik.\n"
-"Üres esetén a sm2-emu.ini melletti crosshairs mappa."
+"Üres esetén a keisho.ini melletti crosshairs mappa."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -884,12 +884,12 @@ msgstr "Borítóképek letöltése"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "A játékválasztó letöltheti a borítóképeket és leírásokat az\n"
-"ArcadeDB-ről a hálózaton át. Kikapcsolva az sm2-emu offline\n"
+"ArcadeDB-ről a hálózaton át. Kikapcsolva az Keisho offline\n"
 "marad: a választó így is listáz és indít minden játékot,\n"
 "helyettesítő csempékkel, leírás nélkül."
 
@@ -940,9 +940,9 @@ msgstr "GPL-3.0-or-later licenc. Lásd: LICENSE."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
+msgid "Keisho exists because of open source shared with the community."
 msgstr ""
-"Az sm2-emu a közösséggel megosztott nyílt forráskódnak köszönhetően létezik."
+"Az Keisho a közösséggel megosztott nyílt forráskódnak köszönhetően létezik."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1963,11 +1963,11 @@ msgstr "Célkereszt megjelenítése"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"Az sm2-emu saját célkeresztjét rajzolja. Kapcsolja ki, ha\n"
+"Az Keisho saját célkeresztjét rajzolja. Kapcsolja ki, ha\n"
 "a pisztolynak saját irányzéka van (pl. Sinden). A pozíciós\n"
 "pisztolyos játékok mindig a sajátjukat rajzolják."
 

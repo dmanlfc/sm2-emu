@@ -1,11 +1,13 @@
 ```
-  ____  __  __  ____         _____ __  __ _   _
- / ___||  \/  ||___ \       | ____|  \/  | | | |
- \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-  ___) | |  | | / __/|_____|| |___| |  | | |_| |
- |____/|_|  |_||_____|      |_____|_|  |_|\___/
+██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+█████╔╝ █████╗  ██║███████╗███████║██║   ██║
+██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+           継 承  ( k e i s h ō )
 
- A  S E G A  M O D E L  1 ,  2  &  3  E M U L A T O R
+       A SEGA MODEL 1, 2 & 3 EMULATOR
 ```
 
 I started this project in February 2025 to improve Model 2 emulation on Linux.
@@ -13,6 +15,8 @@ There was no native emulator, and MAME had compatibility problems and was too
 slow on small ARM boards. The plan was to learn from what MAME does well. My
 earlier OpenGL ES and Vulkan work for Batocera showed that Model 2 could run
 on a Raspberry Pi 5.
+
+Keisho was formerly named sm2-emu.
 
 In November 2026, I added Sega Model 1 support, and then Sega Model 3.
 
@@ -133,7 +137,7 @@ rasteriser and System 24 tilemaps for the 2D layers. Output is 496x384 at about
 57.5 Hz. The rasteriser has no modern equivalent in four ways:
 
 - **No depth buffer.** Polygons are sorted by depth and drawn front to back
-  against a one-bit mask: the first write wins. sm2-emu uses a stencil buffer
+  against a one-bit mask: the first write wins. Keisho uses a stencil buffer
   for this.
 - **No RGB textures.** A texel is a 4-bit intensity, coloured through a tone
   curve, a base colour, a lookup table and a gamma ramp. The curve applies after
@@ -154,8 +158,8 @@ graphics backends, per-distro packages, macOS and cross-compiling for ARM.
 A default Linux build (software + OpenGL):
 
 ```sh
-git clone --recurse-submodules https://github.com/dmanlfc/sm2-emu.git
-cd sm2-emu
+git clone --recurse-submodules https://github.com/Keisho-Emu/Keisho.git
+cd Keisho
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ctest --test-dir build
@@ -164,9 +168,9 @@ ctest --test-dir build
 ## Running
 
 ```sh
-./build/bin/sm2-emu --list-games
-./build/bin/sm2-emu --list-gpus
-./build/bin/sm2-emu [--graphics-backend <software|vulkan|opengl>] \
+./build/bin/keisho --list-games
+./build/bin/keisho --list-gpus
+./build/bin/keisho [--graphics-backend <software|vulkan|opengl>] \
                     [--render-scale <1-8>] \
                     [--fullscreen] [--no-vsync] [--game <set>] vf2.zip
 ```
@@ -176,7 +180,7 @@ by file name, so one merged archive can hold several revisions and `--game`
 picks one. For example, the four Virtua Fighter 2 revisions share one file:
 
 ```sh
-./build/bin/sm2-emu --game vf2o vf2.zip
+./build/bin/keisho --game vf2o vf2.zip
 ```
 
 A clone lists only the chips it changes and takes the rest from its parent,
@@ -291,10 +295,10 @@ Both are set up in the settings menu (`F10`):
 
 - **Detection:** a mouse whose name contains "gun" or "aimtrak" counts as a gun
   (GUN4IR, Sinden, AimTrak).
-- **Setup:** guns must be in absolute mouse mode and plugged in before sm2-emu
+- **Setup:** guns must be in absolute mouse mode and plugged in before Keisho
   starts. Aiming works windowed too.
 - **Buttons:** only the five mouse buttons are read.
-- **Recoil:** sm2-emu doesn't drive the motor on Windows. Turn on Windows or
+- **Recoil:** Keisho doesn't drive the motor on Windows. Turn on Windows or
   Network outputs in the System tab and let MAMEHooker or Hook Of The Reaper
   fire it.
 
@@ -302,9 +306,11 @@ Both are set up in the settings menu (`F10`):
 
 `F6` quick-saves and `F7` quick-loads, using one slot per game. The **States**
 tab has four more slots per game, each with Save, Load and Delete. States are
-stored as `<game>.<slot>.sm2state` in the `states` folder inside the saves
+stored as `<game>.<slot>.kstate` in the `states` folder inside the saves
 folder, so they move with `--nvram` / `nvram_dir`. States saved by v0.9.45
-or later still load; states from this build won't load in older ones.
+or later still load, and sm2-emu's `.sm2state` files are converted to
+`.kstate` the first time Keisho finds them; states from this build won't load
+in older ones.
 
 ### Rewind
 
@@ -315,10 +321,10 @@ by default.
 
 ## Settings
 
-Most settings are in the settings menu (`F10`) and in `sm2-emu.ini`, which is
+Most settings are in the settings menu (`F10`) and in `keisho.ini`, which is
 created on first run. The file is looked for in the working directory, then in
-the config folder (`$XDG_CONFIG_HOME/sm2-emu` on Linux,
-`~/Library/Application Support/sm2-emu` on macOS); `--config <dir>` overrides
+the config folder (`$XDG_CONFIG_HOME/keisho` on Linux,
+`~/Library/Application Support/Keisho` on macOS); `--config <dir>` overrides
 both. Menu changes are saved on exit, and command-line options always win.
 
 ### Language
@@ -401,14 +407,14 @@ holds that exact texture; mip levels are made from it.
 ## Cabinet link
 
 Games with a link board (Daytona USA, Sega Rally, Indy 500, Super GT 24h,
-Virtua Racing and others) can race across a LAN, one sm2-emu per machine. With
+Virtua Racing and others) can race across a LAN, one Keisho per machine. With
 the link off, a game passes its network check and plays as a single cabinet.
 
 Cabinets form a **ring**: each one listens on its own address and sends to the
 next. With two machines, point each at the other. Master/slave is chosen in the
 game's own test menu.
 
-Set it up in the **Network** tab or in `sm2-emu.ini`:
+Set it up in the **Network** tab or in `keisho.ini`:
 
 | Setting | Meaning |
 |---------|---------|
@@ -455,7 +461,7 @@ link games haven't been tried linked yet.
 ## Frame pacing
 
 The machine runs at 57.5245 Hz, which no display matches. Showing one emulated
-frame per refresh would run 4% fast on a 60 Hz screen, so sm2-emu paces to
+frame per refresh would run 4% fast on a 60 Hz screen, so Keisho paces to
 real time and shows every frame exactly once. On a 60 Hz display a frame is
 sometimes held for two refreshes; that can't be avoided without making up
 frames. On a display slower than 57.5 Hz, vsync would slow the game down, so
@@ -487,10 +493,10 @@ Ideas being explored for the future:
 
 ## Licence and credits
 
-sm2-emu is licensed under the GNU General Public License v3.0 or later, with a
+Keisho is licensed under the GNU General Public License v3.0 or later, with a
 few additional terms. See `LICENSE` and `NOTICE` for details.
 
-sm2-emu exists because of the MAME project's reverse engineering of this
+Keisho exists because of the MAME project's reverse engineering of this
 hardware. Much of the emulation is derived from MAME's Sega Model 1 and Model 2
 drivers and their device cores, released by their authors under the BSD
 3-Clause licence, which that code keeps (see `LICENSES/BSD-3-Clause.txt`).

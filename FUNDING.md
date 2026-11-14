@@ -1,16 +1,18 @@
 ```
-  ____  __  __  ____         _____ __  __ _   _
- / ___||  \/  ||___ \       | ____|  \/  | | | |
- \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-  ___) | |  | | / __/|_____|| |___| |  | | |_| |
- |____/|_|  |_||_____|      |_____|_|  |_|\___/
+██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+█████╔╝ █████╗  ██║███████╗███████║██║   ██║
+██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+           継 承  ( k e i s h ō )
 
- A   S E G A   M O D E L   2   E M U L A T O R
+       A SEGA MODEL 1, 2 & 3 EMULATOR
 ```
 
-# Supporting sm2-emu
+# Supporting Keisho
 
-SM2-EMU Is free and developed in spare time. If you'd like to support
+Keisho is free and developed in spare time. If you'd like to support
 development, you can do so here:
 
 - **Ko-fi**: [ko-fi.com/dmanlfc](https://ko-fi.com/dmanlfc)

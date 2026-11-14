@@ -7,9 +7,9 @@
 // (https://github.com/trzy/Supermodel), GPL-3.0-or-later. Copyright (c)
 // 2011-2019 Bart Trzynadlowski, Nik Henson, Ian Curtis (MPC10x) and Copyright
 // (c) 2011 Bart Trzynadlowski, Nik Henson (PCI).
-// sm2-emu changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
+// Keisho changes Copyright (c) 2025+ Daniel Martin (dmanlfc).
 //
-// NOTICE's section 7 additional terms apply to sm2-emu's changes only.
+// NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
 // The register file is filled byte-wise as little-endian, whatever the host,
 // and register indices wrap to its 256 bytes. PCI devices are a fixed

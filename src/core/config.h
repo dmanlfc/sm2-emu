@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -121,7 +123,7 @@ struct Config {
     enum class LightgunMode : u32 { Auto, On, Off };
     LightgunMode lightgun = LightgunMode::Auto;
 
-    /// Draw sm2-emu's own aiming crosshair in light-gun mode. On by default;
+    /// Draw Keisho's own aiming crosshair in light-gun mode. On by default;
     /// turn it off when the gun provides its own aiming (e.g. a Sinden with a
     /// physical sight) so the screen is not cluttered. Independent of the mode
     /// itself, which still hides the cursor and enables the gun paths.
@@ -570,7 +572,7 @@ struct Config {
     /// resolve_default_paths(). A runtime field only, for the picker to read.
     std::string artwork_dir;
 
-    /// Save states: per-game `<game>.<slot>.sm2state`. Derived as
+    /// Save states: per-game `<game>.<slot>.kstate`. Derived as
     /// `<data dir>/states` by resolve_default_paths(); a runtime field only, not
     /// persisted in the ini (a save state has no reason to be relocatable).
     std::string states_dir;
@@ -578,7 +580,7 @@ struct Config {
     // -- library -----------------------------------------------------------
 
     /// Let the game picker fetch art/descriptions from ArcadeDB. Off keeps
-    /// sm2-emu offline; the picker still lists and launches every game.
+    /// Keisho offline; the picker still lists and launches every game.
     bool scrape_artwork = true;
 
     // -- diagnostics -------------------------------------------------------
@@ -589,9 +591,12 @@ struct Config {
     std::string log_level = "info";
 };
 
+/// The settings file in `directory`.
+[[nodiscard]] std::string config_file_in(const std::string& directory);
+
 /// Where the configuration is read from and written to when nothing says otherwise.
 ///
-/// A file named sm2-emu.ini in the working directory wins, which is what a build
+/// A file named keisho.ini in the working directory wins, which is what a build
 /// tree wants; otherwise the platform's preferences directory, which is what an
 /// installed copy wants. Returns the working-directory path only when that file
 /// exists, so a fresh install writes to the proper place.
@@ -599,7 +604,7 @@ struct Config {
 
 /// Platform data directory for saves/screenshots: Linux $XDG_DATA_HOME or
 /// ~/.local/share, macOS ~/Library/Application Support, Windows %APPDATA%, each
-/// with /sm2-emu. `config_in_cwd` returns "." instead, keeping a dev checkout
+/// with /keisho (Keisho on macOS and Windows). `config_in_cwd` returns "." instead, keeping a dev checkout
 /// self-contained like default_config_path().
 [[nodiscard]] std::string data_directory(bool config_in_cwd);
 

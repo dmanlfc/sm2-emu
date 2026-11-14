@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -289,13 +291,13 @@ struct Options {
 void print_usage()
 {
     std::printf(
-        "sm2-emu " SM2_VERSION " — Sega Model 1, 2 & 3 arcade emulator\n"
+        "Keisho " SM2_VERSION " — Sega Model 1, 2 & 3 arcade emulator\n"
         "\n"
-        "Usage: sm2-emu [options] [rom.zip]\n"
+        "Usage: keisho [options] [rom.zip]\n"
         "\n"
         "Options:\n"
         "  -h, --help          Show this message\n"
-        "      --config <dir>  Directory holding sm2-emu.ini, used for both\n"
+        "      --config <dir>  Directory holding keisho.ini, used for both\n"
         "                      reading and saving settings\n"
         "      --dump-textures Write every 3D texture to <saves>/textures/<game>/dump\n"
         "      --fullscreen    Start filling the screen\n"
@@ -938,11 +940,9 @@ int main(int argc, char** argv)
     defaults.validation = true;
 #endif
 
-    // --config names a directory; the file within it is always sm2-emu.ini.
+    // --config names a directory; the file within it is keisho.ini.
     const std::string config_path =
-        options.config_path.empty()
-            ? default_config_path()
-            : (std::filesystem::path(options.config_path) / "sm2-emu.ini").string();
+        options.config_path.empty() ? default_config_path() : config_file_in(options.config_path);
 
     Config                   from_file = defaults;
     std::vector<std::string> problems;
@@ -1112,8 +1112,7 @@ int main(int argc, char** argv)
     // keeps them relative (see resolve_default_paths / data_directory). Artwork
     // goes beside the ini, so pass its directory.
     const bool config_in_cwd =
-        options.config_path.empty()
-        && config_path == std::string("sm2-emu.ini");
+        options.config_path.empty() && std::filesystem::path(config_path).parent_path().empty();
     const std::string config_dir =
         std::filesystem::path(config_path).parent_path().string();
     resolve_default_paths(&options.config, config_in_cwd, config_dir);
@@ -1122,7 +1121,7 @@ int main(int argc, char** argv)
     (void)parse_log_level(options.config.log_level, &level);
     log::set_level(level);
 
-    SM2_INFO("sm2-emu %s", SM2_VERSION);
+    SM2_INFO("Keisho %s", SM2_VERSION);
 
     // Platform sockets, once (a no-op except on Windows). The process reclaims
     // them at exit, so the early-return paths below need no matching shutdown.
@@ -1728,7 +1727,7 @@ int main(int argc, char** argv)
         return the_cpu.faulted() ? 1 : exit_code_boot_test;
     }
 
-    SDL_SetAppMetadata("sm2-emu", SM2_VERSION, "sm2-emu");
+    SDL_SetAppMetadata("Keisho", SM2_VERSION, "keisho");
 
     if (!SDL_Init(0)) {
         SM2_ERROR("SDL_Init failed: %s", SDL_GetError());
@@ -1738,7 +1737,7 @@ int main(int argc, char** argv)
     int exit_code = 0;
     {
         osd::WindowConfig window_config;
-        window_config.title      = std::string("sm2-emu ") + SM2_VERSION;
+        window_config.title      = std::string("Keisho ") + SM2_VERSION;
         window_config.width      = options.config.window_width;
         window_config.height     = options.config.window_height;
         window_config.fullscreen = options.config.fullscreen;
@@ -1933,7 +1932,7 @@ int main(int argc, char** argv)
                 if (clone != nullptr && titles.count(game_family(*clone)) != 0) {
                     layouts.try_emplace(game_family(*clone), it->second);
                 } else {
-                    SM2_WARN("sm2-emu.ini: no game family '%s'; its gamepad layout is ignored",
+                    SM2_WARN("keisho.ini: no game family '%s'; its gamepad layout is ignored",
                              it->first.c_str());
                 }
                 it = layouts.erase(it);
@@ -2204,12 +2203,12 @@ int main(int argc, char** argv)
             frame_times_ms.reserve(static_cast<usize>(options.duration_seconds) * 2000);
         }
 
-        // "sm2-emu — <game or 'no game'> [Vulkan|OpenGL|Software]", plus the
+        // "Keisho — <game or 'no game'> [Vulkan|OpenGL|Software]", plus the
         // rate and pause state once the loop is running. Shared by the initial
         // title and the once-a-second refresh, so the two can never drift into
         // different formats.
         const auto build_title = [&]() {
-            std::string title = std::string("sm2-emu — ")
+            std::string title = std::string("Keisho — ")
                               + (loaded.has_value() ? loaded->game.title : "no game")
                               + (use_software_renderer
                                     ? " [Software]"
@@ -3232,7 +3231,7 @@ int main(int argc, char** argv)
             if (state_action.has_value() && machine_any != nullptr && loaded.has_value()) {
                 const std::string path = hw::state_slot_path(
                     options.config.states_dir, loaded->game.name, state_action->slot);
-                // The file's base name, e.g. "topskatr.quick.sm2state" — enough
+                // The file's base name, e.g. "topskatr.quick.kstate" — enough
                 // to identify what was written/read without a long full path.
                 const std::string file =
                     std::filesystem::path(path).filename().string();

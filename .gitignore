@@ -20,7 +20,7 @@ compile_commands.json
 nvram/
 saves/
 screenshots/
-sm2-emu.ini
+keisho.ini
 
 # ROM images — never commit these
 roms/

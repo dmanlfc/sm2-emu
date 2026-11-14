@@ -1,8 +1,8 @@
-# Urdu translation of the sm2-emu overlay. Machine-translated seed; corrections welcome.
+# Urdu translation of the Keisho overlay. Machine-translated seed; corrections welcome.
 msgid ""
 msgstr ""
-"Project-Id-Version: sm2-emu\n"
-"Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
+"Project-Id-Version: Keisho\n"
+"Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
 "POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
@@ -769,10 +769,10 @@ msgstr "کنفیگ ڈائریکٹری"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where sm2-emu.ini is read from and saved to.\n"
+"Where keisho.ini is read from and saved to.\n"
 "Set with --config <dir>; cannot be changed here."
 msgstr ""
-"جہاں سے sm2-emu.ini پڑھی اور محفوظ کی جاتی ہے۔\n"
+"جہاں سے keisho.ini پڑھی اور محفوظ کی جاتی ہے۔\n"
 "--config <dir> سے مقرر ہوتی ہے؛ یہاں تبدیل نہیں ہو سکتی۔"
 
 #: src/osd/gui.cpp
@@ -850,10 +850,10 @@ msgstr "فریم ڈائریکٹری"
 #, no-c-format
 msgid ""
 "Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside sm2-emu.ini."
+"Empty means a bezels folder beside keisho.ini."
 msgstr ""
 "فریم تصاویر: <game>.png، پیرنٹ سیٹ کی تصویر، یا default.png۔\n"
-"خالی کا مطلب sm2-emu.ini کے ساتھ bezels فولڈر ہے۔"
+"خالی کا مطلب keisho.ini کے ساتھ bezels فولڈر ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -867,13 +867,13 @@ msgid ""
 "<game>.png for both, then the parent set's, then default.\n"
 "Drawn at their own size on a 1080-line picture. Without\n"
 "one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside sm2-emu.ini."
+"Empty means a crosshairs folder beside keisho.ini."
 msgstr ""
 "کراس ہیئر تصاویر: <game>-p1.png (کھلاڑی 2 کے لیے -p2) یا\n"
 "دونوں کے لیے <game>.png، پھر پیرنٹ سیٹ کی، پھر default۔\n"
 "1080 لائن کی تصویر پر اپنے سائز میں بنتی ہیں۔ ان کے بغیر\n"
 "بلٹ اِن کراس ہیئر بنتا ہے۔\n"
-"خالی کا مطلب sm2-emu.ini کے ساتھ crosshairs فولڈر ہے۔"
+"خالی کا مطلب keisho.ini کے ساتھ crosshairs فولڈر ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -884,12 +884,12 @@ msgstr "آن لائن آرٹ ورک حاصل کریں"
 #, no-c-format
 msgid ""
 "Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps sm2-emu offline: the\n"
+"ArcadeDB over the network. Off keeps Keisho offline: the\n"
 "picker still lists and launches every game, with placeholder\n"
 "tiles and no descriptions."
 msgstr ""
 "گیم چننے والے کو نیٹ ورک پر ArcadeDB سے باکس آرٹ اور\n"
-"تفصیلات لانے دیں۔ بند ہونے پر sm2-emu آف لائن رہتا ہے:\n"
+"تفصیلات لانے دیں۔ بند ہونے پر Keisho آف لائن رہتا ہے:\n"
 "چننے والا پھر بھی ہر گیم دکھاتا اور چلاتا ہے، عارضی\n"
 "ٹائلوں کے ساتھ اور بغیر تفصیلات کے۔"
 
@@ -940,8 +940,8 @@ msgstr "GPL-3.0-or-later لائسنس۔ LICENSE دیکھیں۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "sm2-emu exists because of open source shared with the community."
-msgstr "sm2-emu کمیونٹی کے ساتھ بانٹے گئے اوپن سورس کی بدولت موجود ہے۔"
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho کمیونٹی کے ساتھ بانٹے گئے اوپن سورس کی بدولت موجود ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1953,11 +1953,11 @@ msgstr "نشانے کا کراس دکھائیں"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw sm2-emu's own crosshair. Turn off if the gun\n"
+"Draw Keisho's own crosshair. Turn off if the gun\n"
 "has its own sight (e.g. a Sinden). Positional-gun\n"
 "titles always draw their own regardless."
 msgstr ""
-"sm2-emu کا اپنا نشانے کا کراس بنائیں۔ اگر گن کا اپنا\n"
+"Keisho کا اپنا نشانے کا کراس بنائیں۔ اگر گن کا اپنا\n"
 "نشانہ ہو (مثلاً Sinden) تو بند کریں۔ مقامی گن والے\n"
 "گیمز ہر حال میں اپنا کراس خود بناتے ہیں۔"
 

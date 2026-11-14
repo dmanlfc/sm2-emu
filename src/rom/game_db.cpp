@@ -1,14 +1,16 @@
-//  ____  __  __  ____         _____ __  __ _   _
-// / ___||  \/  ||___ \       | ____|  \/  | | | |
-// \___ \| |\/| |  __) |_____ |  _| | |\/| | | | |
-//  ___) | |  | | / __/|_____|| |___| |  | | |_| |
-// |____/|_|  |_||_____|      |_____|_|  |_|\___/
+// ██╗  ██╗███████╗██╗███████╗██╗  ██╗ ██████╗
+// ██║ ██╔╝██╔════╝██║██╔════╝██║  ██║██╔═══██╗
+// █████╔╝ █████╗  ██║███████╗███████║██║   ██║
+// ██╔═██╗ ██╔══╝  ██║╚════██║██╔══██║██║   ██║
+// ██║  ██╗███████╗██║███████║██║  ██║╚██████╔╝
+// ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+//            継 承  ( k e i s h ō )
 //
-// A Sega Model 1 & 2 arcade emulator.
+// A Sega Model 1, 2 & 3 arcade emulator.
 // Copyright (c) 2025+ Daniel Martin (dmanlfc)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This header must not be removed. sm2-emu is licensed under the GNU General
+// This header must not be removed. Keisho is licensed under the GNU General
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
@@ -511,7 +513,7 @@ std::optional<std::string> GameDatabase::locate()
     const std::filesystem::path exe_dir = executable_directory();
     if (!exe_dir.empty()) {
         candidates.push_back(exe_dir / "games.xml");
-        candidates.push_back(exe_dir / ".." / "share" / "sm2-emu" / "games.xml");
+        candidates.push_back(exe_dir / ".." / "share" / "keisho" / "games.xml");
         candidates.push_back(exe_dir / ".." / ".." / "data" / "games.xml");
         // macOS .app bundle: exe is Contents/MacOS, data in Contents/Resources.
         candidates.push_back(exe_dir / ".." / "Resources" / "games.xml");
@@ -525,7 +527,7 @@ std::optional<std::string> GameDatabase::locate()
     }
 
     SM2_ERROR("games.xml could not be found. Looked in the current directory, "
-              "beside the executable, in ../share/sm2-emu, and in the app "
+              "beside the executable, in ../share/keisho, and in the app "
               "bundle's Resources.");
     return std::nullopt;
 }
@@ -1028,7 +1030,7 @@ bool GameDatabase::load_from_string(std::string_view xml, const char* origin)
     // implementation to keep correct. The database is small and this path is
     // only used by tests.
     const std::filesystem::path temp =
-        std::filesystem::temp_directory_path() / "sm2-emu-games-test.xml";
+        std::filesystem::temp_directory_path() / "keisho-games-test.xml";
     {
         std::FILE* handle = std::fopen(temp.string().c_str(), "wb");
         if (handle == nullptr) {

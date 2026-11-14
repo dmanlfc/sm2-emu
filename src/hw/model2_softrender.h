@@ -6,7 +6,7 @@
 // src/devices/video/poly.h (BSD-3-Clause, copyright-holders R. Belmont, Olivier
 // Galibert, ElSemi, Angelo Salese, Matthew Daniels, Aaron Giles).
 //
-// This is not how sm2-emu draws. The real pixel stage is Vulkan, which matches
+// This is not how Keisho draws. The real pixel stage is Vulkan, which matches
 // MAME's *output* rather than its implementation. This exists to make that claim
 // testable: with a software path that is a faithful port, a frame can be compared
 // three ways -- MAME against this, and this against Vulkan -- and any difference

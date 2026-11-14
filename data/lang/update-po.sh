@@ -1,10 +1,10 @@
 #!/bin/sh
 # data/lang/update-po.sh [LANG...]
 #
-# Extracts the overlay's strings into data/lang/sm2-emu.pot and merges the
+# Extracts the overlay's strings into data/lang/keisho.pot and merges the
 # template into every catalog in data/lang (or just the named ones), keeping
 # existing translations. A new language starts with
-#   msginit -i data/lang/sm2-emu.pot -l <code> -o data/lang/<code>.po --no-translator
+#   msginit -i data/lang/keisho.pot -l <code> -o data/lang/<code>.po --no-translator
 # then add X-Language-Name (its own name) and X-Language-Name-English headers.
 #
 # Strings are marked in the source with tr(), tr_id(), trf(), trnf(), N_() and
@@ -13,11 +13,11 @@ set -e
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 LANG_DIR=$ROOT/data/lang
-POT=$LANG_DIR/sm2-emu.pot
+POT=$LANG_DIR/keisho.pot
 
 cd "$ROOT"
 xgettext --language=C++ --from-code=UTF-8 --add-comments=TRANSLATORS: \
-    --package-name=sm2-emu --msgid-bugs-address=https://github.com/dmanlfc/sm2-emu/issues \
+    --package-name=Keisho --msgid-bugs-address=https://github.com/Keisho-Emu/Keisho/issues \
     --keyword= --keyword=tr --keyword=tr_id --keyword=trf --keyword=trnf:1,2 \
     --keyword=N_ --keyword=text_wrapped \
     --flag=tr:1:no-c-format --flag=tr_id:1:no-c-format --flag=N_:1:no-c-format \
