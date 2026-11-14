@@ -761,6 +761,7 @@ void Gui::draw_menu(Config& config, const std::vector<std::string>& gpu_names, I
     ImGui::BeginChild("page", ImVec2(size.x - pad * 2.0f, foot_top - kit.px(6.0f) - page_top),
                       ImGuiChildFlags_NavFlattened, ImGuiWindowFlags_NoBackground);
     ImGui::PopStyleVar();
+    if (m_page != kPageAudio) m_device_channels = -1;  // ask the device again on the next visit
     switch (m_page) {
         case kPageDisplay: page_display(kit, config, gpu_names); break;
         case kPageAudio:   page_audio(kit, config); break;
@@ -1042,6 +1043,31 @@ void Gui::page_display(ui::Kit& kit, Config& config, const std::vector<std::stri
 
 void Gui::page_audio(ui::Kit& kit, Config& config)
 {
+    const ui::Palette& pal = kit.palette();
+    kit.begin_group(tr("Output"));
+    {
+        static constexpr std::array<const char*, 2> kSpeakers = {N_("Stereo"), N_("Surround")};
+        kit.tip(tr("Scud Race, Daytona USA 2, Sega Rally 2 and The Lost World drive four speakers: a front "
+                   "pair from the first sound chip and a rear pair from the second. Surround opens the output "
+                   "with four channels and plays the rear pair on your rear speakers. Stereo folds them into "
+                   "the front pair. Other games are stereo either way."));
+        int speakers = config.surround ? 1 : 0;
+        if (kit.choice(tr("Speakers"), tr("For the four-speaker Model 3 cabinets."), tr_all(kSpeakers), speakers)) {
+            config.surround = speakers == 1;
+        }
+        if (config.surround) {
+            // Asked once per visit to the page, not every frame.
+            if (m_device_channels < 0) m_device_channels = static_cast<int>(osd::Audio::device_channels());
+            if (m_device_channels > 0 && m_device_channels < 4) {
+                kit.status(trf("Your output device has %d channels, so the rear pair is folded into the front "
+                               "until a surround device is the default.", m_device_channels).c_str(), pal.warn);
+            } else if (m_device_channels >= 4) {
+                kit.status(trf("Your output device has %d channels.", m_device_channels).c_str(), pal.good);
+            }
+        }
+    }
+    kit.end_group();
+
     kit.begin_group(tr("Volume"));
     {
         int  music = static_cast<int>(config.music_volume);

@@ -385,6 +385,12 @@ Volume, per-game volume, and **Music volume** for games with a separate music
 board (Star Wars Arcade, Sega Touring Car Championship and Top Skater), for
 example to mute copyrighted music in recordings.
 
+**Speakers** picks Stereo or Surround for the four-speaker Model 3 cabinets
+(Scud Race, Daytona USA 2, Sega Rally 2, The Lost World). Surround (`surround =
+true`) opens the output with four channels and plays the rear pair on rear
+speakers; Stereo folds them into the front pair. Other games are stereo
+either way, and a two-channel output device folds the rear pair itself.
+
 ### Custom textures
 
 The 3D textures can be dumped and replaced with sharper ones (GPU renderers):

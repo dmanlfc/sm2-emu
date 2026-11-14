@@ -29,8 +29,6 @@
 namespace sm2::osd {
 namespace {
 
-constexpr u32 kChannels = 2;
-
 /// Corner of the output DC blocker. Low enough to leave the bass alone, high
 /// enough to settle within a few tenths of a second.
 constexpr float kDcCornerHz = 5.0f;
@@ -42,7 +40,17 @@ Audio::~Audio()
     shutdown();
 }
 
-bool Audio::init(u32 sample_rate)
+u32 Audio::device_channels()
+{
+    if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) return 0;
+    SDL_AudioSpec spec{};
+    int           frames = 0;
+    const bool    ok     = SDL_GetAudioDeviceFormat(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, &frames);
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    return ok && spec.channels > 0 ? static_cast<u32>(spec.channels) : 0;
+}
+
+bool Audio::init(u32 sample_rate, u32 channels)
 {
     if (m_stream != nullptr) {
         return true;
@@ -51,6 +59,9 @@ bool Audio::init(u32 sample_rate)
         SM2_WARN("audio: a sample rate of zero was requested");
         return false;
     }
+    m_channels = channels == 4 ? 4 : 2;
+    for (float& v : m_dc_in) v = 0.0f;
+    for (float& v : m_dc_out) v = 0.0f;
 
     if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
         SM2_WARN("audio: SDL_InitSubSystem failed: %s", SDL_GetError());
@@ -59,7 +70,7 @@ bool Audio::init(u32 sample_rate)
 
     SDL_AudioSpec spec{};
     spec.format   = SDL_AUDIO_S16;
-    spec.channels = static_cast<int>(kChannels);
+    spec.channels = static_cast<int>(m_channels);
     spec.freq     = static_cast<int>(sample_rate);
 
     // The default device, so SDL follows later changes of system default.
@@ -87,7 +98,7 @@ bool Audio::init(u32 sample_rate)
     // cannot underrun the device.
     const usize prime_frames =
         static_cast<usize>(kTargetQueuedMilliseconds) * sample_rate / 1000;
-    const std::vector<s16> silence(prime_frames * kChannels, 0);
+    const std::vector<s16> silence(prime_frames * m_channels, 0);
     SDL_PutAudioStreamData(m_stream, silence.data(),
                            static_cast<int>(silence.size() * sizeof(s16)));
 
@@ -95,10 +106,10 @@ bool Audio::init(u32 sample_rate)
     SDL_AudioSpec device_spec{};
     int frames = 0;
     if (SDL_GetAudioDeviceFormat(device, &device_spec, &frames)) {
-        SM2_INFO("audio: %u Hz stereo into a %d Hz %d-channel device, %d-frame buffer",
-                 sample_rate, device_spec.freq, device_spec.channels, frames);
+        SM2_INFO("audio: %u Hz %s into a %d Hz %d-channel device, %d-frame buffer",
+                 sample_rate, m_channels == 4 ? "quad" : "stereo", device_spec.freq, device_spec.channels, frames);
     } else {
-        SM2_INFO("audio: %u Hz stereo", sample_rate);
+        SM2_INFO("audio: %u Hz %s", sample_rate, m_channels == 4 ? "quad" : "stereo");
     }
     return true;
 }
@@ -124,7 +135,7 @@ void Audio::submit(std::span<const s16> samples)
         // down to the target rather than clearing the whole stream.
         const u64 keep_bytes =
             static_cast<u64>(kTargetQueuedMilliseconds) * m_sample_rate
-            * sizeof(s16) * kChannels / 1000;
+            * sizeof(s16) * m_channels / 1000;
         int queued = SDL_GetAudioStreamQueued(m_stream);
         while (queued > 0 && static_cast<u64>(queued) > keep_bytes) {
             u8  scratch[4096];
@@ -156,7 +167,7 @@ void Audio::block_dc(std::span<const s16> samples)
     // passes to the speakers. One-pole high-pass, per channel.
     m_filtered.resize(samples.size());
     for (usize i = 0; i < samples.size(); ++i) {
-        const usize ch  = i % kChannels;
+        const usize ch  = i % m_channels;
         const float in  = static_cast<float>(samples[i]);
         const float out = in - m_dc_in[ch] + m_dc_pole * m_dc_out[ch];
         m_dc_in[ch]  = in;
@@ -187,7 +198,7 @@ u32 Audio::queued_milliseconds() const
     if (bytes <= 0) {
         return 0;
     }
-    const u64 frames = static_cast<u64>(bytes) / (sizeof(s16) * kChannels);
+    const u64 frames = static_cast<u64>(bytes) / (sizeof(s16) * m_channels);
     return static_cast<u32>(frames * 1000 / m_sample_rate);
 }
 

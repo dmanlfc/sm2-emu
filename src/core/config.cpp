@@ -975,6 +975,10 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             if (!parse_bool(value, &out->game_volume)) {
                 bad_value();
             }
+        } else if (key == "surround") {
+            if (!parse_bool(value, &out->surround)) {
+                bad_value();
+            }
         } else if (key.rfind("volume_", 0) == 0 && key.size() > 7) {
             u32 percent = 0;
             if (parse_u32(value, &percent)) {
@@ -1113,6 +1117,7 @@ bool save_config(const std::string& path, const Config& config)
         << "model3_async = " << bool_text(config.model3_async) << "\n"
         << "\n[audio]\n"
         << "music_volume = " << config.music_volume << "\n"
+        << "surround = " << bool_text(config.surround) << "\n"
         << "game_volume = " << bool_text(config.game_volume) << "\n";
     for (const auto& [family, percent] : config.game_volumes) {
         if (percent != Config::kDefaultGameVolume) {

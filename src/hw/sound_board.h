@@ -48,6 +48,14 @@ public:
     /// Voices currently sounding; only a rough indication, as boards count
     /// different things.
     [[nodiscard]] virtual u32 active_voices() const = 0;
+
+    /// A board feeding four speakers, a front pair and a rear pair, can hand
+    /// them over unmixed: keep_quad() turns that on, and pending_quad_samples()
+    /// is then FL FR RL RR interleaved, cleared with the stereo by
+    /// clear_pending_samples(). The default board has only the stereo.
+    [[nodiscard]] virtual bool quad_capable() const { return false; }
+    virtual void keep_quad(bool /*enabled*/) {}
+    [[nodiscard]] virtual std::span<const s16> pending_quad_samples() const { return {}; }
 };
 
 }  // namespace sm2::hw

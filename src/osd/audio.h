@@ -39,17 +39,23 @@ public:
     Audio(const Audio&)            = delete;
     Audio& operator=(const Audio&) = delete;
 
-    /// Open the default output device for `sample_rate` Hz interleaved stereo
-    /// 16-bit.
+    /// Open the default output device for `sample_rate` Hz interleaved 16-bit,
+    /// stereo or, with `channels` 4, front and rear pairs (FL FR RL RR). SDL
+    /// folds four channels down itself when the device has two.
     ///
     /// Returns false if there is no usable device. Not fatal: the caller carries
     /// on and submit() does nothing.
-    [[nodiscard]] bool init(u32 sample_rate);
+    [[nodiscard]] bool init(u32 sample_rate, u32 channels = 2);
     void shutdown();
 
     [[nodiscard]] bool active() const { return m_stream != nullptr; }
+    [[nodiscard]] u32  channels() const { return m_channels; }
 
-    /// Queue interleaved stereo samples for playback.
+    /// How many channels the default output device plays, 0 when unknown.
+    /// Usable before init(); what the Audio page shows beside Surround.
+    [[nodiscard]] static u32 device_channels();
+
+    /// Queue interleaved samples for playback, `channels()` per frame.
     ///
     /// Drops the oldest audio if the queue has grown past kMaxQueuedMilliseconds,
     /// as it does when the emulator runs unthrottled.
@@ -74,11 +80,12 @@ private:
 
     SDL_AudioStream* m_stream = nullptr;
     u32              m_sample_rate = 0;
+    u32              m_channels = 2;
     bool             m_warned_overflow = false;
 
     float            m_dc_pole = 0.0f;
-    float            m_dc_in[2]  = {};  ///< Previous input, per channel.
-    float            m_dc_out[2] = {};  ///< Previous output, per channel.
+    float            m_dc_in[4]  = {};  ///< Previous input, per channel.
+    float            m_dc_out[4] = {};  ///< Previous output, per channel.
     std::vector<s16> m_filtered;
 };
 

@@ -18,7 +18,7 @@ cmake_minimum_required(VERSION 3.24)
 #
 
 project(keisho
-    VERSION     0.9.61
+    VERSION     0.9.62
     DESCRIPTION "Sega Model 1, 2 & 3 arcade emulator"
     LANGUAGES   C CXX
 )

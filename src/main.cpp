@@ -2009,9 +2009,17 @@ int main(int argc, char** argv)
         // from the board's own rate.
         osd::Audio audio;
         osd::Outputs outputs;
-        if (sound_board != nullptr) {
-            static_cast<void>(audio.init(sound_board->sample_rate()));
-        }
+        // Four channels for a four-speaker board with Surround on, else two.
+        const auto audio_channels = [&]() -> u32 {
+            return options.config.surround && sound_board != nullptr && sound_board->quad_capable() ? 4u : 2u;
+        };
+        const auto open_audio = [&]() {
+            if (sound_board == nullptr) return;
+            const u32 channels = audio_channels();
+            sound_board->keep_quad(channels == 4);
+            static_cast<void>(audio.init(sound_board->sample_rate(), channels));
+        };
+        open_audio();
 
         // With no machine, present empty surfaces over a recognisable background.
         hw::Model2Video idle_video;
@@ -2259,9 +2267,7 @@ int main(int argc, char** argv)
             sound_board   = loaded->sound_board;
             sound_link    = loaded->sound_link;
 
-            if (sound_board != nullptr) {
-                static_cast<void>(audio.init(sound_board->sample_rate()));
-            }
+            open_audio();
             configure_cabinet_link(*machine_any, options.config);
             if (gui.picker_active()) {
                 scraper.stop();
@@ -2688,17 +2694,24 @@ int main(int argc, char** argv)
                         / 1'000'000.0);
                 }
 
-                // About 767 stereo frames per video frame, handed over every frame
-                // so the only buffering is SDL's.
+                // About 767 frames per video frame, handed over every frame so
+                // the only buffering is SDL's. Surround switched on or off in
+                // the settings reopens the device with the other channel count.
+                if (sound_board != nullptr && audio.active() && audio.channels() != audio_channels()) {
+                    audio.shutdown();
+                    open_audio();
+                }
                 if (sound_board != nullptr && rewinding) {
                     sound_board->clear_pending_samples();
                 } else if (sound_board != nullptr) {
                     const std::span<const s16> produced = sound_board->pending_samples();
+                    const std::span<const s16> played   = audio.channels() == 4 ? sound_board->pending_quad_samples()
+                                                                                : produced;
                     const u32 volume = options.config.volume_for(game_family(loaded->game));
                     if (volume == Config::kDefaultGameVolume) {
-                        audio.submit(produced);
+                        audio.submit(played);
                     } else {
-                        apply_volume(produced, volume, &scaled_audio);
+                        apply_volume(played, volume, &scaled_audio);
                         audio.submit(scaled_audio);
                     }
                     if (!options.dump_audio.empty()) {

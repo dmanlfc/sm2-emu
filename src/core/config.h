@@ -476,6 +476,11 @@ struct Config {
     /// The music board's level in percent, for the games with one.
     u32 music_volume = 100;
 
+    /// Play the rear pair of a four-speaker cabinet (Scud Race, Daytona USA 2,
+    /// Sega Rally 2, The Lost World) on rear speakers, opening the output
+    /// with four channels; off folds them into the front pair.
+    bool surround = false;
+
     static constexpr u32 kDefaultGameVolume = 100;
     static constexpr u32 kMaxGameVolume     = 150;
 

@@ -116,7 +116,10 @@ public:
     // -- SoundBoard ----------------------------------------------------------
 
     [[nodiscard]] std::span<const s16> pending_samples() const override { return m_pending; }
-    void clear_pending_samples() override { m_pending.clear(); }
+    void clear_pending_samples() override { m_pending.clear(); m_quad.clear(); }
+    [[nodiscard]] bool quad_capable() const override { return m_layout == rom::Model3Audio::QuadFrontRear; }
+    void keep_quad(bool enabled) override { m_keep_quad = enabled; if (!enabled) m_quad.clear(); }
+    [[nodiscard]] std::span<const s16> pending_quad_samples() const override { return m_quad; }
     [[nodiscard]] u32 sample_rate() const override { return kSampleRate; }
     [[nodiscard]] bool present() const override { return !m_program_rom.empty(); }
     [[nodiscard]] u32 active_voices() const override
@@ -159,10 +162,6 @@ public:
     [[nodiscard]] u32 scsp_fifo_level() const { return m_scsp_fifo.count; }
     [[nodiscard]] u32 dsb_fifo_level() const { return m_dsb_fifo.count; }
 
-    /// Pre-mix FL FR RL RR of the last run(), when enabled.
-    void keep_quad(bool enabled) { m_keep_quad = enabled; }
-    [[nodiscard]] std::span<const s16> quad_samples() const { return m_quad; }
-    void clear_quad_samples() { m_quad.clear(); }
 
     /// Between timeslices only. Excludes ROMs, callbacks, pending audio.
     void serialize(Archive& ar);

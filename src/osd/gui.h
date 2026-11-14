@@ -19,6 +19,7 @@
 #include "core/config.h"
 #include "core/types.h"
 #include "osd/ui/kit.h"
+#include "osd/audio.h"
 #include "render/backend.h"
 
 #include <array>
@@ -384,6 +385,7 @@ private:
     u32 m_pad_capture_role   = 0;
     int m_pad_edit_player    = 0;
     int  m_capture_hotkey     = -1;     ///< Config::Hotkey waiting for a key, or -1
+    int  m_device_channels = -1;  ///< the default output device's channels, asked on the Audio page; -1 not yet
     int  m_pad_view     = 0;      ///< the Gamepad page's picture: 0 pad (the default), 1 cabinet, 2 shortcuts
     bool m_pad_show_all = false;  ///< the slots a cabinet has no control for, too
     // Map all, and a single capture: the slots to ask for, which one now,
