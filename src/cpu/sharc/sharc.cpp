@@ -214,10 +214,8 @@ void SHARC::build_opcode_table()
 
 void SHARC::reset()
 {
-    // MAME's device_reset clears both internal SRAM banks. Note that on Model
-    // 2B the host does NOT reset the SHARC when it boots it (model2b_state::
-    // copro_boot only releases the halt line), precisely so that the microcode
-    // just uploaded into these banks survives.
+    // Clears both SRAM banks, as MAME does. The Model 2B host only releases the
+    // halt line when booting the SHARC, so uploaded microcode survives.
     std::memset(m_blocks, 0, sizeof(m_blocks));
     pm_cache_clear();
     m_short_word_sign_extend = false;
@@ -996,9 +994,7 @@ void SHARC::dma_op(int channel)
         break;
     case DMA_PMODE_16_32: {
         // Two 16-bit external words pack into one internal 32-bit word, high half
-        // first. dma_run_cycle already had this; the burst path did not, so a
-        // program that configured 16-to-32 packing and let the transfer complete
-        // in one go moved nothing at all.
+        // first.
         const s32 length = src_count / 2;
         for (s32 i = 0; i < length; i++) {
             const u32 data = ((dm_read32(src + 0) & 0xffff) << 16) | (dm_read32(src + 1) & 0xffff);
@@ -1696,9 +1692,8 @@ void SHARC::compute_float_scaled(int fn, int rx, int ry) {
     m_astat |= AF;
 }
 void SHARC::compute_recips(int fn, int fx) {
-    // MAME's compute_recips, which its own comment marks as verified against
-    // hardware. Zero returns a signed infinity rather than a NaN, and a result
-    // exponent outside the normal range collapses to zero rather than wrapping.
+    // MAME's compute_recips, verified against hardware. Zero returns a signed
+    // infinity, and an out-of-range result exponent collapses to zero.
     CLEAR_ALU_FLAGS();
     const u32 val = UIREG(fx);
     u32       r   = 0;
@@ -1727,15 +1722,9 @@ void SHARC::compute_recips(int fn, int fx) {
     m_astat |= AF;
 }
 void SHARC::compute_rsqrts(int fn, int fx) {
-    // MAME's compute_rsqrts, also marked verified. Three details matter and were
-    // all wrong here: the table index takes mantissa bits 17..22 together with the
-    // *biased* exponent's least significant bit at bit 23 (one field, `val &
-    // 0xffffff` shifted right by 17), not mantissa bits 16..21 with the unbiased
-    // exponent's parity; and the exponent halving is an arithmetic shift, which
-    // floors, rather than a division, which truncates towards zero and so differs
-    // for every odd negative exponent. A wrong inverse square root means every
-    // normalised vector is wrong, which is why this showed up as geometry scale
-    // and lighting faults on Model 2B rather than as anything obviously numeric.
+    // MAME's compute_rsqrts, verified against hardware. The table index is
+    // mantissa bits 17..22 plus the biased exponent's LSB at bit 23, and the
+    // exponent is halved with an arithmetic shift (floor), not a division.
     const u32 val = UIREG(fx);
     u32       r   = 0;
     if (val > 0x80000000u) {
@@ -1860,13 +1849,9 @@ void SHARC::compute_mul_ssfr_sub(int rm, int rxm, int rym, int ra, int rxa, int 
     REG(ra) = s32(sub);
     m_astat &= ~AF;
 }
-// A multi-function instruction computes the multiplier and ALU results from the
-// register file as it stood at the start of the instruction, then writes both.
-// Writing the multiplier result first, as this used to, lets it be read back as an
-// ALU input in the same instruction: the operand fields allow that overlap (fxm is
-// R0-R3, fym R4-R7, fxa R8-R11, fya R12-R15, while fm and fa are any of R0-R15),
-// and a matrix or dot-product routine is exactly the code that arranges it. MAME
-// computes into temporaries for the same reason.
+// A multi-function instruction computes both results from the register file as
+// it stood at the start, then writes both: fm and fa may be any of R0-R15, so
+// writing the multiplier first could feed it back into the ALU operands.
 void SHARC::compute_fmul_fadd(int fm, int fxm, int fym, int fa, int fxa, int fya) {
     CLEAR_MULTIPLIER_FLAGS(); CLEAR_ALU_FLAGS();
     const REG_UNION mul = FMUL(fxm, fym);
@@ -2719,10 +2704,8 @@ void SHARC::serialize(Archive& ar)
     ar.raw(m_halted);
     ar.raw(m_write_stalled);
     ar.raw(m_instruction_count);
-    // m_sharc_op / m_op_index are member-fn-ptr dispatch tables — never
-    // serialized. They are already built (construction) and unchanged by a
-    // load, so nothing to do; build_opcode_table() would only re-derive the
-    // same table. m_icount is per-slice scratch (always 0 between frames).
+    // The dispatch tables are built at construction and m_icount is per-slice
+    // scratch, so neither is saved.
 }
 
 }  // namespace sm2::cpu::sharc

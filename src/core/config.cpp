@@ -350,13 +350,10 @@ void resolve_default_paths(Config* config, bool config_in_cwd,
     if (config->screenshot_dir.empty()) {
         config->screenshot_dir = (base / "screenshots").string();
     }
-    // Save states live in a `states` subdirectory of the saves directory, so a
-    // user who relocates their saves (--nvram / nvram_dir) takes their states
-    // with them. Derived from the now-final nvram_dir; a runtime field only,
-    // not read from or written to the ini.
+    // Save states live under the saves directory, so relocating saves
+    // (--nvram / nvram_dir) takes the states too. Runtime only, not in the ini.
     config->states_dir = (std::filesystem::path(config->nvram_dir) / "states").string();
-    // Artwork always sits beside the config file; not user-adjustable, so set
-    // unconditionally (never read from the ini).
+    // Artwork always sits beside the config file; not user-adjustable.
     {
         const std::filesystem::path dir =
             config_dir.empty() ? std::filesystem::path(".") : std::filesystem::path(config_dir);
@@ -1046,8 +1043,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     if (out->outputs_network_port == 0 || out->outputs_network_port > 65535) {
         out->outputs_network_port = 8000;
     }
-    // A sane rotation range: tight enough to be usable, and never zero (which
-    // would divide by zero when scaling the steering).
+    // Never zero, which would divide by zero when scaling the steering.
     out->wheel_steer_degrees = std::clamp(out->wheel_steer_degrees, 90u, 1080u);
     out->wheel_lock_degrees  = std::clamp(out->wheel_lock_degrees, 180u, 270u);
     out->render_scale        = std::clamp(out->render_scale, 1u, kMaxRenderScale);
@@ -1055,8 +1051,7 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
     out->crt_mask_strength     = std::min(out->crt_mask_strength, 100u);
     out->crt_glow_strength     = std::min(out->crt_glow_strength, 100u);
     out->crt_curvature         = std::min(out->crt_curvature, 100u);
-    // Anisotropy is a tap ceiling; clamp to a sane 1..16 here, and the backend
-    // further clamps to the device's maxSamplerAnisotropy at use time.
+    // The backend further clamps to the device's maxSamplerAnisotropy.
     out->anisotropy            = std::clamp(out->anisotropy, 1u, 16u);
     // A UDP port is 16-bit; floor at 1 since 0 binds an ephemeral port.
     out->link_port      = std::clamp(out->link_port, 1u, 65535u);

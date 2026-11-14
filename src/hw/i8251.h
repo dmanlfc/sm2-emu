@@ -18,20 +18,13 @@
 // Intel 8251A / NEC uPD71051 USART, as the Model 2 CPU board uses it: the serial
 // link that carries sound commands to the sound board.
 //
-// Not ported from MAME. MAME's i8251 is built on device_serial_interface and
-// works a bit at a time, and the SCSP at the other end is too; reproducing that
-// would mean bringing in the bit-timing framework to emulate a wire whose
-// individual bits nothing on either side can observe. Like the 68000, the 8251 is
-// a fully documented commodity part, so there is no reverse-engineering insight to
-// preserve, and this is written from its programming model instead: whole bytes,
-// with the byte period kept because throughput is the part the sound driver's
-// command queue actually depends on.
+// Not ported from MAME, whose i8251 works a bit at a time. This is written from
+// the programming model instead: whole bytes, keeping the byte period because
+// the sound driver's command queue depends on the link's throughput.
 //
-// What is deliberately not modelled: synchronous mode, parity, the modem control
-// lines beyond the command register's own bits, and the framing the mode word
-// configures. Model 2 sets 8-N-1 at 31250 baud and never changes it, and the SCSP
-// is wired the same way by construction, so the framing has no observable effect.
-// Anything trying to use the parts left out is reported.
+// Not modelled: synchronous mode, parity, modem lines beyond the command
+// register's bits, and mode-word framing (Model 2 always uses 8-N-1 at 31250
+// baud). Use of any of these is reported.
 
 #pragma once
 
@@ -50,15 +43,12 @@ public:
     /// A whole byte leaving the transmitter, one byte time after the CPU wrote it.
     using TxHandler = std::function<void(u8 value)>;
 
-    /// Called whenever the TxRDY or RxRDY pins are recomputed, which is what
-    /// MAME's update_tx_ready and update_rx_ready do with their devcb lines.
+    /// Called whenever the TxRDY or RxRDY pins are recomputed.
     ///
-    /// Deliberately not edge-triggered. The consumer is expected to look at
-    /// txrdy() and rxrdy() itself, because the Model 2 CPU board's sound interrupt
-    /// depends on the level of both, and because enabling the transmitter has to
-    /// be able to raise the interrupt with nothing else having changed. Getting
-    /// that wrong deadlocks the link: the sound program never gets a command
-    /// because the host never gets the interrupt that would make it send one.
+    /// Deliberately not edge-triggered: the consumer reads txrdy() and rxrdy()
+    /// itself, because the Model 2 sound interrupt depends on the level of both
+    /// and enabling the transmitter alone must be able to raise it. Getting that
+    /// wrong deadlocks the link.
     using ReadyHandler = std::function<void()>;
 
     void set_tx_handler(TxHandler handler) { m_tx_handler = std::move(handler); }
@@ -90,9 +80,8 @@ public:
     /// A byte arriving from the other end of the link.
     void write_rxd(u8 value);
 
-    /// The DSR pin, inverted the way MAME's `write_dsr` inverts it. No Model 2
-    /// board drives this, so it stays asserted; the setter exists so that a board
-    /// which does wire it has somewhere to say so.
+    /// The DSR pin, inverted as in MAME's `write_dsr`. No Model 2 board drives
+    /// it, so it stays asserted.
     void write_dsr(bool level) { m_dsr = !level; }
 
     // -- inspection ---------------------------------------------------------
@@ -106,9 +95,8 @@ public:
     };
     [[nodiscard]] const Counters& counters() const { return m_counters; }
 
-    /// Save/restore the register/transmitter state. The two callbacks are
-    /// excluded (re-bound by the owner). m_byte_cycles is re-set by configure()
-    /// but saved anyway so a restore is self-contained.
+    /// Save/restore the register and transmitter state. The callbacks are
+    /// excluded (re-bound by the owner).
     void serialize(Archive& ar);
 
 private:
@@ -152,7 +140,6 @@ private:
 
     u8 m_rx_data = 0;
 
-    /// The byte being shifted out, and how much of its time is left.
     u8  m_tx_data      = 0;  ///< Byte in the holding register (or shift register)
     u8  m_tx_shift_data = 0; ///< Byte currently being shifted out
     u32 m_tx_remaining = 0;

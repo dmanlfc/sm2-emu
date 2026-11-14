@@ -124,9 +124,7 @@ void Dsb2::serialize(Archive& ar)
     ar.raw(m_resample_frac);
     ar.bytes(m_audio_buf, 1152 * 2);
 
-    // The decoder exists only on a set that actually carries a DSB2. Save/load
-    // are always the same game, so its presence is symmetric; a flag guards the
-    // inert case regardless.
+    // The decoder exists only on a set that carries a DSB2.
     bool has_decoder = m_decoder != nullptr;
     ar.raw(has_decoder);
     if (has_decoder && m_decoder) {
@@ -272,9 +270,8 @@ void Dsb2::write32(u32 address, u32 value)
 
 void Dsb2::system_control_w(u8 data)
 {
-    // Bit 3 (inverted) is the MPEG ROM bank (A24). Only meaningful with more
-    // than 16 MB of MPEG ROM, which no Model 2 DSB2 title has, so this is
-    // effectively always bank 0 here -- kept for fidelity.
+    // Bit 3 (inverted) is the MPEG ROM bank (A24), meaningful only with more
+    // than 16 MB of MPEG ROM.
     m_rom_bank = (~data >> 3) & 1;
 }
 
@@ -291,14 +288,9 @@ void Dsb2::stop()
 }
 
 // The Model 3 command set: MAME's address sequences plus opcodes that take a
-// one-byte parameter. Known uses:
-//
-//   Daytona 2 uses B6, A7 for rear speakers; B2, A3 for front speakers.
-//   Star Wars Trilogy uses B0, A1 but B4, A4, B1, A1, B5, and A5 may be
-//   volume/speaker related.
-//   Sega Rally 2 uses B0, A0 and B4, A4 when setting all four but B0, A1 when
-//   only setting two (in-game).
-//   dayto2pe plays its advertise tune by writing A4 75.
+// one-byte parameter, mostly speaker volumes (Daytona 2 sets its rear pair with
+// B6/A7 and its front pair with B2/A3). dayto2pe plays its attract tune by
+// writing A4 75.
 void Dsb2::fifo_w_model3(u8 data)
 {
     if (m_param != 0) {

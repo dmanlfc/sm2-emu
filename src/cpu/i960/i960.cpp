@@ -55,9 +55,7 @@ void I960::fatal(const char* format, ...)
     std::vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
 
-    // Upstream calls fatalerror here, which aborts the process. Throwing lets
-    // run() report the failure with full register state and stop the core,
-    // leaving the rest of the emulator intact.
+    // Upstream aborts; throwing lets run() report the state and stop only this core.
     throw Fault(buffer);
 }
 
@@ -772,19 +770,10 @@ void I960::execute_burst_stall_op(u32 opcode)
 		// count down 1 icount for every op
 		m_icount--;
 
-		// Deviation from MAME: the address has to advance across the rest of the
-		// burst exactly as it does in the ldl/ldt/ldq/stl/stt/stq loops this
-		// resumes, which means honouring the target's BURST capability. MAME's
-		// resume loop reuses m_stall_state.t1 for every remaining word. That is
-		// correct for a FIFO port -- the case this path was written for, where
-		// every word of the burst comes from the same address, which is also why
-		// the flag is consulted instead of the address being incremented
-		// unconditionally -- but wrong for burst-capable memory, where it
-		// collapses the rest of the transfer onto a single location. A stalled
-		// ldq against ROM then leaves all of its destination registers holding
-		// the same word, and the stq that follows writes that word four times.
-		// Sega Touring Car uploads its font through such a copy and ends up with
-		// every glyph row quadrupled.
+		// Deviation from MAME: advance the address when the target reports BURST,
+		// as the ldl..stq loops do. MAME reuses t1 for every word, which suits a
+		// FIFO port but collapses a stalled copy from ROM onto one word (Sega
+		// Touring Car's font rows come out quadrupled).
 		u16 flags;
 		if(m_stall_state.iswriteop == true)
 			flags = i960_write_dword_unaligned_flags(m_stall_state.t1, m_r[m_stall_state.t2+i]);
@@ -2650,10 +2639,9 @@ void I960::set_irq_line(int line, int state)
 
 void I960::reset()
 {
-    // The initial memory image: system address table at 0, processor control
-    // block at 4, first instruction at 12. The initial frame pointer comes from
-    // the control block, which is why a wrongly assembled program ROM shows up
-    // immediately as a stack pointer outside RAM.
+    // Initial memory image: system address table at 0, processor control block
+    // at 4, first instruction at 12. The initial frame pointer comes from the
+    // control block.
     m_SAT  = m_bus->read32(0);
     m_PRCB = m_bus->read32(4);
     m_IP   = m_bus->read32(12);

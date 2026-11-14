@@ -53,12 +53,9 @@ struct PolygonPush {
 /// Bytes of luminance RAM, which is one tone curve per 128 entries.
 constexpr usize kLumaBytes = 0x8000;
 
-/// Format of the decoded texture sheets: four independent 8-bit nibble values,
-/// one per texel of a 2x2 container, addressed by uint so the fragment shader
-/// can pick a channel exactly rather than have a sampler interpolate one.
-/// Guaranteed by Vulkan 1.3 core for both storage and sampled use, unlike a
-/// single-channel format, which several drivers only support for one or the
-/// other.
+/// Format of the decoded texture sheets: one 8-bit nibble value per texel of a
+/// 2x2 container, read as uint. Vulkan 1.3 guarantees it for both storage and
+/// sampled use, unlike some single-channel formats.
 constexpr VkFormat kDecodedFormat = VK_FORMAT_R8G8B8A8_UINT;
 
 [[nodiscard]] bool create_shader_module(VkDevice        device,
@@ -110,8 +107,7 @@ bool Poly3DPass::init(Context& context, u32 render_scale)
         return false;
     }
 
-    // Nearest, and only ever read with texelFetch: the tone curve is a lookup
-    // table, so interpolating between its entries would be meaningless.
+    // Nearest: the tone curve is a lookup table read with texelFetch.
     VkSamplerCreateInfo sampler{};
     sampler.sType        = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler.magFilter    = VK_FILTER_NEAREST;
@@ -122,10 +118,8 @@ bool Poly3DPass::init(Context& context, u32 render_scale)
     sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     SM2_VK_TRY(vkCreateSampler(context.device(), &sampler, nullptr, &m_sampler));
 
-    // Same rule for the decoded texture image: the fragment shader's own filter
-    // does the bilinear blend between a container's neighbours, so this sampler
-    // must return the exact stored value, never one the hardware has already
-    // mixed.
+    // Likewise the decoded texture image: the fragment shader does its own
+    // filtering.
     SM2_VK_TRY(vkCreateSampler(context.device(), &sampler, nullptr, &m_decoded_sampler));
 
     // Custom textures are ordinary images: trilinear, with the shader choosing
@@ -258,9 +252,8 @@ bool Poly3DPass::create_host_buffer(VkDeviceSize       size,
     buffer.usage       = usage;
     buffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    // Persistently mapped and host-coherent. Every one of these is written whole
-    // by the CPU and read once by the GPU, so there is nothing for an explicit
-    // flush or a device-local copy to gain.
+    // Persistently mapped and host-coherent: written whole by the CPU and read
+    // once by the GPU.
     VmaAllocationCreateInfo allocation{};
     allocation.usage = VMA_MEMORY_USAGE_AUTO;
     allocation.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
@@ -350,8 +343,8 @@ bool Poly3DPass::create_frames()
         view.subresourceRange.layerCount = 1;
         SM2_VK_TRY(vkCreateImageView(device, &view, nullptr, &target.tone_view));
 
-        // The fill mask never leaves the GPU and never survives a frame. It is
-        // N*native so it covers the scaled composite scope it attaches to.
+        // The fill mask never survives a frame. N*native, matching the scaled
+        // scope it attaches to.
         image.format = m_stencil_format;
         image.extent = VkExtent3D{frame_width(kWideColumns) * m_render_scale,
                                   kHeight * m_render_scale, 1};
@@ -364,10 +357,8 @@ bool Poly3DPass::create_frames()
         view.subresourceRange.aspectMask = stencil_aspect;
         SM2_VK_TRY(vkCreateImageView(device, &view, nullptr, &target.stencil_view));
 
-        // The decoded texture sheets: two array layers, one per sheet, each
-        // holding a 2x2 texel container's four nibbles in its four channels. Used
-        // for both the compute pass's writes and the fragment pass's reads, which
-        // is why the usage carries both STORAGE and SAMPLED.
+        // The decoded texture sheets: one layer per sheet, written by the compute
+        // pass and sampled by the fragment pass.
         image.format         = kDecodedFormat;
         image.extent         = VkExtent3D{kDecodedWidth, kDecodedHeight, 1};
         image.arrayLayers    = 2;
@@ -391,10 +382,8 @@ bool Poly3DPass::create_descriptors()
     const u32      frames = static_cast<u32>(m_frames.size());
 
     // Set 0 of the polygon pipeline: the decoded texture sheets, luminance RAM,
-    // the tone curve and the per-polygon parameters. Binding 0 used to be the
-    // packed sheets as a storage buffer; the decode pass now does the unpacking,
-    // so the fragment shader instead samples the image it produces.
-    // Binding 5 is the per-polygon geometry ring (see polygon.frag / PolyGeom).
+    // the tone curve and the per-polygon parameters. Binding 5 is the
+    // per-polygon geometry ring (see polygon.frag / PolyGeom).
     VkDescriptorSetLayoutBinding polygon_bindings[6]{};
     for (u32 index = 0; index < 6; ++index) {
         polygon_bindings[index].binding         = index;
@@ -412,8 +401,7 @@ bool Poly3DPass::create_descriptors()
     layout.pBindings    = polygon_bindings;
     SM2_VK_TRY(vkCreateDescriptorSetLayout(device, &layout, nullptr, &m_polygon_set_layout));
 
-    // The decode pass's own set: the packed sheets it reads, and the decoded
-    // image it writes.
+    // The decode pass's set: the packed sheets in, the decoded image out.
     VkDescriptorSetLayoutBinding decode_bindings[2]{};
     decode_bindings[0].binding         = 0;
     decode_bindings[0].descriptorCount = 1;
@@ -428,13 +416,6 @@ bool Poly3DPass::create_descriptors()
     layout.pBindings    = decode_bindings;
     SM2_VK_TRY(vkCreateDescriptorSetLayout(device, &layout, nullptr, &m_decode_set_layout));
 
-    // Storage buffers: luma, polygons (per polygon-set) and the sheets, once per
-    // frame each for the polygon set's use and once more per frame for the decode
-    // set's own read of the same buffer. Combined image samplers: the decoded
-    // sheets and the tone curve per polygon set. Storage images: the decoded
-    // sheets, once per decode set. The 3D now draws straight into the native
-    // frame, so there is no offscreen colour image to sample and no composite
-    // set for it.
     VkDescriptorPoolSize sizes[3]{};
     sizes[0].type            = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     // Per frame: luma + polygons + geometry (polygon set) + sheets (decode set).
@@ -453,8 +434,7 @@ bool Poly3DPass::create_descriptors()
     pool.pPoolSizes    = sizes;
     SM2_VK_TRY(vkCreateDescriptorPool(device, &pool, nullptr, &m_pool));
 
-    // Every set names fixed resources, so nothing is rewritten during a frame and
-    // there is no risk of updating a set the GPU is reading.
+    // Every set names fixed resources, so none is rewritten while the GPU reads it.
     for (Frame& target : m_frames) {
         VkDescriptorSetAllocateInfo allocate{};
         allocate.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -629,10 +609,8 @@ bool Poly3DPass::create_polygon_pipeline(const u32*  fragment_code,
     VkPipelineRasterizationStateCreateInfo rasterisation{};
     rasterisation.sType       = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterisation.polygonMode = VK_POLYGON_MODE_FILL;
-    // The geometry engine has already dropped back-facing polygons, using the
-    // hardware's own rule: the sign of the dot product of the surface normal with
-    // the view vector, with a per-polygon override. Culling again here by winding
-    // order would drop a second, different set.
+    // The geometry engine has already culled by the hardware's own rule; winding
+    // order culling here would drop a different set.
     rasterisation.cullMode  = VK_CULL_MODE_NONE;
     rasterisation.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterisation.lineWidth = 1.0F;
@@ -642,10 +620,8 @@ bool Poly3DPass::create_polygon_pipeline(const u32*  fragment_code,
     multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
     // The fill mask. Polygons arrive nearest first, so a fragment draws only where
-    // nothing has drawn yet, and claims the pixel when it does. Incrementing is
-    // what claims it: replacing would write the reference value, which has to stay
-    // zero for the comparison. A discarded fragment writes nothing, which is what
-    // leaves a stippled polygon's gaps for whatever is behind it.
+    // nothing has drawn yet and claims the pixel by incrementing (the reference
+    // must stay zero). Discarded stipple gaps leave the pixel for what is behind.
     VkStencilOpState stencil{};
     stencil.failOp      = VK_STENCIL_OP_KEEP;
     stencil.passOp      = VK_STENCIL_OP_INCREMENT_AND_CLAMP;
@@ -663,12 +639,9 @@ bool Poly3DPass::create_polygon_pipeline(const u32*  fragment_code,
     depth_stencil.front             = stencil;
     depth_stencil.back              = stencil;
 
-    // Premultiplied over, merging the 3D directly onto the below-tilemap in the
-    // native frame. The shader writes alpha 1 for every non-discarded pixel, so
-    // ONE / ONE_MINUS_SRC_ALPHA overwrites where a polygon draws and leaves the
-    // 2D untouched where it discards -- the same result the deleted
-    // sample-and-composite step produced, without the offscreen round-trip. (The
-    // hardware has no blend of its own; this is only the merge with the 2D.)
+    // Premultiplied over, merging the 3D onto the below-tilemap in the native
+    // frame. The shader writes alpha 1, so drawn pixels overwrite and discarded
+    // ones leave the 2D; the hardware itself has no blend.
     VkPipelineColorBlendAttachmentState attachment{};
     attachment.blendEnable         = VK_TRUE;
     attachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
@@ -701,9 +674,7 @@ bool Poly3DPass::create_polygon_pipeline(const u32*  fragment_code,
     rendering.colorAttachmentCount    = 1;
     rendering.pColorAttachmentFormats = &m_colour_format;
     rendering.stencilAttachmentFormat = m_stencil_format;
-    // Only named when the chosen format actually carries depth. Nothing reads or
-    // writes it; it is along for the ride because some drivers offer no
-    // stencil-only format.
+    // Named only when the stencil format carries depth.
     rendering.depthAttachmentFormat =
         m_stencil_has_depth ? m_stencil_format : VK_FORMAT_UNDEFINED;
 
@@ -782,9 +753,8 @@ void Poly3DPass::refresh_machine_data(const hw::Model2MachineBase& machine,
     Frame& target = frame();
 
     if (target.texture_generation != machine.texture_generation()) {
-        // Only the low half of each two-megabyte window is addressable by the
-        // texel arithmetic and only that half is ever written, so the rest is left
-        // out rather than uploaded as zeroes.
+        // Only the low half of each two-megabyte window is addressable, so only
+        // that half is uploaded.
         auto* words = static_cast<u32*>(target.sheets.mapped);
         for (int sheet = 0; sheet < 2; ++sheet) {
             const std::span<const u32> source = machine.texture_ram(sheet);
@@ -810,9 +780,7 @@ void Poly3DPass::refresh_machine_data(const hw::Model2MachineBase& machine,
 
     const VkCommandBuffer cmd = m_context->cmd();
 
-    // From UNDEFINED because the copy replaces the whole image. When nothing
-    // changed no barrier is recorded at all and the image simply stays where the
-    // last upload left it.
+    // From UNDEFINED because the copy replaces the whole image.
     record_image_barrier(cmd, target.tone, VK_IMAGE_ASPECT_COLOR_BIT,
                          VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, 0,
@@ -843,18 +811,12 @@ void Poly3DPass::decode_textures()
     Frame& target = frame();
     const VkCommandBuffer cmd = m_context->cmd();
 
-    // Brackets only the dispatch this call always makes when it runs at all --
-    // refresh_machine_data() calls this conditionally, so a frame that skips it
-    // (texture_generation unchanged, the common case after the first frame)
-    // leaves both queries unwritten rather than reporting a free stage.
+    // A frame that skips the decode leaves both queries unwritten.
     m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::TextureDecode,
                                false);
 
-    // From UNDEFINED because the decode pass overwrites every element it can
-    // reach; nothing depends on the image's previous contents. The wait is on
-    // the previous frame's own fragment reads of this same per-frame image,
-    // which that frame's fence has already retired by the time this one reuses
-    // the slot.
+    // From UNDEFINED because the decode overwrites everything it can reach; the
+    // wait is on the previous use of this per-frame image's fragment reads.
     record_image_barrier(cmd, target.decoded, VK_IMAGE_ASPECT_COLOR_BIT,
                          VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL,
                          VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, 0,
@@ -865,8 +827,7 @@ void Poly3DPass::decode_textures()
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, m_decode_layout, 0, 1,
                             &target.decode_set, 0, nullptr);
 
-    // One invocation per container, two layers (sheets), rounded up to the
-    // sixteen-by-sixteen local group the shader declares.
+    // One invocation per container, two layers, in the shader's 16x16 groups.
     const u32 groups_x = (kDecodedWidth + 15) / 16;
     const u32 groups_y = (kDecodedHeight + 15) / 16;
     vkCmdDispatch(cmd, groups_x, groups_y, 2);
@@ -978,8 +939,8 @@ void Poly3DPass::sync_replacements()
     const VkCommandBuffer cmd = m_context->cmd();
     const bool swap = generation != m_atlas_generation;
     if (swap) {
-        // Rare (a game load or a reload), so the simplest safe point to replace
-        // what every frame's descriptor set names is with the device idle.
+        // Rare (a game load or reload), so replace the descriptors with the
+        // device idle.
         vkDeviceWaitIdle(m_context->device());
         destroy_atlas();
         destroy_host_buffer(&m_atlas_staging);
@@ -1054,8 +1015,7 @@ void Poly3DPass::sync_replacements()
     vkCmdCopyBufferToImage(cmd, m_atlas_staging.handle, m_atlas,
                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-    // Each level from the one above, as the atlas is too large to build its
-    // chain on the host at load time without a noticeable pause.
+    // Mip levels are built on the GPU; the atlas is too large to do it on the host.
     for (u32 level = 1; level < m_atlas_mips; ++level) {
         record_level_barrier(cmd, m_atlas, level - 1, 1, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                              VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -1096,10 +1056,7 @@ void Poly3DPass::build(const hw::Model2MachineBase* machine, const hw::Model2Vid
     }
     sync_replacements();
 
-    // Triangulation, texture-header unpacking and scissor batching are
-    // backend-neutral (render::triangulate()); see render/geometry.h's own
-    // doc comment for why this moved out of Poly3DPass rather than staying
-    // duplicated per backend.
+    // Triangulation and batching are backend-neutral (render::triangulate()).
     m_frame_geometry = render::triangulate(machine, video, &m_capacity_warned,
                                            m_atlas_live ? m_replacements : nullptr,
                                            blending());
@@ -1121,9 +1078,8 @@ void Poly3DPass::prepare_stencil()
     const VkCommandBuffer cmd    = m_context->cmd();
     Frame&                target = frame();
 
-    // From UNDEFINED: the mask is cleared each frame and never read outside the
-    // scope. Recorded here, before the tilemap pass opens that scope, because a
-    // layout transition cannot happen inside a rendering scope.
+    // From UNDEFINED: the mask is cleared each frame. Recorded before the tilemap
+    // pass opens the scope, as a layout transition cannot happen inside one.
     const VkImageAspectFlags stencil_aspect =
         m_stencil_has_depth
             ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)
@@ -1144,8 +1100,8 @@ VkRenderingAttachmentInfo Poly3DPass::stencil_attachment() const
     stencil.imageView   = target.stencil_view;
     stencil.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     stencil.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    // Nothing outside the scope reads the fill mask, so it need not be written
-    // back to memory -- on a tiler this keeps it entirely in tile memory.
+    // Nothing outside the scope reads the fill mask, so a tiler keeps it in tile
+    // memory.
     stencil.storeOp                         = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     stencil.clearValue.depthStencil.depth   = 1.0F;
     stencil.clearValue.depthStencil.stencil = 0;
@@ -1157,10 +1113,8 @@ void Poly3DPass::draw_polygons()
     const VkCommandBuffer cmd    = m_context->cmd();
     Frame&                target = frame();
 
-    // Runs inside TilemapPass's open native-frame scope, between record_below()
-    // and record_above(): the polygon pipeline's premultiplied-over blend merges
-    // the 3D onto the below-tilemap directly, with no offscreen colour image to
-    // store and re-sample (the tiler flush+reload this change removes).
+    // Runs inside TilemapPass's native-frame scope, between record_below() and
+    // record_above(), blending the 3D straight onto the below-tilemap.
     m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, GpuStage::Poly3D, false);
 
     if (m_vertex_count != 0) {

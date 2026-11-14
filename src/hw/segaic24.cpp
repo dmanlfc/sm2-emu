@@ -4,15 +4,10 @@
 // Olivier Galibert), together with the parts of src/emu/tilemap.cpp that decide
 // what a decoded tile pixel and its flag byte contain.
 //
-// The character format is MAME's char_layout:
-//
-//   8x8, 0x4000 tiles, 4 bits per pixel, planes {0,1,2,3},
-//   x offsets STEP8(0,4), y offsets STEP8(0,32), 32 bytes per tile
-//
-// which is eight rows of four bytes, two pixels per byte, most significant
-// nibble first. The byte index is exclusive-ORed with one because MAME builds the
-// graphics element over a 16-bit array with a little-endian byte swap. Omitting
-// that swaps pixels in pairs, which looks almost right.
+// Characters are MAME's char_layout: 8x8, 4bpp, 32 bytes per tile, eight rows of
+// four bytes, high nibble first. The byte index is XORed with one because MAME
+// builds the element over a byte-swapped 16-bit array; omitting it swaps pixels
+// in pairs.
 
 #include "hw/segaic24.h"
 
@@ -27,8 +22,7 @@
 namespace sm2::hw {
 namespace {
 
-/// Byte offset of each layer's name table. MAME indexes tile RAM as 16-bit
-/// words at 0x0000, 0x1000, 0x2000 and 0x3000.
+/// Byte offset of each layer's name table (MAME's words 0x0000-0x3000).
 constexpr std::array<u32, kTileLayers> kNameTableBytes = {0x0000, 0x2000, 0x4000, 0x6000};
 
 /// First tile RAM word that is a register rather than a name table entry.
@@ -106,12 +100,10 @@ void Segaic24Tile::invalidate_all()
 void Segaic24Tile::note_tile_write(u32 byte_offset, u32 width)
 {
     if (byte_offset >= kNameTableEndBytes) {
-        // Scroll and mask registers. Read fresh every frame, so nothing to
-        // invalidate.
+        // Scroll and mask registers, read fresh every frame.
         return;
     }
-    // A 32-bit write covers two adjacent entries, and an unaligned one can
-    // straddle a boundary, so work in whole words across the touched range.
+    // A write can cover or straddle two entries, so mark every touched word.
     const u32 first = byte_offset / 2;
     const u32 last  = (byte_offset + width - 1) / 2;
 
@@ -149,9 +141,8 @@ void Segaic24Tile::update()
         return;
     }
 
-    // Resolve character changes into cell changes. MAME does this lazily through
-    // the graphics element's dirty sequence number; the effect is the same, and
-    // scanning 16384 name table entries is far cheaper than re-decoding them.
+    // Resolve character changes into cell changes; scanning the name tables is
+    // far cheaper than re-decoding them.
     if (m_char_dirty_count != 0) {
         for (u32 layer = 0; layer < kLayerCount; ++layer) {
             for (u32 cell = 0; cell < kCellCount; ++cell) {
@@ -192,8 +183,7 @@ void Segaic24Tile::decode_cell(u32 layer, u32 cell)
 {
     const TileCell info = decode_tile_cell(m_tile_ram, layer, cell);
 
-    // Sixteen pens per colour, so the palette base is the colour field scaled by
-    // the granularity of a four-bit character.
+    // Sixteen pens per colour.
     const u16 palette_base = static_cast<u16>(info.colour) * 16;
     const u8  category     = info.foreground ? u8{1} : u8{0};
 
@@ -210,8 +200,7 @@ void Segaic24Tile::decode_cell(u32 layer, u32 cell)
         const u8* row = m_char_ram.data() + character_base + ty * 4;
         usize     out = layer_base + static_cast<usize>(origin_y + ty) * kMapWidth + origin_x;
 
-        // Byte order 1, 0, 3, 2 across the row: the pattern index is XORed with
-        // one, so each pair of bytes is visited swapped.
+        // Byte order 1, 0, 3, 2 (see the format note above).
         for (u32 pair = 0; pair < 4; ++pair) {
             const u8 byte = row[pair ^ 1u];
             const u8 high = static_cast<u8>(byte >> 4);
@@ -328,8 +317,7 @@ void Segaic24Tile::draw(std::span<const u8>  tile_ram,
     state.row_end     = std::min(row_end, static_cast<int>(kScreenHeight));
 
     if ((ctrl & 0x6000) != 0) {
-        // A split mode. The pair's two layers supply opposite sides of a boundary,
-        // so the odd layer takes no pass of its own: the even one draws both.
+        // A split mode: the even layer draws both sides of the boundary.
         if ((layer & 1) != 0) {
             return;
         }
@@ -344,8 +332,7 @@ void Segaic24Tile::draw(std::span<const u8>  tile_ram,
     const int v             = static_cast<int>(vscr & 0x1ff);
 
     if ((hscr & 0x8000) != 0) {
-        // Per-line horizontal scroll. One word per raster line, and the vertical
-        // scroll advances with the line so the layer is sampled row by row.
+        // Per-line horizontal scroll, one word per raster line.
         const u32 table = kRowScrollTable + 0x200 * layer;
         for (int y = state.row_begin; y < state.row_end; ++y) {
             const int h = static_cast<int>(
@@ -365,24 +352,13 @@ void Segaic24Tile::draw_split(const DrawState& state,
                              u32              hscr,
                              u32              vscr) const
 {
-    // Both layers of the pair share the vertical scroll here, and the row scroll
-    // table is always the even layer's: MAME binds it before the layer index is
-    // flipped, so the odd layer never has one of its own in these modes.
+    // Both layers share the vertical scroll, and the row scroll table is always
+    // the even layer's, as MAME binds it before flipping the layer index.
     //
-    // The scroll sign here is the opposite of the plain path's, which looks like a
-    // mistake and is not. MAME reaches the split modes through the tilemap
-    // engine's own registers -- set_scrolly(0, vscr & 0x1ff) and
-    // set_scrollx(0, -(hscr & 0x1ff)) -- and that engine *negates* what it is
-    // given: tilemap.cpp's effective_rowscroll returns `m_dx - m_rowscroll[index]`
-    // and the blit places the map's origin at that screen coordinate. So the
-    // source coordinate is screen **plus** the value passed to set_scroll, not
-    // minus it. Vertical therefore takes the register as-is and horizontal takes
-    // it negated, which is the reverse of the plain path.
-    //
-    // Getting this backwards is what deleted Virtua Fighter 2's sky: its backdrop
-    // is a mode-1 split on the layer 2/3 pair, and inverting the vertical scroll
-    // moved the whole thing off the top of the screen. vcop2, Last Bronx and
-    // Gunblade NY reach this path too.
+    // The scroll sign is deliberately the reverse of the plain path's: MAME goes
+    // through the tilemap engine's set_scroll, which negates what it is given, so
+    // vertical takes the register as-is and horizontal takes it negated. Getting
+    // this wrong moves Virtua Fighter 2's mode-1 sky off the screen.
     const int screen_width  = static_cast<int>(kScreenWidth);
     const int screen_height = static_cast<int>(kScreenHeight);
     const int v             = static_cast<int>(vscr & 0x1ff);
@@ -391,10 +367,8 @@ void Segaic24Tile::draw_split(const DrawState& state,
         const u32 table = kRowScrollTable + 0x200 * layer;
 
         if (mode == 1) {
-            // Horizon split. Rows above the boundary come from one layer of the
-            // pair and rows below from the other, each with its own horizontal
-            // scroll per line. This is how a game draws a sky over a receding
-            // ground plane without any geometry.
+            // Horizon split: rows above the boundary from one layer, below from
+            // the other, each with per-line horizontal scroll.
             const int  boundary = static_cast<int>((0u - vscr) & 0x1ff);
             const u32  first    = ((0u - vscr) & 0x200) != 0 ? layer : (layer ^ 1);
             for (int y = state.row_begin; y < state.row_end; ++y) {
@@ -435,16 +409,9 @@ void Segaic24Tile::draw_split(const DrawState& state,
         return;
     }
 
-    // Modes 2 and 3 without row scroll: a fixed vertical boundary, which is how a
-    // game splits the screen for two players or insets a window.
-    //
-    // The boundary is the unnegated scroll value while the source origin is the
-    // negated one. That asymmetry is in the original: MAME applies
-    // set_scrollx(0, -(hscr & 0x1ff)) to both layers (negated), then clips each to
-    // its own side of the boundary (unnegated). draw_region's mapping of
-    // source = h + (X - x0) already accounts for that because h is negated and x0
-    // is the clip start, not the boundary -- so the right half's origin
-    // (h + boundary) gives each screen pixel the same source as MAME.
+    // Modes 2 and 3 without row scroll: a fixed vertical boundary. As in MAME the
+    // boundary is the unnegated scroll and the source origin the negated one, so
+    // the right half starts at h + boundary.
     const int boundary = std::clamp(static_cast<int>(hscr & 0x1ff), 0, screen_width);
     const u32 left     = (hscr & 0x200) != 0 ? layer : (layer ^ 1);
 
@@ -471,9 +438,8 @@ void Segaic24Tile::draw_region(const DrawState& state,
         return;
     }
 
-    // The layer wraps every 512 pixels in both axes, so the destination is cut
-    // into runs that each read a contiguous span of the map. A full-screen draw
-    // needs at most four.
+    // The layer wraps every 512 pixels, so cut the destination into runs that
+    // read contiguous spans of the map.
     for (int y = y0; y < y1;) {
         const int source_y = (v + (y - y0)) & 0x1ff;
         const int rows     = std::min(y1 - y, static_cast<int>(kMapHeight) - source_y);
@@ -552,16 +518,14 @@ void Segaic24Tile::draw_rect(const DrawState& state,
     u8* const  tag         = state.tag;
     const u8   tag_value   = state.tag_value;
 
-    // Both origins are fixed before xx1 is folded into the mask index below,
-    // exactly as in the original.
+    // Both origins are fixed before xx1 is folded into the mask index, as in MAME.
     usize source_row = static_cast<usize>(sy) * kMapWidth + static_cast<usize>(sx);
     usize dest_row   = static_cast<usize>(yy1) * dest_stride + static_cast<usize>(xx1);
     u32   mask_row   = state.mask_base + static_cast<u32>(yy1) * 4;
 
     yy2 -= yy1;
 
-    // The mask covers 128 pixels per word, so skip whole words rather than
-    // testing a bit offset per pixel.
+    // Each mask word covers 128 pixels.
     while (xx1 >= 128) {
         xx1 -= 128;
         xx2 -= 128;
@@ -576,8 +540,7 @@ void Segaic24Tile::draw_rect(const DrawState& state,
         int   cur_x     = xx1;
 
         while (llx > 0) {
-            // In the split modes the pair is chosen by position, so the mask does
-            // not take part and every pixel of the selected layer is a candidate.
+            // In the split modes position, not the mask, picks the layer.
             u16 m = state.masked && !state.mask_hidden ? tile_word(state.tile_ram, mask_word) : u16{0};
             ++mask_word;
             if (win && state.masked) {

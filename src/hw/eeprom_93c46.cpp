@@ -121,21 +121,15 @@ void Eeprom93c46::set_clk(bool level)
             break;
 
         case State::Reading:
-            // MAME's STATE_READING_DATA, which the Model 2 program agrees with:
-            // the dummy zero costs no clock -- it is already on the line from
-            // decode_command -- and the first clock of the read phase puts out
-            // the word's top bit. Charging the dummy a clock instead shifts the
-            // whole stream by one bit, which the program cannot see when the
-            // word is 0xffff and cannot miss when a set ships a real EEPROM
-            // image: Manx TT revision C then reads its Twin-mode flag wrong and
-            // reverts to DX, where it sits on the motion-base self-test forever.
+            // As MAME's STATE_READING_DATA: the dummy zero is already on the line
+            // from decode_command, so the first clock puts out the word's top bit.
+            // Charging the dummy a clock shifts the stream by one bit, and Manx TT
+            // rev. C then misreads its Twin-mode flag from a shipped EEPROM image.
             if (m_read_bit == 0) {
                 m_read_data = static_cast<u32>(m_memory[m_address]) << 16;
             } else {
-                // Past the word, the register clocks in ones. MAME's Model 2
-                // configurations leave streaming disabled, so the address does
-                // not advance and a program that overclocks a read sees ones
-                // rather than the next word.
+                // Past the word the register clocks in ones. Streaming is disabled,
+                // as in MAME's Model 2 configurations, so the address does not advance.
                 m_read_data = (m_read_data << 1) | 1u;
             }
             ++m_read_bit;
@@ -193,8 +187,7 @@ void Eeprom93c46::decode_command()
             m_address   = address;
             m_read_data = 0;
             m_read_bit  = 0;
-            // The dummy zero the part emits before the word is already on the
-            // line at this point, so it costs no clock.
+            // The dummy zero before the word is already on the line; it costs no clock.
             m_do        = false;
             m_state     = State::Reading;
             break;
@@ -228,9 +221,7 @@ void Eeprom93c46::decode_command()
                     }
                     break;
                 case kSubWral:
-                    // Write-all needs a data word, so it behaves like a write
-                    // whose result lands in every location. Not used by any
-                    // Model 2 game; treated as a no-op with the data consumed.
+                    // Unused by any Model 2 game; a no-op with the data consumed.
                     SM2_DEBUG("93c46: write-all is not implemented");
                     break;
                 default:

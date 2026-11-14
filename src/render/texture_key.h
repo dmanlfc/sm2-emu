@@ -14,9 +14,8 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-// Identifies a polygon's texture by the content of its level-0 texels, so the
-// texture dumper and the replacement loader agree on a name wherever the game
-// happens to have uploaded it.
+// Names a polygon's texture by the content of its level-0 texels, so dumps and
+// custom textures match wherever the game uploaded it.
 #pragma once
 
 #include "core/types.h"

@@ -25,8 +25,7 @@ sm2_add_shader(sm2_shaders SOURCE tilemap_composite.frag SYMBOL kTilemapComposit
 sm2_add_shader(sm2_shaders SOURCE present.frag           SYMBOL kPresentFrag)
 sm2_add_shader(sm2_shaders SOURCE polygon.vert           SYMBOL kPolygonVert)
 sm2_add_shader(sm2_shaders SOURCE polygon.frag           SYMBOL kPolygonFrag)
-# early-fragment-tests variant of polygon.frag; see the SM2_EARLY_FRAGMENT_TESTS
-# comment there.
+# Early-fragment-tests variant; see SM2_EARLY_FRAGMENT_TESTS in polygon.frag.
 sm2_add_shader(sm2_shaders SOURCE polygon.frag           SYMBOL kPolygonFragEarly
     DEFINES SM2_EARLY_FRAGMENT_TESTS=1 VARIANT early)
 sm2_add_shader(sm2_shaders SOURCE texel_decode.comp      SYMBOL kTexelDecodeComp)

@@ -80,16 +80,12 @@ private:
     InputHandler  m_serial2_read;
     OutputHandler m_serial2_write;
 
-    /// Last value written to each port, returned for ports configured as
-    /// outputs. Comes up all ones and is *not* cleared by reset, matching
-    /// MAME's device, which sets it in its constructor rather than in
-    /// device_reset.
+    /// Last value written to each port, returned for output ports. Starts all
+    /// ones and is not cleared by reset, as in MAME.
     std::array<u8, kPortCount> m_port_value{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
     /// Direction register: a set bit marks that port as an input. Every port is
-    /// an input after reset. This matters more than it looks: a program that
-    /// reads a port before programming the direction register sees the live
-    /// input, not a latched zero, and several titles do exactly that.
+    /// an input after reset, and several titles read ports before setting it.
     u8 m_port_config = 0xff;
 
     u8 m_mode           = 0;

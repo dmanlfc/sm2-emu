@@ -246,12 +246,9 @@ private:
 
     // -- On-chip SRAM -------------------------------------------------------
     //
-    // The ADSP-21062 has 2 Mbit of internal SRAM split into two banks of
-    // 0x8000 32-bit words. Program memory (48-bit words) and data memory
-    // (32-bit words, plus a 16-bit "short word" view) are different windows
-    // onto the *same* physical storage, which is why the microcode upload
-    // (48-bit PM writes via DMA channel 6) and the SHARC's own data accesses
-    // have to share it.
+    // Two banks of 0x8000 32-bit words. Program memory (48-bit words) and data
+    // memory (32-bit words, plus a 16-bit short-word view) are windows onto the
+    // same storage.
     //
     // Derived from MAME's adsp21062_device::pgm_2m/data_2m internal address
     // maps and its pm_r/pm_w/dm_short_r/dm_short_w block accessors.
@@ -357,8 +354,8 @@ private:
 
     OpcodeFunc m_sharc_op[512]{};
 
-    // s_opcode_table row per top-9-bit index (0xff = unimplemented). run()
-    // switches on this rather than a member-fn-ptr call; faster, same mapping.
+    // s_opcode_table row per top-9-bit index (0xff = unimplemented); run()
+    // switches on this rather than calling through m_sharc_op.
     u8 m_op_index[512]{};
 
     // -- Lookup tables (static) ---------------------------------------------
@@ -379,8 +376,7 @@ private:
     // -- Memory access ------------------------------------------------------
     //
     // These decode the on-chip windows first and fall through to the external
-    // Bus for anything else, exactly as MAME's internal address maps do. The
-    // core always goes through these rather than touching `m_bus` directly.
+    // Bus, as MAME's internal address maps do.
     [[nodiscard]] u64 pm_read48(u32 address);
     void pm_write48(u32 address, u64 data);
     [[nodiscard]] u32 pm_read32(u32 address);

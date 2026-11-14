@@ -79,8 +79,7 @@
 #include <vector>
 
 #if !defined(SM2_HAVE_VULKAN)
-// enumerate_render_devices() is Vulkan-only (it lists VkPhysicalDevices);
-// a Vulkan-less build has no device list, so provide an empty fallback.
+// enumerate_render_devices() is Vulkan-only; a Vulkan-less build lists none.
 namespace sm2::render {
 std::vector<std::string> enumerate_render_devices() { return {}; }
 }  // namespace sm2::render
@@ -95,9 +94,8 @@ namespace {
     return 64 - (std::min<sm2::u32>(config.brightness, 100) * 48 + 50) / 100;
 }
 
-/// --graphics-backend's three values. Which GL flavour `Opengl` resolves to is
-/// a build-time fact (SM2_BUILD_OPENGL_DESKTOP vs SM2_BUILD_OPENGL_ES), not a
-/// fourth value here.
+/// --graphics-backend's values. Which GL flavour `Opengl` means is fixed at
+/// build time.
 enum class GraphicsBackendChoice {
     Software,
     Vulkan,
@@ -105,7 +103,7 @@ enum class GraphicsBackendChoice {
 };
 
 /// Parses --graphics-backend's argument. Returns false, naming the valid
-/// choices, on anything else rather than silently defaulting.
+/// choices, on anything else.
 [[nodiscard]] bool parse_graphics_backend(const char* value, GraphicsBackendChoice* out)
 {
     if (std::strcmp(value, "software") == 0) {
@@ -164,7 +162,6 @@ void apply_input_background(bool on)
 
 /// Default when --graphics-backend is not given: whichever GPU backend was
 /// compiled in, else software.
-///
 constexpr GraphicsBackendChoice kDefaultGraphicsBackend =
 #if defined(SM2_HAVE_OPENGL_ES)
     GraphicsBackendChoice::Opengl;
@@ -180,8 +177,7 @@ struct Options {
     /// Settings that persist. Loaded from the file, then overridden by flags.
     sm2::Config config;
 
-    /// Which of those the command line actually set, so a flag can win over the
-    /// file without every flag having to carry its own default.
+    /// Which of those the command line set, so a flag can win over the file.
     struct Given {
         bool vsync      = false;
         bool throttle   = false;
@@ -213,49 +209,38 @@ struct Options {
     std::string rom_path;
 
     /// Load this save state before the run loop, so --run-frames 1 --screenshot
-    /// captures that exact moment (used to compare backends on real gameplay).
+    /// captures that exact moment.
     std::string load_state;
 
     /// Capture a frame every this many frames instead of only the last one. Each
     /// goes to the screenshot path with the frame number appended.
     sm2::u32 screenshot_interval = 0;
 
-    /// Capture exactly these frames. A comparison against another emulator has to
-    /// search a window of frames around each sample to find the one that lines up,
-    /// and an interval cannot express "these three windows and nothing else"
-    /// without writing hundreds of frames nobody looks at.
+    /// Capture exactly these frames.
     std::set<sm2::u32> screenshot_frames;
 
     /// Insert coins and press start around this frame. Zero leaves the panel
     /// alone.
     sm2::u32 coin_at = 0;
 
-    /// Write one line per frame recording what the geometry engine produced, so a
-    /// whole run can be compared against MAME's own count rather than a single
-    /// instant. Comparing curves rather than instants is what makes the comparison
-    /// survive the two emulators sitting on different attract pages.
+    /// Write one line per frame recording what the geometry engine produced, for
+    /// comparison against MAME's counts over a whole run.
     std::string poly_log;
 
     /// Write every texture the 3D samples to <saves>/textures/<game>/dump.
     bool dump_textures = false;
 
-    /// Also render each captured frame on the CPU, through the port of MAME's own
-    /// rasteriser, and write it beside the screenshot. Both come from the same
-    /// machine state, so a difference between them is the renderer and nothing
-    /// else.
+    /// Also render each captured frame through the CPU rasteriser and write it
+    /// beside the screenshot. Both come from the same machine state, so any
+    /// difference is the renderer's.
     bool soft_render = false;
 
-    /// Which renderer actually draws the window: Vulkan (the GPU path) or
-    /// Software (the same CPU rasteriser --soft-render uses for comparison,
-    /// drawn here instead of alongside). F2 toggles this live so the two can be
-    /// compared without restarting.
+    /// Draw the window with the CPU rasteriser (the one --soft-render uses)
+    /// rather than the GPU.
     bool start_in_software_renderer = false;
 
-    /// Which GPU backend is constructed underneath, independent of
-    /// start_in_software_renderer, which only decides whether the CPU rasteriser
-    /// is drawing this frame.
-    /// --graphics-backend software sets both: it presents through a GPU backend
-    /// but draws on the CPU, and also flips start_in_software_renderer.
+    /// Which GPU backend is constructed. --graphics-backend software still
+    /// presents through one, and also sets start_in_software_renderer.
     GraphicsBackendChoice graphics_backend = kDefaultGraphicsBackend;
 
     /// Run this many frames headless, report, and exit. Zero means run normally.
@@ -265,10 +250,8 @@ struct Options {
     sm2::u32 run_frames   = 0;
 
     /// Quit after this many wall-clock seconds, in the windowed path. Unlike
-    /// --run-frames, this bounds real time rather than emulated frames, which is
-    /// what a throughput comparison between renderers needs to hold fixed: with
-    /// --no-throttle the frame *count* is exactly the thing being measured, so it
-    /// cannot also be the stopping condition.
+    /// --run-frames this bounds real time, so --no-throttle can measure the
+    /// frame count.
     sm2::u32 duration_seconds = 0;
 
     /// Per-stage CPU/GPU breakdown rather than just the whole-frame rate.
@@ -277,9 +260,8 @@ struct Options {
 
 
     /// Discard every profiler and frame-time sample before this presented-frame
-    /// number, so attract/title/select screens (which draw almost nothing) do
-    /// not inflate the average. Set past the coin/start sequence (coin_at +
-    /// ~350). Zero measures from the first frame.
+    /// number, so near-empty attract and title screens do not skew the average.
+    /// Zero measures from the first frame.
     sm2::u32 profile_after = 0;
 
     /// Also write --profile's per-stage table to this CSV file, one row per stage.
@@ -633,10 +615,6 @@ void print_usage()
     return (std::filesystem::path(dir) / (game + "-" + stamp + ".png")).string();
 }
 
-/// A loaded machine plus the pointers the loop reaches into it for. The four
-/// concrete downcasts are kept because the boot-test diagnostics and copro
-/// self-test need a specific board's registers. Audio is not opened here: the
-/// boot-test path needs a machine but no audio, so the caller opens it.
 /// The key a game's per-game settings are stored under, shared by every revision.
 [[nodiscard]] std::string game_family(const sm2::rom::GameSpec& game)
 {
@@ -683,6 +661,9 @@ void apply_volume(std::span<const sm2::s16> in, sm2::u32 percent, std::vector<sm
     }
 }
 
+/// A loaded machine plus the pointers the loop reaches into it for. The
+/// concrete downcasts are for the boot-test diagnostics, which need a specific
+/// board's registers.
 struct LoadedMachine {
     sm2::rom::GameSpec                game;
     std::unique_ptr<sm2::hw::Machine> machine_owner;
@@ -757,10 +738,9 @@ struct LoadedMachine {
     return std::nullopt;
 }
 
-/// Load, build, wire, point at NVRAM and reset a machine. The one path both a
-/// --game/positional launch and the picker use, so a picked game boots exactly
-/// like a directly-launched one. nullopt (logged, and in `error` when given)
-/// on failure.
+/// Load, build, wire, point at NVRAM and reset a machine, for both a direct
+/// launch and the picker. Audio is opened by the caller. nullopt (logged, and
+/// in `error` when given) on failure.
 [[nodiscard]] std::optional<LoadedMachine> load_game(sm2::rom::GameDatabase& database,
                                                      const std::string& rom_path,
                                                      const std::string& game_name,
@@ -830,8 +810,8 @@ struct LoadedMachine {
 }
 
 /// Attach a LAN transport to the link board when linking is on, else restore
-/// the loopback. Called after every load. A socket that fails to bind is not
-/// fatal: the board reports not-connected and simply never links.
+/// the loopback. A socket that fails to bind is not fatal: the board just
+/// never links.
 void configure_cabinet_link(sm2::hw::Machine& machine,
                             const sm2::Config&          config)
 {
@@ -908,9 +888,8 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    // --graphics-backend opengl needs a GL backend compiled in (either
-    // desktop GL 4.3 core or GLES 3.1 -- they are mutually exclusive build
-    // options that both produce the same "opengl" runtime name).
+    // --graphics-backend opengl needs a GL backend compiled in (desktop GL 4.3
+    // core or GLES 3.1, which are mutually exclusive).
 #if !defined(SM2_HAVE_OPENGL_DESKTOP) && !defined(SM2_HAVE_OPENGL_ES)
     if (options.graphics_backend == GraphicsBackendChoice::Opengl) {
         SM2_ERROR("--graphics-backend opengl was requested, but this binary was "
@@ -920,7 +899,6 @@ int main(int argc, char** argv)
     }
 #endif
 
-    // Likewise the Vulkan backend is opt-in at build time (SM2_BUILD_VULKAN).
 #if !defined(SM2_HAVE_VULKAN)
     if (options.graphics_backend == GraphicsBackendChoice::Vulkan) {
         SM2_ERROR("--graphics-backend vulkan was requested, but this binary was "
@@ -931,12 +909,11 @@ int main(int argc, char** argv)
 #endif
 
     // Command line first, then the file for everything the command line did not
-    // mention. Doing it this way round rather than loading first and overwriting
-    // means a flag is always the last word, whatever the file says.
+    // mention, so a flag always has the last word.
     Config defaults;
 #if defined(SM2_ENABLE_VALIDATION)
-    // A build with validation compiled in enables it by default, which is still a
-    // default: a file that turns it off is obeyed.
+    // A build with validation compiled in enables it by default; a file can
+    // still turn it off.
     defaults.validation = true;
 #endif
 
@@ -985,7 +962,6 @@ int main(int argc, char** argv)
         options.config.screenshot_dir = from_file.screenshot_dir;
     }
     options.config.artwork_dir    = from_file.artwork_dir;
-    // No CLI flag for scrape_artwork; the file value wins over the default.
     options.config.scrape_artwork = from_file.scrape_artwork;
     if (!options.given.log_level) {
         options.config.log_level = from_file.log_level;
@@ -995,8 +971,7 @@ int main(int argc, char** argv)
     if (!options.given.render_scale) {
         options.config.render_scale = from_file.render_scale;
     }
-    // Present-stage and enhancement options are GUI/config-only (no CLI flags),
-    // so the file value wins over the default, like window size above.
+    // Present-stage and enhancement options have no command-line flags.
     options.config.scaling_method        = from_file.scaling_method;
     options.config.aspect_mode           = from_file.aspect_mode;
     options.config.crt_enabled           = from_file.crt_enabled;
@@ -1108,9 +1083,8 @@ int main(int argc, char** argv)
     options.config.sinden_border_thickness  = from_file.sinden_border_thickness;
     options.config.gun_buttons              = from_file.gun_buttons;
 
-    // Default saves/screenshots under the platform data dir; a cwd-ini dev tree
-    // keeps them relative (see resolve_default_paths / data_directory). Artwork
-    // goes beside the ini, so pass its directory.
+    // Default saves and screenshots go under the platform data dir, or stay
+    // relative for an ini in the working directory. Artwork goes beside the ini.
     const bool config_in_cwd =
         options.config_path.empty() && std::filesystem::path(config_path).parent_path().empty();
     const std::string config_dir =
@@ -1139,9 +1113,8 @@ int main(int argc, char** argv)
         return persisted_config(current, options, launched, from_file);
     };
 
-    // Make sure the settings and NVRAM locations exist. If there is no ini yet,
-    // write one so there is a file to edit and later saves have somewhere to go;
-    // an existing one is left untouched. save_config creates the parent dir.
+    // Make sure the settings and NVRAM locations exist. With no ini yet, write
+    // one so there is a file to edit; an existing one is left untouched.
     {
         std::error_code error;
         if ((!std::filesystem::exists(config_path, error) || error)
@@ -1204,29 +1177,26 @@ int main(int argc, char** argv)
         return started ? 0 : 1;
     }
 
-    // --game with no path: the archive is found in rom_dir once the database
-    // says which parent a clone's merged archive is named after. A positional
-    // path wins.
+    // --game with no path: the archive is found in rom_dir once the database is
+    // loaded (a clone may live in its parent's archive). A positional path wins.
     const bool any_rom_dir = !options.config.rom_dir.empty()
                              || !options.config.model1_rom_dir.empty()
                              || !options.config.model3_rom_dir.empty();
     const bool game_in_rom_dir = options.rom_path.empty() && !options.game.empty()
                                  && any_rom_dir;
 
-    // Show the picker when launched with no ROM but a rom_dir to browse, heading
-    // for the windowed loop. The DB is then built unconditionally below.
+    // Show the picker when launched with no ROM but a rom_dir to browse.
     const bool will_show_picker = options.rom_path.empty() && options.game.empty()
                                   && any_rom_dir
                                   && !options.list_games && options.boot_test == 0;
 
-    // Same as will_show_picker, minus requiring rom_dir already set: it may
-    // be set later from the Paths tab, whose rescan below needs the database.
+    // As will_show_picker, but rom_dir may be set later from the Paths tab,
+    // whose rescan needs the database.
     const bool may_need_picker = options.rom_path.empty() && options.game.empty()
                                  && !options.list_games && options.boot_test == 0;
 
     // -- ROM database ------------------------------------------------------
-    // Loaded before anything graphical, so a bad ROM path fails immediately
-    // instead of after a window has appeared.
+    // Loaded before anything graphical, so a bad ROM path fails immediately.
     rom::GameDatabase database;
     if (options.list_games || !options.rom_path.empty() || game_in_rom_dir
         || may_need_picker) {
@@ -1257,8 +1227,7 @@ int main(int argc, char** argv)
         std::printf("%-12s %-14s %-34s %-6s %s\n",
                     "SET", "BOARD", "TITLE", "YEAR", "NOTES");
         for (const rom::GameSpec& game : database.games()) {
-            // The version is printed as written rather than with a "v" prefix,
-            // because these strings are Sega's own words: "2.1", but also
+            // Printed as written, without a "v" prefix: "2.1", but also
             // "Revision B".
             std::string notes = game.version;
             if (game.preliminary) {
@@ -1286,8 +1255,6 @@ int main(int argc, char** argv)
     }
 
     // -- the machine -------------------------------------------------------
-    // Bind the returned struct's pointers to the locals the rest of main()
-    // already uses, so nothing downstream changes.
     std::optional<LoadedMachine> loaded;
     if (!options.rom_path.empty()) {
         loaded = load_game(database, options.rom_path, options.game,
@@ -1315,7 +1282,7 @@ int main(int argc, char** argv)
     const hw::I8251* sound_link  = loaded.has_value() ? loaded->sound_link  : nullptr;
 
     // Restore a save state before anything runs, so a one-frame --screenshot
-    // renders exactly that state through whichever backend is selected.
+    // renders exactly that state.
     if (!options.load_state.empty()) {
         if (machine_any == nullptr) {
             SM2_ERROR("--load-state needs a ROM");
@@ -1329,8 +1296,7 @@ int main(int argc, char** argv)
     }
 
     // -- headless boot test ------------------------------------------------
-    // No window, no Vulkan: just run the machine and report where it got to.
-    // This is the fastest way to see whether a change moved the boot forward.
+    // No window: run the machine and report where it got to.
     if (options.boot_test != 0) {
         if (machine_iface == nullptr) {
             SM2_ERROR("--boot-test needs a ROM");
@@ -1349,10 +1315,7 @@ int main(int argc, char** argv)
             recorded.reserve(static_cast<usize>(options.boot_test) * 800 * 2);
         }
 
-        // Unified accessors: every implemented board shares these types. The
-        // sound board is a pointer rather than a reference because a synthetic
-        // machine in the tests may have none -- see the note where it is
-        // resolved.
+        // Accessors common to every board.
         struct CpuView {
             hw::Model2MachineBase* machine;
             [[nodiscard]] bool        faulted() const { return machine->main_cpu_status().faulted; }
@@ -1394,9 +1357,8 @@ int main(int argc, char** argv)
                 texture_dumper->scan(*machine_iface);
             }
 
-            // A numbered software frame every so often, so one headless run can be
-            // searched for the instant that lines up with a MAME capture instead of
-            // guessing the time.
+            // A numbered software frame every so often, to find the instant that
+            // lines up with a MAME capture.
             const bool wanted_frame =
                 options.screenshot_frames.empty()
                     ? options.screenshot_interval != 0
@@ -1415,9 +1377,8 @@ int main(int argc, char** argv)
                              list.culled, list.clipped_away, list.stats.read_start);
             }
 
-            // Draining every frame whether or not it is being recorded: the sound
-            // board drops samples nothing collects, and leaving that to happen
-            // would put gaps in a recording.
+            // Drain every frame: the sound board drops samples nothing collects,
+            // which would leave gaps in a recording.
             if (the_sound != nullptr) {
                 const std::span<const s16> produced = the_sound->pending_samples();
                 if (!options.dump_audio.empty()) {
@@ -1492,11 +1453,8 @@ int main(int argc, char** argv)
                         copro.fifo_in().size(), copro.fifo_in().peak_overflow(),
                         copro.fifo_out().size(), copro.fifo_out().peak_overflow());
         } else if (machine_orig != nullptr) {
-            // The original Model 2 carries the same MB86234 as Model 2A, wired the
-            // same way, so the same figures apply. What is board-specific here is
-            // the I/O board: it is a whole second computer, and if its Z80 is not
-            // executing sensibly the program sees no inputs at all, so its state
-            // belongs next to the coprocessor's rather than buried in a log.
+            // The original Model 2 carries the same MB86234 as Model 2A, so the
+            // same figures apply.
             const hw::CoproTgp& copro = machine_orig->copro();
             std::printf("copro uploaded    : %u word(s)\n", copro.uploaded_words());
             std::printf("copro instructions: %llu\n",
@@ -1556,9 +1514,8 @@ int main(int argc, char** argv)
             std::printf("polygons          : %zu\n", machine_iface->render_list().polygons.size());
         } else if (machine_2c != nullptr) {
             const hw::CoproTgpx4& copro = machine_2c->copro();
-            // Two host writes make one 64-bit program word, so both figures are
-            // reported: a program that uploaded an odd number of halves has left
-            // its last word half-written, which is worth seeing.
+            // Two host writes make one 64-bit program word; an odd count of halves
+            // means the last word is half-written.
             std::printf("copro uploaded    : %u host write(s), %u program word(s)\n",
                         copro.uploaded_words(), copro.uploaded_words() / 2);
             std::printf("copro instructions: %llu\n",
@@ -1566,8 +1523,7 @@ int main(int argc, char** argv)
             std::printf("copro state       : %s%s\n", copro.cpu().state_string().c_str(),
                         copro.cpu().halted() ? " HALTED" : "");
             // The MB86235 records an unimplemented opcode and stops rather than
-            // aborting, so without printing this a fault looks like a
-            // coprocessor that simply did nothing.
+            // aborting, so report it.
             std::printf("copro faulted     : %s\n",
                         copro.cpu().faulted() ? copro.cpu().fault_message().c_str()
                                               : "no");
@@ -1577,10 +1533,7 @@ int main(int argc, char** argv)
                         copro.fifo_out().size(), copro.fifo_out().peak_overflow());
         }
 
-        // The link is reported whether or not there is a board behind it, because
-        // on the original Model 2 the link is all there is: the M1 audio board is
-        // not emulated, so "bytes sent" is the only evidence that the program's
-        // sound handshake completed rather than stalled.
+        // Reported whether or not there is a board behind the link.
         {
             const hw::I8251::Counters& uart = the_uart.counters();
             std::printf("sound link        : %llu byte(s) to the board, %llu back, "
@@ -1591,9 +1544,7 @@ int main(int argc, char** argv)
                         (unsigned long long)uart.status_reads);
         }
 
-        // Past this point the report is board-specific: the two boards share no
-        // registers, so there is nothing to say about both at once beyond whether
-        // a program ROM turned up.
+        // Past this point the report is board-specific.
         auto* const the_scsp_board = dynamic_cast<hw::Model2Sound*>(the_sound);
         auto* const the_m1_board   = dynamic_cast<hw::M1Audio*>(the_sound);
 
@@ -1683,8 +1634,7 @@ int main(int argc, char** argv)
         machine_iface->log_unmapped_summary();
         machine_iface->log_burst_summary();
 
-        // Both TGP boards, since both read the same table ROM through the same
-        // coprocessor.
+        // Both TGP boards read the same table ROM through the same coprocessor.
         hw::CoproTgp* tgp = machine != nullptr        ? &machine->copro()
                           : machine_orig != nullptr   ? &machine_orig->copro()
                                                       : nullptr;
@@ -1696,9 +1646,8 @@ int main(int argc, char** argv)
         hw::print_render_list_summary(*machine_iface);
         hw::print_tilemap_summary(*machine_iface);
 
-        // Compose once, at the end. This exercises the real colour chain and the
-        // real compositor, which is what the display uses, so a discrepancy
-        // between this and the raw layer dump points at one or the other.
+        // Compose once, at the end, through the same colour chain and compositor
+        // the display uses.
         machine_iface->compose_video();
         if (!options.dump_tilemap.empty()) {
             hw::dump_tilemaps(*machine_iface, options.dump_tilemap);
@@ -1757,13 +1706,12 @@ int main(int argc, char** argv)
         backend_config.enable_validation = options.config.validation;
         backend_config.vsync             = options.config.vsync;
         backend_config.preferred_device  = options.config.gpu;
-        // The software renderer is the native oracle, so scaling is ignored
-        // (treated as 1) when it drives the window.
+        // The software renderer draws at native resolution.
         backend_config.render_scale =
             options.start_in_software_renderer ? 1U : options.config.render_scale;
 
-        // Present-stage options apply to every backend, including the software
-        // renderer's uploaded frame -- no software special case.
+        // Present-stage options apply to every backend, the software renderer
+        // included.
         backend_config.present.scaling_method        = options.config.scaling_method;
         backend_config.present.aspect_mode           = options.config.aspect_mode;
         backend_config.present.crt_enabled           = options.config.crt_enabled;
@@ -1778,9 +1726,7 @@ int main(int argc, char** argv)
         backend_config.enhancement.upscale_2d     = options.config.upscale_2d;
         backend_config.enhancement.translucency   = options.config.translucency;
 
-        // Each factory is only defined when its SM2_BUILD_* option was on, so
-        // the #if guards keep an absent backend from being an undefined symbol.
-        // The mismatched --graphics-backend cases already errored out above.
+        // Each factory exists only when its SM2_BUILD_* option was on.
         osd::Window                      window;
         std::unique_ptr<render::Backend> backend;
         const auto open_backend = [&](bool opengl) {
@@ -1841,9 +1787,8 @@ int main(int argc, char** argv)
         // Name of the constructed GPU backend, for the title bar and overlay label.
         const char* gpu_backend_name = present_with_opengl ? "OpenGL" : "Vulkan";
 
-        // The settings overlay, drawn on top of the emulator's output. Owns
-        // only ImGui's context and its SDL3 platform backend; the backend
-        // above owns whichever GPU API actually draws what it builds.
+        // The settings overlay. Owns only ImGui's context and its SDL3 platform
+        // backend; the render backend draws what it builds.
         osd::Gui gui;
         gui.set_config_path(config_path);
         gui.set_save_filter(to_save);
@@ -1865,8 +1810,8 @@ int main(int argc, char** argv)
         }
         {
             // One row per family, titled after its parent set, for the Audio
-            // tab's volumes and the Gamepad tab's layouts. Families that do not
-            // run (`preliminary` includes DOA, which does).
+            // tab's volumes and the Gamepad tab's layouts. kNoVolume lists
+            // families that do not run.
             static const std::set<std::string> kNoVolume = {"rascot2"};
             std::map<std::string, std::string> titles;
             std::map<std::string, std::pair<bool, bool>> guns;
@@ -1951,8 +1896,8 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        // Declared here so its dtor joins the thread after the loop but before
-        // the backend is torn down (the thread-safety contract needs that order).
+        // Declared here so its destructor joins the thread after the loop but
+        // before the backend is torn down.
         osd::Scraper scraper;
 
         // Build the picker's entry list from the launchable sets and turn it on.
@@ -2002,9 +1947,7 @@ int main(int argc, char** argv)
         const std::vector<std::string> gpu_names =
             present_with_opengl ? std::vector<std::string>{} : render::enumerate_render_devices();
 
-        // A machine with no gamepad is not an error, so a failure here is worth
-        // reporting but not worth refusing to run over: the keyboard covers
-        // everything the cabinet has.
+        // No gamepad is not fatal: the keyboard covers everything the cabinet has.
         osd::Input input;
         bool input_background = options.config.input_background;
         apply_input_background(input_background);
@@ -2020,17 +1963,15 @@ int main(int argc, char** argv)
             ~HostStateGuard() { hw::set_host_state({}); }
         } host_state_guard;
 
-        // A machine with no audio device still has to run, so a failure here is
-        // reported by Audio::init and otherwise ignored. Opened at the machine's
-        // own 44100 Hz and left to SDL to resample.
+        // No audio device is not fatal; Audio::init reports it. SDL resamples
+        // from the board's own rate.
         osd::Audio audio;
         osd::Outputs outputs;
         if (sound_board != nullptr) {
             static_cast<void>(audio.init(sound_board->sample_rate()));
         }
 
-        // With no machine there is nothing to draw, so present the two empty
-        // surfaces over a recognisable background rather than a blank window.
+        // With no machine, present empty surfaces over a recognisable background.
         hw::Model2Video idle_video;
 
         // The CPU rasteriser, used when --graphics-backend software was chosen
@@ -2043,13 +1984,9 @@ int main(int argc, char** argv)
         hw::AsyncSoftRenderer async_soft(soft_renderer);
         async_soft.set_use_slow_cores(options.config.software_slow_cores);
 
-        // Paced against real time rather than against the display, because the
-        // machine's 57.5245 Hz divides into no monitor's refresh rate.
-        //
-        // Vsync and pacing compose rather than conflict: whichever wants the longer
-        // frame wins, so on a 60 Hz display the pacer's 17.384 ms is the limit and
-        // the rate is right. On a display slower than 57.5 Hz vsync would win and the
-        // game would run slow, which is what --no-vsync is for.
+        // Paced against real time, because the machine's 57.5245 Hz matches no
+        // monitor's refresh rate. With vsync the longer frame wins, so a display
+        // slower than 57.5 Hz needs --no-vsync.
         osd::FramePacer pacer;
         pacer.set_throttled(options.config.throttle);
         pacer.start(hw::Model2::kFrameNanoseconds);
@@ -2073,16 +2010,13 @@ int main(int argc, char** argv)
         std::vector<s16> recorded_audio;
         std::vector<s16> scaled_audio;  ///< the per-game volume's scratch buffer
 
-        // Per-stage CPU timers for --profile. Built regardless of
-        // options.profile -- maybe_scope() below makes recording a no-op when
-        // profiling is off, one branch per stage rather than a conditional at
-        // every call site.
+        // Per-stage CPU timers for --profile. Always built; maybe_scope() makes
+        // recording a no-op when profiling is off.
         core::StageTimer stage_run_frame("run_frame");
         core::StageTimer stage_geometry("geometry_engine");
         core::StageTimer stage_compose("tilemap_compose");
-        // build() triangulates, memcpys into the mapped host buffers, and (when
-        // texture_generation changed) records the decode dispatch, so this one
-        // scope covers all three.
+        // build(): triangulation, the copy into mapped buffers and any texture
+        // decode dispatch.
         core::StageTimer stage_build("poly3d_build_and_memcpy");
         core::StageTimer stage_tilemap_upload("tilemap_upload_memcpy");
         // Everything else issuing vkCmd* this frame: 3D draws, both tilemap
@@ -2095,11 +2029,10 @@ int main(int argc, char** argv)
         core::StageTimer stage_software_wait("software_wait");
         core::StageTimer stage_software_snapshot("software_snapshot");
         core::StageTimer stage_software_async("software_async_draw");
-        // Time blocked on the GPU/present inside begin_frame() (Vulkan
-        // fence+acquire, GL swap back-pressure) -- otherwise an invisible stall.
+        // Time blocked on the GPU inside begin_frame() (Vulkan fence and
+        // acquire, GL swap back-pressure).
         core::StageTimer stage_present_wait("present_wait");
-        // The three cores run_frame() interleaves, split out so a CPU-bound
-        // result can be told from one hot core.
+        // The three cores run_frame() interleaves.
         core::StageTimer stage_cpu_i960("cpu_i960");
         core::StageTimer stage_cpu_copro("cpu_copro");
         core::StageTimer stage_cpu_sound("cpu_sound");
@@ -2136,22 +2069,21 @@ int main(int argc, char** argv)
         constexpr u32 kRewindInterval = 2;
         hw::Rewind                   rewind;
         const hw::Machine* rewind_machine = nullptr;
-        bool                         rewind_held    = false;  ///< Backspace is down.
+        bool                         rewind_held    = false;  ///< The rewind key is down.
 
         u32  frames_presented = 0;   ///< Since the loop started.
         u32  frames_written_off = 0; ///< Whole frames given up after a stall.
         bool paused             = false;
-        bool audio_paused_state = false; ///< tracks effective pause to drive audio/pacer on change.
+        bool audio_paused_state = false; ///< Effective pause, to pause audio and pacer on change.
         bool fast_forward       = false;
         bool running            = true;
-        bool quit_key_pressed   = false;  ///< F9 went down during this run.
-        bool screenshot_requested = false;  ///< Set by F12, serviced next frame.
-        bool return_to_picker_requested = false;  ///< Set by Esc; unload + picker.
+        bool quit_key_pressed   = false;  ///< The quit key went down during this run.
+        bool screenshot_requested = false;  ///< Serviced next frame.
+        bool return_to_picker_requested = false;  ///< Set by the exit key; unload + picker.
         std::string dropped_path;  ///< A file dropped on the window, launched next frame.
 
-        // A pending save-state action (F6/F7 or an overlay button), serviced
-        // between frames next to the screenshot. `slot` is the slot name
-        // (kQuickSlot for the hotkeys).
+        // A pending save-state action from a hotkey or the overlay, serviced
+        // between frames. `slot` is kQuickSlot for the hotkeys.
         enum class StateOp { Save, Load, Delete };
         struct StateAction {
             StateOp     op = StateOp::Save;
@@ -2159,8 +2091,7 @@ int main(int argc, char** argv)
         };
         std::optional<StateAction> state_action;
         bool settings_was_visible = gui.visible();  ///< Settings visibility, last frame.
-        // Fixed at launch by --graphics-backend software. There is no runtime
-        // switch: the two renderers are a launch-time choice.
+        // Fixed at launch by --graphics-backend software.
         const bool use_software_renderer = options.start_in_software_renderer;
         // 16:9 widens the frame only on a GPU renderer; elsewhere it shows 4:3.
         // Model 3's software renderer widens as its GPU renderers do.
@@ -2184,12 +2115,8 @@ int main(int argc, char** argv)
         }
         u64  last_title_ns      = SDL_GetTicksNS();
 
-        // --duration's deadline, and the per-frame wall-clock cost recorded for
-        // its summary. Frame time here is measured start-to-start rather than
-        // just the render, so it includes run_frame(), the pacer's wait() and
-        // everything else one iteration of this loop does -- the whole-loop cost
-        // is what a player experiences as the frame rate, which is the same
-        // reasoning FramePacer::measured_hz() already uses.
+        // --duration's deadline, and the per-frame wall-clock cost for its
+        // summary, measured start-to-start so it covers the whole loop.
         const u64 run_start_ns = SDL_GetTicksNS();
         const u64 run_deadline_ns =
             options.duration_seconds != 0
@@ -2197,16 +2124,12 @@ int main(int argc, char** argv)
                 : 0;
         std::vector<double> frame_times_ms;
         if (run_deadline_ns != 0) {
-            // 57.52 Hz unthrottled on reasonable hardware comfortably exceeds
-            // this; reserving avoids reallocation skewing the very timings being
-            // measured.
+            // Reserved so reallocation does not skew the timings.
             frame_times_ms.reserve(static_cast<usize>(options.duration_seconds) * 2000);
         }
 
         // "Keisho — <game or 'no game'> [Vulkan|OpenGL|Software]", plus the
-        // rate and pause state once the loop is running. Shared by the initial
-        // title and the once-a-second refresh, so the two can never drift into
-        // different formats.
+        // rate and pause state once the loop is running.
         const auto build_title = [&]() {
             std::string title = std::string("Keisho — ")
                               + (loaded.has_value() ? loaded->game.title : "no game")
@@ -2284,8 +2207,7 @@ int main(int argc, char** argv)
 
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
-                // Let ImGui see every event so it can capture mouse/keyboard
-                // when the overlay is active, bar a key the System tab is
+                // Let ImGui see every event, bar a key the System tab is
                 // binding, which its keyboard navigation would also press.
                 if (event.type != SDL_EVENT_KEY_DOWN || !gui.visible() || !gui.capturing_key()) {
                     ImGui_ImplSDL3_ProcessEvent(&event);
@@ -2305,11 +2227,8 @@ int main(int argc, char** argv)
                         } else if (event.key.key == SDLK_ESCAPE && gui.load_error_open()) {
                             // The dialog takes this Esc.
                         } else if (is_hotkey(event.key, Config::Hotkey::Exit)) {
-                            // Esc returns to the game picker (unloading the
-                            // current game) when there is a picker to return to;
-                            // otherwise -- a single ROM launched by path with no
-                            // rom_dir to browse -- it quits. Serviced after the
-                            // event loop, so the teardown runs outside it.
+                            // Return to the game picker when there is one,
+                            // otherwise quit. Serviced after the event loop.
                             if (will_show_picker && machine_any != nullptr) {
                                 return_to_picker_requested = true;
                             } else {
@@ -2398,14 +2317,12 @@ int main(int argc, char** argv)
                 }
             }
 
-            // Fast-forward is a held key rather than a toggle, so letting go always
-            // returns to real time.
+            // Fast-forward is held rather than toggled.
             pacer.set_throttled(options.config.throttle && !fast_forward
                                 && !pad_shortcuts.fast_forward);
 
-            // Audio clock pull: nudge the frame rate toward the audio device's
-            // true rate so the queue does not drift. Too full -> slower, too
-            // empty -> faster; deadband stops it fighting the per-frame sawtooth.
+            // Nudge the frame rate toward the audio device's true rate so the queue
+            // does not drift; the deadband stops it fighting the per-frame sawtooth.
             if (sound_board != nullptr && audio.active()) {
                 const s32 depth = static_cast<s32>(audio.queued_milliseconds());
                 const s32 target = static_cast<s32>(osd::Audio::kTargetQueuedMilliseconds);
@@ -2418,21 +2335,18 @@ int main(int argc, char** argv)
                 pacer.set_sync_adjust(adjust);
             }
 
-            // Warm-up gate: don't sample until --profile-after's frame (see its
-            // declaration). Zero means always true.
+            // Do not sample before --profile-after's frame.
             const bool profile_sample =
                 options.profile
                 && (options.profile_after == 0 || frames_presented >= options.profile_after);
 
-            // The wheel's Menu-bound button toggles the overlay, same as F1.
-            // Polled every frame (not only while running) so it can also close
-            // the overlay once it has paused the game.
+            // The wheel's Menu-bound button toggles the overlay. Polled every frame
+            // so it can also close the overlay once it has paused the game.
             if (input.menu_button_pressed() || pad_shortcuts.menu) {
                 gui.toggle();
             }
 
-            // Opening the overlay pauses the game, so settings can be changed
-            // without the car driving off. The P key's manual pause still holds
+            // Opening the overlay pauses the game; the manual pause holds
             // independently. Audio and the pacer follow on each transition.
             const bool effective_pause = paused || gui.visible();
             if (effective_pause != audio_paused_state) {
@@ -2536,9 +2450,8 @@ int main(int argc, char** argv)
                 rewinding = (rewind_held || pad_shortcuts.rewind)
                          && rewind.step_back(*machine_any);
 
-                // Inputs are levels, sampled whenever the program polls the I/O
-                // controller during the frame, so they have to be set before the
-                // frame runs rather than after.
+                // Inputs are levels the program polls during the frame, so they
+                // are set before it runs.
                 input.poll(&machine_any->inputs(), loaded->game);
                 // Push the live settings (the GUI changes these) before computing
                 // this frame's force, so slider and calibration take effect now.
@@ -2574,8 +2487,7 @@ int main(int argc, char** argv)
                 input.update_pad_rumble(loaded->game);
                 if (options.coin_at != 0) {
                     // Scripted coin, start and character confirmation, so an
-                    // unattended capture can reach the game itself rather than
-                    // only the attract mode.
+                    // unattended capture reaches the game itself.
                     const osd::Input::ScriptedPress press = osd::Input::scripted_press(
                         frames_presented, options.coin_at, loaded->game.start1_bit);
                     machine_any->inputs().in0 &= static_cast<u8>(~press.in0);
@@ -2651,16 +2563,12 @@ int main(int argc, char** argv)
                     texture_dumper->scan(*machine_iface);
                 }
                 if (profile_sample) {
-                    // Read straight back out rather than timed separately: the
-                    // geometry engine runs inside run_frame() (at vblank), not as
-                    // a call main.cpp makes itself, so there is no separate scope
-                    // to wrap -- see Geometrizer::last_run_nanoseconds()'s own
-                    // documentation of why this figure exists.
+                    // The geometry engine runs inside run_frame(), so its time is
+                    // read back rather than scoped here.
                     stage_geometry.record_ms(
                         static_cast<double>(machine_iface ? machine_iface->geometry_stage_nanoseconds() : 0)
                         / 1'000'000.0);
-                    // The per-core split, filled inside run_frame() for the same
-                    // reason: main.cpp sees one interleaved call, not three.
+                    // The per-core split, likewise filled inside run_frame().
                     stage_cpu_i960.record_ms(
                         static_cast<double>(machine_any->i960_stage_nanoseconds())
                         / 1'000'000.0);
@@ -2672,10 +2580,8 @@ int main(int argc, char** argv)
                         / 1'000'000.0);
                 }
 
-                // The sound board produced about 767 stereo frames while that ran.
-                // Handed over every frame rather than buffered here, so the only
-                // buffering is SDL's. Null on the original Model 2, whose sound
-                // board is not emulated.
+                // About 767 stereo frames per video frame, handed over every frame
+                // so the only buffering is SDL's.
                 if (sound_board != nullptr && rewinding) {
                     sound_board->clear_pending_samples();
                 } else if (sound_board != nullptr) {
@@ -2701,9 +2607,8 @@ int main(int argc, char** argv)
                 }
             }
 
-            // Timed as present_wait (see its declaration). The scope closes
-            // before the continue below so a skipped frame's SDL_Delay is not
-            // folded into the figure.
+            // The scope closes before the continue below so a skipped frame's
+            // SDL_Delay is not folded into present_wait.
             bool begin_ok;
             {
                 auto scope = core::maybe_scope(stage_present_wait, profile_sample);
@@ -2716,15 +2621,13 @@ int main(int argc, char** argv)
                 break;
             }
             if (!begin_ok) {
-                // Minimised or the swapchain was rebuilt. Yield rather than
-                // spinning on a window we cannot draw into, and abandon the pacing
-                // deadline because an unknown amount of time is about to pass.
+                // Minimised or the swapchain was rebuilt: yield, and abandon the
+                // pacing deadline.
                 SDL_Delay(16);
                 pacer.resync();
-                // Still honour a wall-clock run deadline (--duration/--profile):
-                // without this, a window that stays non-drawable spins here
-                // forever and the profile/summary never prints. The frame-time
-                // sample is deliberately NOT recorded for a skipped frame.
+                // Still honour a --duration/--profile deadline, or a window that
+                // stays non-drawable never prints its summary. No frame-time
+                // sample is recorded for a skipped frame.
                 if (run_deadline_ns != 0 && SDL_GetTicksNS() >= run_deadline_ns) {
                     running = false;
                 }
@@ -2734,31 +2637,23 @@ int main(int argc, char** argv)
             const hw::Model2Video& video =
                 machine_iface ? machine_iface->video() : idle_video;
 
-            // Only meaningful with a machine loaded: SoftRenderer::render() takes
-            // a Model2MachineBase, so there is nothing for it to draw against the
-            // idle placeholder and the Vulkan path below covers that case anyway.
+            // SoftRenderer needs a Model 1/2 machine; the idle display uses the GPU.
             const bool draw_with_software = use_software_renderer && machine_iface;
 
-            // Render test mode's framebuffer overlay (Model2Video::
-            // draw_framebuffer) overwrites `below` after the tilemap composite
-            // and has no GPU equivalent, so that mode always takes the CPU path.
+            // Render test mode's framebuffer overlay overwrites `below` after the
+            // tilemap composite and has no GPU equivalent, so it takes the CPU path.
             const bool render_test = machine_iface && machine_iface->render_test_mode();
 
-            // Whether this frame's Vulkan draw uses tilemaps.compute() in place
-            // of the CPU-composited upload. Independent of need_cpu_compose
-            // below: a --soft-render comparison run wants both the GPU path
-            // exercised (this) and a fresh CPU oracle (that), in the same frame.
+            // Whether the GPU composes the tilemaps this frame. Independent of
+            // need_cpu_compose: a --soft-render run wants both.
             const bool cpu_tilemap =
                 machine_iface
                 && (machine_iface->needs_cpu_tilemap() || !backend->capabilities().compute_shaders);
             const bool use_gpu_tilemap =
                 machine_iface && !use_software_renderer && !render_test && !cpu_tilemap;
 
-            // Whether Model2Video::compose(), the CPU tilemap composite, must
-            // run this frame: whenever something reads video.below()/above()
-            // directly -- the software renderer's live draw, a --soft-render
-            // comparison capture later in this same frame (hw::dump_software_frame,
-            // below), or render test mode's compose()-then-overlay sequence.
+            // Whether the CPU tilemap composite must run: whenever something reads
+            // video.below()/above() directly.
             const bool need_cpu_compose =
                 machine_iface
                 && (use_software_renderer || options.soft_render || render_test || cpu_tilemap);
@@ -2785,9 +2680,7 @@ int main(int argc, char** argv)
                     auto scope = core::maybe_scope(stage_compose, profile_sample);
                     machine_iface->compose_video();
                 } else if (use_gpu_tilemap) {
-                    // compose_video()'s other job, done here directly since its
-                    // own compose() call -- the expensive part -- is what
-                    // tilemaps.compute() below replaces.
+                    // compose_video()'s palette refresh, without its compose().
                     if (machine_iface->palette_dirty()) {
                         machine_iface->video().refresh_pens();
                         machine_iface->clear_palette_dirty();
@@ -2825,10 +2718,9 @@ int main(int argc, char** argv)
                     sample_m3_build();
                 }
             } else if (!draw_with_software) {
-                // Uploads and the 3D pass first. Both need a command buffer that is
-                // not inside a rendering scope: a transfer cannot be issued inside
-                // one, and the 3D pass opens a scope of its own on its offscreen
-                // target.
+                // Uploads and the 3D pass first, outside any rendering scope: a
+                // transfer cannot be issued inside one, and the 3D pass opens its
+                // own on its offscreen target.
                 {
                     auto scope = core::maybe_scope(stage_tilemap_upload, profile_sample);
                     if (use_gpu_tilemap) {
@@ -2843,14 +2735,8 @@ int main(int argc, char** argv)
                 }
             }
 
-            // Command recording proper starts here: polygons.render() below, and
-            // everything up to and including present.record() further down
-            // (marked at its own call site) is vkCmd* issuance for this frame,
-            // with a capture's readback recording folded in between since it is
-            // also just a command, and nothing else interleaved in the
-            // non-software path. Not used when draw_with_software, since there
-            // is no Vulkan drawing to time in that path -- present.upload_from_host()
-            // is a transfer, not a draw, and stays out of this figure.
+            // Command recording starts here and ends after the present below. Not
+            // timed when drawing in software, which records no GPU drawing.
             if (m3_async) {
                 {
                     auto scope = core::maybe_scope(stage_m3_wait, profile_sample);
@@ -2870,11 +2756,9 @@ int main(int argc, char** argv)
                 backend->render_polygons();
             }
 
-            // The hardware's three-way composite, all of it at the native 496x384:
-            // tilemap layers of priority category zero, then the 3D output, then
-            // category one. Nothing is magnified until blit_to_swapchain() below,
-            // so the two blends run on the hardware's own pixels rather than on
-            // colours a magnifying filter has already mixed with their neighbours.
+            // The hardware's three-way composite runs at native 496x384: tilemap
+            // priority category zero, the 3D output, then category one. Nothing is
+            // magnified until the present, so the blends use unfiltered pixels.
             if (profile_sample) {
                 const render::GpuStageTimes gpu_times = backend->read_stage_times();
                 if (!backend->supports_gpu_timing() && !gpu_timing_unavailable_warned) {
@@ -2890,12 +2774,8 @@ int main(int argc, char** argv)
             }
 
             if (draw_with_software) {
-                // The CPU rasteriser performs this whole three-way composite
-                // itself -- background, below, 3D (or the framebuffer in render
-                // test mode), above -- so the tilemap and 3D passes above are
-                // skipped entirely; its result lands in the same native target
-                // either renderer presents from, which is what lets a screenshot
-                // and the present/letterbox path stay renderer-agnostic.
+                // The CPU rasteriser performs the whole three-way composite itself
+                // and lands in the same native target the GPU path presents from.
                 if (async_software && !render_test) {
                     // Collect and present the previous frame, then hand this one
                     // to the render thread.
@@ -2921,16 +2801,13 @@ int main(int argc, char** argv)
                     backend->submit_native_frame(soft_frame);
                 }
             } else if (!machine_m3) {
-                // Render test mode cuts the DSP out: the framebuffer bank the host has
-                // been drawing into is shown instead of the 3D pass, and has already
-                // been composed into the layers below.
+                // Render test mode shows the host's framebuffer bank instead of the
+                // 3D pass; it is already composed into the layers.
                 const bool skip_3d = machine_iface && machine_iface->render_test_mode();
                 backend->composite_native_frame(video.background(), skip_3d);
             }
 
-            // Read back the finished native frame, before it is scaled, so a
-            // screenshot is the frame the hardware produced at the size it
-            // produced it.
+            // Read back the finished native frame before it is scaled.
             // Model 3 async shows the frame emulated by the pass before.
             const u32  shown_frame = frames_presented - std::min(frames_presented, m3_lag);
             const bool last_frame =
@@ -2971,9 +2848,8 @@ int main(int argc, char** argv)
                 submit_m3();
             }
 
-            // Push present and enhancement options each frame so a GUI change
-            // takes effect immediately; both are shader/pass state, never a
-            // reallocation.
+            // Pushed every frame so a GUI change takes effect at once; both are
+            // shader state, never a reallocation.
             {
                 render::PresentOptions present;
                 present.scaling_method        = options.config.scaling_method;
@@ -2999,16 +2875,11 @@ int main(int argc, char** argv)
 
             // Then the one magnification, into the swapchain.
             backend->blit_to_swapchain();
-            // Command recording, as this figure means it, ends here: the GUI
-            // overlay below is a separate concern (ImGui's own draw-list build
-            // plus its own submission) and left out on purpose.
+            // Command recording ends here; the GUI overlay is left out.
             record_scope.reset();
 
             // Draw the ImGui overlay on top of the presented frame, while the
-            // swapchain image is still in a colour-attachment layout. The FPS
-            // counter is always on now, so this always has something to draw and
-            // gui_active is unconditionally true; the return value stays a bool
-            // for symmetry with draw_overlay()'s inactive path below.
+            // swapchain image is still in a colour-attachment layout.
             backend->begin_overlay_frame();
             {
                 u32 fbw = 0;
@@ -3056,8 +2927,7 @@ int main(int argc, char** argv)
             const bool gui_active =
                 gui.draw(options.config, gpu_names, pacer.measured_hz(),
                         use_software_renderer ? "Software" : gpu_backend_name, &input);
-            // An overlay Save/Load/Delete button routes through the same
-            // between-frames service path as the F6/F7 hotkeys.
+            // An overlay Save/Load/Delete button is serviced like the hotkeys.
             if (std::optional<osd::Gui::StateRequest> req = gui.take_pending_state_request()) {
                 using A  = osd::Gui::StateRequest::Action;
                 StateOp op = req->action == A::Save   ? StateOp::Save
@@ -3065,8 +2935,7 @@ int main(int argc, char** argv)
                                                        : StateOp::Delete;
                 state_action = StateAction{op, req->slot};
             }
-            // Apply a fullscreen toggle from the Settings menu the moment it
-            // changes, rather than only at the next launch.
+            // Apply a fullscreen toggle from the Settings menu at once.
             if (options.config.fullscreen != window.fullscreen()) {
                 window.set_fullscreen(options.config.fullscreen);
             }
@@ -3091,10 +2960,8 @@ int main(int argc, char** argv)
             }
             outputs.poll();
 
-            // Esc asked to unload the game and return to the picker. Handled
-            // after the frame is submitted, mirroring the launch path below in
-            // reverse: save the game's NVRAM, wait for the GPU to finish with
-            // it, drop the machine, then bring the picker back up.
+            // Unload the game and return to the picker, after the frame is
+            // submitted: save NVRAM, wait for the GPU, drop the machine.
             if (return_to_picker_requested) {
                 return_to_picker_requested = false;
                 async_soft.forget_machine();
@@ -3192,10 +3059,8 @@ int main(int argc, char** argv)
                 continue;
             }
 
-            // A series has to be written as it goes, and the readback is only
-            // complete once the submission is. Waiting for the device here stalls
-            // the pipeline, which is acceptable in a diagnostic mode and is why
-            // this is not the default path.
+            // A series is written as it goes, and the readback is complete only
+            // once the submission is, so this stalls the pipeline.
             if (capture_diagnostic && numbered_series) {
                 backend->wait_idle();
                 if (!backend->save_capture(numbered_path(options.screenshot, shown_frame))) {
@@ -3209,7 +3074,7 @@ int main(int argc, char** argv)
                 (void)backend->save_capture(dump_frame);
             }
 
-            // F12: write a timestamped PNG into the screenshots directory.
+            // Write a timestamped PNG into the screenshots directory.
             if (screenshot_requested) {
                 screenshot_requested = false;
                 backend->wait_idle();
@@ -3224,15 +3089,12 @@ int main(int argc, char** argv)
                 }
             }
 
-            // Save / load a state. Serviced here, between frames like the
-            // screenshot, so the machine is never mid-run_frame (the board's own
-            // m_in_frame guard also enforces this). The overlay and the F6/F7
-            // hotkeys both route through state_action.
+            // Save or load a state between frames, so the machine is never
+            // mid-run_frame.
             if (state_action.has_value() && machine_any != nullptr && loaded.has_value()) {
                 const std::string path = hw::state_slot_path(
                     options.config.states_dir, loaded->game.name, state_action->slot);
-                // The file's base name, e.g. "topskatr.quick.kstate" — enough
-                // to identify what was written/read without a long full path.
+                // The file's base name, e.g. "topskatr.quick.kstate".
                 const std::string file =
                     std::filesystem::path(path).filename().string();
                 if (state_action->op == StateOp::Save) {
@@ -3272,24 +3134,12 @@ int main(int argc, char** argv)
                 running = false;
             }
 
-            // Measured from this iteration's own frame_start_ns rather than an
-            // external "last frame's end" mark, so a skipped iteration (the
-            // begin_frame() continue above, on a minimised window or a swapchain
-            // rebuild) cannot fold its idle time into the next sample as a fake
-            // outlier.
-            //
-            // Recorded before pacer.wait(): with throttling on, wait() is where
-            // the pacer deliberately spends idle time to hold the target rate, and
-            // including it would measure the pacer instead of the renderer. With
-            // --no-throttle, which is what a throughput comparison wants, wait()
-            // returns immediately and this is the whole frame cost either way --
-            // see FramePacer::wait()'s own account_for_frame() call for the same
-            // reasoning applied to measured_hz().
+            // Measured from this iteration's own start, so a skipped iteration
+            // cannot fold its idle time into the next sample. Recorded before
+            // pacer.wait(), which would otherwise measure the pacer's idle time.
             if (run_deadline_ns != 0) {
                 const u64 now_ns = SDL_GetTicksNS();
-                // Same --profile-after gate as the per-stage samples, so the fps
-                // average is in-game only. The deadline check below stays
-                // unconditional.
+                // Same --profile-after gate as the per-stage samples.
                 if (options.profile_after == 0 || frames_presented > options.profile_after) {
                     frame_times_ms.push_back(
                         static_cast<double>(now_ns - frame_start_ns) / 1'000'000.0);
@@ -3299,8 +3149,7 @@ int main(int argc, char** argv)
                 }
             }
 
-            // Last thing in the loop, so the wait absorbs everything the frame cost
-            // rather than only part of it.
+            // Last thing in the loop, so the wait absorbs the whole frame's cost.
             frames_written_off += pacer.wait();
 
             const u64 now = SDL_GetTicksNS();
@@ -3366,8 +3215,7 @@ int main(int argc, char** argv)
                      options.config.throttle ? "on" : "off");
 
             if (options.profile) {
-                // Named with set, frame range, coin-at and NVRAM dir, so two
-                // reports run under different conditions cannot be confused.
+                // Labelled with the run's conditions.
                 std::printf("\n--- per-stage CPU (ms), %s, --duration %u, --coin-at %u, "
                             "--nvram %s ---\n",
                             loaded.has_value() ? loaded->game.name.c_str() : "no game",
@@ -3376,9 +3224,7 @@ int main(int argc, char** argv)
                 std::printf("%-24s %8s %10s %10s %10s %10s\n", "stage", "samples", "mean",
                             "p50", "p95", "p99");
 
-                // Collected alongside the printed table, for --profile-csv below,
-                // rather than reopening the file and re-deriving the same
-                // StageStats/GpuStageTime figures a second time.
+                // Written alongside the printed table.
                 std::FILE* csv = nullptr;
                 if (!options.profile_csv.empty()) {
                     csv = std::fopen(options.profile_csv.c_str(), "w");
@@ -3485,17 +3331,16 @@ int main(int argc, char** argv)
             exit_code = 1;
         }
 
-        // Persist settings on exit, so changes made in the overlay (gun
-        // bindings, wheel, video) stick without needing the Save button.
+        // Persist settings on exit, so overlay changes stick without the Save
+        // button.
         if (!save_config(config_path, to_save(options.config))) {
             SM2_WARN("could not save settings to '%s'", config_path.c_str());
         }
 
         audio.shutdown();
         input.shutdown();
-        // Before gui.shutdown(): the backend's own ImGui renderer backend
-        // shutdown also reads ImGui's global context, which must not have
-        // been destroyed yet.
+        // Before gui.shutdown(): the backend's ImGui renderer shutdown reads
+        // ImGui's global context.
         backend->shutdown_overlay();
         gui.shutdown();
         backend->shutdown();

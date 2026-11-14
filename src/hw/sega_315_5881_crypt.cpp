@@ -512,8 +512,7 @@ void Sega3155881Crypt::addrlo_w(u16 data)
 
 void Sega3155881Crypt::addrhi_w(u16 data)
 {
-    // Always forced to zero. MAME notes the honest version breaks LA Machine
-    // Gun, so the high half of the source address is deliberately discarded.
+    // Forced to zero, as in MAME: honouring it breaks LA Machine Gun.
     set_addr_high(0);
     if (data != 0) {
         SM2_WARN("315-5881: non-zero high address %04x", data);
@@ -540,9 +539,8 @@ u16 Sega3155881Crypt::decrypt_le_r()
 u16 Sega3155881Crypt::decrypt_be_r()
 {
     if (m_first_read) {
-        // The RAM-based schemes expect a dummy word ahead of the stream. It is
-        // probably header data; MAME returns zero to match its earlier
-        // Dynamite Cop simulation, and every known title accepts that.
+        // RAM-based schemes expect a dummy word (probably header data) ahead of
+        // the stream; zero, as in MAME, satisfies every known title.
         m_first_read = false;
         return 0;
     }
@@ -558,9 +556,8 @@ u16 Sega3155881Crypt::do_decrypt()
 
     const u8* base = nullptr;
     if (m_dec_header & kFlagCompressed) {
-        // MAME tests for equality here. An odd line length would step straight
-        // past it and read off the end of the buffer, which a well-formed stream
-        // never produces but a program staging junk in the RAM window can.
+        // Deviation: MAME tests for equality, which junk in the RAM window can
+        // step past and overrun the buffer.
         if (m_line_buffer_pos >= m_line_buffer_size) {
             if (m_done_compression == 1) {
                 enc_start();
@@ -630,9 +627,8 @@ int Sega3155881Crypt::feistel_function(int input, const Sbox* sboxes, u32 subkey
     return result;
 }
 
-// The key scheduling below is deliberately left in MAME's "educational" form:
-// the game-key part could be hoisted out of the per-word path, but the profile
-// of a Model 2 boot never gets near making that worth the divergence.
+// The key scheduling is left in MAME's "educational" form; hoisting the
+// game-key part out of the per-word path is not worth the divergence.
 u16 Sega3155881Crypt::block_decrypt(u32 game_key, u16 sequence_key, u16 counter, u16 data)
 {
     int j;
@@ -695,7 +691,7 @@ u16 Sega3155881Crypt::block_decrypt(u32 game_key, u16 sequence_key, u16 counter,
 
     middle_result = (B << 8) | A;
 
-    /* Middle-result-key sheduling */
+    /* Middle-result-key scheduling */
     for (j = 0; j < 16; ++j) {
         if (bit(middle_result, j) != 0) {
             aux  = kFn2MiddleResultScheduling[j] % 24;
@@ -738,8 +734,7 @@ u16 Sega3155881Crypt::get_decrypted_16()
 
     const u16 dec = block_decrypt(m_key, m_subkey, static_cast<u16>(m_prot_cur_address), enc);
 
-    // Only two bits per block are fresh: the header's leading bits put the
-    // plaintext two bits out of step with the cipher's word boundaries.
+    // Only two bits per block are fresh (see the class comment).
     const u16 res = static_cast<u16>((dec & 3) | (m_dec_hist & 0xfffc));
     m_dec_hist    = dec;
 
@@ -756,12 +751,10 @@ void Sega3155881Crypt::enc_start()
 
     if (m_buffer_bit2 < 14) {
         // Bits still pending in the decompression buffer, so the next word must
-        // not be fetched yet (twcup98 needs this; twsoc98's title screen leaves
-        // it at 14 and expects the normal path).
+        // not be fetched yet.
         m_dec_header = (m_buffer2a & 0x0003u) << 16;
     } else {
-        // astrass otherwise lets every call after the first be influenced by
-        // the one before it.
+        // Otherwise each call would be influenced by the one before (astrass).
         m_dec_hist   = 0;
         m_dec_header = static_cast<u32>(get_decrypted_16()) << 16;
     }
@@ -831,18 +824,15 @@ void Sega3155881Crypt::line_fill()
     u8* lp = m_line_buffer.data();
     u8* lc = m_line_buffer_prev.data();
 
-    // Swapping the vectors leaves lp pointing at the line just emitted and lc
-    // at the one about to be built, which is what the copy-from-previous-line
-    // node below reads.
+    // After the swap lp is the line just emitted (read by the
+    // copy-from-previous-line node) and lc the one being built.
     m_line_buffer.swap(m_line_buffer_prev);
 
     m_line_buffer_pos = 0;
 
-    // MAME writes `i != line_buffer_size`. A node whose count overshoots the end
-    // of the line would then miss the exit test and run away through memory, so
-    // the bound is checked here and again on each byte written below. Neither
-    // guard changes how many bits a well-formed stream consumes: the count and
-    // the literal byte are read before anything is stored.
+    // Deviation: MAME writes `i != line_buffer_size`, which an overshooting
+    // count would run past. Bounding here and on each byte written does not
+    // change the bits a well-formed stream consumes.
     for (int i = 0; i < m_line_buffer_size;) {
         // vlc 0: start of line
         // vlc 1: interior of line

@@ -20,12 +20,8 @@
 #include <cstdio>
 #include <string_view>
 
-// Minimal levelled logging.
-//
-// printf-style rather than std::format: the hardware layer logs hex addresses
-// and register values constantly, where "%08x" is the natural spelling, and
-// the compiler can check the arguments. It also avoids depending on <format>,
-// which is still uneven across the GCC and libc++ versions we care about.
+// Minimal levelled logging. printf-style, so "%08x" stays natural, the compiler
+// checks arguments and there is no dependency on <format>.
 
 namespace sm2::log {
 
@@ -41,9 +37,7 @@ enum class Level {
 void set_level(Level level);
 
 namespace detail {
-// Exposed so that level() inlines at every call site. Relaxed is enough: the
-// only writer is set_level() at startup, and a reader that sees a stale value
-// for a few accesses logs one line more or less, never anything incorrect.
+// Exposed so level() inlines. Relaxed is enough: set_level() only runs at startup.
 extern std::atomic<Level> g_level;
 }  // namespace detail
 
@@ -66,10 +60,8 @@ void write(Level level, const char* fmt, ...)
 
 }  // namespace sm2::log
 
-// The level check happens before argument evaluation so that disabled trace
-// logging in a memory handler costs one load and one comparison. level() is
-// inline for that reason: defined out of line it would be a call across
-// translation units on every memory access unless LTO happened to be on.
+// The level check precedes argument evaluation, so disabled trace logging in a
+// memory handler costs one load and one comparison.
 #define SM2_LOG(lvl, ...)                                        \
     do {                                                         \
         if (::sm2::log::Level::lvl >= ::sm2::log::level()) {      \

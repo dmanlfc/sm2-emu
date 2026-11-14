@@ -19,16 +19,12 @@ namespace sm2::hw {
 
 /// Sega 315-5881 stream cipher, as used on Model 2 security boards.
 ///
-/// The chip decrypts a stream the program has already staged in the 64 KB RAM
-/// window next to it, so it needs a read callback rather than direct ROM
-/// access. Output is a counter-mode stream over a 16-bit block cipher built
-/// from two 4-round Feistel networks; a stream is split into substreams, each
-/// introduced by an 18-bit header, and a substream may additionally be
-/// LZ-style compressed with a fixed set of Huffman trees.
-///
-/// The header's two leading bits shift the plaintext two bits out of step with
-/// the block cipher's own word boundaries, which is why `get_decrypted_16`
-/// keeps the previous word around and only takes two fresh bits per call.
+/// The chip decrypts a stream staged in the 64 KB RAM window beside it, hence
+/// the read callback. Output is a counter-mode stream over a 16-bit block
+/// cipher of two 4-round Feistel networks, split into substreams with 18-bit
+/// headers, optionally LZ-compressed with fixed Huffman trees. The header's two
+/// leading bits misalign the plaintext by two bits, so `get_decrypted_16`
+/// keeps the previous word.
 class Sega3155881Crypt {
 public:
     /// One 16-bit word of ciphertext at word address `addr`, big-endian.
@@ -43,8 +39,7 @@ public:
 
     // -- register interface (MAME's iomap_le, at 0x01d90000 on Model 2) -----
 
-    /// Bit 0 is a busy flag. The real chip is always ready by the time the
-    /// program looks, so MAME returns zero unconditionally.
+    /// Bit 0 is a busy flag; always ready, as in MAME.
     [[nodiscard]] u16 ready_r() const { return 0; }
 
     void addrlo_w(u16 data);
@@ -67,8 +62,7 @@ public:
         int outputs[2];  ///< Bit positions of the outputs.
     };
 
-    /// The block cipher, stateless apart from its keys. Public because it is
-    /// the one part of the chip a test can exercise on its own.
+    /// The block cipher, stateless apart from its keys. Public for tests.
     [[nodiscard]] static u16 block_decrypt(u32 game_key, u16 sequence_key, u16 counter,
                                            u16 data);
 
@@ -80,8 +74,7 @@ public:
     void serialize(Archive& ar);
 
 private:
-    /// MAME notes that this ought to be a stream rather than a buffer; two
-    /// bytes is the smallest size that keeps its block bookkeeping honest.
+    /// Two bytes is the smallest buffer that keeps the block bookkeeping right.
     static constexpr int kBufferSize = 2;
     static constexpr int kLineSize   = 512;
 

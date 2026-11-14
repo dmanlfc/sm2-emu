@@ -194,9 +194,8 @@ u8 MultiPcm::read_byte(u32 offset) const
     if (m_samples.empty()) {
         return 0;
     }
-    // The chip sees 2 MB: the first megabyte is the region's own start and the
-    // second is one of four banked megabytes. MAME expresses this as an address
-    // map with bankr(); doing it here keeps the ROM a plain span.
+    // The chip sees 2 MB: the region's first megabyte, then one of four banked
+    // megabytes.
     u32 index = 0;
     if (offset < 0x100000) {
         index = offset;
@@ -604,15 +603,11 @@ void MultiPcm::generate(s32* accum, u32 frames, s32 gain_percent)
                                       >> kTlShift);
         }
 
-        // Unclamped: the voices sum well past 16 bits, and the board scales the
-        // mix down before its one clamp.
-
+        // Unclamped: the board scales the mix down before its one clamp.
         accum[frame * 2 + 0] += left * gain_percent / 100;
         accum[frame * 2 + 1] += right * gain_percent / 100;
 
-        // Not in the original: the peak is this chip's own output before the
-        // board's route gain, which is what says whether this chip in particular
-        // is producing anything.
+        // Deviation: a peak meter of this chip's output before the route gain.
         m_stats.peak_output =
             std::max({m_stats.peak_output, std::abs(left), std::abs(right)});
     }

@@ -37,9 +37,8 @@ endif()
 # ---------------------------------------------------------------------------
 # sm2_render — backend-neutral render support
 # ---------------------------------------------------------------------------
-# render/geometry.cpp (render::triangulate() etc.) has no Vulkan or GL
-# dependency and every backend needs it, so it is always built here rather than
-# inside the Vulkan target -- otherwise a GL-only or Vulkan-less build loses it.
+# Every backend needs render/geometry.cpp, so it lives here rather than in a
+# GPU backend target.
 
 add_library(sm2_render STATIC
     render/geometry.cpp
@@ -86,10 +85,8 @@ if(SM2_BUILD_VULKAN)
         render/vk/vma_impl.cpp
         render/vk/vulkan_backend.cpp
     )
-    # sm2_hw is a dependency of the 3D pass alone, which reads the geometry
-    # engine's output and asks the video stage to resolve each polygon's colour.
-    # It is private because nothing in this library's headers exposes those
-    # types by value. sm2_render carries render::triangulate().
+    # sm2_hw is needed only by the 3D pass, and no header here exposes its
+    # types by value, so it is private.
     target_link_libraries(sm2_render_vk
         PUBLIC
             sm2_core
@@ -104,20 +101,15 @@ if(SM2_BUILD_VULKAN)
             SDL3::SDL3
     )
     # GCC 12-14 emit a spurious -Wfree-nonheap-object inside std::vector when it
-    # over-inlines allocate/deallocate at -O2+ (seen in context.cpp's instance
-    # setup on the aarch64 toolchain); the code is correct, so silence it here.
+    # over-inlines allocate/deallocate at -O2+.
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         target_compile_options(sm2_render_vk PRIVATE -Wno-free-nonheap-object)
     endif()
 endif()
 
 # ---------------------------------------------------------------------------
-# sm2_render_gl — OpenGL 4.3 core desktop backend (phase 9)
+# sm2_render_gl — OpenGL 4.3 core desktop backend
 # ---------------------------------------------------------------------------
-# render/geometry.cpp is not listed here: it is sm2_render_vk's, and this
-# target links that library to reach it rather than compiling a second copy
-# -- see render/geometry.h's own doc comment for why that logic must not be
-# duplicated per backend.
 
 if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
     if(SM2_BUILD_OPENGL_DESKTOP AND SM2_BUILD_OPENGL_ES)
@@ -136,10 +128,8 @@ if(SM2_BUILD_OPENGL_DESKTOP OR SM2_BUILD_OPENGL_ES)
         render/gl/gl_tilemap_pass.cpp
         render/gl/model3_pass.cpp
     )
-    # sm2_hw is used through headers only (types forward-declared), so it is
-    # not linked here -- keisho's own link line supplies it. sm2_render (not
-    # sm2_render_vk) carries render::triangulate(), so the GL backend builds
-    # with Vulkan absent.
+    # sm2_hw is used through forward declarations only; keisho's own link line
+    # supplies it.
     target_link_libraries(sm2_render_gl
         PUBLIC
             sm2_core
@@ -159,9 +149,8 @@ endif()
 # ---------------------------------------------------------------------------
 # sm2_cpu — CPU cores ported from MAME
 # ---------------------------------------------------------------------------
-# Held to the relaxed warning profile: these files are kept textually close to
-# their MAME originals so upstream fixes stay diffable, and reformatting them to
-# satisfy our own warning set would destroy that.
+# Held to the relaxed warning profile: these files stay textually close to
+# their MAME originals so upstream fixes remain diffable.
 
 add_library(sm2_cpu STATIC
     cpu/i960/i960.cpp
@@ -181,9 +170,8 @@ target_link_libraries(sm2_cpu
 # ---------------------------------------------------------------------------
 # sm2_cpu_m68000 — the sound board's 68000
 # ---------------------------------------------------------------------------
-# Separate from sm2_cpu because its provenance is different: the core is Musashi
-# (MIT) rather than MAME, and the glue here is ours, so unlike sm2_cpu's contents
-# it is held to the strict warning profile.
+# Separate from sm2_cpu because the core is Musashi (MIT) rather than MAME and
+# the glue is ours, so it is held to the strict warning profile.
 
 add_library(sm2_cpu_m68000 STATIC
     cpu/m68000/m68000.cpp
@@ -259,9 +247,7 @@ target_link_libraries(sm2_rom
 # ---------------------------------------------------------------------------
 # sm2_hw_ported — hardware emulation kept textually close to its MAME original
 # ---------------------------------------------------------------------------
-# Same reasoning as sm2_cpu: these files are deliberately not reformatted to
-# satisfy our own warning set, because doing so would destroy the ability to diff
-# them against upstream when MAME fixes something.
+# Relaxed warning profile, for the same reason as sm2_cpu.
 
 add_library(sm2_hw_ported STATIC
     hw/geometrizer.cpp
@@ -471,9 +457,7 @@ add_executable(keisho
     main.cpp
 )
 
-# On macOS build a proper .app bundle so the Finder/Dock show the icon and the
-# app is double-clickable. The .icns is carried inside the bundle as a resource
-# and named in Info.plist; games.xml is staged into Contents/Resources below.
+# On macOS build a .app bundle so Finder and the Dock show the icon.
 if(SM2_PLATFORM_MACOS)
     set(SM2_MACOS_ICNS "${CMAKE_SOURCE_DIR}/data/icons/keisho.icns")
     set_target_properties(keisho PROPERTIES
@@ -486,7 +470,7 @@ if(SM2_PLATFORM_MACOS)
         MACOSX_BUNDLE_SHORT_VERSION_STRING  "${PROJECT_VERSION}"
         MACOSX_BUNDLE_ICON_FILE       "keisho.icns")
     # Package the icns and the ROM database into Contents/Resources so the
-    # bundle is self-contained (and stays so when installed/copied).
+    # bundle is self-contained.
     target_sources(keisho PRIVATE
         "${SM2_MACOS_ICNS}"
         "${CMAKE_SOURCE_DIR}/data/games.xml")
@@ -505,9 +489,8 @@ if(SM2_PLATFORM_MACOS)
     set_source_files_properties(${SM2_LANG_FONTS}
         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lang/fonts")
 elseif(SM2_PLATFORM_WINDOWS)
-    # Compile the .ico into the .exe so Explorer/taskbar show it. MSVC builds
-    # any .rc listed as a source automatically. The window icon while running is
-    # set separately in osd/window.cpp.
+    # Compile the .ico into the .exe so Explorer and the taskbar show it. The
+    # running window's icon is set in osd/window.cpp.
     set(SM2_WIN_ICON "${CMAKE_SOURCE_DIR}/data/icons/keisho.ico")
     configure_file(
         "${CMAKE_SOURCE_DIR}/cmake/keisho.rc.in"
@@ -521,11 +504,8 @@ elseif(SM2_PLATFORM_WINDOWS)
         target_link_libraries(keisho PRIVATE delayimp)
     endif()
 endif()
-# sm2_core is not listed: sm2_osd and sm2_hw expose it PUBLIC, and naming it
-# again makes the linker warn about a duplicate archive. sm2_hw brings in
-# sm2_cpu and sm2_rom the same way. sm2_render (backend-neutral geometry) is
-# linked directly so it is present whichever GPU backends are, or are not,
-# built.
+# sm2_core, sm2_cpu and sm2_rom come in PUBLIC through sm2_osd and sm2_hw;
+# naming them again makes the linker warn about duplicate archives.
 target_link_libraries(keisho
     PRIVATE
         sm2_osd
@@ -548,11 +528,8 @@ target_compile_definitions(keisho PRIVATE
     $<$<BOOL:${SM2_BUILD_OPENGL_ES}>:SM2_HAVE_OPENGL_ES=1>
 )
 
-# Keep games.xml beside the binary so a freshly built tree runs without any
-# environment set up. GameDatabase::locate also looks in ../share/keisho for
-# installed builds. On macOS games.xml is packaged into the bundle's
-# Contents/Resources instead (see the bundle setup above), so this staging is
-# only for the non-bundle layouts.
+# Keep games.xml beside the binary so a freshly built tree runs as is. The
+# macOS bundle carries it in Contents/Resources instead.
 if(NOT SM2_PLATFORM_MACOS)
     add_custom_command(TARGET keisho POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -593,18 +570,15 @@ endif()
 #                                        searches ../share/keisho for it)
 #   share/keisho/lang/*.po              the overlay's translations
 #   share/keisho/lang/fonts/*.ttf       fonts for scripts the system may lack
-# plus the desktop-integration icons per platform (below). The in-window icon 
-# is compiled in separately (src/osd/app_icon.h) and does not depend on any of 
-# this being installed.
+# plus the desktop-integration icons per platform (below). The in-window icon
+# is compiled in (src/osd/app_icon.h).
 
 include(GNUInstallDirs)
 
 set(SM2_ICON_DIR "${CMAKE_SOURCE_DIR}/data/icons")
 
 if(SM2_PLATFORM_MACOS)
-    # The .app is self-contained (executable + icns + games.xml inside it), so
-    # it installs to a Applications-style bundle directory and needs nothing
-    # alongside it.
+    # The .app is self-contained and needs nothing alongside it.
     install(TARGETS keisho BUNDLE DESTINATION ".")
 elseif(SM2_PLATFORM_WINDOWS)
     # Keep games.xml beside the .exe (GameDatabase::locate checks the exe dir)
@@ -624,9 +598,8 @@ else()
 endif()
 
 if(SM2_PLATFORM_LINUX)
-    # Freedesktop hicolor icon theme: one PNG per size under
-    # share/icons/hicolor/<size>x<size>/apps/, named after the .desktop's Icon
-    # key (keisho). The desktop environment picks the best size automatically.
+    # Freedesktop hicolor icon theme: one PNG per size, named after the
+    # .desktop file's Icon key.
     foreach(sz 48 128 256 512)
         install(FILES "${SM2_ICON_DIR}/keisho-${sz}.png"
                 DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/${sz}x${sz}/apps"

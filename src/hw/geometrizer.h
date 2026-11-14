@@ -21,12 +21,8 @@ class Archive;
 
 namespace sm2::hw {
 
-/// A vertex, in whatever space the current stage works in.
-///
-/// The generic parameter slots are MAME's: p[0] is depth, p[1] and p[2] are
-/// texture coordinates. Keeping that shape rather than naming the fields is what
-/// lets the ported geometry code stay comparable with its original, which uses
-/// macros to alias exactly these three.
+/// A vertex, in whatever space the current stage works in. The slots are MAME's:
+/// p[0] is depth, p[1] and p[2] are texture coordinates.
 struct PolyVertex {
     float x = 0.0F;
     float y = 0.0F;
@@ -50,8 +46,7 @@ struct TextureParameter {
 /// A polygon as the rasterizer receives it: up to eight vertices after clipping,
 /// still in view space, with everything the pixel stage will need.
 struct Polygon {
-    /// Next polygon in the same depth bucket. A raw pointer because the buckets
-    /// are intrusive lists over a fixed pool, exactly as in MAME.
+    /// Next polygon in the same depth bucket: an intrusive list over a fixed pool.
     void* next = nullptr;
 
     PolyVertex v[8];
@@ -75,12 +70,8 @@ struct QuadM2 {
 };
 
 /// One polygon ready to draw: screen-space positions with view-space depth and
-/// texture coordinates still attached.
-///
-/// This is the seam between emulation and rendering. Everything above it is the
-/// hardware's own arithmetic; everything below is Vulkan's problem. The list is
-/// already in draw order, front to back, because the hardware draws that way and
-/// relies on a first-writer-wins fill mask rather than a depth test.
+/// texture coordinates. The list is in draw order, front to back, as the hardware
+/// uses a first-writer-wins fill mask rather than a depth test.
 struct RenderPolygon {
     PolyVertex v[8];
     u8         num_vertices = 3;
@@ -88,11 +79,9 @@ struct RenderPolygon {
     u8         luma         = 0;
     s32        texlod       = 0;
 
-    /// The polygon's viewport as a screen-space rectangle: left, top, right,
-    /// bottom, already through the same y flip and CRTC offset as the vertices
-    /// and clamped to the raster. Drawing must be clipped to it, because a window
-    /// can be smaller than the screen and the frustum planes only bound the
-    /// polygon in the two directions the window's vanishing point defines.
+    /// The viewport as a screen-space rectangle (left, top, right, bottom), with
+    /// the vertices' y flip and CRTC offset, clamped to the raster. Drawing must
+    /// be clipped to it: the frustum planes alone do not bound a small window.
     s16 scissor[4] = {0, 0, 0, 0};
 
     u8 window = 0;
@@ -104,11 +93,6 @@ struct RenderPolygon {
 
 /// Why the geometry stage discarded what it discarded, and the register state it
 /// used to decide.
-///
-/// A frame that renders almost nothing looks the same from the outside whether the
-/// display list was empty, the polygons faced away, or the frustum was degenerate.
-/// These counters separate those cases, which is the difference between guessing
-/// and measuring.
 struct GeometryStats {
     // check_culling, one counter per test, in the order the original tests them.
     u32 cull_backface = 0;
@@ -127,9 +111,7 @@ struct GeometryStats {
     u32 words = 0;
     u32 jumps = 0;
 
-    /// Byte offset the walk started from. The display list is double-buffered and
-    /// the program moves this between frames, so a stuck value is a symptom in its
-    /// own right.
+    /// Byte offset the walk started from; the program moves it between frames.
     u32 read_start = 0;
 
     /// Register state as the last window command left it.
@@ -143,9 +125,7 @@ struct GeometryStats {
     u8    master_z_clip = 0;
     s32   z_adjust      = 0;
 
-    /// Polygons whose vertices were not all finite. Non-finite coordinates make
-    /// every clip test false, so they are discarded silently and would otherwise
-    /// look like ordinary clipping.
+    /// Polygons with non-finite vertices, which every clip test silently rejects.
     u32 non_finite = 0;
 };
 
@@ -153,9 +133,7 @@ struct GeometryStats {
 struct RenderList {
     std::vector<RenderPolygon> polygons;
 
-    /// Polygons the geometry engine produced before clipping and culling, for
-    /// diagnostics: the ratio to polygons.size() says how much work is being
-    /// discarded.
+    /// Polygons produced before clipping and culling, for diagnostics.
     u32 generated = 0;
     u32 culled    = 0;
     u32 clipped_away = 0;
@@ -174,33 +152,24 @@ struct RenderList {
 
 /// The geometry engine and the sorting and clipping stage behind it.
 ///
-/// On Model 2 and 2A this hardware is a DSP running microcode held in its own
-/// internal ROM, which has never been dumped. MAME reimplements what that
-/// microcode does, from a disassembly of the equivalent program that later boards
-/// upload, and that reimplementation is what is ported here. It is therefore a
-/// high-level model rather than an emulation: the results should match, the
-/// timing does not.
+/// On Model 2 and 2A this is a DSP whose internal microcode ROM was never dumped;
+/// this is MAME's high-level reimplementation, so results match but timing does
+/// not.
 ///
-/// The stage after it is better understood only in outline. Polygons are bucketed
-/// by a 16-bit depth ordinal into 65536 lists, clipped against four frustum
-/// planes, and drawn from the nearest bucket to the furthest, with later windows
-/// always over earlier ones.
-///
-/// The depth ordinal is a 4.12 float whose exponent is biased by the zsort mode
-/// register. A game that leaves that register alone puts every ordinary depth
-/// above the top of the range and so into one bucket, which looks like broken
-/// sorting but is really a missing register write.
+/// Polygons are bucketed by a 16-bit depth ordinal, clipped against four frustum
+/// planes and drawn nearest bucket first, later windows over earlier ones. The
+/// ordinal is a 4.12 float biased by the zsort mode register; a game that never
+/// sets it puts every depth into one bucket.
 class Geometrizer {
 public:
-    /// Pool size for one frame's polygons. MAME's figure; a frame that exceeds it
-    /// simply stops adding.
+    /// Pool size for one frame's polygons, as MAME; excess polygons are dropped.
     static constexpr u32 kMaxPolygons = 32768;
 
     /// Depth buckets. The sort ordinal is a 4.12 fixed-point value.
     static constexpr u32 kDepthBuckets = 0x10000;
 
-    /// The visible raster. The projection's vertical flip is measured from the
-    /// bottom of it, so it is part of the arithmetic rather than just a size.
+    /// The visible raster; the projection's vertical flip is measured from its
+    /// bottom.
     static constexpr u32 kRasterWidth  = 496;
     static constexpr u32 kRasterHeight = 384;
 
@@ -210,23 +179,16 @@ public:
     Geometrizer(const Geometrizer&)            = delete;
     Geometrizer& operator=(const Geometrizer&) = delete;
 
-    /// Wire up the ROMs and the display list.
-    ///
-    /// `polygon_rom` is the model data the geometry engine walks, `texture_rom` is
-    /// where texture headers live when they are not in texture RAM, and
-    /// `display_list` is the buffer the coprocessor fills. All must outlive this
-    /// object.
+    /// Wire up the model data, the texture-header ROM and the display list the
+    /// coprocessor fills. All must outlive this object.
     void attach(std::span<const u32> polygon_rom,
                 std::span<const u16> texture_rom,
                 std::span<u32>       display_list);
 
     void reset();
 
-    /// Walk the display list and produce this frame's polygons.
-    ///
-    /// Reads from the address last written to the geometry read port. Produces
-    /// nothing and reports nothing if the display list is empty, which is the
-    /// normal state before a game starts submitting geometry.
+    /// Walk the display list from the read start address and produce this
+    /// frame's polygons.
     void run(RenderList* out);
 
     // -- registers ---------------------------------------------------------
@@ -238,19 +200,16 @@ public:
     void set_read_start_address(u32 address) { m_geo_read_start_address = address; }
     [[nodiscard]] u32 read_start_address() const { return m_geo_read_start_address; }
 
-    /// Raster offsets from the CRTC sync registers. They move the projected image
-    /// relative to the monitor.
+    /// Raster offsets from the CRTC sync registers.
     void set_crtc_offsets(s16 x, s16 y)
     {
         m_crtc_xoffset = x;
         m_crtc_yoffset = y;
     }
 
-    /// Widescreen: full-width windows grow by `columns` on each side and every
-    /// screen x moves right by the same amount, so the raster becomes
-    /// kRasterWidth + 2 * columns wide. Zero is the hardware's own raster.
-    /// Place the 3D in a frame `columns` wider on each side. `widen` also grows
-    /// full-screen windows into those columns; without it the 3D stays 4:3.
+    /// Place the 3D in a raster `columns` wider on each side; zero is the
+    /// hardware's own. `widen` also grows full-screen windows into those
+    /// columns; without it the 3D stays 4:3.
     void set_widescreen(u32 columns, bool widen = true)
     {
         m_wide_columns = static_cast<s32>(columns);
@@ -260,9 +219,7 @@ public:
     /// 0x10400000. Sky Target reads this; nothing is known about why.
     [[nodiscard]] u32 polygon_count() const;
 
-    /// Wall-clock time run() took producing the render list, in nanoseconds --
-    /// the "geometry engine" profiler stage, separated from the i960's own
-    /// instruction time (run_frame() interleaves the two).
+    /// Wall-clock time of the last run(), in nanoseconds, for the profiler.
     [[nodiscard]] u64 last_run_nanoseconds() const { return m_last_run_ns; }
 
     /// Save/restore the registers, tables and polygon RAM the display list
@@ -270,8 +227,7 @@ public:
     void serialize(Archive& ar);
 
 private:
-    // Everything below keeps MAME's names so the ported body reads the same as
-    // its original.
+    // Everything below keeps MAME's names.
 
     struct RasterState {
         RasterState();
@@ -380,7 +336,7 @@ private:
     std::unique_ptr<RasterState> m_raster;
     std::unique_ptr<GeoState>    m_geo;
 
-    /// The display list. Named as MAME names it so the ported geo_parse matches.
+    /// The display list, under MAME's name.
     u32* m_bufferram = nullptr;
     u32  m_bufferram_words = 0;
 
@@ -397,8 +353,7 @@ private:
     s32 m_wide_columns = 0;
     bool m_widen        = true;
 
-    /// Counters for the frame being built, so build_render_list can report what
-    /// the earlier stages discarded.
+    /// Discard counters for the frame being built.
     u32 m_culled     = 0;
     u32 m_degenerate = 0;
 

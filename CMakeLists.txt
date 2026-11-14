@@ -76,24 +76,20 @@ option(SM2_WERROR       "Treat compiler warnings as errors"        OFF)
 option(SM2_SHADER_WERROR "Treat shader compiler warnings as errors" ON)
 option(SM2_BUILD_TESTS  "Build unit tests"                          OFF)
 
-# Dependencies come from the system where available (find_package). Anything
-# not found falls back to the copy under 3rdparty/ (git submodules, plus the
-# vendored LZMA SDK), so a recursive checkout builds unattended with no network
-# access at configure time. See cmake/Dependencies.cmake.
+# Dependencies come from the system where available, falling back to the copies
+# under 3rdparty/, so a recursive checkout builds offline. See
+# cmake/Dependencies.cmake.
 
-# Render backends. Software is always built; the GPU backends are opt-in.
-# Vulkan defaults off so a bare build needs no Vulkan driver (for ARM boards
-# without one). SM2_BUILD_OPENGL_DESKTOP and SM2_BUILD_OPENGL_ES are mutually
+# Software rendering is always built. Vulkan defaults off so a bare build needs
+# no Vulkan driver. SM2_BUILD_OPENGL_DESKTOP and SM2_BUILD_OPENGL_ES are mutually
 # exclusive; GLES is for ARM targets.
 option(SM2_BUILD_VULKAN         "Build the Vulkan backend"                 OFF)
 option(SM2_BUILD_OPENGL_DESKTOP "Build the OpenGL 4.3 core desktop backend" ON)
 option(SM2_BUILD_OPENGL_ES      "Build the OpenGL ES 3.1 backend (ARM)"    OFF)
 
-# Per-device light guns on Linux, read straight from evdev via libudev. SDL
-# merges all mice into one pointer, so this is the only way to tell two guns
-# apart. AUTO builds it when libudev is present and skips it otherwise; ON turns
-# a missing libudev into a hard error, OFF forces the single-mouse path.
-# Windows does the same job with Raw Input, which is always built.
+# Per-device light guns on Linux via evdev and libudev: SDL merges all mice into
+# one pointer, so this is the only way to tell two guns apart. ON makes a missing
+# libudev an error. Windows uses Raw Input, which is always built.
 set(SM2_EVDEV "AUTO" CACHE STRING "evdev light guns via libudev: AUTO, ON or OFF")
 set_property(CACHE SM2_EVDEV PROPERTY STRINGS AUTO ON OFF)
 
@@ -110,9 +106,8 @@ elseif(APPLE)
     set(SM2_PLATFORM_MACOS TRUE)
 elseif(WIN32)
     set(SM2_PLATFORM_WINDOWS TRUE)
-    # <windows.h> (pulled in transitively by some vendored deps) defines min/max
-    # macros that break std::min/std::max, and is huge by default. Suppress both
-    # globally so any translation unit that ends up including it is unaffected.
+    # <windows.h>, pulled in by some vendored deps, defines min/max macros that
+    # break std::min/std::max.
     add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN)
     # Source files are UTF-8 (the file banner); MSVC otherwise reads them in
     # the system code page.
@@ -123,7 +118,6 @@ else()
     message(WARNING "Keisho has not been tested on ${CMAKE_SYSTEM_NAME}")
 endif()
 
-# evdev light guns need libudev, which only exists on Linux.
 set(SM2_HAVE_EVDEV FALSE)
 if(NOT SM2_EVDEV STREQUAL "OFF" AND SM2_PLATFORM_LINUX)
     find_package(PkgConfig QUIET)

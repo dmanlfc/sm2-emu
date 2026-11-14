@@ -5,30 +5,19 @@
 // Derived from MAME's src/mame/sega/model1io2.{h,cpp} (BSD-3-Clause,
 // copyright-holder Dirk Best).
 //
-// The board Virtua Cop uses instead of the plain model1io. Same job -- read the
-// panel, drive the lamps, fill a dual-port RAM the i960 reads -- but a different
-// CPU and a different memory map, so the firmware is not interchangeable. Loading
-// Virtua Cop's EPROM into a model1io got its Z80 writing to unmapped addresses
-// thirteen million times a run and never touching the shared RAM at all.
+// The board Virtua Cop uses instead of model1io. Same job, but a different CPU
+// and memory map, so the firmware is not interchangeable. Differences:
 //
-// What is different from the first board:
+//   * A TMPZ84C015: a Z80 with a CTC, PIO and SIO on the die, on the CPU's own
+//     I/O ports. The CTC's periodic interrupt paces the firmware.
+//   * A window at 0x8100 onto the light-gun FPGA. It reports busy until enough
+//     configuration words have been written, then returns four 10-bit
+//     coordinates and an off-screen flag.
+//   * 32 KB of firmware and its own RAM layout.
+//   * A diagnostic LCD on port E, not modelled.
 //
-//   * A TMPZ84C015 rather than a bare Z80: the same core with a Z80 CTC, PIO and
-//     SIO on the die, reachable on the CPU's own I/O ports. The CTC's periodic
-//     interrupt is what paces the firmware.
-//   * A window at 0x8100 onto the FPGA that digitises the light guns. It reports
-//     busy until enough configuration words have been written, then returns four
-//     10-bit coordinates and an off-screen flag.
-//   * 32 KB of firmware rather than 16, and its own RAM layout.
-//   * A diagnostic LCD on port E, which is not modelled: it is a service aid,
-//     reachable only by holding a board button at reset, and nothing on the
-//     screen depends on it.
-//
-// What the firmware actually asks of the on-die peripherals was measured against
-// MAME rather than assumed (tools/mame/iotap.lua): it programs the CTC's vector
-// and two channels, initialises both SIO channels for a terminal that is not
-// connected, puts both PIO ports into bit-control mode as inputs, and then reads
-// only the two PIO data registers. Nothing reads the CTC or the SIO back.
+// The firmware programs the CTC and SIO but reads back only the two PIO data
+// registers.
 #pragma once
 
 #include "core/types.h"
@@ -51,8 +40,7 @@ public:
     /// 19.6608 MHz crystal divided by two, as MAME's machine config has it.
     static constexpr u32 kCpuClock = 19'660'800 / 2;
 
-    /// The whole 32 KB EPROM is mapped here, unlike the first board where only
-    /// the low quarter of a larger part is reachable.
+    /// The whole 32 KB EPROM is mapped.
     static constexpr u32 kRomWindow = 0x8000;
 
     /// Digital input ports the main board binds. MAME's in_callback<0..2>.
@@ -196,13 +184,11 @@ private:
     /// written, which is how the firmware knows its bitstream took.
     u32 m_fpga_counter = 0;
 
-    /// Latched on the expander's port E, for the diagnostic LCD that is not
-    /// modelled. Kept because the firmware writes it either way.
+    /// Port E latch for the unmodelled diagnostic LCD.
     u8 m_lcd_data = 0;
 
-    /// SIO register pointer per channel. The SIO is write-only from this
-    /// firmware's point of view, so tracking the pointer is enough to keep a
-    /// register write from being mistaken for a command.
+    /// SIO register pointer per channel, so a register write is not mistaken
+    /// for a command.
     std::array<u8, 2> m_sio_pointer{};
 
     /// Host cycles owed to this board, times a fixed multiple. See run().

@@ -36,18 +36,10 @@ endif()
 # ---------------------------------------------------------------------------
 # Vulkan — headers + loader library
 # ---------------------------------------------------------------------------
-# find_package(Vulkan) locates both the Vulkan headers (vulkan/vulkan.h) and
-# the loader library (libvulkan.so / libvulkan.dylib / vulkan-1.lib). It
-# provides the Vulkan::Vulkan imported target that carries both the include
-# path and the link library. We link the loader rather than using volk: there
-# is one device and one thread issuing commands, so the indirection volk saves
-# is not worth the extra moving part.
-#
-# The Vulkan headers and loader are only required when the Vulkan backend is
-# actually being built (SM2_BUILD_VULKAN). A software / OpenGL-only build --
-# the default, and what a lower-end ARM board with no Vulkan driver wants --
-# needs neither. glslc (below) is still required regardless, because it also
-# lints the GL shader dialect.
+# Only needed when SM2_BUILD_VULKAN is on. The loader is linked directly rather
+# than through volk: one device and one submitting thread make volk's saving
+# not worth it. glslc (below) is required regardless, as it also lints the GL
+# shaders.
 if(SM2_BUILD_VULKAN)
     find_package(Vulkan QUIET)
     if(NOT Vulkan_FOUND)
@@ -128,10 +120,7 @@ endif()
 # ---------------------------------------------------------------------------
 # VulkanMemoryAllocator (Vulkan backend only)
 # ---------------------------------------------------------------------------
-# Hand-rolled one-allocation-per-resource works for a fixed resource set, but
-# the texture sheets and per-frame rings want suballocation, and VMA is the
-# boring correct answer. Only needed when the Vulkan backend is built. VMA is
-# header-only, so the fallback is just an include directory exposing the
+# Header-only, so the fallback is just an include directory exposing the
 # GPUOpen::VulkanMemoryAllocator target the source expects.
 
 if(SM2_BUILD_VULKAN)
@@ -146,9 +135,7 @@ endif()
 # ---------------------------------------------------------------------------
 # miniz — zip reading and CRC32 for the ROM loader
 # ---------------------------------------------------------------------------
-# Prefer a system miniz (find_package(miniz) exports miniz::miniz); otherwise
-# build it from the submodule. The rest of the tree links sm2_miniz and
-# includes <miniz.h>.
+# The rest of the tree links sm2_miniz and includes <miniz.h>.
 
 find_package(miniz CONFIG QUIET)
 if(miniz_FOUND)
@@ -165,13 +152,9 @@ if(miniz_FOUND)
         endforeach()
     endif()
 else()
-    # The git repository ships miniz split across four translation units, unlike
-    # the amalgamated release archive. All four are compiled; miniz's own
-    # CMakeLists is bypassed (it declares CMake < 3.5, which CMake 4 refuses).
-    #
-    # miniz.h includes "miniz_export.h", a visibility header miniz's CMake would
-    # normally generate. For a static build the macros are empty, so write that
-    # header ourselves rather than pulling in miniz's build.
+    # miniz's own CMakeLists is bypassed (it declares CMake < 3.5, which CMake 4
+    # refuses), so write the miniz_export.h it would generate; for a static
+    # build its macros are empty.
     set(SM2_MINIZ_GEN "${CMAKE_BINARY_DIR}/miniz-gen")
     file(WRITE "${SM2_MINIZ_GEN}/miniz_export.h"
         "#ifndef MINIZ_EXPORT_H\n#define MINIZ_EXPORT_H\n"
@@ -189,9 +172,6 @@ else()
     )
     set_target_properties(sm2_miniz PROPERTIES C_STANDARD 11)
 
-    # We only read archives already in memory or on disk, and the ROM loader
-    # does its own file handling, so the stdio and writing halves are dead
-    # weight. This also avoids miniz's deprecated large-file paths.
     target_compile_definitions(sm2_miniz PUBLIC
         MINIZ_NO_ZLIB_COMPATIBLE_NAMES  # do not shadow zlib's symbol names
     )
@@ -200,10 +180,8 @@ endif()
 # ---------------------------------------------------------------------------
 # stb_image — JPEG/PNG decode for the game picker's box art
 # ---------------------------------------------------------------------------
-# A single public-domain header, committed directly like the LZMA SDK sources.
-# Header-only with one implementation macro, so mirror the miniz trick: a tiny
-# generated .c in the build tree defines the macro and includes the header,
-# compiled into a static lib. Restricted to JPEG + PNG (what ArcadeDB serves).
+# A committed single header; a generated .c defines the implementation macro.
+# Restricted to JPEG and PNG, which is what ArcadeDB serves.
 set(SM2_STB_DIR "${SM2_3RDPARTY}/stb")
 set(SM2_STB_GEN "${CMAKE_BINARY_DIR}/stb-gen")
 file(WRITE "${SM2_STB_GEN}/stb_image_impl.c"
@@ -250,10 +228,8 @@ endif()
 # ---------------------------------------------------------------------------
 # LZMA SDK — 7z reading for the ROM loader
 # ---------------------------------------------------------------------------
-# Prefer a system LZMA SDK (find_package(lzmasdk) exports lzmasdk::lzmasdk);
-# otherwise compile the subset the 7z reader needs from the vendored copy.
-# The SDK ships as raw C with no git repository, so those sources are committed
-# under 3rdparty/lzma-sdk rather than tracked as a submodule.
+# The vendored fallback compiles only the subset the 7z reader needs. The SDK
+# has no git repository, so its sources are committed rather than a submodule.
 
 find_package(lzmasdk CONFIG QUIET)
 if(lzmasdk_FOUND)
@@ -305,17 +281,10 @@ endif()
 # ---------------------------------------------------------------------------
 # Dear ImGui — immediate-mode GUI for the settings overlay
 # ---------------------------------------------------------------------------
-# Prefer a system ImGui (find_package(imgui) exports imgui::imgui with the
-# SDL3, OpenGL3 and Vulkan backends compiled in). Otherwise build it from the
-# submodule. Either way the rest of the tree links the sm2_imgui* targets and
-# includes <imgui.h> / <imgui_impl_*.h>.
-#
-# ImGui's renderer backends are not a normal installed library -- each is a
-# self-contained translation unit a consumer usually compiles itself. When a
-# system package has already compiled them into imgui::imgui, the four
-# sm2_imgui* targets collapse to interface wrappers over it. The per-backend
-# split still matters on the vendored path, so an SM2_BUILD_VULKAN=OFF build
-# links no Vulkan.
+# A system imgui::imgui is expected to have the SDL3, OpenGL3 and Vulkan
+# backends compiled in, so the sm2_imgui* targets become thin wrappers over it.
+# On the vendored path each renderer backend gets its own target, so a build
+# without Vulkan links no Vulkan.
 
 find_package(imgui CONFIG QUIET)
 if(imgui_FOUND)
@@ -339,11 +308,7 @@ if(imgui_FOUND)
 else()
     set(SM2_IMGUI_DIR "${SM2_3RDPARTY}/imgui")
 
-    # sm2_imgui -- core ImGui plus the SDL3 platform backend only. No renderer
-    # backend and no Vulkan link: osd/gui.cpp uses only ImGui_ImplSDL3_* (the
-    # platform half), and each GPU backend brings its own ImGui renderer backend
-    # (sm2_imgui_vk / sm2_imgui_gl / sm2_imgui_gles). This is what lets a build
-    # with SM2_BUILD_VULKAN=OFF carry no Vulkan dependency at all.
+    # sm2_imgui: core ImGui plus the SDL3 platform backend, no renderer backend.
     add_library(sm2_imgui STATIC
         "${SM2_IMGUI_DIR}/imgui.cpp"
         "${SM2_IMGUI_DIR}/imgui_demo.cpp"
@@ -361,9 +326,7 @@ else()
         target_compile_options(sm2_imgui PRIVATE -w)
     endif()
 
-    # sm2_imgui_vk -- ImGui's Vulkan renderer backend. Separate target so the
-    # Vulkan link and the dynamic-rendering define stay out of the base
-    # sm2_imgui. Only built when the Vulkan backend is.
+    # sm2_imgui_vk: ImGui with its Vulkan renderer backend.
     if(SM2_BUILD_VULKAN)
         add_library(sm2_imgui_vk STATIC
             "${SM2_IMGUI_DIR}/imgui.cpp"
@@ -392,10 +355,9 @@ else()
         endif()
     endif()
 
-    # sm2_imgui_gl -- imgui's OpenGL3 renderer backend. imgui_impl_opengl3.cpp
-    # is its own translation unit, so its bundled gl3w-derived loader cannot
-    # collide with this project's own sm2::render::gl loader; imgui's own header
-    # comment on that loader says exactly this. So no IMGUI_IMPL_OPENGL_LOADER_CUSTOM.
+    # sm2_imgui_gl: ImGui with its OpenGL3 renderer backend. Its bundled loader
+    # stays private to imgui_impl_opengl3.cpp and cannot collide with ours, so
+    # no IMGUI_IMPL_OPENGL_LOADER_CUSTOM.
     if(SM2_BUILD_OPENGL_DESKTOP)
         add_library(sm2_imgui_gl STATIC
             "${SM2_IMGUI_DIR}/imgui.cpp"
@@ -416,9 +378,7 @@ else()
         endif()
     endif()
 
-    # sm2_imgui_gles -- same as sm2_imgui_gl but for the GLES 3.1 backend.
-    # imgui_impl_opengl3.cpp supports ES out of the box (it detects the ES
-    # context at runtime and uses its own bundled loader regardless of platform).
+    # sm2_imgui_gles: as sm2_imgui_gl; the backend detects an ES context at runtime.
     if(SM2_BUILD_OPENGL_ES)
         add_library(sm2_imgui_gles STATIC
             "${SM2_IMGUI_DIR}/imgui.cpp"
@@ -443,21 +403,11 @@ endif()
 # ---------------------------------------------------------------------------
 # Musashi — the 68000 in the sound board
 # ---------------------------------------------------------------------------
-# The one piece of hardware emulation not taken from MAME, and deliberately so.
-# Musashi is a self-contained C library designed to be embedded behind memory
-# callbacks, is MIT licensed, and is a fully documented commodity part, so
-# unlike the geometry engine or the SCSP there is no reverse-engineering insight
-# in one implementation over another. Vendored as a submodule; it has no system
-# package form.
-#
-# The sources are copied into the build tree rather than compiled where they
-# live, because m68kmake writes its generated output next to its input and we do
-# not want to dirty the submodule.
-#
-# The directory layout has to be preserved: m68kcpu.c #includes m68kfpu.c and
-# m68kmmu.h textually, m68kcpu.h #includes softfloat/softfloat.h, and
-# softfloat.c #includes ../m68kcpu.h. Hence m68kfpu.c and m68kmmu.h are copied
-# but are NOT library sources.
+# Deliberately not taken from MAME: an MIT-licensed, embeddable library for a
+# fully documented part. The sources are copied into the build tree because
+# m68kmake writes its output beside its input. The layout must be preserved, as
+# the sources include each other by relative path; m68kfpu.c and m68kmmu.h are
+# included textually and are not library sources.
 set(SM2_MUSASHI_SRC "${SM2_3RDPARTY}/musashi")
 set(SM2_MUSASHI_DIR "${CMAKE_BINARY_DIR}/musashi")
 file(MAKE_DIRECTORY "${SM2_MUSASHI_DIR}")
@@ -473,13 +423,9 @@ file(COPY
         "${SM2_MUSASHI_SRC}/softfloat"
     DESTINATION "${SM2_MUSASHI_DIR}")
 
-# m68kmake reads m68k_in.c and writes the opcode jump table and handlers. It has
-# to run on the build host, which for a cross build is a different architecture
-# from the target. Rather than ask the caller to pre-build it, configure and
-# build it here as a separate host-toolchain project: ExternalProject runs at
-# build time with its own (default, host) compiler, ignoring this build's
-# CMAKE_TOOLCHAIN_FILE. Native and cross builds are then identical and need no
-# manual step.
+# m68kmake generates the opcode handlers and must run on the build host, so it
+# is built as a separate ExternalProject with the host compiler, ignoring any
+# cross toolchain file.
 include(ExternalProject)
 ExternalProject_Add(m68kmake_host
     SOURCE_DIR   "${CMAKE_SOURCE_DIR}/cmake/m68kmake-host"
@@ -509,11 +455,9 @@ add_library(sm2_musashi STATIC
 target_include_directories(sm2_musashi SYSTEM PUBLIC "${SM2_MUSASHI_DIR}")
 set_target_properties(sm2_musashi PROPERTIES C_STANDARD 99)
 
-# Musashi is configured through m68kconf.h, but every switch in it is
-# #ifndef-guarded, so upstream's copy is used unmodified and the handful we
-# disagree with are overridden here. Only the plain 68000 is wanted, and turning
-# the later variants off drops their addressing modes, the FPU and the PMMU test
-# from every memory access. M68K_OPT_OFF is 0.
+# m68kconf.h's switches are #ifndef-guarded, so upstream's copy is used as is
+# and overridden here. Only the plain 68000 is wanted; disabling the later
+# variants keeps their checks out of every memory access. M68K_OPT_OFF is 0.
 target_compile_definitions(sm2_musashi PUBLIC
     M68K_EMULATE_010=0
     M68K_EMULATE_EC020=0
@@ -526,22 +470,16 @@ target_compile_definitions(sm2_musashi PUBLIC
 if(MSVC)
     target_compile_options(sm2_musashi PRIVATE /w)
 else()
-    # -fno-common turns Musashi's tentative definitions into real ones. Without
-    # it the 320 KB cycle table and the 512 KB opcode jump table become common
-    # symbols with no stated alignment, and Mach-O's linker picks one from their
-    # size that exceeds what a segment can hold, which it then warns about on
-    # every link. As definitions they simply ask for eight bytes.
+    # -fno-common: as common symbols, the large cycle and jump tables get an
+    # alignment from their size that Mach-O's linker warns about on every link.
     target_compile_options(sm2_musashi PRIVATE -w -fno-common)
 endif()
 
 # ---------------------------------------------------------------------------
 # ymfm — the YM3438 on the Model 1 audio board
 # ---------------------------------------------------------------------------
-# Aaron Giles' Yamaha FM library, which is what MAME itself uses. Taking the
-# same library rather than porting it keeps the FM behaviour identical to the
-# reference by construction. ymfm is deliberately standalone -- no emu.h, no
-# device_t, no address spaces -- so it drops in behind a small interface object.
-# Vendored as a submodule; it has no system package form.
+# Aaron Giles' Yamaha FM library, the same one MAME uses, so FM behaviour
+# matches the reference by construction.
 set(SM2_YMFM_DIR "${SM2_3RDPARTY}/ymfm")
 
 # ymfm_opn.h includes ymfm_adpcm.h and ymfm_ssg.h unconditionally, so both are
@@ -563,12 +501,9 @@ endif()
 # ---------------------------------------------------------------------------
 # HarfBuzz and SheenBidi — text shaping for translated overlay text
 # ---------------------------------------------------------------------------
-# Scripts such as Arabic, Hebrew and the Indic family need their glyphs chosen,
-# joined and reordered before ImGui can draw them, which ImGui does not do.
-# HarfBuzz shapes and SheenBidi runs the Unicode bidirectional algorithm.
-# HarfBuzz comes from the system on Linux; Windows and macOS build it static
-# from the submodule so the zip and the dmg carry no extra library. SheenBidi
-# is rarely packaged, so it is always vendored.
+# Arabic, Hebrew and the Indic scripts need shaping and bidi reordering that
+# ImGui does not do. HarfBuzz is static on Windows and macOS so the packages
+# carry no extra library; SheenBidi is rarely packaged, so always vendored.
 
 if(WIN32 OR APPLE)
     set(harfbuzz_FOUND FALSE)

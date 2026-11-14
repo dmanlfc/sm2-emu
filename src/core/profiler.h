@@ -23,9 +23,7 @@
 #include <string>
 #include <vector>
 
-// Per-stage CPU timing: which stage a frame's CPU time goes to, over a fixed
-// set of named stages, reporting p50/p95/p99. Not a general profiling library --
-// std::chrono around a call site is the whole mechanism.
+// Per-stage CPU timing over a fixed set of named stages, reporting p50/p95/p99.
 
 namespace sm2::core {
 
@@ -34,9 +32,8 @@ class StageTimer {
 public:
     explicit StageTimer(std::string name) : m_name(std::move(name)) {}
 
-    /// RAII scope over a stage. Default-constructible and movable so a call site
-    /// can build one conditionally (see maybe_scope()) and hold it by value
-    /// rather than needing std::optional.
+    /// RAII scope over a stage. Default-constructible and movable so maybe_scope()
+    /// can return an inert one.
     class Scope {
     public:
         Scope() = default;
@@ -67,8 +64,7 @@ public:
 
     [[nodiscard]] Scope scope() { return Scope(*this); }
 
-    /// Record an already-measured duration directly (e.g. a GPU timestamp delta)
-    /// rather than timing around a call made here.
+    /// Record an already-measured duration, e.g. a GPU timestamp delta.
     void record_ms(double milliseconds) { m_samples_ms.push_back(milliseconds); }
 
     [[nodiscard]] const std::string& name() const { return m_name; }
@@ -83,16 +79,13 @@ private:
 };
 
 /// Scope(timer) if `enabled`, otherwise an inert Scope that records nothing.
-/// Lets a call site write one line unconditionally rather than branching on
-/// whether profiling is active.
 [[nodiscard]] inline StageTimer::Scope maybe_scope(StageTimer& timer, bool enabled)
 {
     return enabled ? StageTimer::Scope(timer) : StageTimer::Scope();
 }
 
-/// p50/p95/p99/mean over a stage's collected samples. Nearest-rank on a sorted
-/// copy, matching the same convention main.cpp's frame-rate summary uses, so the
-/// two reports read the same way.
+/// p50/p95/p99/mean over a stage's samples. Nearest-rank, matching main.cpp's
+/// frame-rate summary.
 struct StageStats {
     std::string name;
     double      mean_ms = 0.0;

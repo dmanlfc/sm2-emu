@@ -508,7 +508,7 @@ inline constexpr u32 kCallerSavedGprs = 0x0007FFFF;  ///< X0-X18 (never use X18)
 inline constexpr u32 kCalleeSavedGprs = 0x1FF80000;  ///< X19-X28.
 inline constexpr u32 kCallerSavedFprs = 0xFFFF00FF;  ///< V0-V7, V16-V31.
 inline constexpr u32 kCalleeSavedFprs = 0x0000FF00;  ///< V8-V15 (low 64 bits).
-/// Registers the AAPCS64 passes integer / FP arguments in.
+/// AAPCS64 integer argument registers.
 inline constexpr Reg kArgGprs[8] = {X0, X1, X2, X3, X4, X5, X6, X7};
 
 /// AAPCS64 frame: saves FP/LR (and sets FP), the X19-X28 in `gprs`, the

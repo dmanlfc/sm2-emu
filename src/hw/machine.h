@@ -41,20 +41,10 @@ namespace model3 {
 class Model3;
 }
 
-/// Copy a set's shipped power-on image over battery-backed storage.
-///
-/// MAME's nvram_device and eeprom_base_device take their contents from a ROM
-/// region named after the device when the set provides one, and the comment in
-/// nvram_default says the region "always wins" over the all-ones default. Three
-/// Model 2 sets depend on it. Manx TT ships an EEPROM image that selects DX or
-/// Twin mode -- revision D picks DX and revision C picks Twin -- and Hanguk Pro
-/// Yagu 98 ships both an EEPROM and a 16 KB backup-RAM image.
-///
-/// Ignoring it is not cosmetic: with a blank EEPROM, revision C comes up in DX
-/// mode and sits on the motion-base self-test screen forever.
-///
-/// A saved image from a previous run takes precedence over both, matching the
-/// order MAME reads them in: nvram_default first, then the .nv file on top.
+/// Copy a set's shipped power-on image over battery-backed storage, as MAME's
+/// nvram_default does. Some sets need it: Manx TT's EEPROM selects DX or Twin
+/// mode (revision C hangs on the motion-base test with a blank one). A saved
+/// image is loaded on top afterwards, in MAME's order.
 inline bool apply_default_image(std::span<const u8> shipped, std::span<u8> storage)
 {
     if (shipped.size() != storage.size()) return false;
@@ -65,8 +55,6 @@ inline bool apply_default_image(std::span<const u8> shipped, std::span<u8> stora
 /// State of every operator and player control, in hardware polarity.
 ///
 /// All Model 2 digital inputs are active low, so an idle panel is all ones.
-/// Until the input layer fills this from SDL it stays idle and the game sees a
-/// machine nobody is touching.
 struct Inputs {
     /// Coins, service, test and start. Bit 0 coin 1, bit 1 coin 2, bit 2 test,
     /// bit 3 service, bit 4 start 1, bit 5 start 2.
@@ -85,22 +73,16 @@ struct Inputs {
     /// The CPU board's eight-position SW3.
     u8 dipswitches = 0xff;
 
-    /// Eight analogue channels behind the I/O controller's mux. Unused by games
-    /// with digital controls only.
-    ///
-    /// These are filled from the per-title channel assignment in
-    /// rom::GameSpec::analog rather than by a fixed convention, because the
-    /// channel a control sits on differs between titles. A machine with no
-    /// analogue controls leaves them at their rest values.
+    /// Eight analogue channels behind the I/O controller's mux, assigned per
+    /// title by rom::GameSpec::analog.
     std::array<u8, 8> analog{};
 
     /// Gear selector, one bit per shifter position, active high. Only read by a
     /// title whose GameSpec sets `gearbox`.
     u8 gears = 0;
 
-    /// Lightgun position, 10-bit, in the coordinate space the title calibrates
-    /// for in rom::GameSpec::lightgun. These do not go through the analogue mux:
-    /// the gun interface board is a serial device.
+    /// Lightgun position, 10-bit, in the space rom::GameSpec::lightgun
+    /// calibrates. The gun board is serial, not on the analogue mux.
     u16 gun_p1x = 0;
     u16 gun_p1y = 0;
     u16 gun_p2x = 0;
@@ -108,9 +90,6 @@ struct Inputs {
 };
 
 /// A type-erased snapshot of the machine's main CPU state.
-///
-/// A plain struct rather than a shared virtual CPU base class: the V60, i960
-/// and PowerPC cores have nothing in common beyond what is copied out here.
 struct CpuStatus {
     /// One-line register dump, as the concrete core's own state_string().
     std::string state_string;
@@ -170,10 +149,8 @@ public:
 
     // -- per-core timing, for --profile --------------------------------------
     //
-    // run_frame() interleaves the main CPU, any coprocessor and the sound
-    // board, so main.cpp sees one call and cannot time them apart. Each board
-    // accumulates its own nanoseconds below, gated on profiling being armed
-    // (these run thousands of times a frame). "i960" means the main CPU.
+    // run_frame() interleaves the cores, so each board accumulates its own
+    // nanoseconds, gated on profiling being armed. "i960" means the main CPU.
 
     /// Arm or disarm the per-core accumulators. main.cpp turns it on under
     /// --profile only.
@@ -192,11 +169,9 @@ public:
     virtual void load_nvram()                                      = 0;
     virtual void save_nvram() const                                = 0;
 
-    /// Snapshot the whole machine into `out` / restore it from `data`. Both
-    /// must be called only between frames (see run_frame). Default:
-    /// unsupported, so a board that has not implemented save-states yet returns
-    /// false rather than failing to compile. Return false on any error, leaving
-    /// a running machine untouched on a failed load.
+    /// Snapshot the whole machine into `out` / restore it from `data`, only
+    /// between frames. Return false on error (or if unsupported), leaving the
+    /// machine untouched on a failed load.
     [[nodiscard]] virtual bool save_state_data(std::vector<u8>& out) const
     {
         (void)out;
@@ -242,8 +217,7 @@ public:
     };
 
     /// The drive-board writes since the last call, which empties the list. A
-    /// frame can hold several (Indy 500 sends an effect then two parameters), so
-    /// sampling only the last byte would miss the effect.
+    /// frame can hold several (an effect then its parameters).
     [[nodiscard]] DriveBoardWrites take_drive_board_writes()
     {
         const DriveBoardWrites writes = m_drive_board_writes;
@@ -274,8 +248,6 @@ public:
 
 protected:
     /// Per-core wall-clock accumulators, filled by each board's run_frame().
-    /// See set_core_profiling() above for why this is gated rather than always
-    /// measured.
     struct CoreProfile {
         bool enabled  = false;
         u64  i960_ns  = 0;

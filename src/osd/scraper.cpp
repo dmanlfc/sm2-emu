@@ -32,9 +32,8 @@
 namespace sm2::osd {
 namespace {
 
-// A hand-rolled reader for the handful of named fields we need, not a general
-// JSON parser: ArcadeDB's reply and our own cache file are both flat objects of
-// string values, so this is simpler to audit than vendoring a parser.
+// Not a general JSON parser: ArcadeDB's reply and the cache file are both flat
+// objects of string values.
 
 /// Decode a JSON string body, resolving \" \\ \/ \n \r \t \b \f and \uXXXX
 /// (BMP only, to UTF-8).

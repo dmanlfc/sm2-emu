@@ -41,20 +41,14 @@ public:
 
     void set_input(u32 channel, InputHandler handler);
 
-    /// Start a conversion. The channel comes from the low two bits of the
-    /// address, and the result is latched into the shift register immediately:
-    /// MAME does not model the conversion delay, and neither does the hardware
-    /// well enough for anything to notice, because the Z80 spends more than a
-    /// conversion time getting to its first read.
+    /// Start a conversion on the channel in the low two address bits. The result
+    /// is latched immediately, as in MAME: the Z80 takes longer than a
+    /// conversion to reach its first read.
     void address_write(u32 offset);
 
-    /// Read the next bit of the latched conversion into D0.
-    ///
-    /// The other seven bits of the byte read back come from whatever the bus
-    /// floats at, which on this board is all ones -- MAME writes that as
-    /// `space.unmap() & 0xfe`. Returning them as ones rather than zeros matters:
-    /// the I/O board's firmware rotates the byte it read, and zeros there would
-    /// corrupt the bits already assembled if it ever masked the wrong way.
+    /// Read the next bit of the latched conversion into D0. The other bits float
+    /// high (MAME's `space.unmap() & 0xfe`); the firmware rotates the byte, so
+    /// they must read as ones.
     [[nodiscard]] u8 d0_read();
 
     /// Save/restore the shift register (the only durable state).

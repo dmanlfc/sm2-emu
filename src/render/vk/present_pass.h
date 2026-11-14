@@ -30,18 +30,10 @@ namespace sm2::render::vk {
 
 /// Owns the native-resolution frame and puts it on the screen.
 ///
-/// Everything the machine draws goes into one 496x384 image: the tilemap layers
-/// behind the 3D, then the 3D, then the layers in front of it. This pass hands
-/// that image to those passes and then scales the finished result to the window
-/// in a single step, letterboxed to 4:3.
-///
-/// Compositing before magnifying rather than after is the point. Each of the
-/// three stages used to be scaled to the window separately and blended there, so
-/// the blends ran on colours a linear filter had already mixed with their
-/// neighbours; the difference showed as a halo at the edge of every tilemap glyph
-/// where it met the 3D. It also means a screenshot is the frame the hardware
-/// produced, at the size the hardware produced it, which is what makes a
-/// comparison against another emulator possible at all.
+/// The tilemap layers behind the 3D, the 3D, and the layers in front all draw
+/// into one image, which is then scaled to the window in a single step,
+/// letterboxed. Compositing before magnifying keeps blends off filtered colours,
+/// which would otherwise halo at tilemap edges.
 class PresentPass {
 public:
     static constexpr u32 kWidth  = kNativeWidth;
@@ -54,9 +46,8 @@ public:
     PresentPass& operator=(const PresentPass&) = delete;
 
     /// `render_scale` (1..kMaxRenderScale) sizes the composite target: the 3D
-    /// and the two 2D bands are drawn into an N*native image. The native frame
-    /// the software renderer uploads and a screenshot reads back are still
-    /// native (native_extent()), so N=1 is unchanged.
+    /// and the two 2D bands are drawn into an N*native image. The software
+    /// renderer's upload stays native (native_extent()).
     [[nodiscard]] bool init(Context& context, u32 render_scale, u32 width = kWidth);
     void shutdown();
 
@@ -79,9 +70,8 @@ public:
     /// Replace the native frame with pixels rendered on the CPU, in place of the
     /// tilemap and 3D passes.
     ///
-    /// Same present and capture path either way, so a screenshot or the windowed
-    /// view is directly comparable to the Vulkan path regardless of which one
-    /// produced the pixels. `pixels` must hold kWidth * kHeight RGBA8 texels.
+    /// Same present and capture path either way. `pixels` must hold
+    /// kWidth * kHeight RGBA8 texels.
     /// Call after begin_frame() and before record().
     void upload_from_host(std::span<const u32> pixels);
 
@@ -96,9 +86,8 @@ public:
         return VkExtent2D{width(), height()};
     }
 
-    /// Adopt new present-stage options (scaling method, aspect mode, CRT). Pure
-    /// present state -- sampler selection, shader push data and the letterbox
-    /// rectangle -- so this reallocates nothing and is safe between frames.
+    /// Adopt new present-stage options (scaling method, aspect mode, CRT).
+    /// Reallocates nothing, so it is safe between frames.
     void set_options(const PresentOptions& options) { m_options = options; }
 
     /// Scale the finished native frame onto the swapchain.
@@ -118,13 +107,11 @@ private:
         VkImage         image      = VK_NULL_HANDLE;
         VmaAllocation   allocation = nullptr;
         VkImageView     view       = VK_NULL_HANDLE;
-        /// One set per sampler filter: [0] nearest, [1] linear. record() binds
-        /// whichever the current scaling method needs, so switching the filter
-        /// live is a bind, not a descriptor rewrite or a sampler recreation.
+        /// One set per sampler filter: [0] nearest, [1] linear, so switching
+        /// the filter live is just a bind.
         std::array<VkDescriptorSet, 2> set{VK_NULL_HANDLE, VK_NULL_HANDLE};
 
-        /// Staging for upload_from_host(), one per frame in flight like every
-        /// other per-frame resource here.
+        /// Staging for upload_from_host().
         VkBuffer      host_staging    = VK_NULL_HANDLE;
         VmaAllocation host_allocation = nullptr;
         void*         host_mapped     = nullptr;
@@ -136,9 +123,8 @@ private:
 
     Context* m_context = nullptr;
 
-    /// [0] nearest, [1] linear, created up front. Live method switching picks
-    /// one via the matching descriptor set; a VkSampler filter is fixed at
-    /// creation, so the two are held rather than recreated.
+    /// [0] nearest, [1] linear, created up front since a VkSampler's filter is
+    /// fixed at creation.
     std::array<VkSampler, 2> m_samplers{VK_NULL_HANDLE, VK_NULL_HANDLE};
     VkDescriptorPool      m_pool            = VK_NULL_HANDLE;
     VkDescriptorSetLayout m_set_layout      = VK_NULL_HANDLE;

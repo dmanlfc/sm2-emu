@@ -100,11 +100,8 @@ void Model1io::run(u32 host_cycles)
         return;
     }
 
-    // 4 MHz against the main board's 25 MHz. The debt accumulates in 25ths of a
-    // host cycle so the ratio is exact across slices; the machine interleaves in
-    // slices of about 128 host cycles, which is only 20 Z80 cycles, so rounding
-    // per call would throw away a fifth of the board's time and the firmware
-    // would run measurably slow.
+    // 4 MHz against the main board's 25 MHz. The debt is kept in 25ths of a host
+    // cycle so the ratio stays exact across the machine's short slices.
     m_cycle_debt += host_cycles * 4;
     const s32 cycles = static_cast<s32>(m_cycle_debt / 25);
     m_cycle_debt %= 25;
@@ -177,11 +174,8 @@ void Model1io::io_pa_write(u8 value)
     // ------1-  led2
     // -------0  control switch (0 = first set of controls, 1 = second)
     //
-    // MAME writes clk before di and cs; the order is set here so the data and
-    // chip-select lines are settled before the clock edge that samples them,
-    // because this EEPROM latches DI on the rising edge. The firmware holds DI
-    // steady across the clock pulse, so both orders give the same result -- but
-    // only one of them is robust to firmware that does not.
+    // Deviation: MAME writes clk first; here DI and CS settle before the rising
+    // edge that samples them.
     m_eeprom.set_di(bit(value, 5) != 0);
     m_eeprom.set_cs(bit(value, 6) != 0);
     m_eeprom.set_clk(bit(value, 7) != 0);
@@ -191,9 +185,8 @@ void Model1io::io_pa_write(u8 value)
 
 u8 Model1io::io_pb_read()
 {
-    // In secondary mode the three input ports read the board's own dipswitches
-    // instead of the cabinet's panel. Those are unbound here (see the header), so
-    // they read as all ones, which is their idle position.
+    // In secondary mode the input ports read the board's own dipswitches, which
+    // are unbound and read as idle (all ones).
     if (m_secondary_controls) {
         return 0xff;
     }
@@ -243,8 +236,7 @@ u8 Model1io::io_pg_read()
     // --54----  not used
     // ----3210  button board 0 to 3 (SW4 to SW7), active low
     //
-    // The four on-board buttons read as released. The 0x70 is MAME's, and it is
-    // what leaves bit 6 -- the EEPROM's unconnected second data pin -- high.
+    // The on-board buttons read as released; MAME's 0x70 leaves bit 6 high.
     u8 data = 0x70 | 0x0f;
     if (m_eeprom.data_out()) {
         data |= 0x80;
@@ -312,9 +304,8 @@ void Model1io::write8(u16 address, u8 value)
 
 u8 Model1io::io_read8(u16 port)
 {
-    // The board decodes nothing in the Z80's I/O space: MAME's model1io_device
-    // configures no AS_IO map at all. Counted rather than ignored, because an IN
-    // instruction here would mean the firmware is not the one we think it is.
+    // The board decodes nothing in the Z80's I/O space. Counted, as an access
+    // here means unexpected firmware.
     ++m_counters.io_port_reads;
     SM2_TRACE("model1io: I/O read from port %04x (pc %04x)", port, m_cpu.pc());
     return kFloatingBus;

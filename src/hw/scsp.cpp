@@ -207,8 +207,7 @@ Scsp::Scsp(ScspMemory& memory, u32 clock)
 	m_TimDeadline[1] = -1;
 	m_TimDeadline[2] = -1;
 
-	// MAME builds the tables in device_start; there is nothing here that wants to
-	// wait, and having them ready before the first register write means a write
+	// MAME builds the tables in device_start; building them here means a write
 	// arriving before reset() cannot read an empty table.
 	init();
 }
@@ -232,10 +231,8 @@ void Scsp::reset()
 	m_random_state = 0x1234'5678;
 	m_stats = Stats{};
 
-	// Rebuilds the tables and clears the DSP, the MIDI FIFOs and the timers.
-	// Upstream's device_reset only configures the serial framing, because a MAME
-	// device is constructed once per session; ours has to come back to the same
-	// state on a machine reset.
+	// Deviation: rebuilds the tables and clears the DSP, MIDI FIFOs and timers,
+	// since a machine reset must return to the same state as construction.
 	init();
 
 	irq_cb(0, false);
@@ -340,9 +337,7 @@ void Scsp::warn_dma_gate()
 
 u32 Scsp::next_random()
 {
-	// xorshift32. Upstream uses MAME's own generator; the only requirements are
-	// that it is cheap and that it is not correlated with anything, and being
-	// reproducible across runs is worth more here than being unpredictable.
+	// xorshift32 in place of MAME's generator: cheap, uncorrelated and reproducible.
 	m_random_state ^= m_random_state << 13;
 	m_random_state ^= m_random_state >> 17;
 	m_random_state ^= m_random_state << 5;
@@ -448,14 +443,9 @@ void Scsp::ResetInterrupts()
 // ---------------------------------------------------------------------------
 // Timers
 // ---------------------------------------------------------------------------
-// Upstream arms an emu_timer for
-//
-//     attotime::from_ticks(512, (clock / prescale) / (255 - value))
-//
-// which is 512 * prescale * (255 - value) / clock seconds. The sample rate is
-// clock / 512, so that is exactly prescale * (255 - value) samples regardless of
-// the clock, and the timers reduce to deadlines on the sample counter. That also
-// removes the only reason this device would need a scheduler.
+// Upstream arms an emu_timer for attotime::from_ticks(512, (clock / prescale) /
+// (255 - value)). At a sample rate of clock / 512 that is exactly
+// prescale * (255 - value) samples, so the timers are deadlines on the sample counter.
 
 void Scsp::kick_timer(int which, u16 value)
 {
@@ -505,11 +495,9 @@ void Scsp::timer_expired(int which)
 // ---------------------------------------------------------------------------
 // MIDI
 // ---------------------------------------------------------------------------
-// Upstream drives this a bit at a time through device_serial_interface, with the
-// SCSP's txd wired to an i8251's rxd and vice versa. Nothing between the two ever
-// looks at an individual bit, and both ends are configured 8-N-1 at 31250 baud by
-// construction, so the byte is carried whole and only the byte period is kept.
-// That period matters: it is what limits how fast the host can feed commands.
+// Upstream drives this a bit at a time through device_serial_interface. Nothing
+// looks at individual bits and both ends are 8-N-1 at 31250 baud, so the byte is
+// carried whole. The byte period is kept: it limits how fast the host can feed commands.
 
 void Scsp::begin_midi_transmit(u8 value)
 {
@@ -792,8 +780,8 @@ void Scsp::init()
 	m_active_slots = 0;
 
 	LFO_Init();
-	// 2-pole Butterworth low-pass approximating the board's analogue output stage.
-	// Tuned against a hardware recording: 8 kHz matched the 4-11 kHz balance.
+	// 2-pole Butterworth low-pass approximating the board's analogue output stage,
+	// tuned against a hardware recording.
 	constexpr float kOutputLpfHz = 8000.0f;
 	{
 		const float w0 = 2.0f * 3.14159265f * kOutputLpfHz / float(sample_rate());
@@ -1308,8 +1296,8 @@ inline s32 Scsp::UpdateSlot(SCSP_SLOT* slot)
 		base1 += pos >> SHIFT;
 		base2 += pos >> SHIFT;
 
-		// fraction of the FM fractional offset applied to the interpolation weight, in 1/16ths
-		// 0 = no buzz, 4 = original 1/4 (slightly too strong)
+		// Fraction of the FM fractional offset applied to the interpolation weight,
+		// in 1/16ths; 0 = no buzz, 4 is too strong.
 		constexpr s32 FM_FRAC_BLEND = 1;
 
 		s32 delta = ((pos & mask) - fpart) & mask;
@@ -1484,16 +1472,9 @@ void Scsp::DoMasterSamples(s16 *output, u32 frames)
 				if (m_slot_gain_active && m_slot_gain[sl] != 256)
 					sample = (sample * m_slot_gain[sl]) >> 8;
 
-				// SDIR ("sound direct") sends the raw sample straight to the output,
-				// bypassing the envelope generator AND the TL attenuator (the EG/ALFO
-				// bypass is handled in UpdateSlot). BOTH downstream mixes -- the DSP
-				// input feed here and the direct-output mix below -- must therefore
-				// zero TL when SDIR is set, otherwise a slot programmed with SDIR=1 +
-				// a large TL is wrongly muted.
-				// (Flash Beats keys its SFX with SDIR=1, TL=0xff = -95 dB; in
-				// particular its in-game/"Voice" SFX route only through the DSP
-				// (DISDL=0, IMXL>0), so without this the effect path is starved to
-				// near-silence.)
+				// SDIR bypasses the EG (in UpdateSlot) and the TL attenuator, so both
+				// the DSP feed and the direct mix zero TL when it is set. Flash Beats
+				// keys DSP-only SFX with SDIR=1 and TL=0xff, which would otherwise be muted.
 				u16 eff_tl = SDIR(slot) ? 0 : TL(slot);
 				Enc = ((eff_tl) << 0x0) | ((IMXL(slot)) << 0xd);
 				m_DSP.SetSample((sample*m_LPANTABLE[Enc]) >> (SHIFT-2), ISEL(slot), IMXL(slot));
@@ -1659,11 +1640,10 @@ void Scsp::exec_dma()
 // ---------------------------------------------------------------------------
 // Register access and audio generation
 // ---------------------------------------------------------------------------
-// Upstream calls m_stream->update() first, so that everything the registers can
-// observe -- the timers, the envelope state MSLC reports -- is current as of the
-// access. Here the owner generates samples immediately before running the sound
-// CPU for the same interval, which puts the register access at most a scanline
-// ahead of the audio instead of exactly at it. See Model2Sound::run.
+// Upstream calls m_stream->update() first so the timers and MSLC are current at
+// the access. Here the owner generates samples just before running the sound CPU
+// over the same interval, so an access is at most a scanline ahead of the audio.
+// See Model2Sound::run.
 
 void Scsp::set_slot_gains(const u16 gains[32])
 {

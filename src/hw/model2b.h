@@ -125,9 +125,8 @@ public:
     /// Copro status register at 0x00980014.
     [[nodiscard]] u32 status() const { return m_upload_count == 0 ? 0xffffffffu : 0u; }
 
-    /// Save/restore the SHARC, both FIFOs and the control/upload scalars. The
-    /// SHARC keeps its program on-chip (in its own SRAM, saved by its
-    /// serialize), so there is no program RAM here. Spans excluded (attach()).
+    /// Save/restore the SHARC, both FIFOs and the control/upload scalars. Spans
+    /// are excluded (attach()).
     void serialize(Archive& ar);
 
     // -- cpu::sharc::Bus ---------------------------------------------------
@@ -146,12 +145,8 @@ private:
     CoproFifo m_fifo_in;
     CoproFifo m_fifo_out;
 
-    // Note: there is deliberately no program-memory storage here. The SHARC's
-    // microcode lives in the CPU's own on-chip SRAM banks (see
-    // cpu::sharc::SHARC), which is where the DMA upload writes it and where
-    // instruction fetches read it from. MAME models this the same way: the
-    // Model 2B board only supplies the SHARC's *data* space (copro_sharc_map),
-    // and its program space is entirely internal to the chip.
+    // No program memory here: the microcode lives in the SHARC's on-chip SRAM,
+    // as in MAME, where the board supplies only the data space.
     std::span<const u32> m_data_rom;
     std::span<u32>       m_buffer_ram;
 
@@ -171,9 +166,8 @@ private:
 // Derived from MAME's model2b_state (BSD-3-Clause, copyright-holders
 // R. Belmont, Olivier Galibert, ElSemi, Angelo Salese, Matthew Daniels).
 //
-// The i960 is still the main CPU (same core, same Bus pattern). The SHARC
-// replaces the MB86233 TGP as the geometry coprocessor. The sound board is
-// the same 68000/SCSP as Model 2A.
+// The i960 is still the main CPU. The SHARC replaces the MB86234 TGP as the
+// geometry coprocessor; the 68000/SCSP sound board is Model 2A's.
 // ===========================================================================
 
 class Model2B final : public cpu::Bus, public Model2MachineBase {
@@ -346,7 +340,7 @@ private:
     void note_video_write(const Window& window, u32 width);
     [[nodiscard]] Window resolve(u32 address);
     /// Main program ROM and work RAM without building a Window; nullptr for
-    /// anything else, which then goes through resolve() as before.
+    /// anything else, which then goes through resolve().
     [[nodiscard]] const u8* hot_read(u32 address, u32 width) const;
     /// Same for writes, work RAM only.
     [[nodiscard]] u8* hot_write(u32 address, u32 width);

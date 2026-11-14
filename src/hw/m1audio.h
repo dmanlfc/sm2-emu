@@ -20,17 +20,11 @@
 // Derived from MAME's src/mame/shared/segam1audio.cpp (BSD-3-Clause,
 // copyright-holders R. Belmont) region for region.
 //
-// All three sound chips are present. The two MultiPCMs are a port of MAME's own
-// device; the YM3438 is ymfm, which is the library MAME's ym3438_device wraps, so
-// the FM is the reference implementation rather than an approximation of it.
+// The MultiPCMs are a port of MAME's device; the YM3438 is ymfm, the library
+// MAME's ym3438_device wraps.
 //
-// Used by Model 1 and by the early Model 2 sets -- Daytona USA, Desert Tank and
-// Virtua Cop -- which is why it lives here rather than with the CRX family's
-// 68000/SCSP board. The two have nothing in common but their host CPU: different
-// sound chips, different clocks, different sample rate.
-//
-// As with the CRX board the only link to the host is serial, an i8251 at each end,
-// so this can be brought up and verified without the host doing anything.
+// Used by Model 1 and the early Model 2 sets (Daytona USA, Desert Tank, Virtua
+// Cop). The only link to the host is serial, an i8251 at each end.
 
 #pragma once
 
@@ -64,8 +58,7 @@ public:
     /// The board's own ROMs: the 68000 program ("m1audio:sndcpu") and one sample
     /// region per MultiPCM ("m1audio:pcm1", "m1audio:pcm2").
     ///
-    /// Any of them may be empty. A board with no program ROM is inert, which is
-    /// what a set that has not had its audio ROMs declared yet looks like.
+    /// Any of them may be empty; a board with no program ROM is inert.
     void attach(std::span<const u8> program_rom,
                 std::span<const u8> pcm1,
                 std::span<const u8> pcm2);
@@ -87,11 +80,8 @@ public:
 
     void reset();
 
-    /// Advance the board by the equivalent of `host_cycles` of the host i960's
-    /// 25 MHz clock.
-    ///
-    /// The 68000 runs at 10 MHz (MAME: 20_MHz_XTAL / 2), so the ratio is 2/5 and
-    /// the remainder is carried between calls rather than rounded per call.
+    /// Advance the board by `host_cycles` of the host i960's 25 MHz clock. The
+    /// 68000 runs at 10 MHz, so the ratio is 2/5 with the remainder carried.
     void run(u32 host_cycles);
 
     // -- the serial link to the CPU board ------------------------------------
@@ -110,9 +100,7 @@ public:
     [[nodiscard]] bool present() const override { return !m_program_rom.empty(); }
     [[nodiscard]] u32  active_voices() const override;
 
-    // -- cpu::Bus ------------------------------------------------------------
-    //
-    // Big-endian, like the CRX board's 68000 and unlike everything else here.
+    // -- cpu::Bus (big-endian) ----------------------------------------------
 
     u8  read8(u32 address) override;
     u16 read16(u32 address) override;
@@ -168,8 +156,7 @@ private:
 
     cpu::m68000::M68000 m_cpu;
 
-    /// Board-side end of the serial link. The host's own i8251 lives on the CPU
-    /// board; this is the second one, at the other end of the same two wires.
+    /// Board-side end of the serial link.
     I8251 m_uart;
 
     MultiPcm m_pcm[2];

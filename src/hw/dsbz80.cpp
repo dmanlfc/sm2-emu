@@ -67,7 +67,7 @@ void DsbZ80::reset()
     }
 
     // The decoder reads straight out of the MPEG ROM. Rebuilt on every reset so
-    // the board can be brought up more than once (the tests do).
+    // the board can be brought up more than once.
     m_decoder = std::make_unique<mpeg_audio>(m_mpeg_rom.data(), mpeg_audio::L2,
                                              false, 0);
 
@@ -364,8 +364,7 @@ void DsbZ80::mix(s16* dst, u32 frames, u32 out_rate)
     }
 
     for (u32 i = 0; i < frames; ++i) {
-        // Produce one decoder-rate stereo frame's worth of source samples on
-        // demand, then linearly resample to the output rate.
+        // Decode on demand at the decoder rate, then resample to the output rate.
         while (m_audio_pos >= m_audio_avail) {
             decode_next();
             if (m_audio_avail == 0) {
@@ -376,7 +375,6 @@ void DsbZ80::mix(s16* dst, u32 frames, u32 out_rate)
         s16 lraw = m_audio_buf[m_audio_pos * 2];
         s16 rraw = m_audio_buf[m_audio_pos * 2 + 1];
         if (m_interpolate) {
-            // Linear interpolation from the previous decoded sample.
             const s64 t = static_cast<s64>(m_resample_frac);
             lraw = static_cast<s16>(m_prev[0] + (lraw - m_prev[0]) * t / out_rate);
             rraw = static_cast<s16>(m_prev[1] + (rraw - m_prev[1]) * t / out_rate);
@@ -406,8 +404,6 @@ void DsbZ80::mix(s16* dst, u32 frames, u32 out_rate)
         dst[i * 2]     = static_cast<s16>(std::clamp(ol, -32768, 32767));
         dst[i * 2 + 1] = static_cast<s16>(std::clamp(or_, -32768, 32767));
 
-        // Advance the resampler: consume out_rate ticks, step the source
-        // position once per decoder-rate tick.
         m_resample_frac += kDecoderRate;
         while (m_resample_frac >= out_rate) {
             m_resample_frac -= out_rate;

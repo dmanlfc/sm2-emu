@@ -10,13 +10,10 @@
 // and from the helper members in z80.cpp. This port keeps MAME's identifier
 // names and the z80.inc register macros so the two can still be diffed.
 //
-// What is deliberately different: MAME's generated code is a resumable state
-// machine keyed on `m_ref` (prefix, opcode, step) so the CPU can be suspended
-// part-way through a bus cycle, which matters for machines with contended
-// memory. Nothing on a Model 2 board can do that, so here an instruction runs to
-// completion and the cycle charges land at the same points, giving identical
-// totals. The consequence is that a `run` slice can end a few T-states late;
-// `run` carries the surplus rather than losing it.
+// Deviation: MAME's generated code is a resumable state machine keyed on `m_ref`
+// so the CPU can stop part-way through a bus cycle. Here an instruction runs to
+// completion with the cycle charges at the same points, so a `run` slice can end
+// a few T-states late; `run` carries the surplus over.
 //
 // This core assumes a Zilog NMOS Z80, same as MAME. Known differences between
 // Z80 variants that are therefore *not* selectable here:
@@ -85,10 +82,8 @@ namespace sm2::cpu::z80 {
 
 Z80::Z80(Bus& bus) : m_bus(&bus)
 {
-    // MAME's device_start tail. set_f(0) first, because the deferred-flag
-    // members are not all zero for F == 0: parity of zero is even, so pv_val
-    // has to be seeded or F would come up reading 0x44 instead of 0x40. Then IX
-    // and IY read 0xffff after a reset, and the zero flag comes up set.
+    // MAME's device_start tail. set_f(0) seeds the deferred-flag members (pv_val
+    // is not zero for F == 0); IX/IY then read 0xffff and Z comes up set.
     set_f(0);
     m_ix.w = 0xffff;
     m_iy.w = 0xffff;
@@ -111,14 +106,9 @@ void Z80::reset()
     set_service_attention<SA_AFTER_EI, 0>();
     set_service_attention<SA_AFTER_LDAIR, 0>();
 
-    // Note what is *not* here, matching MAME: the register file, SP and the
-    // interrupt mode survive a reset. Real silicon does force IM 0 and leaves
-    // AF/SP at 0xffff, but MAME models neither and code that depends on it does
-    // not exist on these boards.
-    //
-    // m_cycle_debt is not cleared either, and deliberately. It is not CPU state:
-    // it records work already done and not yet reported to the caller. Dropping
-    // it would hand the caller back cycles it has not been told about.
+    // As in MAME, the register file, SP and interrupt mode survive a reset (real
+    // silicon forces IM 0). m_cycle_debt is kept too: it is work already done
+    // but not yet reported to the caller.
 }
 
 // ============================================================================
@@ -320,8 +310,7 @@ void Z80::out_port(u16 port)
 
 void Z80::nomreq_addr(u16 addr, int count)
 {
-    // The address is what the real part drives during these cycles. MAME hands
-    // it to a callback used for ULA contention modelling; nothing here wants it.
+    // MAME passes the address to a contention callback; nothing here needs it.
     (void)addr;
     m_icount -= count;
 }
@@ -1165,10 +1154,8 @@ void Z80::outd()
 // ============================================================================
 // Undocumented-opcode diagnostics
 // ============================================================================
-// MAME logs these through a maskable channel that is on by default. A DD or FD
-// prefix in front of an opcode that has no index-register form is common enough
-// in real code that warning about it would be noise, so it lands on the
-// development channel instead.
+// Deviation: logged on the development channel, not MAME's default-on one, as a
+// redundant DD/FD prefix is common enough in real code to be noise.
 
 void Z80::illegal_1(u8 prefix, u8 op)
 {
@@ -1287,9 +1274,8 @@ void Z80::op_main(u8 op)
     case 0x2f:                                                      // CPL
         A ^= 0xff;
         {
-            // keep SZPC. Note MAME does not clear QT here, so an SCF or CCF
-            // immediately after a CPL still sees the previous instruction's
-            // X/Y bits. Kept as upstream has it.
+            // keep SZPC. As in MAME, QT is not cleared, so a following SCF/CCF
+            // still sees the previous instruction's X/Y bits.
             m_f.yx_val = A;
             m_f.h_val  = HF;
             m_f.n      = true;
@@ -1982,12 +1968,8 @@ void Z80::set_irq_line(bool asserted)
 
 void Z80::set_nmi_line(bool asserted)
 {
-    // Latch on the rising edge. MAME additionally ignores an edge that arrives
-    // while its global cycle count is still zero, to stop the line being
-    // released as part of power-on from latching a spurious NMI. That is a
-    // side effect of MAME's device start ordering; here the host calls reset()
-    // explicitly and reset() drops any pending NMI, so the guard is unnecessary
-    // and would only make an NMI asserted before the first run() disappear.
+    // Latch on the rising edge. Deviation: MAME's power-on guard (ignore edges
+    // while its cycle count is zero) is dropped; reset() clears any pending NMI.
     if (!m_nmi_state && asserted) {
         set_service_attention<SA_NMI_PENDING, 1>();
     }
@@ -2035,9 +2017,8 @@ void Z80::take_interrupt()
     m_icount -= 2;
 
     if (m_im == 2) {
-        // Zilog's datasheet claims the low bit of an IM 2 vector must be zero.
-        // Experiments say otherwise: all eight bits are used and an odd vector,
-        // 0xff included, works normally.
+        // All eight vector bits are used, despite the datasheet saying bit 0
+        // must be zero.
         m_icount -= 5;  // CALL opcode timing
         wm16_sp(PC);
         m_tmp_irq_vector = (m_tmp_irq_vector & 0xff) | (u32(I) << 8);
@@ -2047,12 +2028,9 @@ void Z80::take_interrupt()
         wm16_sp(PC);
         PC = 0x0038;
     } else {
-        // Mode 0 executes whatever the acknowledging device drove onto the data
-        // bus. MAME accepts a multi-byte CALL nnnn or JP nnnn there by letting
-        // the vector carry 24 bits; this Bus supplies one byte, so only the
-        // single-byte forms can occur. That is the whole of what any Model 2
-        // board needs, but it is a real restriction: a device wanting a mode 0
-        // CALL cannot express it.
+        // Mode 0 executes the byte the device drove onto the bus. Deviation:
+        // the Bus supplies one byte, so MAME's multi-byte CALL/JP vectors
+        // cannot occur.
         if (m_tmp_irq_vector != 0x00) {
             if ((m_tmp_irq_vector & 0xc7) == 0xc7) {
                 m_icount -= 5;  // RST $xx cycles
@@ -2088,10 +2066,9 @@ void Z80::execute_one()
             set_service_attention<SA_AFTER_LDAIR, 0>();
         }
         if (m_halt) {
-            // Still halted: the part keeps running M1 cycles without advancing.
-            // PC already points past the HALT, which is where an interrupt has
-            // to return to, so the fetch is undone rather than the increment
-            // suppressed. R keeps counting, as refresh does on real silicon.
+            // Still halted: keep running M1 cycles. PC already points past the
+            // HALT, where an interrupt returns to, so the fetch is undone. R
+            // keeps counting.
             rop();
             PC--;
             return;
@@ -2104,9 +2081,8 @@ void Z80::execute_one()
         m_trace_hook(m_trace_context, PRVPC, op);
     }
 
-    // Prefixes are iterated rather than recursed: a run of DD/FD bytes is legal
-    // and each one only costs four T-states, so the chain can be arbitrarily
-    // long. MAME's generated code does the same thing with a goto.
+    // Prefixes are iterated, not recursed: a run of DD/FD bytes is legal and
+    // can be arbitrarily long.
     for (;;) {
         if (op == 0xcb) {
             op_cb(rop());
@@ -2137,16 +2113,13 @@ s32 Z80::run(s32 cycles)
 {
     if (cycles <= 0) return 0;
 
-    // Cycles borrowed by the previous slice's last instruction come off the top,
-    // which is what keeps a long sequence of slices totalling correctly. The
-    // allowance can go non-positive, in which case nothing runs this time and
-    // the debt is simply paid down.
+    // Cycles the previous slice overran come off the top. A non-positive
+    // allowance runs nothing and just pays the debt down.
     const s32 allowance = cycles - m_cycle_debt;
     m_icount = allowance;
 
     if (m_wait_state) {
-        // WAIT held: the CPU is stopped with the bus cycle stretched. It retires
-        // nothing and the slice is gone.
+        // WAIT held: the bus cycle is stretched and the slice is lost.
         if (m_icount > 0) m_icount = 0;
     } else {
         while (m_icount > 0) {

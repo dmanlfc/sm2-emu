@@ -20,10 +20,8 @@ inline constexpr u32 kTileLayers = 4;
 
 /// One entry of a System 24 name table.
 ///
-/// The tile index and the colour field overlap in the 16-bit word: bits 13:0 are
-/// the index and bits 14:7 the colour. That is not a mistake in the decode, it is
-/// how the chip is wired, and it means changing a tile's colour also changes
-/// which tile it is unless the game keeps the indices low.
+/// The tile index (bits 13:0) and the colour (bits 14:7) overlap in the 16-bit
+/// word; that is how the chip is wired.
 struct TileCell {
     u16  tile       = 0;      ///< Character RAM index, 14 bits.
     u8   colour     = 0;      ///< Palette granule of sixteen pens.
@@ -37,31 +35,23 @@ struct TileCell {
 /// One 4-bit pixel of a character.
 ///
 /// Characters are 8x8, four bits deep, 32 bytes each, packed most significant
-/// nibble first. The byte index is exclusive-ORed with one: MAME builds its
-/// graphics element over a 16-bit array with a little-endian byte swap, which
-/// amounts to swapping the two bytes of every word. Getting this wrong swaps
-/// pixels in pairs, which looks almost right and is correspondingly hard to spot.
+/// nibble first, with the two bytes of every word swapped (byte index ^ 1).
+/// Getting this wrong swaps pixels in pairs, which looks almost right.
 ///
-/// This is the readable reference form. The renderer decodes a whole row at a
-/// time instead; a unit test holds the two to the same answer.
+/// The readable reference form; the renderer decodes a whole row at a time.
 [[nodiscard]] u8 decode_tile_pixel(std::span<const u8> char_ram, u16 tile, u32 x, u32 y);
 
 /// The System 24 tilemap chip.
 ///
-/// Four 64x64 layers of 8x8 four-bit characters, arranged as two pairs. Within
-/// a pair one layer is the "screen" and the other the "window"; an eight-pixel
-/// granular mask chooses which of the two is visible at each position, which is
-/// how the hardware does split-screen and picture-in-picture without a second
-/// tilemap generator.
+/// Four 64x64 layers of 8x8 four-bit characters, in two pairs. Within a pair one
+/// layer is the "screen" and the other the "window"; a mask with eight-pixel
+/// granularity chooses which is visible at each position.
 ///
-/// Every layer is 512x512 pixels and wraps, so the visible 496x384 region can
-/// straddle the wrap in both axes. Drawing therefore decomposes into up to four
-/// rectangles.
+/// Every layer is 512x512 pixels and wraps, so drawing the visible 496x384
+/// region decomposes into up to four rectangles.
 ///
-/// The chip caches a decoded 512x512 pixel map per layer and rebuilds only the
-/// characters whose name-table entry or pattern data changed. That matters: a
-/// full rebuild of all four layers is a million pixel writes, and a game that
-/// streams character data would otherwise pay it every frame.
+/// A decoded pixel map is cached per layer, and only characters whose name-table
+/// entry or pattern data changed are rebuilt.
 class Segaic24Tile {
 public:
     /// Each layer is a 64x64 grid of 8x8 characters.
@@ -96,8 +86,7 @@ public:
 
     /// Point the chip at the machine's tile and character RAM.
     ///
-    /// Both spans must outlive the chip. Model 2 allocates them once during
-    /// init and never resizes, so they are stable for the life of the machine.
+    /// Both spans must outlive the chip.
     void attach(std::span<const u8> tile_ram, std::span<const u8> char_ram);
 
     /// Discard every cached character. Called on reset and whenever the caller
@@ -119,16 +108,13 @@ public:
     /// Draw one layer and category into an RGBA8 surface.
     ///
     /// `layer_and_category` is MAME's packed argument: bits 3:1 select the
-    /// tilemap layer 0 to 3, bit 0 selects the priority category. Category 0 is
-    /// composited below the 3D output and category 1 above it, which is what
-    /// lets a game put a HUD in front of the scene using the same layers.
+    /// layer, bit 0 the priority category (0 below the 3D output, 1 above).
     ///
     /// `opaque` draws transparent pixels as well and ignores the category,
     /// which is how the second pair becomes the backdrop.
     ///
-    /// `pens` holds premultiplied-nothing RGBA8 colours, 0x1000 of them; a
-    /// drawn pixel is written with alpha 0xff so the compositor can tell it
-    /// apart from a pixel nothing touched.
+    /// `pens` holds 0x1000 RGBA8 colours. A drawn pixel gets alpha 0xff so the
+    /// compositor can tell it from an untouched one.
     ///
     /// `tag`, when given, is a byte per destination pixel set to `tag_value`
     /// wherever a pixel is drawn.
@@ -213,10 +199,9 @@ private:
 
     /// Copy a rectangle of one layer's pixel map into the destination.
     ///
-    /// `sx`/`sy` are the source origin in the 512x512 map and must not wrap within
-    /// this call; draw_region is what guarantees that. Ported from
-    /// segas24_tile_device::draw_rect, the bitmap_rgb32 overload, which needs no
-    /// priority buffer because Model 1 and Model 2 have no sprites to interleave.
+    /// `sx`/`sy` are the source origin in the 512x512 map and must not wrap
+    /// within this call. Ported from the bitmap_rgb32 overload of
+    /// segas24_tile_device::draw_rect, which needs no priority buffer.
     void draw_rect(const DrawState& state,
                    u32              layer,
                    int              sx,
@@ -245,11 +230,10 @@ private:
     /// Characters whose pattern data changed since the last update.
     std::vector<u8> m_char_dirty;
 
-    /// Number of set entries in m_char_dirty, so the common case of "nothing
-    /// changed" costs one comparison instead of a scan.
+    /// Number of set entries in m_char_dirty, so "nothing changed" needs no scan.
     u32 m_char_dirty_count = 0;
 
-    /// Number of set entries in m_cell_dirty, same reasoning.
+    /// Number of set entries in m_cell_dirty.
     u32 m_cell_dirty_count = 0;
 
     bool m_window_mask_a_hidden = false;

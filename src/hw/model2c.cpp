@@ -160,15 +160,9 @@ CoproTgpx4::CoproTgpx4()
     m_fifo_in.configure(kFifoDepth);
     m_fifo_out.configure(kFifoDepth);
 
-    // Coprocessor-side flow control, wired exactly as MAME's
-    // model2c_state::machine_start does. This is the TGP pattern that Model 2A
-    // uses (see CoproTgp's constructor), not Model 2B's: the SHARC learned the
-    // FIFO state through its FLAG inputs, and the MB86235 does not have those --
-    // it reads the IFE/IFF/OFE/OFF conditions directly, which the Bus answers.
-    //
-    // The coprocessor is the destination of the input FIFO and the source of the
-    // output one. The host's half of both is wired by Model2C::init, because
-    // only the machine can halt the host CPU.
+    // Coprocessor-side flow control, as on Model 2A: the MB86235 has no FLAG
+    // inputs and reads the FIFO conditions through the Bus. Model2C::init wires
+    // the host's half.
     m_fifo_in.set_on_empty_retry([this] { m_cpu.stall(); });
     m_fifo_in.set_on_empty_halt([this] { m_cpu.set_halted(true); });
     m_fifo_in.set_on_unempty([this] { m_cpu.set_halted(false); });
@@ -188,8 +182,7 @@ void CoproTgpx4::attach(std::span<const u32> data_rom, std::span<u32> buffer_ram
 void CoproTgpx4::reset()
 {
     m_cpu.reset();
-    // Held until the host uploads microcode and releases it, matching MAME's
-    // model2c_state::machine_reset, which asserts INPUT_LINE_HALT on the TGPx4.
+    // Held until the host uploads microcode and releases it.
     m_cpu.set_halted(true);
 
     m_fifo_in.clear();
@@ -198,12 +191,7 @@ void CoproTgpx4::reset()
     m_control      = 0;
     m_upload_count = 0;
 
-    // m_program is deliberately left alone. It is board RAM, and a reset pulse
-    // does not clear RAM -- MAME's copro_tgpx4_map shares it as a plain .ram()
-    // region, which machine_reset does not touch either.
-    //
-    // There are also no set_flag_input calls here: those were the SHARC's way of
-    // learning the FIFO state and have no counterpart on this part.
+    // m_program is board RAM, which a reset does not clear.
 }
 
 void CoproTgpx4::serialize(Archive& ar)
@@ -211,8 +199,7 @@ void CoproTgpx4::serialize(Archive& ar)
     m_cpu.serialize(ar);
     m_fifo_in.serialize(ar);
     m_fifo_out.serialize(ar);
-    // The uploaded microcode is board RAM the host writes at runtime, not ROM,
-    // so it is part of the state (see reset()'s note on why reset leaves it).
+    // The uploaded microcode is board RAM, so part of the state.
     ar.bytes(m_program.data(), m_program.size());
     ar.raw(m_control);
     ar.raw(m_upload_count);
@@ -232,14 +219,11 @@ void CoproTgpx4::control_write(u32 value)
         if ((value & 0x80000000u) != 0) {
             SM2_DEBUG("copro_tgpx4: microcode upload started");
             m_upload_count = 0;
-            // MAME's model2c_state::copro_halt() is deliberately empty. The
-            // TGPx4 is already halted from machine reset and stays that way
-            // until the boot write below.
+            // No halt here: the TGPx4 is already halted from reset.
         } else {
             SM2_DEBUG("copro_tgpx4: booting, %u host write(s) uploaded (%u program "
                       "word(s))", m_upload_count, m_upload_count / 2);
-            // model2c_state::copro_boot() only clears the halt line. It must NOT
-            // reset the core: reset() re-asserts halt, which would undo this.
+            // Only clear the halt line; reset() would re-assert it.
             m_cpu.set_halted(false);
         }
     }
@@ -249,11 +233,8 @@ void CoproTgpx4::control_write(u32 value)
 void CoproTgpx4::host_fifo_write(u32 value)
 {
     if ((m_control & 0x80000000u) != 0) {
-        // Microcode upload. Program words are 64 bits and the host bus is 32,
-        // so two consecutive writes assemble one word, low half first: an even
-        // counter fills bits 31:0 and the following odd one fills bits 63:32.
-        // This is the one substantial difference from Model 2B, whose SHARC
-        // takes 16-bit halves through a DMA port instead.
+        // Microcode upload: two 32-bit writes per 64-bit program word, low half
+        // first.
         const u32 index = m_upload_count / 2;
         if (index < m_program.size()) {
             if ((m_upload_count & 1) != 0) {
@@ -276,9 +257,8 @@ u32 CoproTgpx4::host_fifo_read()
 
 void CoproTgpx4::function_port_write(u32 byte_offset, u32 value)
 {
-    // Identical to Model 2B. The function number lives in the port's own
-    // address: MAME's copro_function_port_w takes `a = (offset >> 2) & 0xff`
-    // where offset is a dword index, so sixteen bytes per function.
+    // As on Model 2B, the function number is in the address, sixteen bytes per
+    // function.
     const u32 function = (byte_offset >> 4) & 0xff;
     const u32 command  = (value & 0x800fffffu) | (function << 23);
     m_fifo_in.push(command);
@@ -358,7 +338,6 @@ bool Model2C::init(const rom::GameSpec& game, rom::RomSet roms)
         return false;
     }
 
-    // Allocate RAM.
     m_work_ram.assign(0x100000, 0);
     // i960 instruction fetch straight from ROM and work RAM (the hot_read windows).
     m_cpu.bind_fetch_window(0, kRomMainCpu, m_rom_maincpu.data(), m_rom_maincpu.size(), 0x200000);
@@ -380,8 +359,7 @@ bool Model2C::init(const rom::GameSpec& game, rom::RomSet roms)
     m_comm_ram.assign(0x4000, 0);
     m_crypt_ram.assign(0x10000, 0);
 
-    // 315-5881 protection chip setup. model2c_5881_mem exists, so this is wired
-    // exactly as on Model 2B; dynamcopc is the set that needs it.
+    // 315-5881 protection, wired as on Model 2B (dynamcopc).
     if (game.protection == rom::Protection::Sega315_5881 && game.protection_key == 0) {
         SM2_WARN("model2c: %s needs a 315-5881 key and the database has none",
                  game.name.c_str());
@@ -392,41 +370,31 @@ bool Model2C::init(const rom::GameSpec& game, rom::RomSet roms)
         return static_cast<u16>((m_crypt_ram[offset] << 8) | m_crypt_ram[offset + 1]);
     });
 
-    // Video stage.
     m_video.attach(m_tile_ram, m_char_ram, m_palette_ram, m_colorxlat);
 
     // The link board's 16 KB is the same storage the i960 reaches at
     // 0x01a00000; the board keeps it so the access stays a burst window.
     m_comm.attach_shared(m_comm_ram);
 
-    // TGPx4 coprocessor: reads the copro_data ROM and reads and writes the
-    // display list buffer, both through its external bus. There is no
-    // mathematical table ROM on this board -- the part does its own arithmetic.
+    // The TGPx4 has no table ROM; it does its own arithmetic.
     m_rom_copro_data = m_roms.region("copro_data");
     m_copro.attach(as_words(m_rom_copro_data), m_buffer_ram);
 
-    // Geometry engine (high-level): polygon ROM + texture ROM + buffer RAM.
     m_rom_polygons = m_roms.region("polygons");
     m_rom_textures = m_roms.region("textures");
     m_geometry.attach(as_words(m_rom_polygons), as_halfwords(m_rom_textures),
                       m_buffer_ram);
 
-    // Sound board.
     m_sound.attach(m_roms.region("audiocpu"), m_roms.region("samples"));
-    // The DSB music board, for the sets that ship one (Sega Touring Car and
-    // other DSB titles). Empty regions for the rest leave it inert.
     m_sound.attach_dsb(m_roms.region("dsbz80:mpegcpu"), m_roms.region("dsbz80:mpeg"));
-    // The 68000-based DSB2 music board (Top Skater). Empty regions -> inert.
     m_sound.attach_dsb2(m_roms.region("dsb2:mpegcpu"), m_roms.region("dsb2:mpeg"));
     m_sound.configure_balance(m_game.name);
     m_uart.set_tx_handler([this](u8 value) { m_sound.midi_in(value); });
     m_sound.set_midi_out_handler([this](u8 value) { m_uart.write_rxd(value); });
     m_uart.set_ready_handler([this] { sound_ready_w(); });
 
-    // Host-side FIFO flow control, from MAME's model2c_state::machine_start:
-    // a read of an empty output FIFO re-executes the instruction and then halts
-    // the i960, and a write that fills the input FIFO halts it too. Both are
-    // released by the coprocessor making progress.
+    // Host-side FIFO flow control: reading an empty output FIFO retries then
+    // halts the i960, and filling the input FIFO halts it too.
     m_copro.fifo_out().set_on_empty_retry([this] { m_cpu.stall(); });
     m_copro.fifo_out().set_on_empty_halt([this] { m_cpu.set_halted(true); });
     m_copro.fifo_out().set_on_unempty([this] { m_cpu.set_halted(false); });
@@ -465,8 +433,6 @@ void Model2C::reset()
     m_unmapped_writes.clear();
 
     m_video.reset();
-    // CoproTgpx4::reset asserts the coprocessor's halt line, which is what
-    // model2c_state::machine_reset does.
     m_copro.reset();
     m_geometry.reset();
     m_sound.reset();
@@ -506,8 +472,7 @@ void Model2C::reset()
     m_io.set_input(3, [this] { return m_inputs.in2; });
     m_io.set_output(5, [this](u8 value) { lamp_output_w(value); });
     m_io.set_input(6, [this] { return m_inputs.dipswitches; });
-    // Bind only declared channels; undeclared ones read as open inputs (0xff),
-    // as MAME's unbound an_port_callback does. See model2b for the detail.
+    // Undeclared channels stay unbound and read as open inputs (0xff).
     for (u32 channel = 0; channel < Io315_5649::kAnalogCount; ++channel) {
         if (m_game.analog[channel].control != rom::AnalogControl::None) {
             m_io.set_analog(channel, [this, channel] { return m_inputs.analog[channel]; });
@@ -524,11 +489,7 @@ void Model2C::reset()
         }
     }
 
-    // The lightgun interface board hangs off RS-422 channel 2 rather than any of
-    // the parallel ports, same as on Model 2A. MAME wires this in
-    // model2c_state::hotd via serial_ch2_rd_callback/serial_ch2_wr_callback.
-    // Without it House of the Dead polls the gun board forever and never gets as
-    // far as counting a coin.
+    // The lightgun board is on RS-422 channel 2, as on Model 2A.
     m_lightgun_mux = 0;
     if (m_game.lightgun.present) {
         m_io.set_serial2([this] { return lightgun_mux_read(); },
@@ -607,11 +568,7 @@ void Model2C::run_frame()
 
 void Model2C::step_copro(u32 host_cycles)
 {
-    // MAME clocks the TGPx4 from a 20 MHz crystal (MB86235(config,
-    // m_copro_tgpx4, 20_MHz_XTAL)) against the i960's 25 MHz, so the ratio is
-    // 20/25 -- the coprocessor is slower than the host here, where Model 2B's
-    // 32 MHz SHARC was faster. To keep integer arithmetic the debt accumulates
-    // in 25ths and the remainder carries across slices, so the ratio is exact.
+    // The TGPx4 runs at 20 MHz against the i960's 25; the debt is in 25ths.
     m_copro_debt += host_cycles * 20;
     const s32 cycles = static_cast<s32>(m_copro_debt / 25);
     m_copro_debt %= 25;
@@ -632,8 +589,7 @@ void Model2C::sync_copro()
         const s32 used  = m_copro.run(slice);
         if (used <= 0) break;
         remaining -= used;
-        // Borrow from the coprocessor's future share so this time is not spent
-        // twice. The debt is in 25ths, and one coprocessor cycle is 25 of them.
+        // Borrow from the coprocessor's future share so this time is not spent twice.
         const u32 owed = static_cast<u32>(used) * 25;
         m_copro_debt = m_copro_debt > owed ? m_copro_debt - owed : 0;
     }
@@ -670,17 +626,12 @@ void Model2C::on_vblank_start()
     if (m_video.latch_tile_ram()) ++m_tile_generation;
     if ((m_videocontrol & 1) == 0 || (m_frames & 1) == 0) {
         m_geometry.set_read_start_address(m_geo_read_start_address);
-        // The CRTC sync registers move the projected image relative to the
-        // monitor, and MAME applies them in model2_3d_project on every board.
-        // Leaving them at zero here shifted the whole 3D scene: Wave Runner's
-        // came out 90 lines high and 8 columns right, leaving the bottom of the
-        // screen empty.
+        // The CRTC sync registers shift the projected image, as on every board.
         m_geometry.set_crtc_offsets(m_video.crtc_x_offset(), m_video.crtc_y_offset());
         m_geometry.run(&m_render_list);
     }
     raise_interrupt(1u << 0);
-    // MAME's screen_vblank calls the link board here, after the geometry pass
-    // and the interrupt. It is what steps the ring protocol.
+    // Steps the link ring protocol, after the geometry pass and interrupt as in MAME.
     m_comm.vblank();
 }
 
@@ -783,10 +734,8 @@ void Model2C::lamp_output_w(u8 value)
 // Lightgun interface board (837-12079)
 // ---------------------------------------------------------------------------
 //
-// Identical to Model 2A's board and wired the same way; House of the Dead and
-// Behind Enemy Lines use it. Kept as its own copy rather than shared with
-// hw::Model2 because the two machines have no common base holding the input
-// state, and MAME likewise repeats the wiring per machine class.
+// Identical to Model 2A's board; the two machines share no base holding the
+// input state, so the wiring is repeated.
 
 u8 Model2C::lightgun_data_read(u8 offset) const
 {
@@ -801,9 +750,8 @@ u8 Model2C::lightgun_data_read(u8 offset) const
 
 u8 Model2C::lightgun_offscreen_read(u8 offset) const
 {
-    // Bit 0 is set while player 1 is aimed off the screen, bit 1 for player 2,
-    // which is how a game tells a reload from a miss. Only the axis ends count:
-    // aim at or past the picture's edge is clamped onto them.
+    // Bit 0 is set while player 1 aims off screen, bit 1 for player 2. Aim past
+    // the edge is clamped onto the axis ends.
     const auto offscreen = [](u16 value, const rom::LightgunAxis& axis) {
         return value <= axis.minimum || value >= axis.maximum;
     };
@@ -929,11 +877,8 @@ Model2C::Window Model2C::resolve(u32 address)
     if (address >= kFramebufferB && address < kFramebufferB + 0x80000) {
         return window(m_framebuffer_b, address - kFramebufferB, true, cpu::kBusFlagBurst);
     }
-    // Model 2C texture RAM: 2 MB each, mapped once. Reads come straight from the
-    // backing store; writes go through the packing transform in register_write,
-    // so this window is read-only.
-    // Plain memory, as on 2B: only the original and 2A boards decode texture RAM
-    // through the halfword-packing write handler.
+    // Texture RAM, 2 MB each, mapped once. Plain memory, as on 2B: only the
+    // original and 2A boards pack halfwords on write.
     if (address >= kTextureRam0 && address < kTextureRam0 + 0x200000) {
         m_cpu.add_wait_cycles(static_cast<s32>(m_game.texture_wait));
         return window(m_texture_ram0, address - kTextureRam0, true, cpu::kBusFlagBurst,
@@ -1017,9 +962,7 @@ u32 Model2C::register_read(u32 address, u32 width)
         return 0;
     }
 
-    // UART at 0x01c80000, umask16(0x00ff): eight bits wide on byte lanes 0 and
-    // 2, so register N sits at byte offset 2N. Model 2A puts it here too;
-    // Model 2B is the odd one out at 0x009c0000.
+    // UART on byte lanes 0 and 2: register N at byte offset 2N.
     if (address >= kUart && address < kUart + 0x04) {
         if (width == 4) {
             const u32 data   = m_uart.read(0);
@@ -1037,9 +980,7 @@ u32 Model2C::register_read(u32 address, u32 width)
         return timers_r((address - kTimerRegs) / 4);
     }
 
-    // Link board handshake registers, on byte lanes 0 and 2 of one dword and
-    // mirrored at 0x01a14000 exactly as MAME maps them. Without these the i960
-    // reads an unmapped bus and a linked title never finishes its network check.
+    // Link board handshake registers, on byte lanes 0 and 2, mirrored at 0x01a14000.
     if (in_mirrored(address, kCommCtl, 4, 0x10000)) {
         const u32 offset = address & 3;
         if (width == 4) {
@@ -1172,13 +1113,10 @@ void Model2C::register_write(u32 address, u32 value, u32 width)
             m_videocontrol = value;
             return;
         }
-        // The remaining offsets in this block are read-only status or, on
-        // Model 2B, the SHARC upload bank register. Nothing on 2C writes them,
-        // and swallowing a stray write keeps the log clean.
+        // The rest are read-only here; drop stray writes quietly.
         return;
     }
 
-    // UART at 0x01c80000 (Model 2C position, as Model 2A).
     if (address >= kUart && address < kUart + 0x04) {
         m_uart.write((address - kUart) >> 1, static_cast<u8>(value));
         return;
@@ -1363,15 +1301,9 @@ u32 Model2C::read32(u32 address)
     return register_read(address, 4);
 }
 
-// The i960 reaches an unaligned multi-word access one byte at a time and takes
-// the region's burst capability from the first of those bytes, so a byte access
-// has to report the same flags a dword access would. Without this the base class
-// default of "no burst" applies, the address stops advancing part-way through an
-// unaligned ldl/ldt/ldq or stl/stt/stq, and the rest of the transfer collapses
-// onto one location -- which shows up as a table read from ROM arriving with
-// every entry equal to the first. MAME has the same structure and gets the flags
-// right because its read_byte_flags goes through the same dispatch table as
-// read_dword_flags.
+// The i960 splits an unaligned multi-word access into bytes and takes the burst
+// flag from the first, so byte accesses must report the dword flags or the rest
+// of the transfer collapses onto one address.
 std::pair<u8, u16> Model2C::read8_flags(u32 address)
 {
     charge_area(address);
@@ -1536,10 +1468,8 @@ void Model2C::compose_video()
     }
     m_video.compose();
 
-    // Render test mode replaces the 3D output with a framebuffer bank, chosen by
-    // frame parity as MAME's draw_framebuffer chooses it. Drawn here rather than
-    // in the renderer because it is opaque 2D output that belongs under the
-    // category-one tilemap layers, which is exactly where the tilemap surface is.
+    // Render test mode shows a framebuffer bank chosen by frame parity, drawn
+    // here because it belongs under the category-one tilemap layers.
     if (m_render_test) {
         m_video.draw_framebuffer(framebuffer((m_frames & 1) != 0 ? 1 : 0));
     }
@@ -1605,16 +1535,14 @@ void Model2C::set_nvram_directory(const std::string& directory)
 
 void Model2C::seed_eeprom_from_rom()
 {
-    // ROM_REGION16_LE, so the words are already in the order the chip
-    // stores them and a straight copy is right on a little-endian host.
+    // ROM_REGION16_LE: a straight copy on a little-endian host.
     (void)apply_default_image(m_roms.region("eeprom"), m_eeprom.bytes());
 }
 
 void Model2C::load_nvram()
 {
     if (m_nvram_directory.empty() || m_game.name.empty()) return;
-    // A set can ship power-on images for both, and MAME applies those before it
-    // reads any saved file. Do the same, so a saved image still wins.
+    // Power-on images first, so a saved file still wins.
     (void)apply_default_image(m_roms.region("backup1"), m_nvram);
     seed_eeprom_from_rom();
 
@@ -1668,9 +1596,8 @@ void Model2C::save_nvram() const
 
 void Model2C::serialize(Archive& ar)
 {
-    // Owned components. Each serializes its own POD; the spans/callbacks they
-    // hold are excluded and stay bound from init(), because a load restores into
-    // this same, already-wired machine.
+    // Components keep their spans and callbacks from init(); a load restores
+    // into the same wired machine.
     m_cpu.serialize(ar);
     m_copro.serialize(ar);
     m_sound.serialize(ar);
@@ -1682,8 +1609,7 @@ void Model2C::serialize(Archive& ar)
     m_uart.serialize(ar);
     m_crypt.serialize(ar);
 
-    // RAM regions. The buffer/comm RAM are shared into the copro/comm devices
-    // through spans, so they are serialized once, here, not by those devices.
+    // RAM shared into the devices by span is serialized once, here.
     ar.bytes(m_work_ram.data(), m_work_ram.size());
     ar.bytes(m_scratch_ram.data(), m_scratch_ram.size());
     ar.bytes(m_buffer_ram.data(), m_buffer_ram.size());
@@ -1704,16 +1630,13 @@ void Model2C::serialize(Archive& ar)
     ar.bytes(m_comm_ram.data(), m_comm_ram.size());
     ar.bytes(m_crypt_ram.data(), m_crypt_ram.size());
 
-    // Interrupt latch.
     ar.raw(m_intreq);
     ar.raw(m_intena);
 
-    // Timers.
     for (Timer& timer : m_timers) {
         ar.raw(timer);
     }
 
-    // Video / coprocessor registers.
     ar.raw(m_videocontrol);
     ar.raw(m_render_mode);
     ar.raw(m_render_test);
@@ -1724,14 +1647,12 @@ void Model2C::serialize(Archive& ar)
     ar.raw(m_geo_read_start_address);
     ar.raw(m_ctrlmode);
 
-    // Misc latches.
     ar.raw(m_gear_selected);
     ar.raw(m_drive_board_latch);
     ar.raw(m_lightgun_mux);
     ar.raw(m_palette_dirty);
 
-    // Scheduling / interleave base — captured together with the cores above so
-    // the resumed interleave stays consistent (design §7).
+    // The interleave base, kept consistent with the cores above.
     ar.raw(m_cycles);
     ar.raw(m_frame_start);
     ar.raw(m_frames);
@@ -1740,15 +1661,12 @@ void Model2C::serialize(Archive& ar)
     ar.raw(m_pending_intena_valid);
     ar.raw(m_copro_debt);
 
-    // Inputs latch (small POD; harmless to carry so a state is self-contained).
     ar.raw(m_inputs);
 }
 
 bool Model2C::save_state_data(std::vector<u8>& out) const
 {
-    // serialize is non-const (Save refreshes each 68000's context blob first),
-    // so a const save walks a non-const view — sound, because a save reads state
-    // rather than changing emulation behaviour.
+    // serialize is non-const, but saving does not change emulation state.
     auto* self = const_cast<Model2C*>(this);
     return save_state_to_buffer(out, m_game.name, static_cast<u32>(m_game.board),
                                 m_in_frame, [self](Archive& ar) { self->serialize(ar); });
@@ -1761,8 +1679,7 @@ bool Model2C::load_state_data(std::span<const u8> data)
         return false;
     }
 
-    // Bump the generation counters rather than serializing them, forcing the
-    // renderer to re-derive its caches from the restored RAM.
+    // Bump the generations so the renderer rebuilds its caches.
     ++m_texture_generation;
     ++m_table_generation;
     ++m_tile_generation;

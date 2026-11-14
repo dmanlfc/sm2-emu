@@ -132,15 +132,11 @@ void M1Audio::reset()
     m_pcm[1].reset();
     m_ym.reset();
 
-    // The board's own UART. Its clock is 16 MHz / 2 divided by 16, which is the
-    // same 31.25 kHz the host end runs at -- the two have to agree or the link
-    // would not work on hardware either. Counted in this board's 68000 cycles,
-    // because that is what run() advances it by.
+    // 31.25 kHz to match the host end, counted in this board's 68000 cycles.
     m_uart.configure(kPcmClock, 31'250, 10);
     m_uart.reset();
 
-    // RxRDY drives the sound CPU's IRQ 2, which is how the program learns a
-    // command byte has arrived rather than polling for it.
+    // RxRDY drives the sound CPU's IRQ 2.
     m_uart.set_ready_handler([this] {
         m_cpu.set_irq_line(2, m_uart.rxrdy());
     });
@@ -331,9 +327,7 @@ void M1Audio::write32(u32 address, u32 value)
 
 void M1Audio::uart_tick(u32 host_cycles)
 {
-    // The UART is configured in this board's own cycles, so convert as the CPU
-    // does. Approximate within a slice is fine: the byte timer only decides when
-    // a transmitted byte completes.
+    // Converted to this board's cycles; slice granularity is fine for the byte timer.
     m_uart.run(static_cast<u32>(static_cast<u64>(host_cycles) * kCpuNumerator
                                 / kCpuDenominator));
 }
@@ -385,11 +379,8 @@ void M1Audio::run(u32 host_cycles)
         return;
     }
 
-    // Audio first, for the same reason the CRX board does it: the chips' state
-    // advances per output frame, so generating before the CPU runs keeps a write
-    // this slice from retroactively changing samples already produced. It is also
-    // what advances the YM3438's timers, which this board's sound driver uses as
-    // its sequencer clock, so it has to happen before the CPU polls for them.
+    // Audio first, so a write this slice cannot change samples already produced.
+    // It also advances the YM3438 timers the driver polls as its sequencer clock.
     generate_audio(host_cycles);
     uart_tick(host_cycles);
     if (m_dsb.present()) {
@@ -400,9 +391,8 @@ void M1Audio::run(u32 host_cycles)
     u64 owed = m_cpu_debt / kCpuDenominator;
     m_cpu_debt %= kCpuDenominator;
 
-    // 68000 instructions are not interruptible, so a slice usually runs a little
-    // past its allowance. Carrying the overshoot keeps the board's clock honest
-    // instead of letting it drift fast.
+    // A slice usually overruns its allowance; carry the overshoot so the clock
+    // does not drift fast.
     if (owed <= m_cycle_overshoot) {
         m_cycle_overshoot -= owed;
         return;

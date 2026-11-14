@@ -59,29 +59,17 @@ enum class Upscale2D : u32 { Faithful, Xbr, ScaleFx };
 /// GPU-gated; falls back to Stipple where unsupported.
 enum class Translucency : u32 { Stipple, Blended };
 
-/// Settings worth keeping between runs.
-///
-/// Deliberately only the persistent ones. Anything that describes a single run,
-/// such as how many frames to capture, stays on the command line: writing it to a
-/// file would mean the emulator behaved differently tomorrow for no visible reason.
-///
-/// Every field's default is the value here, so a missing or empty file behaves
-/// exactly as no file at all.
+/// Settings worth keeping between runs. Per-run options such as capture length
+/// stay on the command line. A missing or empty file gives these defaults.
 struct Config {
     // -- presentation ------------------------------------------------------
 
-    /// Wait for the display's vertical blank before presenting. Independent of
-    /// pacing: this decides whether a frame can tear, not how fast the machine
-    /// runs.
-    ///
-    /// Off by default: the software pacer is the rate authority, and a blocking
-    /// FIFO present quantises frame times to the display refresh (a frame a hair
-    /// over one vblank waits a whole extra one). Turn back on if a
-    /// bare/uncomposited display tears.
+    /// Wait for vertical blank before presenting. Decides tearing, not pacing.
+    /// Off by default: the software pacer sets the rate, and a blocking FIFO
+    /// present quantises frame times to the refresh.
     bool vsync = false;
 
-    /// Hold the machine to its own 57.5245 Hz. Turning this off runs as fast as the
-    /// host manages, which is what a capture wants and nothing else does.
+    /// Hold the machine to its own 57.5245 Hz; off runs as fast as the host can.
     bool throttle = true;
 
     bool fullscreen = false;
@@ -103,8 +91,7 @@ struct Config {
     /// emulated; shown one frame later.
     bool model3_async = true;
 
-    /// Show brief on-screen notifications (e.g. "State saved"), top-centered,
-    /// while gameplay continues. On by default.
+    /// Show brief on-screen notifications such as "State saved".
     bool show_notifications = true;
 
     /// Keep recent states so Backspace can step back through play.
@@ -123,10 +110,8 @@ struct Config {
     enum class LightgunMode : u32 { Auto, On, Off };
     LightgunMode lightgun = LightgunMode::Auto;
 
-    /// Draw Keisho's own aiming crosshair in light-gun mode. On by default;
-    /// turn it off when the gun provides its own aiming (e.g. a Sinden with a
-    /// physical sight) so the screen is not cluttered. Independent of the mode
-    /// itself, which still hides the cursor and enables the gun paths.
+    /// Draw Keisho's own aiming crosshair in light-gun mode. Independent of the
+    /// mode itself, which still hides the cursor and enables the gun paths.
     bool lightgun_crosshair = true;
 
     /// Hide the white flash the gun games show on each shot.
@@ -136,35 +121,29 @@ struct Config {
     /// moving the crosshair like a mouse.
     bool lightgun_pad_centred = false;
 
-    /// Fire the gun's recoil / rumble motor on each shot, for guns that have one
-    /// (Sinden and similar, exposed as a force-feedback device). No effect on a
-    /// gun without a motor. Strength is 0..100 percent.
+    /// Fire the gun's recoil motor on each shot, for guns exposed as a
+    /// force-feedback device. Strength is 0..100 percent.
     bool lightgun_recoil          = true;
     u32  lightgun_recoil_strength = 60;
 
-    /// Sinden light-gun border: a solid bright frame around the game image that
-    /// the gun's camera tracks. Colour is 0xRRGGBB; thickness is in game-image
-    /// pixels. Only drawn in light-gun mode.
+    /// Sinden border: a solid frame the gun's camera tracks, drawn only in
+    /// light-gun mode. Colour is 0xRRGGBB; thickness is in game-image pixels.
     bool sinden_border           = false;
-    u32  sinden_border_colour    = 0xffffff;  ///< white by default.
+    u32  sinden_border_colour    = 0xffffff;
     u32  sinden_border_thickness = 12;
 
     u32  window_width  = 992;
     u32  window_height = 768;
 
-    /// Internal 3D render scale, N in 1..render::kMaxRenderScale (1 = native).
-    /// GPU backends only; the software renderer ignores it. Takes effect on the
-    /// next launch. Read clamps into range.
+    /// Internal 3D render scale, 1..render::kMaxRenderScale (1 = native). GPU
+    /// backends only; takes effect on the next launch.
     u32 render_scale = 1;
 
-    /// Present-stage magnification and shape; both take effect live (unlike
-    /// render_scale). SharpBilinear is the default for crisp 2D text at the
-    /// non-integer window scales that occur at almost every window size.
+    /// Present-stage magnification and shape; both take effect live.
     ScalingMethod scaling_method = ScalingMethod::Nearest;
     AspectMode    aspect_mode    = AspectMode::FourThree;
 
-    /// Optional CRT cosmetic filter over the finished frame (scanlines, mask,
-    /// glow, curvature), off by default. Strengths are 0..100 percent;
+    /// CRT filter over the finished frame. Strengths are 0..100 percent;
     /// curvature 0 is flat. Live-switchable.
     bool crt_enabled          = false;
     u32  crt_scanline_strength = 40;
@@ -180,9 +159,8 @@ struct Config {
     /// Bezel artwork in fullscreen.
     bool bezel = false;
 
-    /// Optional graphics enhancement beyond the original hardware, faithful by
-    /// default and GPU-gated. anisotropy is the 2..16 tap ceiling, clamped to
-    /// the GPU max. Live-switchable where the GPU supports them.
+    /// Enhancements beyond the original hardware, GPU-gated. anisotropy is the
+    /// 2..16 tap ceiling, clamped to the GPU maximum.
     TextureFilter texture_filter = TextureFilter::Faithful;
     u32           anisotropy     = 4;
     Upscale2D     upscale_2d     = Upscale2D::Faithful;
@@ -210,10 +188,7 @@ struct Config {
     /// Read wheels and gamepads while the window is not in front.
     bool input_background = false;
 
-    /// Synthesised centring resistance on a wheel that supports it: a spring
-    /// whose strength grows with how far the wheel is turned. The drive board is
-    /// not emulated, so there is no authentic motor force to replay; this is a
-    /// feel, not a reproduction. Off means the wheel still steers, just limp.
+    /// Force feedback on a wheel that supports it. Off, the wheel still steers.
     bool wheel_ffb = true;
 
     /// The gain on the drive board's forces, 0..200 percent: at 100 the board's
@@ -231,12 +206,10 @@ struct Config {
     u32 wheel_indy_deadband   = 0;
     u32 wheel_indy_full_power = 63;
 
-    /// The operator's strength on the drive board's DIP switches, 0..7, the
-    /// switches ON counted in binary: 0 all OFF, as Sega Rally's and Daytona's
-    /// board leaves the factory (their manual; switches 4-8 stay OFF). Sega
-    /// Rally's 1-3 add 0..7 to every torque, Daytona's 1-3 add 4 times that,
-    /// Indy 500's family's 1-1..1-3 add 0..7 to every strength (the Le Mans
-    /// 24 cabinet ships that DRIVE CONTROL BD, 838-11967, at 3).
+    /// The drive board's strength DIP switches 1-3, 0..7 in binary; 0 (all off)
+    /// is the factory setting. Sega Rally adds 0..7 to every torque, Daytona 4
+    /// times that, the Indy 500 family 0..7 to every strength (Le Mans 24 ships
+    /// at 3).
     u32 wheel_drive_dip = 0;
 
     /// Reverses the wheel's force, for a driver that pushes right on the
@@ -259,31 +232,25 @@ struct Config {
     /// The wheel's own physical rotation range (a G-series PC wheel is ~900).
     u32 wheel_steer_degrees = 270;
 
-    /// Physical rotation at which the game reaches full lock: turning this many
-    /// degrees (total, so half each side of centre) drives the steering to its
-    /// stop. Lower is more sensitive. Clamped to 180..270.
+    /// Total physical rotation that reaches full lock, half each side of centre.
+    /// Lower is more sensitive. Clamped to 180..270.
     u32 wheel_lock_degrees = 240;
 
     /// Wheel travel about centre that reads as centre, in percent of its
     /// range. Most wheels want none.
     u32 wheel_steer_deadzone = 0;
 
-    /// Cabinet controls a wheel button can be bound to. Buttons 1..4 are the
-    /// arcade buttons, which is also where a driving cabinet's view-change / VR
-    /// buttons land (e.g. Daytona's VR1..VR4). Test/Service are the operator
-    /// coin-door buttons; Menu is the emulator overlay (F10), not a machine
-    /// input. Gear1..4 and GearNeutral are the positions of an H shifter.
-    /// Keep kCount last.
+    /// Cabinet controls a wheel button can be bound to. Buttons 1..4 include a
+    /// driving cabinet's VR view buttons; Menu is the emulator overlay; Gear1..4
+    /// and GearNeutral are H-shifter positions. Keep kCount last.
     enum class WheelRole : u32 {
         Start, Coin, Button1, Button2, Button3, Button4, GearUp, GearDown,
         Test, Service, Menu, Gear1, Gear2, Gear3, Gear4, GearNeutral, kCount
     };
     static constexpr u32 kWheelRoleCount = static_cast<u32>(WheelRole::kCount);
 
-    /// Which wheel button (index) drives each role, or -1 for unbound. Button
-    /// numbering differs between wheels, so these are set by the user in the GUI
-    /// ("press the button for X"); the defaults suit a Logitech G-series.
-    /// Test/Service/Menu default unbound.
+    /// Wheel button index per role, or -1 for unbound. The defaults suit a
+    /// Logitech G-series.
     std::array<s32, kWheelRoleCount> wheel_buttons = {
         6,   // Start
         7,   // Coin
@@ -408,12 +375,9 @@ struct Config {
 
     /// A gamepad layout: the bindings for both players.
     struct PadLayout {
-        /// The SDL_GamepadButton bound to each role, per player, or -1. The
-        /// defaults are SDL's positional layout: South 0, East 1, West 2,
-        /// North 3, Back 4, Start 6, LeftShoulder 9, RightShoulder 10, DpadUp 11,
-        /// DpadDown 12, DpadLeft 13, DpadRight 14. The shoulders doubling as
-        /// Button 3/4 lives in the input layer, and only while Button 3/4 keep
-        /// these defaults and no panel role binds the shoulders.
+        /// The SDL_GamepadButton bound to each role, per player, or -1: South 0,
+        /// East 1, West 2, North 3, Back 4, Start 6, LeftShoulder 9,
+        /// RightShoulder 10, DpadUp 11, DpadDown 12, DpadLeft 13, DpadRight 14.
         std::array<std::array<s32, kPadRoleCount>, 2> buttons = {{
             // B1  B2  B3  B4  Up  Dn  Lf  Rt  Start Coin GearUp GearDown
             {  0,  1,  2,  3, 11, 12, 13, 14,  6,   4,   10,    9 },
@@ -518,15 +482,12 @@ struct Config {
 
     // -- cabinet link (networking) -----------------------------------------
 
-    /// Link this cabinet to others over the LAN for linked titles (Sega Rally,
-    /// Daytona, ...). Off keeps the in-process loopback, so a lone cabinet boots
-    /// its network check and settles as node 1 of 1. The comms board is a ring:
-    /// each cabinet listens on its own address and sends to the next. The
-    /// master/slave role is still chosen in the game's own test menu.
+    /// Link this cabinet to others over the LAN. Off keeps the in-process
+    /// loopback, so a lone cabinet settles as node 1 of 1. The comms board is a
+    /// ring: each cabinet listens on its own address and sends to the next.
     bool link_enabled = false;
 
-    /// This cabinet's own listen address; blank IP binds every interface. The IP
-    /// is prefilled from the primary NIC on first run. Port 15112 is MAME's default.
+    /// This cabinet's listen address; a blank IP binds every interface.
     std::string link_local_ip;
     std::string link_subnet_mask;  ///< Informational; prefilled from the NIC.
     u32         link_port = 15112;
@@ -535,8 +496,8 @@ struct Config {
     std::string link_next_ip;
     u32         link_next_port = 15112;
 
-    /// This cabinet's 0-based position in the ring, for the operator's bookkeeping
-    /// and the status display; the board negotiates the real link id from frames.
+    /// This cabinet's 0-based ring position, for display only; the board
+    /// negotiates the real link id.
     u32 link_cabinet_index = 0;
 
     /// Model 3 link: how many frames late the other cabinets' updates are read.
@@ -572,9 +533,8 @@ struct Config {
     /// resolve_default_paths(). A runtime field only, for the picker to read.
     std::string artwork_dir;
 
-    /// Save states: per-game `<game>.<slot>.kstate`. Derived as
-    /// `<data dir>/states` by resolve_default_paths(); a runtime field only, not
-    /// persisted in the ini (a save state has no reason to be relocatable).
+    /// Save states, `<game>.<slot>.kstate`, in `<nvram_dir>/states`; a runtime
+    /// field only, not persisted.
     std::string states_dir;
 
     // -- library -----------------------------------------------------------
@@ -594,42 +554,31 @@ struct Config {
 /// The settings file in `directory`.
 [[nodiscard]] std::string config_file_in(const std::string& directory);
 
-/// Where the configuration is read from and written to when nothing says otherwise.
-///
-/// A file named keisho.ini in the working directory wins, which is what a build
-/// tree wants; otherwise the platform's preferences directory, which is what an
-/// installed copy wants. Returns the working-directory path only when that file
-/// exists, so a fresh install writes to the proper place.
+/// The default configuration path: keisho.ini in the working directory if it
+/// exists, otherwise the platform's preferences directory.
 [[nodiscard]] std::string default_config_path();
 
-/// Platform data directory for saves/screenshots: Linux $XDG_DATA_HOME or
+/// Platform data directory for saves and screenshots: Linux $XDG_DATA_HOME or
 /// ~/.local/share, macOS ~/Library/Application Support, Windows %APPDATA%, each
-/// with /keisho (Keisho on macOS and Windows). `config_in_cwd` returns "." instead, keeping a dev checkout
-/// self-contained like default_config_path().
+/// with /keisho (Keisho on macOS and Windows). `config_in_cwd` returns ".".
 [[nodiscard]] std::string data_directory(bool config_in_cwd);
 
-/// Artwork_dir goes beside the ini, in `config_dir/artwork`
+/// Fills empty path fields; artwork_dir goes in `config_dir/artwork`.
 void resolve_default_paths(Config* config, bool config_in_cwd,
                            const std::string& config_dir);
 
-/// Read `path` into `out`, leaving fields the file does not mention alone.
-///
-/// A line the parser does not understand is appended to `problems` and skipped
-/// rather than failing the load: a file written by a later version must not stop an
-/// earlier one from starting. Returns false only when the file exists but cannot be
-/// read; a missing file is success with nothing changed.
+/// Read `path` into `out`, leaving unmentioned fields alone. Unknown lines go to
+/// `problems` and are skipped, so a newer file still loads. False only when the
+/// file exists but cannot be read.
 [[nodiscard]] bool load_config(const std::string&        path,
                                Config*                   out,
                                std::vector<std::string>* problems);
 
-/// Write `config` to `path`, creating the directory if need be.
-///
-/// Every field is written with a comment, so the file doubles as the documentation
-/// for what can be set.
+/// Write `config` to `path`, with a comment per field, creating the directory
+/// if need be.
 [[nodiscard]] bool save_config(const std::string& path, const Config& config);
 
-/// Parse a log level name. Returns false on an unrecognised name, leaving `out`
-/// alone.
+/// Parse a log level name. False on an unrecognised name, leaving the output alone.
 [[nodiscard]] bool parse_log_level(const std::string& name, log::Level* out_level);
 
 }  // namespace sm2

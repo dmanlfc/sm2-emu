@@ -54,8 +54,6 @@ struct SoftPolyExtra {
     u32 direct_rgb = 0;  ///< RenderPolygon::direct_rgb
 };
 
-/// Views of everything one frame of the software path reads, so a snapshot can
-/// be drawn on another thread (see AsyncSoftRenderer).
 /// Fills rows of SoftFrameSources::below and above, band by band.
 class SoftRowComposer {
 public:
@@ -65,6 +63,8 @@ protected:
     ~SoftRowComposer() = default;
 };
 
+/// Views of everything one frame of the software path reads, so a snapshot can
+/// be drawn on another thread (see AsyncSoftRenderer).
 struct SoftFrameSources {
     std::span<const u16> palram;
     std::span<const u16> colorxlat;
@@ -143,12 +143,9 @@ private:
         [[nodiscard]] bool empty() const { return right < left || bottom < top; }
     };
 
-    // Threaded across horizontal scanline bands. Draw order is priority
-    // (first-writer-wins fill mask), so each worker walks the whole list in
-    // order but clips to its own band of rows; bands never share a row, so the
-    // per-row order is preserved and the output is bit-identical to serial. The
-    // `u32& pixels` argument lets each worker count its drawn pixels without a
-    // shared write, summed into m_pixels after the join.
+    // Threaded across scanline bands: each worker walks the whole list in order
+    // but clips to its own rows, so per-row draw order (first writer wins) is
+    // preserved. `pixels` is a per-worker count, summed after the join.
     void draw_polygon(const RenderPolygon& poly, const Rect& cliprect, u32& pixels);
 
     void render_triangle(const Rect& cliprect, const PolyVertex& v1, const PolyVertex& v2,

@@ -62,9 +62,7 @@ bool Audio::init(u32 sample_rate)
     spec.channels = static_cast<int>(kChannels);
     spec.freq     = static_cast<int>(sample_rate);
 
-    // Binding to the default playback device rather than naming one: SDL follows
-    // the system default afterwards, so plugging in headphones does the expected
-    // thing without the emulator being restarted.
+    // The default device, so SDL follows later changes of system default.
     // Opened in the device's own format so SDL resamples, not the system mixer.
     m_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr,
                                         nullptr, nullptr);
@@ -85,9 +83,8 @@ bool Audio::init(u32 sample_rate)
     m_dc_pole = 1.0f - 2.0f * 3.14159265f * kDcCornerHz / static_cast<float>(sample_rate);
     SDL_ResumeAudioStreamDevice(m_stream);
 
-    // Prime the queue with silence so it starts near the target depth instead of
-    // climbing from empty: the first real frames then sit on a cushion and a slow
-    // opening frame cannot underrun the device before the queue has filled.
+    // Prime the queue with silence near the target depth, so a slow first frame
+    // cannot underrun the device.
     const usize prime_frames =
         static_cast<usize>(kTargetQueuedMilliseconds) * sample_rate / 1000;
     const std::vector<s16> silence(prime_frames * kChannels, 0);
@@ -123,9 +120,8 @@ void Audio::submit(std::span<const s16> samples)
     }
 
     if (queued_milliseconds() > kMaxQueuedMilliseconds) {
-        // Producer outrunning the device (--no-throttle / fast-forward). Draining
-        // reads from the front, so this drops the oldest samples down to the
-        // target -- unlike SDL_ClearAudioStream, which would gap the whole buffer.
+        // Producer outrunning the device (fast-forward): drop the oldest samples
+        // down to the target rather than clearing the whole stream.
         const u64 keep_bytes =
             static_cast<u64>(kTargetQueuedMilliseconds) * m_sample_rate
             * sizeof(s16) * kChannels / 1000;
@@ -156,9 +152,8 @@ void Audio::submit(std::span<const s16> samples)
 
 void Audio::block_dc(std::span<const s16> samples)
 {
-    // Sound chips such as the SCSP can leave a DC offset in their digital
-    // output (its effects DSP truncates towards negative); the cabinet never
-    // passes it to the speakers. One-pole high-pass, per channel.
+    // Sound chips such as the SCSP can leave a DC offset that the cabinet never
+    // passes to the speakers. One-pole high-pass, per channel.
     m_filtered.resize(samples.size());
     for (usize i = 0; i < samples.size(); ++i) {
         const usize ch  = i % kChannels;

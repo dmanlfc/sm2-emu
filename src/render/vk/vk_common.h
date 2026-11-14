@@ -29,11 +29,7 @@ namespace sm2::render::vk {
 /// Human-readable form of a VkResult, for diagnostics.
 [[nodiscard]] const char* result_string(VkResult result);
 
-/// Log and return false when `expr` does not succeed.
-///
-/// Errors here are reported and propagated rather than aborting: a failed
-/// swapchain recreation is recoverable, and a device-lost on someone else's
-/// driver should produce a useful message, not a crash.
+/// Log and return false when `expr` does not succeed, rather than aborting.
 #define SM2_VK_TRY(expr)                                                    \
     do {                                                                    \
         const VkResult sm2_vk_result = (expr);                              \
@@ -54,30 +50,16 @@ namespace sm2::render::vk {
         }                                                                   \
     } while (0)
 
-// ---------------------------------------------------------------------------
-// The native frame
-// ---------------------------------------------------------------------------
-//
-// kNativeWidth/kNativeHeight/kDisplayAspect live in render/backend.h now (none
-// names a Vulkan type), aliased here as GpuStage already was, so existing
-// render/vk/ call sites need no change.
+// The native frame, from render/backend.h.
 using sm2::render::kDisplayAspect;
 using sm2::render::kNativeHeight;
 using sm2::render::kNativeWidth;
 
-/// Format of the native frame. UNORM rather than SRGB because the hardware's own
-/// gamma ramp has already been applied by the colour chain; an sRGB encode on top
-/// would wash it out. Genuinely Vulkan-typed, unlike the three constants above, so
-/// it stays here rather than moving to backend.h.
+/// Format of the native frame. UNORM, as the colour chain has already applied the
+/// hardware's gamma ramp; an sRGB encode would wash it out.
 constexpr VkFormat kNativeColourFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
-// ---------------------------------------------------------------------------
-// GPU stage timing
-// ---------------------------------------------------------------------------
-//
-// Aliased from render::, not redeclared: neither type names a Vulkan type, so
-// they live in the backend-neutral header (render/backend.h) and this is the
-// name every existing render/vk/ call site already used.
+// GPU stage timing, from render/backend.h.
 using GpuStage      = sm2::render::GpuStage;
 using GpuStageTime  = sm2::render::GpuStageTime;
 using GpuStageTimes = sm2::render::GpuStageTimes;
@@ -110,11 +92,8 @@ struct DeviceFunctions {
 // Small helpers
 // ---------------------------------------------------------------------------
 
-/// Record a layout transition using synchronization2.
-///
-/// Stage and access masks are supplied explicitly rather than derived from the
-/// layouts: the conservative derivation is easy to get subtly wrong, and every
-/// transition in this renderer has a known producer and consumer.
+/// Record a layout transition using synchronization2, with explicit stage and
+/// access masks.
 void record_image_barrier(VkCommandBuffer   cmd,
                           VkImage           image,
                           VkImageAspectFlags aspect,

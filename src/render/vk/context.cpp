@@ -164,8 +164,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
         SM2_DEBUG("vulkan: %s", message);
     }
 
-    // Returning VK_TRUE would abort the offending call, which is never what we
-    // want: the message is the useful part.
+    // VK_TRUE would abort the offending call.
     return VK_FALSE;
 }
 
@@ -221,8 +220,7 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
     if (config.enable_validation && !create_debug_messenger()) {
         SM2_WARN("continuing without the debug messenger");
     }
-    // Not on osd::Window: a surface is a Vulkan resource, not a window
-    // property, so creating it belongs with everything else this class owns.
+    // A surface is a Vulkan resource, so it is created here, not by osd::Window.
     if (!SDL_Vulkan_CreateSurface(window.handle(), m_instance, nullptr, &m_surface)) {
         SM2_ERROR("SDL_Vulkan_CreateSurface failed: %s", SDL_GetError());
         return false;
@@ -340,8 +338,6 @@ bool Context::create_instance(const ContextConfig& config)
         return false;
     }
 
-    // As with the surface above, this is a Vulkan-side question SDL happens to
-    // answer, not a property of the window itself.
     Uint32              extension_count = 0;
     const char* const*  extension_names = SDL_Vulkan_GetInstanceExtensions(&extension_count);
     if (extension_names == nullptr) {
@@ -358,9 +354,8 @@ bool Context::create_instance(const ContextConfig& config)
 
     VkInstanceCreateFlags create_flags = 0;
     if (has_extension(available, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME)) {
-        // Without this the loader hides drivers that implement only a portable
-        // subset, and vkEnumeratePhysicalDevices comes back empty on MoltenVK.
-        // Gated on the extension being advertised rather than on the platform.
+        // Without this the loader hides portability-subset drivers such as
+        // MoltenVK.
         extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
         create_flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         m_portability = true;
@@ -594,12 +589,8 @@ bool Context::select_physical_device(const ContextConfig& config)
              m_graphics_family,
              m_present_family);
 
-    // Gated on the graphics queue family's own timestampValidBits rather than
-    // just VkPhysicalDeviceLimits::timestampPeriod > 0: the period can be
-    // nonzero while the specific queue family reports zero valid bits, meaning
-    // that family cannot report timestamps even though some other queue on the
-    // device could. A device that cannot time itself must say so, not report
-    // zeros that look measured.
+    // Gated on the graphics queue family's own timestampValidBits: the device's
+    // timestampPeriod can be nonzero while this family has no valid bits.
     {
         u32 family_count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &family_count, nullptr);
@@ -679,8 +670,7 @@ bool Context::create_device()
 
     const std::vector<VkExtensionProperties> available = device_extensions(m_physical_device);
     if (has_extension(available, "VK_KHR_portability_subset")) {
-        // Required to be enabled when the device advertises it, MoltenVK being
-        // the case that matters here.
+        // Must be enabled when advertised (MoltenVK).
         extensions.push_back("VK_KHR_portability_subset");
     }
 
@@ -704,19 +694,14 @@ bool Context::create_device()
     features13.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
     features13.dynamicRendering = VK_TRUE;
     features13.synchronization2 = VK_TRUE;
-    // polygon.frag's demote. The 3D pass needs the discarded fragment to leave
-    // the stencil fill mask alone, which is how a stippled polygon lets what is
-    // behind it through. Required of any 1.3 implementation, but still has to be
-    // asked for.
+    // polygon.frag's demote: a discarded fragment must leave the stencil fill
+    // mask alone so a stippled polygon shows what is behind it. Core in 1.3,
+    // but must still be enabled.
     features13.shaderDemoteToHelperInvocation = VK_TRUE;
 
-    // Nothing exotic: the geometry pipeline runs on the CPU exactly as the
-    // hardware's did, so no geometry or tessellation stages are requested.
-    // samplerAnisotropy is optional -- enabled only when the device offers it,
-    // for the opt-in enhanced 3D texture filtering (a device without it still
-    // runs, just without that option). The decoded texture is an integer format
-    // filtered in-shader, so this is used to gate/scale the feature and derive
-    // its tap ceiling, not to bind a hardware anisotropic sampler.
+    // samplerAnisotropy is optional, for the opt-in enhanced 3D texture
+    // filtering. Textures are filtered in-shader, so it only gates the feature
+    // and sets its tap ceiling.
     VkPhysicalDeviceFeatures supported{};
     vkGetPhysicalDeviceFeatures(m_physical_device, &supported);
     m_anisotropy_enabled = supported.samplerAnisotropy == VK_TRUE;
@@ -804,9 +789,7 @@ bool Context::create_sync_resources()
 bool Context::create_query_pool()
 {
     if (!supports_gpu_timing()) {
-        // Not an error: benchmark reporting degrades to "unavailable" rather
-        // than failing the whole context, since the emulator must still run on
-        // a device that lacks timestamp support.
+        // Not an error: stage timing just reports "unavailable".
         return true;
     }
 
@@ -816,16 +799,10 @@ bool Context::create_query_pool()
     info.queryCount = kQueriesPerFrame * kFramesInFlight;
     SM2_VK_TRY(vkCreateQueryPool(m_device, &info, nullptr, &m_query_pool));
 
-    // Every query must be reset once before its first use, including before the
-    // first read of its availability bit -- vkCmdResetQueryPool is the only way
-    // to do that without VK_EXT_host_query_reset, which this renderer does not
-    // otherwise need. begin_frame() resets each slot's own range on every frame,
-    // but not before its *first* use: for the first kFramesInFlight frames,
-    // read_back_stage_times() would run against a range no reset had touched
-    // yet. Confirmed by Vulkan validation (VUID-vkGetQueryPoolResults-None-09401,
-    // "query not reset") before this fix. So the whole pool is reset once here,
-    // borrowing the first command buffer for a throwaway submission before any
-    // frame recording begins.
+    // Every query must be reset before its availability is first read, and
+    // begin_frame() reads a slot's results before resetting it. So reset the
+    // whole pool once here, with a throwaway submission on the first command
+    // buffer (no VK_EXT_host_query_reset).
     const VkCommandBuffer cmd = m_command_buffers[0];
     VkCommandBufferBeginInfo begin_info{};
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -903,9 +880,8 @@ bool Context::create_swapchain(VkSwapchainKHR old_swapchain)
         return false;
     }
 
-    // UNORM in preference to SRGB. The hardware's colour pipeline ends in a
-    // gamma table we apply ourselves; letting the swapchain add a
-    // linear-to-sRGB encode on top would wash the image out.
+    // UNORM in preference to SRGB: the renderer applies the hardware's gamma
+    // table itself, and an sRGB encode on top would wash the image out.
     VkSurfaceFormatKHR chosen = formats[0];
     for (const VkSurfaceFormatKHR& candidate : formats) {
         if ((candidate.format == VK_FORMAT_B8G8R8A8_UNORM
@@ -956,10 +932,8 @@ bool Context::create_swapchain(VkSwapchainKHR old_swapchain)
         SM2_WARN("the surface does not support TRANSFER_DST usage; offscreen "
                  "rendering will have to composite through a draw");
     }
-    // Nothing reads the swapchain back, so no TRANSFER_SRC is asked for. Frame
-    // capture takes the native 496x384 frame instead, which PresentPass owns and
-    // creates with that usage itself; that also means capture works on a surface
-    // that would not have allowed it.
+    // No TRANSFER_SRC: frame capture reads PresentPass's native-resolution
+    // image instead.
 
     VkSwapchainCreateInfoKHR create_info{};
     create_info.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -1090,12 +1064,8 @@ bool Context::begin_frame()
         return false;
     }
 
-    // Detect a drawable-size change directly rather than relying on the present
-    // result. MoltenVK does not reliably report VK_ERROR_OUT_OF_DATE_KHR /
-    // VK_SUBOPTIMAL_KHR when the window resizes (a fullscreen toggle on macOS is
-    // the case that bit us): the swapchain would keep its old extent and the
-    // frame present into the wrong size. Comparing the live drawable size to the
-    // swapchain extent catches it on every platform.
+    // Detect a drawable-size change directly: MoltenVK does not reliably report
+    // OUT_OF_DATE / SUBOPTIMAL on resize (e.g. a macOS fullscreen toggle).
     {
         u32 dw = 0;
         u32 dh = 0;
@@ -1148,10 +1118,8 @@ bool Context::begin_frame()
     const VkCommandBuffer command_buffer = m_command_buffers[m_frame_index];
     SM2_VK_TRY(vkResetCommandBuffer(command_buffer, 0));
 
-    // The fence wait above guarantees this slot's GPU work from kFramesInFlight
-    // frames ago has retired, so its query results (if any stage ran) are ready
-    // to read now -- the last point before vkCmdResetQueryPool below discards
-    // them.
+    // The fence wait above means this slot's queries are ready; read them
+    // before the reset below discards them.
     read_back_stage_times(m_frame_index);
 
     VkCommandBufferBeginInfo begin_info{};
@@ -1160,9 +1128,7 @@ bool Context::begin_frame()
     SM2_VK_TRY(vkBeginCommandBuffer(command_buffer, &begin_info));
 
     if (m_query_pool != VK_NULL_HANDLE) {
-        // Queries must be reset before first use and before every reuse, and
-        // only outside a render pass -- both satisfied here, right after the
-        // command buffer opens.
+        // Queries are reset before every use, outside a render pass.
         vkCmdResetQueryPool(command_buffer, m_query_pool,
                             m_frame_index * kQueriesPerFrame, kQueriesPerFrame);
     }
@@ -1253,12 +1219,9 @@ void Context::read_back_stage_times(u32 frame_index)
         return;
     }
 
-    // WITH_AVAILABILITY rather than WAIT: this slot's fence has already been
-    // waited on by the caller (begin_frame, just above), so the results are
-    // known ready, but a stage that never wrote its pair this frame (the decode
-    // dispatch, skipped when texture_generation did not change) leaves its two
-    // queries unwritten, and WAIT would hang forever on those rather than
-    // reporting "not available".
+    // WITH_AVAILABILITY rather than WAIT: a stage skipped this frame (such as
+    // an unchanged texture decode) leaves its queries unwritten, and WAIT would
+    // hang on them.
     struct Pair {
         u64 value;
         u64 available;
@@ -1278,9 +1241,7 @@ void Context::read_back_stage_times(u32 frame_index)
         const Pair&   begin = raw[stage_index * kQueriesPerStage + 0];
         const Pair&   end   = raw[stage_index * kQueriesPerStage + 1];
         if (begin.available == 0 || end.available == 0) {
-            // Either truly never written (a skipped stage this frame) or the
-            // driver has not finished writing it back yet; both cases mean
-            // "nothing to report" rather than "measured zero".
+            // Not written this frame: nothing to report, not a zero.
             out = GpuStageTime{};
             continue;
         }

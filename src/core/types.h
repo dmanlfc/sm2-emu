@@ -20,11 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 
-// Project-wide integer vocabulary.
-//
-// Emulation code lives and dies by exact widths, so everything is spelled with
-// an explicit size. Deliberately short names: a memory map or a CPU core reads
-// far better as `u32 addr` than `std::uint32_t addr`, and these appear on
+// Project-wide fixed-width integer names, kept short because they appear on
 // nearly every line of the hardware layer.
 
 namespace sm2 {
@@ -71,9 +67,8 @@ template <typename T>
 // ---------------------------------------------------------------------------
 // Float / integer reinterpretation
 // ---------------------------------------------------------------------------
-// Model 2 ships floats down a 24-bit wire by discarding the low 8 mantissa
-// bits, so the geometry code moves between float and its bit pattern
-// constantly. These mirror MAME's f2u/u2f; std::bit_cast keeps them portable.
+// Model 2 sends floats over a 24-bit bus by dropping the low 8 mantissa bits,
+// so geometry code often works on the bit pattern. These mirror MAME's f2u/u2f.
 
 [[nodiscard]] constexpr u32 f2u(float value) noexcept
 {
@@ -98,9 +93,7 @@ template <typename T>
 // ---------------------------------------------------------------------------
 // Alignment predicates
 // ---------------------------------------------------------------------------
-// The i960 permits unaligned accesses and splits them into byte operations, so
-// its load and store paths test alignment on every access. Named to match
-// MAME's macros, which the ported CPU cores use.
+// Named to match MAME's macros, which the ported CPU cores use.
 
 [[nodiscard]] constexpr bool word_aligned(u32 address) noexcept
 {

@@ -23,9 +23,8 @@ namespace {
 /// offset in shared[0x14..0x15] is added to. MAME hard-codes both.
 constexpr int kFrameStart = 0x2000;
 
-/// A ring frame carries an id byte followed by the payload, so one more than the
-/// frame size the host asked for. MAME's buffers are 0x1000 bytes, which caps
-/// how much of a nonsense frame size would be honoured.
+/// A ring frame is an id byte followed by the payload. MAME's 0x1000-byte
+/// buffers cap a nonsense frame size.
 constexpr int kMaxFrame = 0x1000;
 
 }  // namespace
@@ -49,9 +48,8 @@ bool M2Comm::transport_connected() const
 
 void M2Comm::reset()
 {
-    // MAME's device_reset clears only these three. The link state is
-    // constructor-initialised and survives a reset, which matters because the
-    // host resets the board by clearing CN rather than by resetting the machine.
+    // MAME's device_reset clears only these three; the host resets the board by
+    // clearing CN.
     m_zfg = 0;
     m_cn  = 0;
     m_fg  = 0;
@@ -123,8 +121,7 @@ void M2Comm::cn_write(u8 value)
 u8 M2Comm::fg_read()
 {
     read_fg();
-    // Bit 7 is the Z80's flip gate inverted, so it reads as one while that gate
-    // is clear. MAME writes this as (~m_zfg << 7), which is the same thing.
+    // Bit 7 is the Z80's flip gate inverted.
     return static_cast<u8>(m_fg | ((m_zfg & 1) != 0 ? 0x00 : 0x80) | 0x7e);
 }
 
@@ -185,8 +182,7 @@ void M2Comm::tick()
         set_shared(2, 0xff);
         set_shared(3, 0xff);
 
-        // MAME opens its two sockets here. The loopback needs no opening, and
-        // MAME's guard on both being present is therefore always satisfied.
+        // MAME opens its two sockets here; the transport needs no opening.
         m_zfg ^= 0x01;
 
         int recv = read_frame(data_size);
@@ -284,8 +280,8 @@ void M2Comm::tick()
 
 void M2Comm::read_fg()
 {
-    // Two reads after a frame arrived report the gate unchanged, which is how the
-    // host is given time to consume what is already there.
+    // Two reads after a frame arrived report the gate unchanged, giving the host
+    // time to consume it.
     if (m_zfg_delay > 0x00) {
         m_zfg_delay--;
         return;

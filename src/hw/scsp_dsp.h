@@ -19,14 +19,9 @@ class Archive;
 
 namespace sm2::hw {
 
-/// The 16-bit memory the SCSP addresses in its own right.
-///
-/// On Model 2 this is the same 512 KB the sound 68000 uses as work RAM: the two
-/// share one bus, which is how the 68000 loads PCM data for the SCSP to play and
-/// how the DSP's delay line ends up in the middle of the program's memory.
-///
-/// Addresses are byte addresses in a 20-bit space, as MAME's
-/// device_rom_interface<20, 1, 0, ENDIANNESS_BIG> presents them.
+/// The 16-bit memory the SCSP addresses, shared with the sound 68000's work
+/// RAM (so the DSP's delay line sits in program memory). Byte addresses in a
+/// 20-bit space, as MAME's device_rom_interface<20, 1, 0, ENDIANNESS_BIG>.
 class ScspMemory {
 public:
     virtual ~ScspMemory() = default;

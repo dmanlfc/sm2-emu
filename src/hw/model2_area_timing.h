@@ -32,9 +32,7 @@
 
 namespace sm2::hw {
 
-/// CPU cycles per programmed wait state, fitted to hardware captures: attract
-/// scenes that load from data ROM (Dynamite Cop, Motor Raid) then keep pace
-/// with the real board.
+/// CPU cycles per programmed wait state, fitted to hardware captures.
 constexpr s32 kCyclesPerWait = 3;
 
 /// Extra cycles one data access to address costs, given the 0x38-byte register

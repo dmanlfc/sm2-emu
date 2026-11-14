@@ -46,25 +46,17 @@ namespace sm2::hw {
 //
 // Derived from MAME's model2o_state in src/mame/sega/model2.cpp (BSD-3-Clause,
 // copyright-holders R. Belmont, Olivier Galibert, ElSemi, Angelo Salese,
-// Matthew Daniels). The address decode mirrors model2o_mem -- which is
-// model2_tgp_mem plus four overrides -- region for region so the two can be
-// compared directly.
+// Matthew Daniels). The address decode mirrors model2o_mem region for region.
 //
-// The same i960 main CPU, MB86234 TGP coprocessor, geometrizer, System 24 tilemap
-// chip and video timing as Model 2A: MAME's model2o_state derives from
-// model2_tgp_state exactly as model2a_state does, and shares its coprocessor
-// wiring verbatim, so hw::CoproTgp is reused here unchanged.
+// The CPU, TGP coprocessor, geometrizer, tilemap chip and video timing are
+// Model 2A's, so hw::CoproTgp is reused unchanged. The differences:
 //
-// Three things differ, and all three are on the periphery:
-//
-//   * Scratch RAM is 128 KB, not 256 KB, and the second 128 KB of that window is
-//     a mirror of the program ROM at offset 0x20000.
-//   * There is no 315-5649 on the i960's bus. Inputs arrive through a 2K
-//     dual-port RAM (hw::Mb8421) filled in by a whole separate computer, the
-//     Model 1 I/O board (hw::Model1io), which runs its own Z80 program.
-//   * The sound board is the Model 1 one -- 68000 + YM3438 + two MultiPCMs --
-//     rather than the 68000/SCSP board the CRX family uses. It is not emulated;
-//     see the note on m_uart below.
+//   * Scratch RAM is 128 KB, not 256 KB; the second 128 KB of the window
+//     mirrors the program ROM at offset 0x20000.
+//   * There is no 315-5649. Inputs arrive through a dual-port RAM (hw::Mb8421)
+//     filled in by the Model 1 I/O board's own Z80 (hw::Model1io).
+//   * The sound board is the Model 1 one (68000 + YM3438 + two MultiPCMs)
+//     rather than the CRX family's 68000/SCSP board.
 // ===========================================================================
 
 class Model2Original final : public cpu::Bus, public Model2MachineBase {
@@ -128,10 +120,8 @@ public:
     [[nodiscard]] Model1io& ioboard() { return m_ioboard; }
     [[nodiscard]] const Model1io& ioboard() const { return m_ioboard; }
 
-    /// The boot-test report's view of whichever I/O board this title fits, so the
-    /// report does not have to know which one it is. Virtua Cop's is a different
-    /// board with a different CPU; everything else on this hardware uses the
-    /// plain one.
+    /// The boot-test report's view of whichever I/O board this title fits.
+    /// Virtua Cop's is a different board; everything else uses the plain one.
     struct IoBoardReport {
         const char* kind    = "Model 1 I/O";
         bool        present = false;
@@ -297,7 +287,7 @@ private:
     void note_video_write(const Window& window, u32 width);
     [[nodiscard]] Window resolve(u32 address);
     /// Main program ROM and work RAM without building a Window; nullptr for
-    /// anything else, which then goes through resolve() as before.
+    /// anything else, which then goes through resolve().
     [[nodiscard]] const u8* hot_read(u32 address, u32 width) const;
     /// Same for writes, work RAM only.
     [[nodiscard]] u8* hot_write(u32 address, u32 width);
@@ -343,16 +333,12 @@ private:
     CoproTgp        m_copro;
     Geometrizer     m_geometry;
 
-    /// The I/O board and the dual-port RAM between it and the i960. Together
-    /// these replace the 315-5649 the CRX boards put on the i960's own bus: the
-    /// program never touches a switch directly, it reads whatever the board's
-    /// Z80 last left in the shared RAM.
+    /// The I/O board and the dual-port RAM between it and the i960, in place of
+    /// the CRX boards' 315-5649: the program reads what the Z80 last left there.
     Model1io m_ioboard;
 
-    /// Virtua Cop fits the advanced board instead. Both are constructed and
-    /// only the one the title declares is wired and stepped; each is a Z80
-    /// and a few kilobytes, so keeping the idle one costs nothing and avoids
-    /// an indirection on the hot interleave path.
+    /// Virtua Cop fits the advanced board instead. Both are constructed but only
+    /// the declared one is wired and stepped, avoiding an indirection on the hot path.
     Model1io2 m_ioboard2;
     bool      m_uses_advanced_io = false;
     Mb8421   m_dpram;
@@ -361,18 +347,9 @@ private:
     /// and a linked title will not leave its network check without one.
     M2Comm   m_comm;
 
-    /// The uPD71051 that carries sound commands off the board, and the board at
-    /// the other end of it.
-    ///
-    /// The M1 audio board -- a 68000 with a YM3438 and two MultiPCMs, MAME's
-    /// SEGAM1AUDIO -- is a different board from the 68000/SCSP one the CRX family
-    /// uses and shares nothing with it, which is why hw::Model2Sound does not
-    /// apply here.
-    ///
-    /// The two are joined by exactly two wires: this UART's transmitter into the
-    /// sound board's receiver, and its transmitter back into this one's receiver.
-    /// The handshake is not optional -- the program enables the transmitter,
-    /// unmasks the sound interrupt and waits for TxRDY before it will proceed.
+    /// The uPD71051 that carries sound commands off the board, and the M1 audio
+    /// board (MAME's SEGAM1AUDIO) at the other end; hw::Model2Sound does not apply.
+    /// The handshake is required: the program waits for TxRDY before proceeding.
     I8251   m_uart;
     M1Audio m_m1audio;
 
@@ -443,9 +420,8 @@ private:
     /// Daytona has one; nothing consumes it.
     u8   m_drive_board_latch = 0;
 
-    /// Selected gear position, held between polls so an idle shifter keeps the
-    /// last gear rather than returning an illegal code (MAME's daytona_gearbox_r).
-    /// Mutable because gearbox_in1() is a read that must remember the last gear.
+    /// Selected gear, held so an idle shifter keeps the last gear rather than an
+    /// illegal code (MAME's daytona_gearbox_r). Mutable for gearbox_in1().
     mutable u8 m_gear_selected = 0;
     bool m_palette_dirty     = true;
 
@@ -482,9 +458,8 @@ private:
     std::string m_nvram_directory;
 
     // -- coprocessor scheduling --------------------------------------------
-    // Same MB86234 at the same 50 MHz as Model 2A: three coprocessor clocks per
-    // instruction against the host's 25 MHz means two instructions per three host
-    // cycles, and the debt is kept in thirds so the ratio is exact.
+    // As Model 2A: two coprocessor instructions per three host cycles, with the
+    // debt kept in thirds so the ratio is exact.
     u32 m_copro_debt = 0;
     static constexpr s32 kCoproSyncLimit  = 4096;
     bool m_in_copro_sync = false;

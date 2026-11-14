@@ -49,11 +49,8 @@ struct LoadOptions {
 /// Reads a zip archive and assembles the ROM regions for whichever game it
 /// holds.
 ///
-/// Games are identified by the CRC32 of their contents rather than by the
-/// archive's filename. That makes merged sets work: an archive holding several
-/// revisions resolves to whichever one it can satisfy completely, and a set
-/// renamed by the user still loads. A file that fails to match is a precise
-/// error naming the chip and the CRC that was expected.
+/// Games are identified by the CRC32s of their contents, not the archive's
+/// name, so merged and renamed sets work.
 class RomLoader {
 public:
     /// Assemble the ROMs in `archive_path`.
@@ -80,11 +77,8 @@ public:
                                           const std::string&  archive_path,
                                           const std::string&  clone_name);
 
-    /// Assemble one region from already-extracted file contents.
-    ///
-    /// Exposed so the interleaving can be tested directly, without a zip: it is
-    /// the part most likely to be subtly wrong, and getting it wrong produces
-    /// plausible-looking but scrambled data.
+    /// Assemble one region from already-extracted file contents. Exposed so the
+    /// interleaving can be tested without a zip.
     [[nodiscard]] static std::optional<std::vector<u8>> assemble_region(
         const RegionSpec&                         region,
         const std::vector<std::vector<u8>>&       file_contents);
@@ -93,12 +87,8 @@ public:
     [[nodiscard]] static usize computed_region_size(const RegionSpec&         region,
                                                    const std::vector<usize>& file_sizes);
 
-    /// Write every assembled region to `directory` as a raw binary file.
-    ///
-    /// For cross-checking against MAME, whose debugger can dump the equivalent
-    /// region. An interleaving mistake produces data of exactly the right size,
-    /// so comparing bytes against a known-good reference is the only way to be
-    /// certain the layout is right.
+    /// Write every assembled region to `directory` as a raw binary file, for
+    /// comparison with a region dumped from MAME's debugger.
     [[nodiscard]] static bool dump_regions(const RomSet&      roms,
                                            const std::string& directory);
 };

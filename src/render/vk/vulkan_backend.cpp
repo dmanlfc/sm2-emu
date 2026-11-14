@@ -49,9 +49,7 @@ bool VulkanBackend::init(osd::Window& window, const BackendConfig& config)
         return false;
     }
 
-    // Clamp to what the device can actually allocate. maxImageDimension2D bounds
-    // a 2D image's width and height; N*496 or N*384 beyond it would fail image
-    // creation, so reduce N to the largest value that fits.
+    // Reduce N until N*496 by N*384 fits maxImageDimension2D.
     u32 max_dimension = m_context.device_properties().limits.maxImageDimension2D;
     if (const char* env = std::getenv("SM2_TEST_MAX_IMAGE_DIM")) {  // test-only override
         max_dimension = static_cast<u32>(std::strtoul(env, nullptr, 10));
@@ -94,9 +92,7 @@ bool VulkanBackend::init(osd::Window& window, const BackendConfig& config)
 
 void VulkanBackend::shutdown()
 {
-    // Nothing may be destroyed while a submitted command buffer still refers
-    // to it; the context itself waits on shutdown too, but the passes below
-    // are torn down first and cannot rely on that happening before they run.
+    // The passes are torn down before the context waits, so wait here first.
     m_model3_frame.wait();
     m_context.wait_idle();
 
@@ -174,25 +170,21 @@ void VulkanBackend::submit_polygons(const hw::Model2MachineBase* machine,
 
 void VulkanBackend::render_polygons()
 {
-    // The 3D draws inside the native-frame scope (composite_native_frame); all
-    // that remains here is the fill-mask stencil transition, which cannot be
-    // recorded inside a rendering scope.
+    // The 3D draws in composite_native_frame(); only the stencil transition,
+    // which must be outside a rendering scope, happens here.
     m_polygons.prepare_stencil();
 }
 
 void VulkanBackend::composite_native_frame(u32 background_rgba, bool skip_3d)
 {
-    // One native-frame scope: below layers, the 3D straight onto them, then the
-    // above layers, with no colour image stored and re-sampled between them. The
-    // stencil is attached even when skip_3d draws no 3D, because the tilemap
-    // pipelines declare the scope's stencil format (dynamic rendering's
-    // format-match rule, see TilemapPass::create_pipeline).
+    // One scope: below layers, the 3D straight onto them, then the above layers.
+    // The stencil is attached even with skip_3d, since the tilemap pipelines
+    // declare its format.
     const VkRenderingAttachmentInfo stencil = m_polygons.stencil_attachment();
     m_tilemaps.record_below(m_native_view, background_rgba, &stencil,
                             m_polygons.stencil_has_depth());
-    // Render test mode cuts the DSP out: the framebuffer bank the host has been
-    // drawing into is shown instead of the 3D pass, and has already been composed
-    // into the layers below by the caller.
+    // In render test mode the caller has already composed the framebuffer bank
+    // into the layers below in place of the 3D.
     if (!skip_3d) {
         m_polygons.draw_polygons();
     }
@@ -270,8 +262,7 @@ void VulkanBackend::blit_to_swapchain()
 
 void VulkanBackend::set_present_options(const PresentOptions& options)
 {
-    // Present-only state; PresentPass reads it at record() time. No target is
-    // reallocated, so this is safe to call between frames.
+    // Present-only state, read at record() time; safe between frames.
     m_present_options = options;
     m_present.set_options(options);
 }
@@ -309,9 +300,7 @@ u32 VulkanBackend::model3_aniso_taps() const
 
 u32 VulkanBackend::effective_texture_quality() const
 {
-    // Faithful is a single tap (0); anisotropic clamps the requested ceiling to
-    // what the device reports, so a config value beyond the GPU max is honoured
-    // as "as much as this GPU allows" rather than refused.
+    // Faithful is a single tap (0); anisotropic is clamped to the device maximum.
     if (m_enhancement_options.texture_filter != TextureFilter::Anisotropic) {
         return 0;
     }
@@ -331,15 +320,10 @@ void VulkanBackend::draw_overlay(bool active)
     const VkCommandBuffer cmd = m_context.cmd();
 
     if (!active) {
-        // Still nothing to submit -- ImGui::Render() already ran (via
-        // gui.end_frame(), called by the caller before this), so there is no
-        // draw data this frame needs, but no command buffer work either.
         return;
     }
 
-    // Open a dynamic rendering scope on the swapchain for ImGui, loading its
-    // existing contents rather than clearing: this draws over the frame
-    // blit_to_swapchain() already presented.
+    // Load rather than clear: ImGui draws over the frame blit_to_swapchain() wrote.
     VkRenderingAttachmentInfo colour_att{};
     colour_att.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     colour_att.imageView   = m_context.swapchain_view();
@@ -396,16 +380,8 @@ GpuStageTimes VulkanBackend::read_stage_times()
 // ---------------------------------------------------------------------------
 // ImGui's Vulkan renderer backend
 // ---------------------------------------------------------------------------
-// Ported unchanged from what osd::Gui::init/shutdown/render used to do
-// directly; only the ownership moved. See gui.h's comment on why: which GPU
-// API draws ImGui's widgets is a render backend's concern, not the widget
-// code's.
-//
-// `gui` itself is unused: what these calls actually need is ImGui's global
-// context, which by the caller's contract already exists (init_overlay()) or
-// still exists (shutdown_overlay()) by the time these run. The parameter is
-// still part of the interface so the ordering requirement is visible at every
-// call site rather than only in a comment.
+// `gui` is unused: these need ImGui's global context, which the caller
+// guarantees exists. The parameter makes that ordering visible at call sites.
 
 bool VulkanBackend::init_overlay(osd::Gui& /*gui*/)
 {

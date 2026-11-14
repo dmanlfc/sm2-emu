@@ -15,10 +15,7 @@
 // that licence. See LICENSE and NOTICE.
 //
 // Draws the emulated 2D output into the native frame. GL analogue of
-// render::vk::TilemapPass -- see that class's own doc comment for the
-// hardware reasoning (why two surfaces, why native resolution, why the
-// compute path exists at all); nothing about the algorithm differs here,
-// only the GL entry points that carry it out.
+// render::vk::TilemapPass, whose doc comment explains the design.
 #pragma once
 
 #include "render/panorama.h"
@@ -60,14 +57,11 @@ public:
     void set_hud_bands(const std::array<u32, 4>& bands) { m_hud_bands = bands; }
     void shutdown();
 
-    /// As render::vk::TilemapPass::compute(): dispatch the compose shader
-    /// against tile RAM, character RAM and the pen table, refreshing this
-    /// pass's own copies first if their generation counters changed.
+    /// Dispatch the compose shader against tile RAM, character RAM and the pen
+    /// table, refreshing this pass's copies first if their generations changed.
     void compute(const hw::Model2MachineBase& machine, const hw::Model2Video& video);
 
-    /// As render::vk::TilemapPass::upload(): the CPU-composited path, for
-    /// when compute() does not apply (render test mode, or a --soft-render
-    /// comparison capture).
+    /// The CPU-composited path, for when compute() does not apply.
     void upload(std::span<const u32> below, std::span<const u32> above);
 
     /// Begin drawing into the currently bound framebuffer: resolve the below
@@ -94,12 +88,7 @@ private:
     u32 m_below_texture = 0;
     u32 m_above_texture = 0;
 
-    // One program, not two: the Vulkan path bakes blend-enable into the
-    // pipeline object and so needs a pipeline per state even though the
-    // shader is identical (render::vk::TilemapPass::create_pipelines()'s own
-    // create_pipeline(bool blend, ...) confirms this directly). GL's blend
-    // state is a separate draw-time call (Enable(GL_BLEND)/BlendFunc), not
-    // part of the program, so one compile serves both draws here.
+    // One program serves both draws; GL sets blend state at draw time.
     u32 m_program  = 0;
     u32 m_uniform_block_index = 0;
 

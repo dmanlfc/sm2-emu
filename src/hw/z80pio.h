@@ -5,17 +5,11 @@
 // Derived from MAME's src/devices/machine/z80pio.{h,cpp} (BSD-3-Clause,
 // copyright-holder Curt Coder).
 //
-// Here for the TMPZ84C015 on Virtua Cop's I/O board, where the two ports read
-// the board's dipswitch banks. What that firmware asks of the PIO was measured
-// (tools/mame/iotap.lua): it puts both ports into bit-control mode with every
-// line an input, writes an interrupt control word with the mask-follows bit and
-// a zero mask, writes an interrupt vector, and then only ever reads the two data
-// registers. Nothing drives a handshake and no interrupt is ever enabled.
-//
-// So this covers all four modes' data paths, because they are a few lines each,
-// and models the interrupt logic only as far as "the enable is off, so nothing
-// is requested". The ARDY/BRDY handshake lines and the bit-control match logic
-// that would raise an interrupt are not modelled; anything reaching them says so.
+// Here for the TMPZ84C015 on Virtua Cop's I/O board, whose firmware sets both
+// ports to bit-control inputs, leaves interrupts disabled and only reads the
+// dipswitch banks. All four modes' data paths are covered; the ARDY/BRDY
+// handshake and bit-control interrupt logic are not modelled, and anything
+// reaching them says so.
 #pragma once
 
 #include "core/types.h"
@@ -54,14 +48,12 @@ public:
         if (port < kPorts) m_port[port].output_cb = std::move(handler);
     }
 
-    /// The TMPZ84C015's "alternate" register layout, which is what its internal
-    /// I/O map uses: bit 1 of the offset selects the port and bit 0 selects the
-    /// control register over the data register.
+    /// The TMPZ84C015's "alternate" register layout: offset bit 1 selects the
+    /// port, bit 0 the control register over the data register.
     [[nodiscard]] u8 read_alt(u32 offset);
     void             write_alt(u32 offset, u8 value);
 
-    /// Never asserted here, because the firmware leaves both enables clear. Kept
-    /// so the daisy chain has one shape for every peripheral on it.
+    /// Never asserted: the firmware leaves both enables clear.
     [[nodiscard]] bool interrupt_pending() const { return false; }
 
     /// Save/restore both ports' register state. The port callbacks are excluded.

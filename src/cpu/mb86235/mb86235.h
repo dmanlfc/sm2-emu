@@ -25,19 +25,9 @@ class Archive;
 
 namespace sm2::cpu::mb86235 {
 
-// ============================================================================
-// Bus — the address spaces and FIFOs visible to the MB86235
-// ============================================================================
-//
-// The MB86235 sees four spaces in MAME. Two of them (the A-bus and B-bus
-// internal RAMs, 0x400 words each) are on-chip and are owned by the core
-// itself, so they are absent here. This interface covers only what the host
-// board supplies:
-//
-//   AS_PROGRAM  64-bit instruction words, 12-bit word address (4096 entries)
-//   AS_DATA     the external bus, 32-bit words, 24-bit word address
-//
-// plus the two host FIFOs, which MAME wires as devices rather than as memory.
+// What the host board supplies to the MB86235: program memory, the external
+// bus and the two host FIFOs. The A-bus and B-bus RAMs are on-chip and owned by
+// the core.
 class Bus {
 public:
     virtual ~Bus() = default;
@@ -59,9 +49,8 @@ public:
     /// True when the core cannot push another result.
     [[nodiscard]] virtual bool fifo_out_full() const = 0;
 
-    /// The other two halves of the same picture. The MB86235 can branch on all
-    /// four FIFO conditions (IFE/IFF/OFE/OFF), so all four have to be answerable
-    /// or a microcode wait loop on one of them would never terminate.
+    /// The core can branch on all four FIFO conditions (IFE/IFF/OFE/OFF), so a
+    /// wait loop on any of them must be answerable.
     [[nodiscard]] virtual bool fifo_in_full() const = 0;
     [[nodiscard]] virtual bool fifo_out_empty() const = 0;
 
@@ -75,10 +64,6 @@ public:
     virtual void fifo_in_clear() = 0;
     virtual void fifo_out_clear() = 0;
 };
-
-// ============================================================================
-// MB86235 — the CPU core
-// ============================================================================
 
 class MB86235 {
 public:
@@ -114,9 +99,7 @@ public:
 
     [[nodiscard]] u32 pc() const { return m_pc; }
     [[nodiscard]] u32 ppc() const { return m_ppc; }
-    /// The status word as software sees it. The arithmetic condition flags are
-    /// held in the Flags struct rather than in ST, so they are folded back in
-    /// here; the signature and meaning are unchanged.
+    /// The status word as software sees it, with the Flags folded back in.
     [[nodiscard]] u32 st() const { return pack_st(); }
     [[nodiscard]] u32 mod() const { return m_mod; }
     [[nodiscard]] u32 sp() const { return m_sp; }
@@ -127,9 +110,7 @@ public:
     [[nodiscard]] u32 ar(int index) const { return m_ar[index & 7]; }
     [[nodiscard]] u64 instructions() const { return m_instruction_count; }
 
-    /// True once the core hit an opcode this port does not implement. The host
-    /// can surface this rather than letting it pass silently, which is how the
-    /// other cores in this project report the same condition.
+    /// True once the core hit an opcode this port does not implement.
     [[nodiscard]] bool faulted() const { return m_faulted; }
     [[nodiscard]] const std::string& fault_message() const { return m_fault_message; }
 
@@ -217,13 +198,9 @@ private:
 
     FifoState m_fifo_state{};
 
-    /// A result that could not be pushed because the output FIFO was full.
-    ///
-    /// MAME's FIFO device keeps exactly one such slot and halts the source until
-    /// the FIFO drains. The Bus here forbids a push while full, so the slot lives
-    /// in the core: run() retries it before the next instruction. Stalling
-    /// instead would be wrong, because a re-run would repeat the address-register
-    /// side effects the transfer's read phase has already applied.
+    /// A result that could not be pushed because the output FIFO was full, as
+    /// MAME's one-slot FIFO keeps; run() retries it before the next instruction.
+    /// Stalling instead would repeat the transfer's address-register side effects.
     bool m_fifo_out_pending       = false;
     u32  m_fifo_out_pending_value = 0;
 
@@ -307,8 +284,7 @@ private:
     /// Pack the flag struct into the ST layout MAME exposes.
     [[nodiscard]] u32 pack_st() const;
 
-    /// The inverse: split an ST written by software back out into the flag
-    /// struct, so the two representations cannot drift apart.
+    /// The inverse: split an ST written by software back into the flags.
     void unpack_st(u32 value);
 };
 

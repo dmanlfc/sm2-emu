@@ -67,10 +67,8 @@ public:
 	// Clear audio buffer
 	void clear();
 
-	// Save/restore the decoder's mid-stream DSP state. The base ROM pointer and
-	// the bit-getter function pointer are excluded (re-established at
-	// construction). The static lookup tables and the computed m_cos_cache are
-	// not per-instance state; m_cos_cache is carried anyway for simplicity.
+	// Save/restore the decoder's mid-stream state; the ROM pointer and bit getter
+	// are re-established at construction.
 	void serialize(sm2::Archive& ar);
 
 private:

@@ -109,10 +109,8 @@ u32 FramePacer::wait()
     }
 
     if (now < m_next_ns) {
-        // Precise rather than the plain delay: SDL sleeps for the bulk of the wait
-        // and spins out the last fraction, which a millisecond-granularity sleep
-        // cannot do and which at 17.384 ms a frame is the difference between the
-        // right rate and a visibly wrong one.
+        // SDL sleeps for the bulk of the wait and spins out the last fraction;
+        // a millisecond-granularity sleep would visibly skew the rate.
         SDL_DelayPrecise(m_next_ns - now);
     }
 

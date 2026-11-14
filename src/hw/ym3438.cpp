@@ -93,10 +93,9 @@ void Ym3438::ymfm_set_timer(u32 tnum, s32 duration_in_clocks)
         m_timer_running[tnum] = false;
         return;
     }
-    // ymfm counts in input clocks; time here is counted in FM samples, which is
-    // the granularity the chip actually advances at. A duration that rounds to
-    // nothing still has to take a sample, or a timer with a zero period would
-    // fire in a loop without time moving.
+    // ymfm counts in input clocks; time here is in FM samples. A duration that
+    // rounds to nothing still takes a sample, or a zero-period timer would fire
+    // in a loop without time moving.
     const u64 samples     = static_cast<u64>(duration_in_clocks) / kClocksPerSample;
     m_timer_deadline[tnum] = m_samples_run + std::max<u64>(1, samples);
     m_timer_running[tnum]  = true;
@@ -104,9 +103,8 @@ void Ym3438::ymfm_set_timer(u32 tnum, s32 duration_in_clocks)
 
 void Ym3438::ymfm_update_irq(bool asserted)
 {
-    // Recorded, not delivered. MAME's segam1audio binds no irq_handler for this
-    // chip, so its IRQ pin goes nowhere on this board and the sound driver polls
-    // the status register instead.
+    // Recorded, not delivered: the IRQ pin is unconnected on this board and the
+    // sound driver polls the status register.
     ++m_stats.irq_changes;
     m_stats.irq_asserted = asserted;
 }
@@ -139,9 +137,7 @@ void Ym3438::run_one_sample()
                 ++m_stats.timer_b_expiries;
             }
             m_timer_running[tnum] = false;
-            // m_engine is ymfm_interface's own back-pointer, set by the engine at
-            // construction. Same route MAME's wrapper takes from its timer
-            // callback.
+            // m_engine is ymfm_interface's back-pointer, set by the engine.
             m_engine->engine_timer_expired(tnum);
         }
     }
@@ -150,9 +146,8 @@ void Ym3438::run_one_sample()
 void Ym3438::generate(s32* accum, u32 frames, s32 gain_percent)
 {
     for (u32 frame = 0; frame < frames; ++frame) {
-        // Interpolated between the two chip samples the current output frame
-        // falls between. The chip's own output is already inside 16 bits, so
-        // unlike the MultiPCMs there is nothing to clamp before the gain.
+        // Interpolated between the two chip samples either side of this output
+        // frame. The output is already within 16 bits, so nothing to clamp.
         const s32 left =
             m_prev[0]
             + static_cast<s32>((static_cast<s64>(m_next[0] - m_prev[0]) * m_position)
@@ -168,9 +163,8 @@ void Ym3438::generate(s32* accum, u32 frames, s32 gain_percent)
         m_stats.peak_output =
             std::max({m_stats.peak_output, std::abs(left), std::abs(right)});
 
-        // Advance by one output frame, which is m_step / m_output_rate of a chip
-        // sample. The chip's rate is the higher of the two, so this consumes one
-        // or two samples per frame.
+        // Advance by one output frame (m_step / m_output_rate of a chip sample),
+        // consuming one or two chip samples.
         m_position += m_step;
         while (m_position >= m_output_rate) {
             m_position -= m_output_rate;

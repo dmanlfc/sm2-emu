@@ -158,7 +158,7 @@ void Mpc10x::reset()
         put32le(m_regs, 0x70, 0x00CD0000);  // output driver control
         put32le(m_regs, 0xA8, 0x0010FF00);  // processor interface config. 1
         put32le(m_regs, 0xAC, 0x060C000C);  // processor interface config. 2
-        put32le(m_regs, 0xB8, 0x04000000);  // TODO: check the manual
+        put32le(m_regs, 0xB8, 0x04000000);
         put32le(m_regs, 0xC0, 0x00000100);  // error enabling 1
         put32le(m_regs, 0xE0, 0x00420FFF);  // emulation support configuration 1
         put32le(m_regs, 0xE8, 0x00200000);  // emulation support configuration 2

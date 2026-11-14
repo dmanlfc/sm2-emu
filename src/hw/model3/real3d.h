@@ -52,9 +52,9 @@ public:
 
     Real3D();
 
-    /// `vrom`: 64 MB of host-native words, owned by the caller.
     void attach(cpu::ppc::PpcBus* bus, IrqController* irq, u32 dma_irq_bit);
     void set_stepping(int step);
+    /// `vrom`: 64 MB of host-native words, owned by the caller.
     void set_vrom(std::span<const u32> vrom) { m_vrom = vrom; }
     [[nodiscard]] int stepping() const { return m_step; }
 

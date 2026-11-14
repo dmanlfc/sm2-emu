@@ -14,25 +14,21 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-//
 // Cabinet outputs: lamps and drive-board bytes, published for MAMEHooker,
 // DOFLinx and similar tools in MAME's two formats.
 //
 // Network: a TCP server (port 8000 by default) sending "name = value\r" lines,
 // with "mame_start = <set>", "mame_stop = 1" and "pause = 0/1".
 //
-// Windows: a hidden "MAMEOutput" window answering MAME's registered window
-// messages, so clients that speak the Windows protocol work unchanged.
+// Windows: a hidden "MAMEOutput" window answering MAME's registered messages.
 //
 // Every game publishes lamp0..lamp5 (MAME's names for the lamp latch's bits
 // 2-7), RawLamps and RawDrive, plus LampStart/LampView1-4/LampLeader where the
 // bit meanings are known. Values are sent only when they change.
 //
-// A title can add outputs of its own in games.xml (rom::OutputSpec): state the
-// cabinet never latched but a peripheral wants, read from the program's work
-// RAM. The gun games publish theirs under DemulShooter's names -- P1_CtmRecoil,
-// P1_Ammo, P1_Clip, P1_Life, P1_Damaged, Credits -- so a recoil gun driven by
-// MAMEHooker or Hook Of The Reaper works with those tools' stock game files.
+// A title can add outputs read from work RAM in games.xml (rom::OutputSpec). The
+// gun games use DemulShooter's names (P1_CtmRecoil, P1_Ammo, ...) so those
+// tools' stock game files work.
 
 #pragma once
 

@@ -14,13 +14,9 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-// Backend-neutral render-list processing: turning the geometry engine's output
-// into triangles and per-polygon draw parameters, and the one piece of
-// presentation math (the 4:3 letterbox) that has nothing to do with any
-// graphics API either.
-//
-// Lives here rather than in render/vk/ so the Vulkan and OpenGL/GLES backends
-// share one copy of the triangulation and texture-header unpacking.
+// Backend-neutral render-list processing shared by the Vulkan and GL backends:
+// the geometry engine's output as triangles and per-polygon draw parameters,
+// plus the letterbox math.
 #pragma once
 
 #include "core/types.h"
@@ -38,13 +34,9 @@ namespace sm2::render {
 
 class TextureReplacements;
 
-/// One triangle-list vertex. Twenty-four bytes: where it is, what part of the
-/// texture it names, how far away it is, and which polygon it belongs to.
-///
-/// The depth is here rather than derived because the fragment stage needs it
-/// both for perspective-correct texturing and for the mipmap level, and the
-/// polygon index is here because everything else about a polygon is the same
-/// for all of its vertices and belongs in a buffer indexed once.
+/// One triangle-list vertex (24 bytes). The depth feeds perspective-correct
+/// texturing and the mipmap level; the polygon index selects the per-polygon
+/// parameters.
 struct Vertex {
     float x;
     float y;
@@ -56,15 +48,12 @@ struct Vertex {
     u32   polygon;
 };
 
-/// One polygon's screen-space vertex ring, so the fragment shader can walk the
-/// edges and interpolate the texture across the whole polygon rather than per
-/// fan triangle -- a fan warps a textured quad, whose corners map u,v
-/// bilinearly, because its two triangles disagree along the shared diagonal.
-/// Must match the PolyGeom declaration in polygon.frag exactly.
+/// One polygon's screen-space vertex ring, so the fragment shader can
+/// interpolate the texture across the whole polygon: a fan warps a textured
+/// quad along its shared diagonal. Must match PolyGeom in polygon.frag.
 ///
-/// Pre-divided on the host: u_over_z/v_over_z are u/z and v/z with u,v the raw
-/// texture point (eighths of a texel). Parallel scalar arrays because std430
-/// gives a float array a four-byte stride, so this packs with no padding.
+/// u_over_z/v_over_z are u/z and v/z with u,v in eighths of a texel. Parallel
+/// scalar arrays pack with no padding under std430.
 struct PolyGeom {
     float x[8];
     float y[8];
@@ -119,9 +108,7 @@ enum : u32 {
     kFlagDirect      = 1u << 14,
 };
 
-/// A backend-neutral screen-space rectangle: a Vulkan `VkRect2D`'s twin, so a
-/// backend converts to its own API's type in one line at the call site instead
-/// of this header naming one.
+/// A backend-neutral screen-space rectangle, the twin of Vulkan's `VkRect2D`.
 struct ScissorRect {
     s32 x = 0;
     s32 y = 0;
@@ -157,26 +144,19 @@ struct TriangulatedFrame {
     /// Polygons that produced at least one triangle.
     u32 drawn_polygons = 0;
 
-    /// Polygons on the one pixel path that draws nothing at all: untextured
-    /// and translucent. Not a gap, but worth counting, because a game asking
-    /// for many of them would mean the path selection is being read wrongly.
+    /// Untextured translucent polygons, which draw nothing. Many of them would
+    /// suggest the path selection is being read wrongly.
     u32 blank_polygons = 0;
 };
 
-/// Room for far more geometry than the hardware could draw in a frame. Virtua
-/// Fighter 2 in a match submits about six thousand vertices; the geometry
-/// engine's pool would allow ninety times this in the worst case, but a real
-/// board had nowhere near the fill rate to reach it.
+/// Room for far more geometry than the hardware could draw in a frame.
 constexpr u32 kMaxVertices = 1 << 17;
 
-/// Polygons whose parameters can be held at once, which bounds the same thing
-/// from the other direction.
+/// Polygons whose parameters can be held at once.
 constexpr u32 kMaxPolygons = 1 << 15;
 
 /// Unpack one polygon's texture header into the fragment stage's parameters.
-///
-/// `video` supplies the colour and tone-curve lookups this polygon's header
-/// selects; nothing here touches a graphics API.
+/// `video` supplies the colour and tone-curve lookups.
 [[nodiscard]] PolyParams describe_polygon(const hw::RenderPolygon& poly,
                                           const hw::Model2Video&   video);
 
@@ -185,23 +165,16 @@ constexpr u32 kMaxPolygons = 1 << 15;
 [[nodiscard]] u32 deepest_mip_level(u32 width, u32 height);
 
 /// Triangulate this frame's render list: fan every polygon from its first
-/// vertex (the clipper only ever produces convex polygons, so this cannot fold
-/// over itself), unpack each polygon's texture header, and batch runs of
-/// triangles that share a scissor rectangle.
+/// vertex (the clipper only produces convex polygons), unpack each texture
+/// header, and batch runs of triangles that share a scissor rectangle.
 ///
-/// `machine` may be null, in which case the result is empty (the idle
-/// bring-up display has nothing to draw). Polygons that are both untextured
-/// and translucent are counted in `blank_polygons` and skipped outright:
-/// `draw_scanline_solid` in MAME's model2rd.ipp returns immediately for that
-/// combination, because with no texel there is nothing to alpha-test. The
-/// *textured* translucent path does draw and must not be culled here — Virtua
-/// Fighter 2's sky is 181 textured translucent polygons.
+/// `machine` may be null, giving an empty result. Untextured translucent
+/// polygons are counted in `blank_polygons` and skipped, as MAME's
+/// draw_scanline_solid does; textured translucent ones do draw.
 ///
-/// A frame with more geometry than kMaxVertices/kMaxPolygons hold is
-/// truncated; the caller is responsible for warning about that once rather
-/// than every frame; `warned` is set true the first time this happens across
-/// calls sharing it, so a caller can log only on the transition to true.
-/// With `replacements`, textured polygons that have one are pointed at it.
+/// A frame with more geometry than kMaxVertices/kMaxPolygons is truncated and
+/// `warned` is set, so the caller can log once. With `replacements`, textured
+/// polygons that have one are pointed at it.
 [[nodiscard]] TriangulatedFrame triangulate(const hw::Model2MachineBase* machine,
                                             const hw::Model2Video&       video,
                                             bool*                        warned,
@@ -223,12 +196,8 @@ struct Letterbox {
 ///   SquarePixel -- largest 1.29:1 rectangle (the raw 496x384).
 ///   Stretch     -- the whole window, no bars.
 ///
-/// When `method` is Integer the height is snapped to a whole multiple of native
-/// (384) so the scanlines are pixel-perfect, and the width follows the aspect
-/// (Stretch snaps both axes instead, since it has no aspect to preserve); floor
-/// of 1x so a small window still shows a frame. For the other methods the fit
-/// rectangle is returned as-is. Defaults reproduce the pre-feature behaviour
-/// (4:3, no integer snap) for callers that do not care.
+/// When `method` is Integer the height is snapped to a whole multiple of 384
+/// (at least 1x) and the width follows the aspect; Stretch snaps both axes.
 [[nodiscard]] Letterbox compute_letterbox(u32           window_width,
                                           u32           window_height,
                                           AspectMode    aspect = AspectMode::FourThree,

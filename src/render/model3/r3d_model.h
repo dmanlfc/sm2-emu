@@ -44,7 +44,7 @@ struct Vertex {  // half vertex
 };
 
 struct R3DPoly {
-    Vertex v[4];           // just easier to have them as an array
+    Vertex v[4];
     float  faceNormal[3];  // helps work out polygon winding; the hardware presumably uses it rather than calculating normals
     u8     faceColour[4];  // per face colour
     float  textureNP;
@@ -52,7 +52,7 @@ struct R3DPoly {
 };
 
 struct FVertex {  // full vertex including face attributes
-    Vertex base;  // composition instead of inheritance keeps FVertex standard-layout, making offsetof well-defined
+    Vertex base;  // composition keeps FVertex standard-layout, for offsetof
     float  faceNormal[3];
     u8     faceColour[4];
     float  textureNP;
@@ -184,7 +184,7 @@ struct Mesh {
     float fogIntensity = 1.0f;
 
     // vertex buffer placement
-    int vboOffset   = 0;  // this will be calculated later
+    int vboOffset   = 0;
     int vertexCount = 0;  // /3 for triangles /4 for quads
 };
 
@@ -247,7 +247,7 @@ struct Viewport {
     float spotFogColor[3] = {};  // spotlight colour on fog
     float scrollAtt = 0;
 
-    int hardwareStep = 0;  // not really a viewport param but will do here
+    int hardwareStep = 0;
 };
 
 class NodeAttributes {
@@ -489,8 +489,8 @@ public:
     [[nodiscard]] bool  AlphaTest() const { return (header[6] & 0x80000000) > 0; }
     [[nodiscard]] u8    Transparency() const
     {
-        if (header[6] & 0x800000) {  // Star Wars writes the top bit for opaque, with garbage in the other bits, which are ignored
-            return 255;              // without this check the value overflows; the SDK clamps it to 0-32
+        if (header[6] & 0x800000) {  // Star Wars sets the top bit for opaque, with garbage below
+            return 255;
         }
         return static_cast<u8>((((header[6] >> 18) & 0x3F) * 255) / 32);
     }

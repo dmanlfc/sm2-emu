@@ -751,7 +751,7 @@ void Model3::write_inputs(unsigned reg, u8 data)
 // Present in some games. Virtual On and Dirt Devils read tile pattern data
 // from it. Spikeout calls a routine at PC=0x6FAC8 that writes/reads the
 // security device and, if the return value in R3 is 0, prints "ILLEGAL ROM"
-// and locks the game. Returning all 1's for unknown reads helps avoid this.
+// and locks the game. Returning all ones for unknown reads avoids this.
 
 u16 Model3::read_security_ram(u32 word)
 {

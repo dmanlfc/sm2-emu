@@ -47,16 +47,7 @@ namespace sm2::hw {
 /// Owns the memory map, the interrupt latch, the four count-down timers and the
 /// I/O devices, and acts as the i960's bus. The address decode follows MAME's
 /// model2a_crx_mem region for region so the two can be compared directly.
-///
-/// This is the Model 2A implementation of hw::Model2MachineBase (see
-/// hw/model2_machine_base.h for the board-agnostic interface and why the CPU
-/// status accessors it needs are exposed through a type-erased CpuStatus
-/// rather than a virtual CPU base class). Its own additional accessors --
-/// cpu(), copro(), sound(), uart(), geometry() and the rest -- return
-/// board-specific hardware types that a Model 2B or 2C machine would not share,
-/// so they stay outside the shared interface; code that needs them (the
-/// boot-test report, the debug dumps) is written against the concrete Model2
-/// class rather than the base interface.
+/// Accessors returning board-specific types stay outside Model2MachineBase.
 class Model2 final : public cpu::Bus, public Model2MachineBase {
 public:
     // -- video timing ------------------------------------------------------
@@ -69,29 +60,21 @@ public:
     static constexpr u32 kVerticalTotal   = 424;
     static constexpr u32 kVisibleWidth    = 496;
     static constexpr u32 kVisibleHeight   = 384;
-    // Computed at 64 bits: 656 * 25000000 overflows a u32, which silently
-    // produced a frame a fifth of its real length.
+    // Computed at 64 bits: 656 * 25000000 overflows a u32.
     static constexpr u32 kCyclesPerLine =
         static_cast<u32>(static_cast<u64>(kHorizontalTotal) * kCpuClock / kDotClock);
     static constexpr u32 kCyclesPerFrame = kCyclesPerLine * kVerticalTotal;
     static_assert(kCyclesPerLine == 1025, "scanline length changed unexpectedly");
     static_assert(kCyclesPerFrame == 434600, "frame length changed unexpectedly");
 
-    /// How long one video frame lasts, in nanoseconds.
-    ///
-    /// The number the frame pacer needs, kept here rather than restated there so
-    /// there is one definition of how fast this machine runs. 434600 cycles at
-    /// 25 MHz is 17.384 ms exactly, which is 57.5245 Hz: near enough to a monitor's
-    /// 60 Hz to look right and far enough from it that ignoring the difference
-    /// makes the game run four percent fast.
+    /// How long one video frame lasts, in nanoseconds, for the frame pacer.
+    /// 57.5245 Hz is close to 60 Hz but pacing at 60 would run four percent fast.
     static constexpr u64 kFrameNanoseconds =
         static_cast<u64>(kCyclesPerFrame) * 1'000'000'000ULL / kCpuClock;
     static_assert(kFrameNanoseconds == 17'384'000, "frame duration changed unexpectedly");
 
     // -- the serial link to the sound board ---------------------------------
-    // A 500 kHz clock on a divide-by-sixteen, which is sixteen times the 31.25 kHz
-    // rate Sega uses for sound commands on every board that has this link, and
-    // also the MIDI rate. Eight data bits between a start and a stop bit.
+    // A 500 kHz clock divided by sixteen gives 31.25 kHz (the MIDI rate), 8-N-1.
     static constexpr u32 kUartBitRate     = 31'250;
     static constexpr u32 kUartBitsPerByte = 10;
 
@@ -119,8 +102,6 @@ public:
     [[nodiscard]] const cpu::i960::I960& cpu() const { return m_cpu; }
 
     /// A type-erased snapshot of the i960's state, for hw::Model2MachineBase.
-    /// The concrete accessor above stays available for code (the boot-test
-    /// report, the debug dumps) that already depends on the i960 specifically.
     [[nodiscard]] CpuStatus main_cpu_status() const override
     {
         CpuStatus status;
@@ -202,11 +183,8 @@ public:
     /// Report where multi-word accesses landed on a region that does not report
     /// burst capability.
     ///
-    /// Worth watching because the consequence is silent and confusing: a
-    /// multi-word load or store only advances its address when the region says it
-    /// may, so a region wrongly lacking the flag turns a four-word transfer into
-    /// four accesses to one address. The result is plausible-looking repeated
-    /// data rather than an error.
+    /// A region wrongly lacking the flag silently turns a four-word transfer
+    /// into four accesses to one address.
     void log_burst_summary() const override;
 
     void log_unmapped_summary() const override;
@@ -249,14 +227,9 @@ public:
     /// Counters that advance whenever the 3D renderer's source data changes.
     ///
     /// The renderer keeps a copy of each per frame in flight and re-uploads only
-    /// when its copy is out of date, so a game that loads its textures once at
-    /// startup pays for them once. They are counters rather than flags because
-    /// several frames are in flight and each has to decide for itself; a flag one
-    /// of them cleared would leave the others stale.
-    ///
-    /// Texture RAM is tracked separately from the small tables because it is two
-    /// megabytes against a few tens of kilobytes, and the tables change far more
-    /// often.
+    /// when its copy is out of date; counters rather than flags because each
+    /// frame in flight decides for itself. Texture RAM is tracked separately
+    /// because it is far larger and changes far less often than the tables.
     [[nodiscard]] u64 texture_generation() const override { return m_texture_generation; }
     [[nodiscard]] u64 table_generation() const override { return m_table_generation; }
 
@@ -276,9 +249,8 @@ public:
     /// Produce this frame's 2D output, refreshing the palette first if the
     /// program changed it.
     ///
-    /// Separate from run_frame() because composition costs about as much as a
-    /// frame of emulation and only the display needs it: a headless run does it
-    /// once at the end rather than 600 times.
+    /// Separate from run_frame() because composition is costly and only the
+    /// display needs it.
     void compose_video() override;
 
     // -- cpu::Bus ----------------------------------------------------------
@@ -311,14 +283,11 @@ private:
         u8*   base     = nullptr;
         usize size     = 0;
         bool  writable = false;
-        /// Read-only because it is ROM, so writes are discarded rather than
-        /// handed to a register handler. Distinct from a window that is merely
-        /// not directly writable, such as texture RAM, whose writes go through a
-        /// packing transform.
+        /// ROM: writes are discarded rather than handed to a register handler.
+        /// Distinct from a non-writable window such as texture RAM, whose writes
+        /// go through a packing transform.
         bool  rom      = false;
-        /// Burst capability. A multi-word load only advances its address when the
-        /// region reports this, which is what makes a load from a port re-read
-        /// the same address instead of walking through memory.
+        /// Burst capability: without it a multi-word load re-reads one address.
         u16   flags    = cpu::kBusFlagNone;
         /// What the video stage has to be told about a write here.
         Notify notify  = Notify::None;
@@ -334,17 +303,13 @@ private:
     /// address belongs to a register or is unmapped.
     [[nodiscard]] Window resolve(u32 address);
     /// Main program ROM and work RAM without building a Window; nullptr for
-    /// anything else, which then goes through resolve() as before.
+    /// anything else, which then goes through resolve().
     [[nodiscard]] const u8* hot_read(u32 address, u32 width) const;
     /// Same for writes, work RAM only.
     [[nodiscard]] u8* hot_write(u32 address, u32 width);
 
-    /// Burst capability of a register region.
-    ///
-    /// Most register regions have none, which is what makes a multi-word access
-    /// to a port re-read one address instead of walking memory. A few do have it,
-    /// because they are write-only bulk upload paths rather than ports, and there
-    /// the address must advance.
+    /// Burst capability of a register region. Most have none, so a multi-word
+    /// access re-reads one port; write-only bulk upload paths do have it.
     [[nodiscard]] static u16 register_flags(u32 address);
 
     // Register handlers, named after their MAME counterparts.
@@ -366,17 +331,14 @@ private:
 
     /// Run the coprocessor for its share of `host_cycles` of host time.
     ///
-    /// The coprocessor's instruction rate is two thirds of the host's, so the
-    /// remainder is carried between calls rather than rounded away; over a frame
-    /// that difference is thousands of instructions.
+    /// The coprocessor runs at two thirds of the host's rate; the remainder is
+    /// carried between calls.
     void step_copro(u32 host_cycles);
 
     /// Run the coprocessor now, because the host is waiting on a result.
     ///
-    /// This is what MAME achieves with a scheduler synchronisation. It runs until
-    /// a result appears or the coprocessor can make no further progress, and
-    /// borrows the time from the coprocessor's future share so the two do not
-    /// drift apart.
+    /// MAME's scheduler synchronisation. Runs until a result appears or no
+    /// progress is possible, borrowing from the coprocessor's future share.
     void sync_copro();
 
     [[nodiscard]] u8 io_port_b_read();
@@ -392,9 +354,8 @@ private:
     void note_unmapped_read(u32 address, u32 width);
     void note_unmapped_write(u32 address, u32 value, u32 width);
 
-    /// Walk owned components, RAM and board scalars through the archive (same
-    /// shape as Model2C, coprocessor is the MB86233 TGP). See model2c.cpp for
-    /// the load contract.
+    /// Same shape as Model2C, with the MB86234 TGP as coprocessor. See
+    /// model2c.cpp for the load contract.
     void serialize(Archive& ar);
 
     // -- devices -----------------------------------------------------------
@@ -405,22 +366,18 @@ private:
     Model2Video     m_video;
     CoproTgp        m_copro;
     Geometrizer     m_geometry;
-    /// The link board. Present on every Model 2 machine configuration in
-    /// MAME, and a linked title will not leave its network check without one.
+    /// The link board. A linked title will not pass its network check without it.
     M2Comm          m_comm;
 
     /// The sound board: its own 68000, RAM and ROM, on its own clock. Stepped
     /// from run_frame; the CPU board reaches it through the serial link below.
     Model2Sound     m_sound;
 
-    /// The uPD71051 that carries sound commands to the sound board. Its clock is
-    /// 500 kHz on a divide-by-sixteen, which is the 31.25 kHz rate Sega uses for
-    /// this link everywhere, and the frame is 8-N-1.
+    /// The uPD71051 that carries sound commands to the sound board.
     I8251           m_uart;
 
-    /// The DOA boot-check protection chip. Always constructed, but only wired
-    /// into the memory map when `m_game.protection` asks for it, so titles
-    /// that do not need it see no behaviour change.
+    /// The DOA boot-check protection chip. Always constructed, but only mapped
+    /// when `m_game.protection` asks for it.
     Sega3155838Comp m_doa_comp;
 
     /// The 315-5881 stream cipher on the security board. Same arrangement as
@@ -556,9 +513,8 @@ private:
     std::map<u32, u64> m_unmapped_reads;
     std::map<u32, u64> m_unmapped_writes;
 
-    /// Multi-word accesses that found no burst capability, one counter per 1 MB of
-    /// the 32-bit space. A flat array rather than a map so the count costs an
-    /// increment on a path taken by every ldl and stl.
+    /// Multi-word accesses that found no burst capability, one counter per 1 MB.
+    /// A flat array because every ldl and stl takes this path.
     static constexpr u32 kBurstRegions = 4096;
     std::vector<u32> m_no_burst_reads  = std::vector<u32>(kBurstRegions, 0);
     std::vector<u32> m_no_burst_writes = std::vector<u32>(kBurstRegions, 0);
@@ -567,25 +523,18 @@ private:
 
     // -- coprocessor scheduling --------------------------------------------
 
-    /// Unspent host cycles owed to the coprocessor, times two.
-    ///
-    /// The coprocessor takes three of its 50 MHz clocks per instruction, so it
-    /// retires two instructions for every three host cycles. Keeping the remainder
-    /// here makes the ratio exact over any number of slices.
+    /// Unspent host cycles owed to the coprocessor, times two: it retires two
+    /// instructions per three host cycles.
     u32 m_copro_debt = 0;
 
-    /// Longest run granted to a single synchronisation, in coprocessor cycles.
-    ///
-    /// A bound is needed because a program that waits on a result the coprocessor
-    /// will never produce would otherwise spin here forever.
+    /// Longest run granted to a single synchronisation, in coprocessor cycles,
+    /// so waiting on a result that never comes cannot spin forever.
     static constexpr s32 kCoproSyncLimit = 4096;
 
     /// Guards against a synchronisation triggering another one.
     bool m_in_copro_sync = false;
 
-    /// Longest the host runs before the coprocessor is given a turn, in host
-    /// cycles. Small enough that the FIFOs rarely overflow, large enough that the
-    /// interleave costs little.
+    /// Longest the host runs before the coprocessor gets a turn, in host cycles.
     static constexpr u32 kCoproInterleave = 128;
 };
 

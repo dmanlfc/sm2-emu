@@ -25,15 +25,9 @@
 
 layout(location = 0) out vec2 vTexCoord;
 
-// GL-only: +1 when glClipControl aligned GL's clip space with Vulkan's
-// (no flip needed), -1 otherwise (GLES, or desktop without
-// GL_ARB_clip_control). Vulkan never sees this uniform.
-// gl_VertexIndex (Vulkan GLSL) and gl_VertexID (GL/GLES core) name the same
-// vertex counter but are not interchangeable identifiers -- neither compiles
-// under the other dialect. SM2_TARGET_GL is defined only for the GL/GLES
-// compile of this shared source (see cmake/EmbedShaders.cmake's lint/embed
-// steps), so this is the one line in this shader set that genuinely needs a
-// dialect branch.
+// gl_VertexIndex (Vulkan) and gl_VertexID (GL/GLES) name the same counter, but
+// neither compiles under the other dialect. SM2_TARGET_GL is defined only for
+// the GL/GLES compile (see cmake/EmbedShaders.cmake).
 #ifdef SM2_TARGET_GL
 #define SM2_VERTEX_INDEX gl_VertexID
 #else
@@ -45,16 +39,12 @@ void main()
     // index 0 -> (-1,-1)  uv (0,0)
     // index 1 -> ( 3,-1)  uv (2,0)
     // index 2 -> (-1, 3)  uv (0,2)
-    //
-    // The oversized triangle is clipped to the viewport by fixed function,
-    // which is cheaper than the four vertices and two triangles of a quad.
+    // The oversized triangle is clipped to the viewport, which is cheaper than a quad.
     vTexCoord = vec2((SM2_VERTEX_INDEX << 1) & 2, SM2_VERTEX_INDEX & 2);
     vec2 pos = vTexCoord * 2.0 - 1.0;
-    // OpenGL's clip space has +Y up and its framebuffer origin is bottom-left,
-    // the opposite of Vulkan. The sampled textures are top-left origin, so
-    // leaving vTexCoord alone keeps sampling correct while flipping only the
-    // emitted clip-space Y makes a pass write into its target with the same
-    // orientation Vulkan's positive-height viewport produces.
+    // GL's clip space is +Y up with a bottom-left origin, the opposite of Vulkan.
+    // Flipping only the clip-space Y keeps sampling correct and makes a pass write
+    // its target in the same orientation as Vulkan.
 #ifdef SM2_TARGET_GL
     pos.y = -pos.y;
 #endif

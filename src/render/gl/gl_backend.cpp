@@ -51,15 +51,12 @@ bool GlBackend::init(osd::Window& window, const BackendConfig& config)
         return false;
     }
 
-    // Set the version directive for all subsequent shader compilations.
     set_version_directive(m_context.is_es()         ? kEsVersionDirective
                           : m_context.has_compute() ? kDesktopVersionDirective
                                                     : kGl41VersionDirective);
 
-    // Clamp to what the driver can allocate. The composite target is a texture
-    // (GL_MAX_TEXTURE_SIZE) and its fill mask a renderbuffer
-    // (GL_MAX_RENDERBUFFER_SIZE); N*496 or N*384 beyond either would fail
-    // allocation, so bound N by the smaller of the two.
+    // The composite target is a texture and its fill mask a renderbuffer, so
+    // bound N by the smaller of the two size limits.
     s32 max_texture      = 0;
     s32 max_renderbuffer = 0;
     GetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture);
@@ -84,10 +81,8 @@ bool GlBackend::init(osd::Window& window, const BackendConfig& config)
                  scaled_height(m_render_scale));
     }
 
-    // Anisotropy ceiling for the opt-in enhanced 3D texture filter, gated on the
-    // filter-anisotropic extension. GL_MAX_TEXTURE_MAX_ANISOTROPY (0x84FF) is a
-    // float limit; reading it as an integer truncates, which is fine for a tap
-    // ceiling. 1.0 (the default) means "unavailable" to the capability check.
+    // GL_MAX_TEXTURE_MAX_ANISOTROPY (0x84FF) is a float; truncating it is fine
+    // for a tap ceiling. 1.0 means unavailable.
     constexpr GLenum kMaxTextureMaxAnisotropy = 0x84FF;
     if (has_gl_extension("GL_ARB_texture_filter_anisotropic")
         || has_gl_extension("GL_EXT_texture_filter_anisotropic")) {
@@ -150,7 +145,7 @@ Capabilities GlBackend::capabilities() const
 {
     Capabilities caps;
     caps.compute_shaders = m_context.has_compute();
-    // No GPU timer queries wired up yet (GL_TIME_ELAPSED could be added later).
+    // No GPU timer queries on GL.
     caps.gpu_timing = false;
     caps.anisotropy      = m_max_anisotropy > 1.0F;
     caps.max_anisotropy  = m_max_anisotropy;
@@ -224,19 +219,15 @@ void GlBackend::submit_polygons(const hw::Model2MachineBase* machine,
 
 void GlBackend::render_polygons()
 {
-    // The 3D now draws inside the native framebuffer via composite_native_frame(),
-    // between the tilemap layers. Nothing to do here: GL clears the depth buffer
-    // inline in draw_polygons(), with no separate transition to record.
+    // The 3D draws in composite_native_frame(), between the tilemap layers.
 }
 
 void GlBackend::composite_native_frame(u32 background_rgba, bool skip_3d)
 {
     m_present.begin_frame();
     m_tilemaps.draw_below(background_rgba);
-    // Render test mode cuts the DSP out: the framebuffer bank the host has
-    // been drawing into is shown instead of the 3D pass, and has already
-    // been composed into the layers below by the caller -- matching
-    // VulkanBackend::composite_native_frame()'s own skip_3d handling.
+    // Render test mode shows the host's framebuffer bank instead of the 3D
+    // pass; the caller has already composed it into the layers below.
     if (!skip_3d) {
         m_polygons.draw_polygons();
     }
@@ -341,14 +332,7 @@ bool GlBackend::end_frame()
 
 void GlBackend::wait_idle()
 {
-    // GL has no explicit device-idle wait; Finish() (glFinish) is the
-    // closest equivalent and is only ever needed before a capture is saved
-    // or before destroying a resource a submitted draw might still
-    // reference -- both of which, on this backend, already happen
-    // synchronously (no frames-in-flight ring exists to race against, see
-    // gl_context.h's own note on why). Called anyway for parity with the
-    // Vulkan path's call sites, which is cheap insurance against a future
-    // change here introducing asynchrony this comment did not anticipate.
+    // This backend is synchronous, so glFinish is only for parity with Vulkan.
     m_model3_frame.release();
     Finish();
 }

@@ -109,7 +109,6 @@ layout(set = 0, binding = 1) uniform usampler2DArray textureBank;  // layer = pa
 layout(set = 0, binding = 2) uniform sampler2DArray replaceAtlas;
 const float kReplaceLayerSize = 4096.0;
 
-// inputs from the vertex shader
 layout(location = 0) in vec3  fsViewVertex;
 layout(location = 1) in vec3  fsViewNormal;  // per vertex normal vector
 layout(location = 2) in vec2  fsTexCoord;
@@ -156,7 +155,7 @@ ivec2 WrapTexCoords(ivec2 pos, ivec2 coordinate, int level)
 
 ivec2 GetTextureSize(int level, ivec2 size)
 {
-    return size >> level;  // non-negative, so the same as dividing by 1 << level
+    return size >> level;
 }
 
 ivec2 GetTexturePosition(int level, ivec2 pos)
@@ -189,7 +188,7 @@ float LinearTexLocations(int wrapMode, float size, float u, out float u0, out fl
     else if (wrapMode == 1) {  // repeat + clamp
         u  = fract(u);  // force into 0-1 first
         u  = u * size - 0.5;
-        u0 = (floor(u) + 0.5) / size;  // + 0.5 moves to the texel centre, avoiding rounding errors
+        u0 = (floor(u) + 0.5) / size;
         u1 = u0 + texelSize;
 
         if (u0 < 0.0)  u0 = 0.0;
@@ -208,7 +207,7 @@ float LinearTexLocations(int wrapMode, float size, float u, out float u0, out fl
         }
 
         u  = u * size - 0.5;
-        u0 = (floor(u) + 0.5) / size;  // + 0.5 moves to the texel centre, avoiding rounding errors
+        u0 = (floor(u) + 0.5) / size;
         u1 = u0 + texelSize;
 
         if (u0 < 0.0)  u0 = 0.0;
@@ -302,7 +301,6 @@ vec4 SampleBank(vec2 texCoord, float lod)
     ivec2 tex1Size = GetTextureSize(iLevel, baseTexInfo.zw);
     vec4  tex1Data = texBiLinearBank(texturePage, textureWrapMode, vec2(tex1Size), tex1Pos, texCoord, iLevel);
 
-    // initialised to avoid undefined behaviour
     vec4 tex2Data = vec4(0.0);
 
     float blendFactor = 0.0;
@@ -398,9 +396,8 @@ vec4 GetTextureValue()
 
 void Step15Luminous(inout vec4 colour)
 {
-    // Luminous polygons seem to behave differently on Step 1.5 hardware. With fixed shading the colour is
-    // modulated by the viewport ambient plus the fixed shade value; without, it appears to be multiplied by 1.5,
-    // presumably to allow a higher range.
+    // On Step 1.5 luminous polygons are modulated by ambient plus the fixed shade,
+    // or without fixed shading apparently scaled by 1.5.
     if (hardwareStep == 0x15) {
         if (!lightEnabled) {
             if (fixedShading) {
@@ -451,15 +448,12 @@ float EncodeDepth(float depth)
 
 void ComputeSpotlight(vec4 ellipseParams, vec2 rangeParams, float viewZ, out float lobeEffect, out float lobeFogEffect)
 {
-    // Ellipse falloff
     float ellipse = SqrLength((ScreenFragCoord() - ellipseParams.xy) / ellipseParams.zw);
     ellipse = 1.0 - ellipse;
     ellipse = max(0.0, ellipse);
 
-    // Spotlight enable
     float enable = step(rangeParams.x, -viewZ);
 
-    // Spotlight range falloff
     float range = 0.0;
 
     if (rangeParams.y != 0.0) {
@@ -475,7 +469,6 @@ void ComputeSpotlight(vec4 ellipseParams, vec2 rangeParams, float viewZ, out flo
         range *= enable;
     }
 
-    // Final outputs
     lobeEffect    = range * ellipse;
     lobeFogEffect = enable * ellipse;
 }
@@ -546,10 +539,8 @@ void main()
         vec3  sunVector;  // sun lighting vector (as reflecting away from vertex)
         float sunFactor;  // sun light projection along vertex normal (0.0 to 1.0)
 
-        // Sun angle
         sunVector = lighting[0].xyz;
 
-        // Compute diffuse factor for sunlight
         if (fixedShading) {
             sunFactor = fsFixedShade;
         }
@@ -557,7 +548,7 @@ void main()
             sunFactor = dot(sunVector, fsViewNormal);
         }
 
-        // clamp the ceiling too, for upscaled models without a modelScale
+        // Clamp the ceiling too, for upscaled models without a modelScale.
         sunFactor = clamp(sunFactor, -1.0, 1.0);
 
         // Optional clamp, as the value may be negative. Translucent polygons
@@ -566,7 +557,6 @@ void main()
             sunFactor = max(sunFactor, 0.0);
         }
 
-        // Total light intensity: sum of all components
         lightIntensity = vec3(sunFactor * lighting[1].x + lighting[1].y);  // diffuse + ambient
 
         lightIntensity += spotColor.rgb * lobeEffect;
@@ -616,10 +606,8 @@ void main()
     // Final clamp, needed for correct shading in dimmed light and dark ambients
     finalData.rgb = min(finalData.rgb, vec3(1.0));
 
-    // Spotlight on fog
     vec3 lSpotFogColor = spotFogColor.rgb * fogAttenuation * fogColour.rgb * lobeFogEffect;
 
-    // Fog & spotlight applied
     finalData.rgb = mix(finalData.rgb, fogData.rgb + lSpotFogColor, fogData.a);
 
     WriteOutputs(finalData, colourLayer);

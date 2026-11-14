@@ -23,17 +23,12 @@
 #include <type_traits>
 #include <vector>
 
-// Binary save-state archive.
+// Binary save-state archive. One `serialize(Archive&)` per class both reads and
+// writes, so the two directions cannot drift out of sync. The direction is fixed
+// at construction.
 //
-// One `serialize(Archive&)` per class both reads and writes, so the two
-// directions cannot drift out of sync (the classic bug where a field is added
-// to save but forgotten in load). The archive's direction is fixed at
-// construction: Save appends host bytes to an output buffer, Load consumes them
-// from an input span.
-//
-// The file is host-endian and NOT portable across endianness; every target
-// this ships to is little-endian and a static_assert enforces it. See
-// .kiro/specs/model2-save-states/design.md §1.
+// The file is host-endian and not portable across endianness; every target is
+// little-endian and a static_assert enforces it.
 
 namespace sm2 {
 
@@ -74,17 +69,14 @@ public:
     /// stored length before its contents are read.
     void vector_pod(std::vector<u8>& v);
 
-    /// A length-prefixed std::deque<u32> (the copro FIFOs, the comm loopback
-    /// queue lengths). Stored as a u32 count followed by the elements.
+    /// A length-prefixed std::deque<u32>: a u32 count followed by the elements.
     void deque_u32(std::deque<u32>& d);
 
-    /// Set once on Load when a read runs past the end of the input. Sticky:
-    /// every subsequent read is a no-op yielding zeroes, so the top level can
-    /// check it once after the whole payload rather than per field.
+    /// Set on Load when a read runs past the end of the input. Sticky: later
+    /// reads yield zeroes, so it can be checked once after the whole payload.
     [[nodiscard]] bool failed() const { return m_failed; }
 
-    /// Marks a load as failed when a value is out of range, so the loader rolls
-    /// the state back.
+    /// Fails the load (e.g. on an out-of-range value) so the state is rolled back.
     void mark_failed() { m_failed = true; }
 
     /// Bytes written so far (Save) or consumed so far (Load).
@@ -118,17 +110,15 @@ private:
 // payload:
 //
 //   magic     8 bytes  "KEISHOST" ("SM2STATE" in files from sm2-emu)
-//   version   u32      bumped on any serialize-layout change (req 4.2)
+//   version   u32      bumped on any serialize-layout change
 //   game_len  u32
 //   game      game_len bytes  (GameSpec::name)
-//   board     u32      (rom::Board, cast by the caller — the primitive stays
-//                       ignorant of the rom layer so sm2_core keeps no
-//                       dependency on sm2_rom)
+//   board     u32      (rom::Board, cast by the caller so sm2_core does not
+//                       depend on sm2_rom)
 //   payload   the machine's serialize() output
 //
-// Load reads and validates the header BEFORE the payload, so a wrong magic,
-// version, game or board is rejected without touching the running machine
-// (req 3.2 / 4.1).
+// The header is validated before the payload, so a wrong magic, version, game
+// or board is rejected without touching the running machine.
 
 namespace state {
 
@@ -147,16 +137,12 @@ struct Header {
     u32         version = kFormatVersion;
 };
 
-/// Write the header into `ar` (must be Save mode). Follows with the caller's
-/// payload writes.
+/// Write the header into `ar` (Save mode); the caller's payload follows.
 void write_header(Archive& ar, const Header& header);
 
 /// Read and validate a header from a raw file buffer. Returns true and fills
-/// `out` and `payload_offset` (the byte index where the payload begins) only
-/// when the magic and version match; otherwise logs a reason and returns false.
-/// Game/board matching against the running machine is the caller's job (it
-/// alone knows them) — this only guarantees the file is a well-formed state of
-/// the current format version.
+/// `out` and `payload_offset` only when the magic and version match; otherwise
+/// logs a reason. Matching game and board is the caller's job.
 [[nodiscard]] bool read_header(const u8* data, usize size, Header& out,
                                usize& payload_offset);
 

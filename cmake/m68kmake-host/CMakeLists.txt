@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.24)
 project(m68kmake_host C)
 
-# m68kmake is Musashi's opcode-table generator. It must run on the build host,
-# so this tiny project is configured and built separately with the host
-# toolchain (see cmake/Dependencies.cmake), never the target one. It is fed the
-# path to Musashi's m68kmake.c via SM2_M68KMAKE_SRC.
+# Musashi's opcode-table generator, built separately with the host toolchain
+# because it runs on the build host (see cmake/Dependencies.cmake).
 
 if(NOT SM2_M68KMAKE_SRC)
     message(FATAL_ERROR "SM2_M68KMAKE_SRC (path to Musashi's m68kmake.c) is required")

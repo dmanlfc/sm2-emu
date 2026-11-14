@@ -45,9 +45,7 @@ constexpr u8 kModeBaudFactorMask = 0x03;
 
 void I8251::configure(u32 host_clock, u32 bit_rate, u32 bits_per_byte)
 {
-    // How long a byte occupies the wire, in host cycles. Rounded to the nearest
-    // cycle; the error is under a part in a thousand and this only sets how often
-    // the transmitter can accept the next byte.
+    // How long a byte occupies the wire, in host cycles, rounded to the nearest.
     if (bit_rate == 0 || bits_per_byte == 0) {
         m_byte_cycles = 1;
         return;
@@ -108,16 +106,9 @@ u8 I8251::read(u32 reg)
         return m_rx_data;
     }
 
-    // The status register's ready bits are not gated by the command register's
-    // enables; only the pins are.
-    //
-    // DSR reads asserted unless something drives the pin, which nothing on a
-    // Model 2 board does: MAME's i8251 constructs with `m_dsr(1)` and its
-    // `write_dsr` is never bound in any Model 2 machine configuration. A driver
-    // that checks the far end is present before sending its next byte therefore
-    // sees this bit set on hardware, and Zero Gunner and Pilot Kids both do --
-    // with the bit clear they sent one byte and then polled this register
-    // thirty-eight million times waiting for it.
+    // The ready bits are not gated by the command register's enables. DSR reads
+    // asserted, as nothing on a Model 2 board drives the pin; Zero Gunner and
+    // Pilot Kids wait on it before each byte.
     u8 status = m_errors;
     if (m_dsr) {
         status |= kStatusDsr;
@@ -146,23 +137,17 @@ void I8251::write(u32 reg, u8 value)
             return;
         }
 
-        // Reported here rather than when the mode word arrives. The conventional
-        // way to initialise this part is three dummy writes to the control
-        // register before the internal reset, to put its mode-then-command state
-        // machine somewhere known whatever it was doing before; those dummies are
-        // usually zero, which looks exactly like a request for synchronous mode.
-        // Only an actual transmission proves the mode was meant.
+        // Reported here rather than at the mode write: the usual init sequence of
+        // zero dummy writes looks like a request for synchronous mode.
         if ((m_mode & kModeBaudFactorMask) == 0 && !m_warned_sync_mode) {
             m_warned_sync_mode = true;
             SM2_WARN("i8251: a byte was transmitted in synchronous mode, "
                      "which is not modelled");
         }
 
-        // The real 8251 has a holding register behind the shift register. When
-        // the shift register is empty, writing moves the byte straight to the
-        // shift register and the holding register is free again immediately (TxRDY
-        // goes back high). When the shift register is busy, the byte stays in the
-        // holding register (TxRDY stays low) until the shift register finishes.
+        // A holding register sits behind the shift register. With the shifter
+        // idle the byte moves straight through and TxRDY stays high; otherwise
+        // it waits in the holding register with TxRDY low.
         ++m_counters.data_writes;
         m_tx_holding_empty = false;
         m_tx_shift_empty   = false;
@@ -238,8 +223,7 @@ void I8251::run(u32 host_cycles)
 void I8251::write_rxd(u8 value)
 {
     if (!rx_enabled()) {
-        // A disabled receiver drops the byte. Not warned about, because a program
-        // legitimately leaves the receiver off while it is only sending.
+        // Not warned about: a program may leave the receiver off while sending.
         return;
     }
 

@@ -111,8 +111,7 @@ bool Poly3DPass::create_programs()
         return false;
     }
 
-    // GL 4.1 has no early_fragment_tests; the variant is then the same
-    // program, which only costs the early-test speedup.
+    // GL 4.1 has no early_fragment_tests, so there the variant is the same program.
     const std::string fragment_source_early = prepare_gl_source(
         shaders::kPolygonFragEarlyGlsl, active_version_directive(),
         is_gl41() ? nullptr : "SM2_EARLY_FRAGMENT_TESTS");
@@ -122,8 +121,7 @@ bool Poly3DPass::create_programs()
         return false;
     }
 
-    // polygon.vert's Push block took binding 4 under SM2_TARGET_GL -- see
-    // that shader's own SM2_TARGET_GL comment.
+    // polygon.vert's Push block is at binding 4 under SM2_TARGET_GL.
     const u32 polygon_block = GetUniformBlockIndex(m_polygon_program, "Push");
     UniformBlockBinding(m_polygon_program, polygon_block, 4);
     const u32 polygon_block_early = GetUniformBlockIndex(m_polygon_program_early, "Push");
@@ -210,9 +208,8 @@ void Poly3DPass::refresh_machine_data(const hw::Model2MachineBase& machine,
                                       const hw::Model2Video&       video)
 {
     if (m_texture_generation != machine.texture_generation()) {
-        // Only the low half of each two-megabyte window is addressable by
-        // the texel arithmetic and only that half is ever written, matching
-        // render::vk::Poly3DPass::refresh_machine_data() exactly.
+        // Only the low half of each two-megabyte window is addressable by the
+        // texel arithmetic, as in the Vulkan pass.
         std::vector<u32> words(static_cast<usize>(kSheetWords) * 2, 0);
         for (int sheet = 0; sheet < 2; ++sheet) {
             const std::span<const u32> source = machine.texture_ram(sheet);
@@ -255,10 +252,7 @@ void Poly3DPass::decode_textures()
     const u32 groups_y = (kDecodedHeight + 15) / 16;
     DispatchCompute(groups_x, groups_y, 2);
 
-    // The polygon pass's fragment shader samples this image next; its
-    // writes must be visible first. GL analogue of the one
-    // record_image_barrier() call render::vk::Poly3DPass::decode_textures()
-    // issues for the same reason.
+    // The polygon pass samples this image next.
     MemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
 }
 
@@ -352,11 +346,8 @@ void Poly3DPass::build(const hw::Model2MachineBase* machine, const hw::Model2Vid
 
 void Poly3DPass::draw_polygons()
 {
-    // Runs with the native framebuffer bound and the below-tilemap already in
-    // it, between draw_below() and draw_above(); the premultiplied-over blend
-    // merges the 3D onto it directly, with no offscreen colour texture to store
-    // and re-sample. Only the fill-mask stencil is cleared -- clearing colour
-    // would wipe the below-tilemap.
+    // Runs between draw_below() and draw_above(), blending straight onto the
+    // below-tilemap already in the framebuffer, so colour is not cleared.
     ClearStencil(0);
     DepthMask(GL_TRUE);
     Clear(GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -365,9 +356,7 @@ void Poly3DPass::draw_polygons()
         return;
     }
 
-    // Matches polygon.{vert,frag}'s shared Push block under std140: invRaster at
-    // offset 0, renderScale at offset 8. The frag stage reads renderScale for the
-    // native-grid stipple.
+    // polygon.{vert,frag}'s shared Push block under std140.
     struct PushBlock {
         float inv_raster[2];
         u32   render_scale;
@@ -381,9 +370,8 @@ void Poly3DPass::draw_polygons()
     BufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<GLsizeiptr>(sizeof(push)), &push);
     BindBufferBase(GL_UNIFORM_BUFFER, 4, m_polygon_push_ubo);
 
-    // The fill mask: polygons arrive nearest first, and a fragment draws
-    // only where nothing has drawn yet, claiming the pixel when it does.
-    // Same rule render::vk::Poly3DPass's stencil state expresses, in GL's terms.
+    // The fill mask: polygons arrive nearest first, and a fragment draws only
+    // where nothing has drawn yet, claiming the pixel when it does.
     Enable(GL_STENCIL_TEST);
     StencilFunc(GL_EQUAL, 0, 0xff);
     StencilOp(GL_KEEP, GL_KEEP, GL_INCR);
@@ -396,18 +384,12 @@ void Poly3DPass::draw_polygons()
         DepthFunc(GL_ALWAYS);
     }
 
-    // Premultiplied over: the shader writes alpha 1 for every non-discarded
-    // pixel, so this overwrites where a polygon draws and leaves the
-    // below-tilemap where it does not. Matches the Vulkan polygon blend state.
+    // Premultiplied over, as in the Vulkan polygon blend state.
     Enable(GL_BLEND);
     BlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Texture units and buffer bindings match polygon.frag's own layout(...)
-    // qualifiers exactly: uSheets binding 0, Luma binding 1, uTone binding 2,
-    // Polys binding 3. layout(binding=N) on a sampler is honoured by the
-    // driver from GLSL 4.20 (GL 4.2 core) onward -- on GL 4.1
-    // compile_program() sets the same units by glUniform1i -- so only binding the
-    // right texture to the matching unit.
+    // Units and bindings match polygon.frag's layout qualifiers; on GL 4.1
+    // compile_program() sets the sampler units with glUniform1i instead.
     ActiveTexture(GL_TEXTURE0);
     BindTexture(GL_TEXTURE_2D_ARRAY, m_decoded_texture);
     ActiveTexture(GL_TEXTURE4);

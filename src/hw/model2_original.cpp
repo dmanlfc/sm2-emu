@@ -176,16 +176,14 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
     m_cpu_control.assign(0x40, 0);
     m_comm_ram.assign(0x4000, 0);
 
-    // The video stage keeps decoded copies of this memory, so it has to be
-    // attached after the allocation above and before anything can write to it.
+    // The video stage keeps decoded copies, so attach before anything writes.
     m_video.attach(m_tile_ram, m_char_ram, m_palette_ram, m_colorxlat);
 
     // The link board's 16 KB is the same storage the i960 reaches at
     // 0x01a00000; the board keeps it so the access stays a burst window.
     m_comm.attach_shared(m_comm_ram);
 
-    // The coprocessor. Identical to Model 2A's, because MAME's model2o_state
-    // derives from model2_tgp_state and inherits its copro maps unchanged.
+    // The coprocessor is identical to Model 2A's.
     m_rom_copro_tables = m_roms.region("copro_tgp_tables");
     m_rom_copro_data   = m_roms.region("copro_data");
     m_copro.attach(as_words(m_rom_copro_tables), as_words(m_rom_copro_data),
@@ -196,17 +194,13 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
     m_geometry.attach(as_words(m_rom_polygons), as_halfwords(m_rom_textures),
                       m_buffer_ram);
 
-    // The I/O board. Its firmware is a device ROM set rather than part of the
-    // game's own chips, so it arrives in its own region; the loader has already
-    // fetched it from model1io.zip beside the game archive.
+    // The I/O board firmware is a device set (model1io.zip) in its own region.
     if (!m_roms.has("ioboard")) {
         SM2_WARN("model2o: no 'ioboard' region; the I/O board has no firmware and "
                  "the program will see no inputs");
     }
-    // Virtua Cop's cabinet fits the advanced board -- MAME replaces the device
-    // outright in model2o_state::vcop -- and its firmware is not interchangeable
-    // with the plain one: a different CPU, a different memory map, and a window
-    // onto the FPGA that digitises the guns.
+    // Virtua Cop fits the advanced board: a different CPU and memory map, plus
+    // the FPGA that digitises the guns.
     m_uses_advanced_io = std::find(m_game.device_sets.begin(), m_game.device_sets.end(),
                                   std::string{"model1io2"}) != m_game.device_sets.end();
 
@@ -217,25 +211,19 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
         m_ioboard.attach(m_roms.region("ioboard"));
     }
 
-    // The 2K dual-port RAM between the two. The i960 reaches its right-hand port
-    // through the memory map; the I/O board's expander reaches the left-hand port
-    // over the serial side of its 315-5338A. That is the entire connection between
-    // the two computers.
+    // The 2K dual-port RAM is the only link to the I/O board: the i960 has the
+    // right-hand port, the board's 315-5338A the left.
     if (!m_uses_advanced_io) {
     m_ioboard.set_dual_port([this](u32 address) { return m_dpram.left_read(address); },
                             [this](u32 address, u8 value) {
                                 m_dpram.left_write(address, value);
                             });
 
-    // MAME's model2o binds in_callback<0> and <1> only: IN2 is unused by every
-    // title on this board that is in scope, and an unbound port reads as an open
-    // input, which is the same thing an idle panel gives.
+    // MAME binds only IN0 and IN1; an unbound port reads as an idle panel.
     m_ioboard.set_input(0, [this] { return m_inputs.in0; });
     m_ioboard.set_input(1, [this] { return gearbox_in1(); });
 
-    // Desert Tank's three analogue controls, as model2o_state::desert binds them:
-    // an_callback<0> STEER, <1> ACCEL, <2> BRAKE. The remaining five channels stay
-    // unbound and read as open inputs.
+    // Desert Tank's steer, accelerator and brake; the other channels read open.
     for (u32 channel = 0; channel < 3; ++channel) {
         m_ioboard.set_analog(channel, [this, channel] { return m_inputs.analog[channel]; });
     }
@@ -260,19 +248,14 @@ bool Model2Original::init(const rom::GameSpec& game, rom::RomSet roms)
     }
     }  // !m_uses_advanced_io
 
-    // Host side of the coprocessor FIFO flow control, exactly as Model 2A wires
-    // it: only the machine can halt the host CPU, which is why this is not in
-    // CoproTgp.
+    // Host side of the coprocessor FIFO flow control, as on Model 2A.
     m_copro.fifo_out().set_on_empty_retry([this] { m_cpu.stall(); });
     m_copro.fifo_out().set_on_empty_halt([this] { m_cpu.set_halted(true); });
     m_copro.fifo_out().set_on_unempty([this] { m_cpu.set_halted(false); });
     m_copro.fifo_in().set_on_full([this] { m_cpu.set_halted(true); });
     m_copro.fifo_in().set_on_unfull([this] { m_cpu.set_halted(false); });
 
-    // The sound board and the two wires that reach it. Nothing on the CPU board
-    // addresses it directly: the host's UART transmitter feeds the sound board's
-    // receiver and the sound board's transmitter comes back into this receiver,
-    // which is the whole connection.
+    // The sound board is reached only through the UART's two serial lines.
     m_m1audio.attach(m_roms.region("m1audio:sndcpu"), m_roms.region("m1audio:pcm1"),
                      m_roms.region("m1audio:pcm2"));
     // Per-set board level in 1/256 units, so the loudest in-game mix sits just
@@ -333,14 +316,11 @@ void Model2Original::reset()
     m_copro_debt    = 0;
     m_in_copro_sync = false;
 
-    // The display-list buffer comes up holding a specific pattern. MAME notes
-    // that the hardware probably derives this itself; without it, a game that
-    // parses the buffer before writing it reads nonsense.
+    // The display-list buffer powers up holding this pattern, which a game may
+    // parse before writing.
     std::fill(m_buffer_ram.begin(), m_buffer_ram.end(), 0x07800f0fu);
 
-    // Bring the analogue controls up where the hardware has them with nobody at
-    // the cabinet, from the same per-title data MAME takes from each PORT_BIT's
-    // default. A channel the database does not describe stays at zero.
+    // Analogue controls start at their per-title rest positions.
     m_inputs.analog.fill(0);
     for (usize channel = 0; channel < m_inputs.analog.size(); ++channel) {
         if (m_game.analog[channel].control != rom::AnalogControl::None) {
@@ -405,12 +385,8 @@ void Model2Original::run_frame()
                 step_copro(spent);
             }
 
-            // The I/O board is interleaved at the same granularity as the
-            // coprocessor. It has to be fine: the only thing between the two
-            // computers is 2K of RAM neither side locks, and a whole scanline of
-            // i960 time is over a hundred Z80 instructions, which is long enough
-            // for the board to overwrite a structure the program is halfway
-            // through reading.
+            // Finely interleaved: the shared 2K RAM is unlocked, and a scanline
+            // is long enough for the board to overwrite a half-read structure.
             if (m_uses_advanced_io) {
                 m_ioboard2.run(spent);
             } else {
@@ -431,19 +407,14 @@ void Model2Original::run_frame()
             }
         }
 
-        // The sound board shares nothing with the host but the serial line, so a
-        // scanline is fine enough: the only thing on it with a deadline is the
-        // output sample clock, and that is counted in host cycles either way.
+        // The sound board shares only the serial line, so a scanline is fine enough.
         {
             CoreScope scope(m_core_profile, m_core_profile.sound_ns);
             m_m1audio.run(static_cast<u32>(m_cycles - line_start));
         }
 
-        // TxRDY and RxRDY are levels and the interrupt latch samples them. Doing
-        // it once a scanline as well as on every UART tick is what lets the link
-        // start at all: the program enables the transmitter first and unmasks the
-        // interrupt afterwards, so an edge-triggered latch would never see the
-        // transmitter become ready.
+        // TxRDY and RxRDY are levels: the program enables the transmitter before
+        // unmasking the interrupt, so they must be resampled every scanline.
         sound_ready_w();
 
         if (line == kVisibleHeight) {
@@ -461,9 +432,7 @@ void Model2Original::run_frame()
 
 void Model2Original::step_copro(u32 host_cycles)
 {
-    // Two coprocessor instructions per three host cycles, as on Model 2A: the
-    // same MB86234 on the same 50 MHz crystal, taking three clocks per
-    // instruction against the i960's 25 MHz.
+    // Two coprocessor instructions per three host cycles, as on Model 2A.
     m_copro_debt += host_cycles * 2;
     const s32 cycles = static_cast<s32>(m_copro_debt / 3);
     m_copro_debt %= 3;
@@ -528,10 +497,8 @@ void Model2Original::service_timers()
 void Model2Original::on_vblank_start()
 {
     if (m_video.latch_tile_ram()) ++m_tile_generation;
-    // Bit 0 of the video control register selects 30 Hz geometry, which every
-    // original Model 2 title uses -- MAME's render_mode_w notes desert among
-    // them -- so this runs on even frames only and the renderer shows the
-    // previous result again on the others.
+    // Bit 0 of the video control register selects 30 Hz geometry; odd frames
+    // show the previous result again.
     if ((m_videocontrol & 1) == 0 || (m_frames & 1) == 0) {
         m_geometry.set_read_start_address(m_geo_read_start_address);
         m_geometry.set_crtc_offsets(m_video.crtc_x_offset(), m_video.crtc_y_offset());
@@ -539,8 +506,7 @@ void Model2Original::on_vblank_start()
     }
 
     raise_interrupt(1u << 0);
-    // MAME's screen_vblank calls the link board here, after the geometry pass
-    // and the interrupt. It is what steps the ring protocol.
+    // Steps the link ring protocol, after the geometry pass and interrupt as in MAME.
     m_comm.vblank();
 }
 
@@ -692,9 +658,7 @@ Model2Original::Window Model2Original::resolve(u32 address)
         return window(m_scratch_ram, address - kScratchRam, true, cpu::kBusFlagBurst);
     }
     if (address >= kRomMirror && address < kRomMirror + 0x20000) {
-        // MAME's model2o_mem maps this as a second view of the program ROM at
-        // offset 0x20000, immediately above the 128 KB of scratch RAM. On Model 2A
-        // the whole 256 KB is RAM instead.
+        // A view of program ROM at 0x20000; on Model 2A this is RAM.
         return rom_window(m_rom_maincpu, (address - kRomMirror) + 0x20000);
     }
     if (m_game.protection == rom::Protection::DaytonaGtxBank
@@ -846,9 +810,7 @@ u32 Model2Original::register_read(u32 address, u32 width)
         return timers_r((address - kTimerRegs) / 4);
     }
 
-    // Link board handshake registers, on byte lanes 0 and 2 of one dword and
-    // mirrored at 0x01a14000 exactly as MAME maps them. Without these the i960
-    // reads an unmapped bus and a linked title never finishes its network check.
+    // Link board handshake registers, on byte lanes 0 and 2, mirrored at 0x01a14000.
     if (in_mirrored(address, kCommCtl, 4, 0x10000)) {
         const u32 offset = address & 3;
         if (width == 4) {
@@ -861,10 +823,8 @@ u32 Model2Original::register_read(u32 address, u32 width)
     }
 
 
-    // The dual-port RAM's right-hand port: eight bits wide on byte lanes 0 and 2
-    // of each 32-bit word, which is what MAME's umask32(0x00ff00ff) says, so RAM
-    // byte N lives at i960 byte offset N*2 and the 2K occupies 4K of address
-    // space.
+    // The dual-port RAM's right-hand port, on byte lanes 0 and 2: RAM byte N is
+    // at offset N*2.
     if (address >= kDualPortRam && address < kDualPortRam + kDualPortWindow) {
         const u32 offset = address - kDualPortRam;
         if (width == 4) {
@@ -879,8 +839,7 @@ u32 Model2Original::register_read(u32 address, u32 width)
     }
 
     if (address >= kUart && address < kUart + 0x04) {
-        // Eight bits wide on byte lanes 0 and 2, as MAME's umask16(0x00ff) puts
-        // it: register 0 is the data register and 1 the status register.
+        // Byte lanes 0 and 2: data register, then status register.
         if (width == 4) {
             const u32 data   = m_uart.read(0);
             const u32 status = m_uart.read(1);
@@ -961,9 +920,8 @@ u32 Model2Original::register_read(u32 address, u32 width)
 
 void Model2Original::register_write(u32 address, u32 value, u32 width)
 {
-    // Texture RAM. Two 16-bit halves are packed into each 32-bit entry, so a
-    // write's destination is half its window offset. MAME's tex0_w/tex1_w, which
-    // model2_tgp_mem installs and this board inherits unchanged.
+    // Texture RAM packs two 16-bit halves per 32-bit entry, so a write lands at
+    // half its window offset (MAME's tex0_w/tex1_w).
     if (in_mirrored(address, kTextureRam0, 0x200000, 0x200000)
         || in_mirrored(address, kTextureRam1, 0x200000, 0x200000)) {
         std::vector<u32>& sheet = in_mirrored(address, kTextureRam0, 0x200000, 0x200000)
@@ -1074,9 +1032,7 @@ void Model2Original::register_write(u32 address, u32 value, u32 width)
             m_intreq &= value;
             irq_update();
         } else {
-            // Delayed by 80 ns (2 CPU cycles at 25 MHz), as MAME does, because the
-            // real hardware latches the mask through a register that settles a
-            // clock or two after the write.
+            // Takes effect two CPU cycles later, as in MAME.
             m_pending_intena       = value;
             m_pending_intena_cycle = m_cycles + 2;
             m_pending_intena_valid = true;
@@ -1243,15 +1199,9 @@ u32 Model2Original::read32(u32 address)
     return register_read(address, 4);
 }
 
-// The i960 reaches an unaligned multi-word access one byte at a time and takes
-// the region's burst capability from the first of those bytes, so a byte access
-// has to report the same flags a dword access would. Without this the base class
-// default of "no burst" applies, the address stops advancing part-way through an
-// unaligned ldl/ldt/ldq or stl/stt/stq, and the rest of the transfer collapses
-// onto one location -- which shows up as a table read from ROM arriving with
-// every entry equal to the first. MAME has the same structure and gets the flags
-// right because its read_byte_flags goes through the same dispatch table as
-// read_dword_flags.
+// The i960 splits an unaligned multi-word access into bytes and takes the burst
+// flag from the first, so byte accesses must report the dword flags or the rest
+// of the transfer collapses onto one address.
 std::pair<u8, u16> Model2Original::read8_flags(u32 address)
 {
     charge_area(address);
@@ -1428,10 +1378,8 @@ void Model2Original::compose_video()
     }
     m_video.compose();
 
-    // Render test mode replaces the 3D output with a framebuffer bank, chosen by
-    // frame parity as MAME's draw_framebuffer chooses it. Drawn here rather than
-    // in the renderer because it is opaque 2D output that belongs under the
-    // category-one tilemap layers, which is exactly where the tilemap surface is.
+    // Render test mode shows a framebuffer bank chosen by frame parity, drawn
+    // here because it belongs under the category-one tilemap layers.
     if (m_render_test) {
         m_video.draw_framebuffer(framebuffer((m_frames & 1) != 0 ? 1 : 0));
     }
@@ -1503,8 +1451,7 @@ void Model2Original::set_nvram_directory(const std::string& directory)
 
 void Model2Original::seed_eeprom_from_rom()
 {
-    // ROM_REGION16_LE, so the words are already in the order the chip
-    // stores them and a straight copy is right on a little-endian host.
+    // ROM_REGION16_LE: a straight copy on a little-endian host.
     (void)apply_default_image(m_roms.region("eeprom"), io_eeprom().bytes());
 }
 
@@ -1520,18 +1467,15 @@ void Model2Original::wire_advanced_io_board()
         [this](u32 address) { return m_dpram.left_read(address); },
         [this](u32 address, u8 value) { m_dpram.left_write(address, value); });
 
-    // MAME's model2o_state::vcop binds all three input ports here, unlike the
-    // plain board's two: this cabinet has a second gun and a connector on IN2.
+    // All three input ports, unlike the plain board.
     m_ioboard2.set_input(0, [this] { return m_inputs.in0; });
     m_ioboard2.set_input(1, [this] { return m_inputs.in1; });
     m_ioboard2.set_input(2, [this] { return m_inputs.in2; });
 
     m_ioboard2.set_output([this](u8 value) { lamp_output_w(value); });
 
-    // The guns, in the order the FPGA reports them: P1 Y, P1 X, P2 Y, P2 X. The
-    // ranges come from the title's own calibration rather than from the hardware,
-    // and the board needs them because its off-screen test is defined relative to
-    // each axis's travel.
+    // The guns in FPGA order: P1 Y, P1 X, P2 Y, P2 X. The ranges come from the
+    // title's calibration; the board's off-screen test depends on them.
     const rom::LightgunSpec& gun = m_game.lightgun;
     m_ioboard2.set_lightgun(0, [this] { return m_inputs.gun_p1y; });
     m_ioboard2.set_lightgun(1, [this] { return m_inputs.gun_p1x; });
@@ -1602,8 +1546,7 @@ void Model2Original::load_nvram()
     if (m_nvram_directory.empty() || m_game.name.empty()) {
         return;
     }
-    // A set can ship power-on images for both, and MAME applies those before it
-    // reads any saved file. Do the same, so a saved image still wins.
+    // Power-on images first, so a saved file still wins.
     (void)apply_default_image(m_roms.region("backup1"), m_nvram);
     seed_eeprom_from_rom();
 
@@ -1623,10 +1566,7 @@ void Model2Original::load_nvram()
         }
     }
 
-    // The settings EEPROM lives on the I/O board here rather than on the CPU
-    // board, but it holds the same thing and is saved beside the NVRAM under the
-    // same name, so a set that later gains a second board variant keeps its
-    // settings.
+    // The settings EEPROM is on the I/O board here but saved under the same name.
     (void)io_eeprom().load((base / (m_game.name + ".eeprom")).string());
 }
 
@@ -1668,8 +1608,7 @@ void Model2Original::serialize(Archive& ar)
     m_copro.serialize(ar);
     m_video.serialize(ar);
     m_geometry.serialize(ar);
-    // Only the I/O board actually wired for this title carries state; the idle
-    // one stays at its reset defaults (constructed but never stepped).
+    // Only the I/O board wired for this title carries state.
     if (m_uses_advanced_io) {
         m_ioboard2.serialize(ar);
     } else {

@@ -54,10 +54,8 @@ void WriteOutputs(vec4 colour)
 
 void main()
 {
-    // Scroll fog base colour
     vec3 lFogColor = fogColour.rgb * fogAmbient;
 
-    // Spotlight on fog (area)
     vec2  position = spotEllipse.xy;
     vec2  size     = spotEllipse.zw;
     float ellipse  = length((ScreenFragCoord() - position) / size);
@@ -65,10 +63,8 @@ void main()
     ellipse = 1.0 - ellipse;
     ellipse = max(0.0, ellipse);
 
-    // Spotlight on fog (colour)
     vec3 lSpotFogColor = mix(vec3(0.0), spotFogColor.rgb * ellipse * fogColour.rgb, fogAttenuation);
 
-    // Scroll fog density
     vec4 scrollFog = vec4(lFogColor + lSpotFogColor, fogColour.a);
 
     WriteOutputs(scrollFog);

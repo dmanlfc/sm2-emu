@@ -946,7 +946,7 @@ void MB86233::execute_run()
 			// stm/clm
 			u32 sub2 = (opcode >> 17) & 7;
 
-			// Theorically has restricted alu too
+			// In theory has a restricted ALU too
 
 			switch(sub2) {
 			case 5:

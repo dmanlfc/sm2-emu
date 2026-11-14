@@ -40,8 +40,7 @@ namespace {
 // ---------------------------------------------------------------------------
 // Little-endian access helpers
 // ---------------------------------------------------------------------------
-// The i960 is little-endian and so is every host we target, so a memcpy is both
-// correct and what the compiler turns into a single load.
+// The i960 and every host target are little-endian, so a memcpy is enough.
 
 [[nodiscard]] inline u16 load16(const u8* p)
 {
@@ -60,12 +59,8 @@ namespace {
 inline void store16(u8* p, u16 v) { std::memcpy(p, &v, sizeof(v)); }
 inline void store32(u8* p, u32 v) { std::memcpy(p, &v, sizeof(v)); }
 
-/// View a byte region as 32-bit words.
-///
-/// The coprocessor addresses its ROMs a word at a time and never a byte, so this
-/// is the shape it wants. Both platforms we build for are little-endian, and the
-/// ROM assembly already produced little-endian words, so no swapping is needed;
-/// an assertion would be the only thing a big-endian host required.
+/// View a byte region as words. The ROMs are assembled as little-endian words,
+/// so no swapping is needed on a little-endian host.
 [[nodiscard]] std::span<const u16> as_halfwords(std::span<const u8> bytes)
 {
     static_assert(std::endian::native == std::endian::little,
@@ -187,8 +182,7 @@ bool Model2::init(const rom::GameSpec& game, rom::RomSet roms)
     m_doa_ram.assign(0x8000, 0);
     m_crypt_ram.assign(0x10000, 0);
 
-    // MAME's crypt_read_callback: a word read of the staging RAM, byte-swapped,
-    // which for a little-endian bus is just a big-endian fetch.
+    // MAME's crypt_read_callback: a byte-swapped word read of the staging RAM.
     if (game.protection == rom::Protection::Sega315_5881 && game.protection_key == 0) {
         SM2_WARN("model2: %s needs a 315-5881 key and the database has none",
                  game.name.c_str());
@@ -207,13 +201,8 @@ bool Model2::init(const rom::GameSpec& game, rom::RomSet roms)
     // 0x01a00000; the board keeps it so the access stays a burst window.
     m_comm.attach_shared(m_comm_ram);
 
-    // The coprocessor reads the CPU board's mathematical tables and the game's own
-    // data ROM, and writes its results into the display list buffer.
-    //
-    // Whether the table ROM is present is the ROM loader's business, since it
-    // knows what the set is supposed to contain. Its absence is reported by
-    // CoproTgp and degrades trigonometry to zero rather than refusing to start,
-    // which keeps a synthetic machine usable in tests.
+    // A missing table ROM degrades trigonometry to zero rather than refusing to
+    // start; the ROM loader reports it.
     m_rom_copro_tables = m_roms.region("copro_tgp_tables");
     m_rom_copro_data   = m_roms.region("copro_data");
     m_copro.attach(as_words(m_rom_copro_tables), as_words(m_rom_copro_data),
@@ -226,24 +215,18 @@ bool Model2::init(const rom::GameSpec& game, rom::RomSet roms)
     m_geometry.attach(as_words(m_rom_polygons), as_halfwords(m_rom_textures),
                       m_buffer_ram);
 
-    // The sound board. Nothing on the CPU board reads or writes it directly; the
-    // two only meet over the serial link, so this is the whole connection: the
-    // UART's transmitter feeds the SCSP's MIDI port and the SCSP's MIDI output
-    // comes back into the UART's receiver.
+    // The sound board meets the CPU board only over the serial link: UART TX to
+    // the SCSP's MIDI in, and MIDI out back to the UART's receiver.
     m_sound.attach(m_roms.region("audiocpu"), m_roms.region("samples"));
     m_sound.configure_balance(m_game.name);
     m_uart.set_tx_handler([this](u8 value) { m_sound.midi_in(value); });
     m_sound.set_midi_out_handler([this](u8 value) { m_uart.write_rxd(value); });
     m_uart.set_ready_handler([this] { sound_ready_w(); });
 
-    // Host side of the FIFO flow control. Only the machine can halt the host CPU,
-    // which is why this is not in CoproTgp.
-    //
-    // A read of an empty output FIFO re-executes the instruction and then halts
-    // the host until the coprocessor produces something. A write to a full input
-    // FIFO halts the host until the coprocessor drains it. Both are released by
-    // the opposite side making progress, and run_frame keeps stepping the
-    // coprocessor while the host is halted, so neither can deadlock.
+    // Host side of the FIFO flow control. A read of an empty output FIFO
+    // re-executes the instruction and halts the host until a result arrives; a
+    // write to a full input FIFO halts it until the coprocessor drains it.
+    // run_frame keeps stepping the coprocessor meanwhile, so neither deadlocks.
     m_copro.fifo_out().set_on_empty_retry([this] { m_cpu.stall(); });
     m_copro.fifo_out().set_on_empty_halt([this] { m_cpu.set_halted(true); });
     m_copro.fifo_out().set_on_unempty([this] { m_cpu.set_halted(false); });
@@ -290,17 +273,13 @@ void Model2::reset()
     m_copro_debt    = 0;
     m_in_copro_sync = false;
 
-    // The display-list buffer comes up holding a specific pattern. MAME notes
-    // that the hardware probably derives this itself; without it, a game that
-    // parses the buffer before writing it reads nonsense.
+    // The display-list buffer powers up holding this pattern (as in MAME); some
+    // games parse it before writing it.
     std::fill(m_buffer_ram.begin(), m_buffer_ram.end(), 0x07800f0fu);
 
-    // Bring the analogue controls up where the hardware has them with nobody at
-    // the cabinet. MAME gets this from each PORT_BIT's default value; here it
-    // comes from the same data, so a headless run -- which never polls a host
-    // device -- sees a centred wheel and released pedals rather than full lock
-    // and full throttle. Several titles will not leave their self-test
-    // otherwise.
+    // Analogue controls start at their idle values (MAME's PORT_BIT defaults),
+    // so a run with no host device sees a centred wheel and released pedals.
+    // Several titles will not leave their self-test otherwise.
     m_inputs.analog.fill(0);
     for (usize channel = 0; channel < m_inputs.analog.size(); ++channel) {
         if (m_game.analog[channel].control != rom::AnalogControl::None) {
@@ -319,9 +298,8 @@ void Model2::reset()
     m_doa_unk_toggle = false;
     m_crypt.reset();
 
-    // The serial link to the sound board. 500 kHz clock divided by 16 is the
-    // 31.25 kHz standard Sega and MIDI rate, and the frame is eight data bits
-    // between a start and a stop bit.
+    // The serial link to the sound board: 500 kHz / 16 = 31.25 kHz (the MIDI
+    // rate), 8N1.
     m_uart.configure(kCpuClock, kUartBitRate, kUartBitsPerByte);
     m_uart.reset();
     m_comm.reset();
@@ -379,9 +357,8 @@ void Model2::reset()
 
 void Model2::run_frame()
 {
-    // Per-core --profile split. The i960 figure absorbs sync_copro()'s time
-    // (it runs inside m_cpu.run() on an empty-FIFO read); the copro figure is
-    // only step_copro()'s scheduled share.
+    // Per-core --profile split. The i960 figure includes sync_copro(), which
+    // runs inside m_cpu.run().
     reset_core_profile();
     m_in_frame = true;
 
@@ -390,18 +367,14 @@ void Model2::run_frame()
         const u64 line_start = m_cycles;
 
         while (m_cycles < line_end) {
-            // Stop at whichever comes first, the end of the scanline or a timer
-            // expiry, so timer interrupts land on the right cycle rather than
-            // being rounded to a scanline.
+            // Stop at the end of the scanline or a timer expiry, whichever comes
+            // first, so timer interrupts land on the right cycle.
             u64 target = std::min(line_end, next_timer_deadline());
             if (target <= m_cycles) {
                 target = m_cycles + 1;
             }
-            // Also stop after a short interval so the coprocessor is interleaved
-            // finely. The two are coupled only through eight-deep FIFOs, and
-            // letting the host run a whole scanline ahead would overflow them
-            // constantly. Nothing would be lost, but the host would spend the
-            // time halted.
+            // Interleave the coprocessor finely: the two share only eight-deep
+            // FIFOs, which a scanline-long host run would keep overflowing.
             target = std::min(target, m_cycles + kCoproInterleave);
             if (m_pending_intena_valid) {
                 target = std::min(target, std::max(m_pending_intena_cycle, m_cycles + 1));
@@ -424,12 +397,9 @@ void Model2::run_frame()
                 step_copro(static_cast<u32>(used > 0 ? used : 0));
             }
 
-            // The UART must be ticked alongside the CPU, not just once per
-            // scanline, because TxRDY going high triggers the sound interrupt.
-            // If the UART only advances at the end of the scanline, a byte
-            // written early in the scanline doesn't finish until the next one,
-            // and the program can never send more than one byte per scanline
-            // (~3 bytes/frame instead of the ~100/frame VF2 needs for SFX).
+            // Tick the UART alongside the CPU: TxRDY raises the sound
+            // interrupt, and ticking per scanline would cap the link at one
+            // byte per scanline, too slow for VF2's sound effects.
             m_uart.run(static_cast<u32>(used > 0 ? used : 0));
 
             service_timers();
@@ -438,35 +408,24 @@ void Model2::run_frame()
             if (m_pending_intena_valid && m_cycles >= m_pending_intena_cycle) {
                 m_intena = m_pending_intena;
                 m_pending_intena_valid = false;
-                // Re-evaluate sound ready with the new mask, as MAME's delayed
-                // callback does.
+                // Re-evaluate sound ready with the new mask, as MAME does.
                 sound_ready_w();
                 irq_update();
             }
         }
 
-        // The sound board runs on its own clock and shares nothing with the host
-        // but a serial line, so it does not need the fine interleave the
-        // coprocessor does. Once per scanline is fine enough for the SCSP's
-        // timers, which are the only thing on the board with a deadline, and
-        // coarse enough that the per-call cost of entering the 68000 core is
-        // negligible.
+        // The sound board shares only a serial line with the host, so once per
+        // scanline is fine enough for the SCSP's timers.
         const u32 line_cycles = static_cast<u32>(m_cycles - line_start);
         {
             CoreScope scope(m_core_profile, m_core_profile.sound_ns);
             m_sound.run(line_cycles);
         }
 
-        // TxRDY and RxRDY are levels, and the interrupt latch samples them rather
-        // than seeing an edge. MAME gets this from the UART's 500 kHz transmit
-        // clock, which re-evaluates the ready lines thousands of times a frame;
-        // sampling once a scanline is the same behaviour at coarser grain.
-        //
-        // Sampling rather than edge-triggering is what makes the link start at
-        // all: the program enables the transmitter first and unmasks this
-        // interrupt afterwards, so an edge-triggered latch would never see the
-        // transmitter become ready and the host would wait forever for the
-        // interrupt that tells it to send the first command.
+        // TxRDY and RxRDY are levels the interrupt latch samples (MAME does so
+        // at the UART's 500 kHz clock). It must not be edge-triggered: the
+        // program enables the transmitter before unmasking the interrupt, and
+        // would otherwise wait forever to send its first command.
         sound_ready_w();
 
         if (line == kVisibleHeight) {
@@ -510,7 +469,7 @@ void Model2::sync_copro()
         }
         remaining -= used;
         // Borrow from the coprocessor's future share so this time is not spent
-        // twice. The debt is in thirds of a host cycle, times two.
+        // twice.
         const u32 owed = static_cast<u32>(used) * 3;
         m_copro_debt   = m_copro_debt > owed ? m_copro_debt - owed : 0;
     }
@@ -549,12 +508,9 @@ void Model2::service_timers()
 void Model2::on_vblank_start()
 {
     if (m_video.latch_tile_ram()) ++m_tile_generation;
-    // The geometry engine starts a new frame here. Bit 0 of the video control
-    // register selects 30 Hz geometry, in which case it runs on even frames only
-    // and the renderer shows the previous result again.
-    //
-    // This happens before the interrupt, as it does on hardware: the program's
-    // vertical blank handler assumes the list it submitted has been consumed.
+    // The geometry engine starts a new frame here, before the interrupt: the
+    // vblank handler assumes its list has been consumed. Video control bit 0
+    // selects 30 Hz geometry (even frames only; odd frames repeat).
     if ((m_videocontrol & 1) == 0 || (m_frames & 1) == 0) {
         m_geometry.set_read_start_address(m_geo_read_start_address);
         m_geometry.set_crtc_offsets(m_video.crtc_x_offset(), m_video.crtc_y_offset());
@@ -562,8 +518,7 @@ void Model2::on_vblank_start()
     }
 
     raise_interrupt(1u << 0);
-    // MAME's screen_vblank calls the link board here, after the geometry pass
-    // and the interrupt. It is what steps the ring protocol.
+    // As in MAME's screen_vblank, the link board steps its ring protocol here.
     m_comm.vblank();
 }
 
@@ -573,9 +528,7 @@ void Model2::on_vblank_start()
 
 void Model2::sound_ready_w()
 {
-    // MAME's model2_state::sound_ready_w. The sound interrupt is asserted if
-    // either RxRDY or TxRDY is active, and only latches while it is enabled, so a
-    // program that masks it off misses it rather than taking it later.
+    // MAME's model2_state::sound_ready_w: asserted while RxRDY or TxRDY is active.
     const u32 line = 1u << 10;
     if ((m_uart.txrdy() || m_uart.rxrdy()) && (m_intena & line) != 0) {
         m_intreq |= line;
@@ -585,8 +538,8 @@ void Model2::sound_ready_w()
 
 void Model2::raise_interrupt(u32 line)
 {
-    // A source only latches while it is enabled, which is what lets a game mask
-    // an interrupt off and miss it entirely rather than taking it later.
+    // A source only latches while enabled, so a masked interrupt is missed, not
+    // deferred.
     if ((m_intena & line) != 0) {
         m_intreq |= line;
         irq_update();
@@ -618,8 +571,7 @@ u32 Model2::timers_r(u32 index)
 {
     Timer& timer = m_timers[index];
     if (timer.running) {
-        // The counter is not stored, it is derived: the master clock and the
-        // timer clock are both 25 MHz, so one count is one master cycle.
+        // The counter is derived: timer and master clock are both 25 MHz.
         const u64 elapsed = m_cycles - timer.start_cycle;
         timer.value = elapsed >= timer.original
                           ? 0
@@ -668,11 +620,9 @@ u8 Model2::io_port_c_read()
     u8 data = m_inputs.in1;
 
     if (m_game.gearbox) {
-        // MAME's daytona_gearbox_r. The three bits are not a gear number: the
-        // shifter's five positions encode as 0, 2, 1, 6, 5, and releasing the
-        // stick holds the last selection rather than returning to neutral, so a
-        // program watching for a legal code never sees an illegal one. Without
-        // this, IN1's idle 0xff presents the code 7, which no shifter produces.
+        // MAME's daytona_gearbox_r. The five shifter positions encode as
+        // 0, 2, 1, 6, 5, and releasing the stick holds the last selection;
+        // IN1's idle 0xff would otherwise present the impossible code 7.
         static constexpr u8 kGearValues[5] = {0, 2, 1, 6, 5};
         for (u32 gear = 0; gear < 5; ++gear) {
             if ((m_inputs.gears & (1u << gear)) != 0) {
@@ -703,9 +653,8 @@ u8 Model2::lightgun_data_read(u8 offset) const
 
 u8 Model2::lightgun_offscreen_read(u8 offset) const
 {
-    // Bit 0 is set while player 1 is aimed off the screen, bit 1 for player 2,
-    // which is how a game tells a reload from a miss. Only the axis ends count:
-    // aim at or past the picture's edge is clamped onto them.
+    // Bit 0 is set while player 1 aims off screen, bit 1 for player 2: a reload
+    // rather than a miss. Aim at or past the edge is clamped onto the axis ends.
     const auto offscreen = [](u16 value, const rom::LightgunAxis& axis) {
         return value <= axis.minimum || value >= axis.maximum;
     };
@@ -739,10 +688,8 @@ void Model2::lightgun_mux_write(u8 value)
 
 void Model2::drive_board_write(u8 value)
 {
-    // MAME's drive_board_w latches the byte and pulses the drive CPU's IRQ. Only
-    // Sega Rally and Daytona have a real Z80 behind it, and nothing on the host
-    // side reads the latch back, so accepting the write is the whole
-    // requirement for the games that reach gameplay without one.
+    // MAME's drive_board_w latches the byte for the drive CPU; nothing on the
+    // host side reads it back, so accepting the write is enough.
     m_drive_board_latch = value;
     record_drive_board_write(value);
 }
@@ -782,8 +729,7 @@ Model2::Window Model2::resolve(u32 address)
         if (offset >= storage.size()) {
             return Window{};
         }
-        // ROM is exposed read-only; writes are discarded, matching MAME's
-        // .rom().nopw().
+        // ROM writes are discarded, as MAME's .rom().nopw().
         result.base     = const_cast<u8*>(storage.data()) + offset;
         result.size     = storage.size() - offset;
         result.writable = false;
@@ -845,8 +791,7 @@ Model2::Window Model2::resolve(u32 address)
         return window(m_crypt_ram, address - kCryptRam, true, cpu::kBusFlagBurst);
     }
     if (address >= kCpuControl && address < kCpuControl + 0x38) {
-        // Wait-state configuration. Plain memory, and notably the one memory
-        // region MAME does not flag as burst-capable.
+        // Wait-state configuration: plain memory, not burst-capable in MAME.
         return window(m_cpu_control, address - kCpuControl, true, cpu::kBusFlagNone);
     }
     if (address >= kFramebufferA && address < kFramebufferA + 0x80000) {
@@ -869,14 +814,9 @@ Model2::Window Model2::resolve(u32 address)
 
 u16 Model2::register_flags(u32 address)
 {
-    // Bulk upload paths, which a program fills with multi-word stores and which
-    // therefore have to advance the address. MAME flags exactly these.
-    //
-    // Getting this wrong is quiet and misleading rather than fatal: a four-word
-    // store to a region lacking the flag writes all four words to the first
-    // address, so the destination ends up holding the first word repeated. The
-    // data looks structured, which makes it easy to mistake for the program's own
-    // doing.
+    // Bulk upload paths, filled with multi-word stores that must advance the
+    // address; MAME flags exactly these. Without the flag a four-word store
+    // writes all four words to the first address.
     if (address >= kGeoProgram && address < kGeoProgram + 0x4000) {
         return cpu::kBusFlagBurst;  // Geometrizer microcode upload
     }
@@ -917,9 +857,8 @@ u32 Model2::register_read(u32 address, u32 width)
     }
 
     if (address >= kCoproFifo && address < kCoproFifo + 0x4000) {
-        // Reading a result. If none is waiting, let the coprocessor run first:
-        // MAME reaches the same point through a scheduler synchronisation, and
-        // without it the host would halt for a whole slice on every poll.
+        // If no result is waiting, let the coprocessor run first (MAME
+        // synchronises the scheduler here) rather than halt for a whole slice.
         if (m_copro.output_empty()) {
             sync_copro();
         }
@@ -932,9 +871,8 @@ u32 Model2::register_read(u32 address, u32 width)
             return m_copro.control_read();
         }
         if (offset < 0x08) {
-            // Coprocessor output FIFO status: non-zero means empty. A game polls
-            // this before reading a result, so the coprocessor has to have had a
-            // chance to produce one.
+            // Coprocessor output FIFO status: non-zero means empty. Games poll
+            // it, so the coprocessor gets a chance to produce a result first.
             if (m_copro.output_empty()) {
                 sync_copro();
             }
@@ -970,8 +908,7 @@ u32 Model2::register_read(u32 address, u32 width)
     }
 
     // Link board handshake registers, on byte lanes 0 and 2 of one dword and
-    // mirrored at 0x01a14000 exactly as MAME maps them. Without these the i960
-    // reads an unmapped bus and a linked title never finishes its network check.
+    // mirrored at 0x01a14000, as MAME maps them.
     if (in_mirrored(address, kCommCtl, 4, 0x10000)) {
         const u32 offset = address & 3;
         if (width == 4) {
@@ -1001,12 +938,9 @@ u32 Model2::register_read(u32 address, u32 width)
     }
 
     if (address >= kUart && address < kUart + 0x04) {
-        // The serial link to the sound board. Eight bits wide on byte lanes 0 and
-        // 2, as MAME's umask16(0x00ff) puts it, so register N is at byte offset
-        // N*2: 0 is the data register and 1 the status register.
-        //
-        // A 32-bit read at the base retrieves both registers simultaneously:
-        // data in the low byte (offset 0) and status in the third byte (offset 2).
+        // The serial link to the sound board, on byte lanes 0 and 2 (MAME's
+        // umask16(0x00ff)): register 0 is data, 1 status. A 32-bit read at the
+        // base returns both.
         if (width == 4) {
             const u32 data   = m_uart.read(0);
             const u32 status = m_uart.read(1);
@@ -1038,9 +972,8 @@ u32 Model2::register_read(u32 address, u32 width)
 
     if (m_game.protection == rom::Protection::Sega315_5838_Doa) {
         if (address >= kDoaProtR && address < kDoaProtR + 4) {
-            // doa only reads 16 bits at a time; ST-V titles sharing this chip
-            // read 32, so a 32-bit access packs two sequential 16-bit reads,
-            // matching MAME's doa_prot_r.
+            // A 32-bit access packs two sequential 16-bit reads, as MAME's
+            // doa_prot_r.
             if (width == 4) {
                 const u32 high = m_doa_comp.data_r();
                 const u32 low  = m_doa_comp.data_r();
@@ -1073,10 +1006,8 @@ u32 Model2::register_read(u32 address, u32 width)
 
 void Model2::register_write(u32 address, u32 value, u32 width)
 {
-    // Texture RAM. Two 16-bit halves are packed into each 32-bit entry, so a
-    // write's destination is half its window offset. Reads bypass this, which
-    // means the two disagree; games only ever write, and the renderer reads the
-    // packed form, so it does not matter. Carried over from MAME.
+    // Texture RAM packs two 16-bit halves per 32-bit entry, so a write lands at
+    // half its window offset. Reads bypass this, as in MAME; games only write.
     if (in_mirrored(address, kTextureRam0, 0x200000, 0x200000)
         || in_mirrored(address, kTextureRam1, 0x200000, 0x200000)) {
         std::vector<u32>& sheet = in_mirrored(address, kTextureRam0, 0x200000, 0x200000)
@@ -1138,8 +1069,8 @@ void Model2::register_write(u32 address, u32 value, u32 width)
 
     if (address >= kGeoProgram && address < kGeoProgram + 0x4000) {
         if ((m_geoctl & 0x80000000) != 0) {
-            // Program upload: only the word count matters, since the Geometrizer
-            // is high-level emulated rather than executed.
+            // Program upload: only the word count matters, as the Geometrizer
+            // is emulated at a high level.
             ++m_geocnt;
         } else {
             const u32 index = m_geo_write_start_address / 4;
@@ -1194,12 +1125,8 @@ void Model2::register_write(u32 address, u32 value, u32 width)
             m_intreq &= value;
             irq_update();
         } else {
-            // MAME delays this by 80 ns (2 CPU cycles at 25 MHz) because the
-            // real hardware latches the mask through a register that settles one
-            // or two clocks after the write. Without the delay, an interrupt
-            // enabled and then immediately disabled within the same handler is
-            // never seen because the priority gate blocks it on the same cycle
-            // the enable appears.
+            // The mask settles two cycles after the write, as in MAME; without
+            // the delay an interrupt enabled and at once disabled is never seen.
             m_pending_intena       = value;
             m_pending_intena_cycle = m_cycles + 2;
             m_pending_intena_valid = true;
@@ -1267,11 +1194,8 @@ void Model2::register_write(u32 address, u32 value, u32 width)
         return;
     }
 
-    // 0x01c00020 to 0x01c0003f is genuinely undecoded on Model 2A: MAME maps
-    // only the sixteen I/O registers below it and the inert word above. The boot
-    // code writes the string "SEGA" here anyway, which on the original Model 2
-    // would have landed in the I/O board's dual-port RAM. Reported rather than
-    // swallowed, because it is real behaviour and not a gap in this map.
+    // 0x01c00020 to 0x01c0003f is undecoded on Model 2A. The boot code writes
+    // "SEGA" here anyway (the original Model 2's dual-port RAM).
 
     if (address >= kUart && address < kUart + 0x04) {
         if ((address - kUart) == 0) {
@@ -1413,15 +1337,9 @@ u32 Model2::read32(u32 address)
     return register_read(address, 4);
 }
 
-// The i960 reaches an unaligned multi-word access one byte at a time and takes
-// the region's burst capability from the first of those bytes, so a byte access
-// has to report the same flags a dword access would. Without this the base class
-// default of "no burst" applies, the address stops advancing part-way through an
-// unaligned ldl/ldt/ldq or stl/stt/stq, and the rest of the transfer collapses
-// onto one location -- which shows up as a table read from ROM arriving with
-// every entry equal to the first. MAME has the same structure and gets the flags
-// right because its read_byte_flags goes through the same dispatch table as
-// read_dword_flags.
+// The i960 makes an unaligned multi-word access a byte at a time and takes the
+// burst capability from the first byte, so byte accesses must report the same
+// flags as dword ones; otherwise the transfer collapses onto one address.
 std::pair<u8, u16> Model2::read8_flags(u32 address)
 {
     charge_area(address);
@@ -1485,9 +1403,8 @@ std::pair<u32, u16> Model2::read32_flags(u32 address)
     if ((flags & cpu::kBusFlagBurst) == 0) {
         ++m_no_burst_reads[address >> 20];
     }
-    // Ports report no burst capability, which is what makes a multi-word load
-    // from the coprocessor FIFO re-read the same address instead of walking
-    // forward through it. The upload paths in register_flags are the exception.
+    // Ports report no burst capability, so a multi-word load from the
+    // coprocessor FIFO re-reads one address. The upload paths are the exception.
     return {register_read(address, 4), flags};
 }
 
@@ -1598,10 +1515,8 @@ void Model2::note_video_write(const Window& w, u32 width)
         case Notify::None:
             return;
         case Notify::Palette:
-            // MAME recomputes one entry on a palette write and the whole table
-            // when the colour translation changes. Rebuilding all 4096 entries
-            // costs microseconds and happens at most once per frame here, so both
-            // cases take the same path.
+            // Deviation: MAME updates one entry per palette write; here the
+            // whole table is rebuilt, at most once per frame.
             m_palette_dirty = true;
             ++m_table_generation;
             return;
@@ -1623,10 +1538,9 @@ void Model2::compose_video()
     }
     m_video.compose();
 
-    // Render test mode replaces the 3D output with a framebuffer bank, chosen by
-    // frame parity as MAME's draw_framebuffer chooses it. Drawn here rather than
-    // in the renderer because it is opaque 2D output that belongs under the
-    // category-one tilemap layers, which is exactly where the tilemap surface is.
+    // Render test mode replaces the 3D output with a framebuffer bank chosen by
+    // frame parity (MAME's draw_framebuffer). It belongs under the category-one
+    // tilemap layers, so it is drawn into the tilemap surface.
     if (m_render_test) {
         m_video.draw_framebuffer(framebuffer((m_frames & 1) != 0 ? 1 : 0));
     }
@@ -1708,8 +1622,8 @@ void Model2::load_nvram()
     if (m_nvram_directory.empty() || m_game.name.empty()) {
         return;
     }
-    // A set can ship power-on images for both, and MAME applies those before it
-    // reads any saved file. Do the same, so a saved image still wins.
+    // Apply a set's power-on images before any saved file, as MAME does, so a
+    // saved image wins.
     (void)apply_default_image(m_roms.region("backup1"), m_nvram);
     seed_eeprom_from_rom();
 

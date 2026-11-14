@@ -14,9 +14,8 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-// Owns the native-resolution frame and puts it on the screen. GL analogue of
-// render::vk::PresentPass -- see that class's own doc comment for why
-// compositing happens before magnifying rather than after.
+// Owns the native-resolution frame and puts it on the screen: the GL
+// counterpart of render::vk::PresentPass.
 #pragma once
 
 #include "render/gl/gl_common.h"
@@ -37,10 +36,9 @@ public:
     PresentPass(const PresentPass&)            = delete;
     PresentPass& operator=(const PresentPass&) = delete;
 
-    /// `render_scale` (1..kMaxRenderScale) sizes the composite target and its
-    /// fill-mask stencil to N*native, and the viewport begin_frame() sets. The
-    /// native frame the software renderer uploads and a screenshot reads back
-    /// stay native, so N=1 is unchanged.
+    /// `render_scale` (1..kMaxRenderScale) sizes the composite target, its
+    /// stencil and begin_frame()'s viewport to N*native. Host uploads and
+    /// screenshots stay native.
     [[nodiscard]] bool init(u32 render_scale, u32 width = kWidth);
     void shutdown();
 
@@ -67,14 +65,12 @@ public:
     void upload_from_host(std::span<const u32> pixels);
 
     /// Adopt new present-stage options (scaling method, aspect mode, CRT).
-    /// Pure present state, so this reallocates nothing.
+    /// Reallocates nothing.
     void set_options(const PresentOptions& options) { m_options = options; }
 
-    /// Scale the finished native frame onto the currently bound framebuffer
-    /// (the window, via framebuffer 0), into the rectangle the current aspect
-    /// mode and scaling method select within `window_width` by
-    /// `window_height`. Clears the whole target first so the letterbox bars
-    /// are defined.
+    /// Scale the finished frame onto the bound framebuffer, into the rectangle
+    /// the aspect mode and scaling method select. Clears the whole target first
+    /// so the letterbox bars are defined.
     void present(u32 window_width, u32 window_height);
 
 private:
@@ -84,8 +80,8 @@ private:
     u32 m_native_texture = 0;
     u32 m_fbo            = 0;
 
-    /// Fill-mask stencil for the 3D draw, which now happens directly into this
-    /// native framebuffer between the below and above tilemap layers.
+    /// Fill-mask stencil for the 3D draw, which happens directly into this
+    /// framebuffer between the tilemap layers.
     u32 m_stencil_renderbuffer = 0;
 
     u32 m_program  = 0;

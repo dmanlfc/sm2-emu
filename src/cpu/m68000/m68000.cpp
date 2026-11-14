@@ -61,10 +61,8 @@ M68000::M68000(Bus& bus) : m_bus(&bus)
         g_musashi_inited = true;
     }
 
-    // Seed from Musashi's initialised state (cpu type + callback pointers set),
-    // not a zero blob -- a zero context wipes those and the next pulse_reset
-    // segfaults. Snapshot the live context and restore it so a currently-active
-    // instance is left undisturbed.
+    // Seed from Musashi's initialised state, not zeros: a zero context wipes the
+    // cpu type and callbacks and the next pulse_reset segfaults.
     m_context.assign(m68k_context_size(), 0);
     std::vector<u8> saved(m68k_context_size(), 0);
     m68k_get_context(saved.data());
@@ -213,9 +211,6 @@ u32 M68000::address_reg(int index) const
 void M68000::serialize(Archive& ar)
 {
     if (ar.saving()) {
-        // The live state is in Musashi's globals when this instance is current,
-        // so pull it back into m_context before writing. make_current also
-        // flushes whatever other instance was current into its own blob.
         make_current();
         m68k_get_context(m_context.data());
         // m68ki_cpu_core ends with 13 host pointers (cycle tables, callbacks),
@@ -232,12 +227,8 @@ void M68000::serialize(Archive& ar)
     ar.raw(m_irq_mask);
     ar.raw(m_total_cycles);
     if (ar.loading() && !ar.failed()) {
-        // Install the restored blob. g_current is left pointing here with the
-        // restored context loaded; the next entry point on any instance will
-        // save/swap correctly. Never zero-fill (documented to segfault).
-        g_current = nullptr;  // force make_current to actually set the context
+        g_current = nullptr;  // force make_current to load the restored blob
         make_current();
-        // The blob holds host pointers from whichever process saved it.
         rebind_host_pointers();
         m68k_get_context(m_context.data());
     }
@@ -260,12 +251,8 @@ std::string M68000::state_string() const
 // ---------------------------------------------------------------------------
 // Musashi's memory interface
 // ---------------------------------------------------------------------------
-// M68K_SEPARATE_READS is off, so instruction and PC-relative fetches come
-// through these same six functions.
-//
-// Reads before reset() (or with no bus, which cannot happen in practice) return
-// 0 rather than dereferencing null, because Musashi calls the read callbacks
-// from m68k_pulse_reset to fetch the reset vector.
+// M68K_SEPARATE_READS is off, so instruction fetches come through these too.
+// Reads with no bus return 0: m68k_pulse_reset fetches the reset vector.
 
 extern "C" {
 

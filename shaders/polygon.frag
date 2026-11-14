@@ -59,9 +59,8 @@ layout(location = 1) in flat uint vPolygon;
 
 layout(location = 0) out vec4 fragColour;
 
-// Shares polygon.vert's Push block (this stage reads only renderScale). GL/GLES
-// have no push constant, so the GL compile takes a uniform block at binding 4
-// while the Vulkan compile keeps the push constant.
+// Shares polygon.vert's Push block. GL has no push constants, so it takes a
+// uniform block at binding 4 instead.
 #ifdef SM2_TARGET_GL
 layout(binding = 4) uniform Push {
 #else
@@ -99,15 +98,11 @@ struct PolyParams {
     uint tint;         ///< 10 bits per channel, 1/512 units
 };
 
-/// Both texture sheets, decoded ahead of time by texel_decode.comp from the
-/// hardware's packed 4-bit form into one pixel per 2x2 texel container: R is the
-/// texel at even y, even x; G at even y, odd x; B at odd y, even x; A at odd y,
-/// odd x. One array layer per sheet. Decoding on the host would defeat the point
-/// -- the mipmap fold below depends on the polygon being drawn, not just the
-/// physical address -- so what moved to the decode pass is only the word/byte/
-/// nibble split, which does not. Sampled with texelFetch, never filtered: this
-/// shader's own bilinear blend below is what combines a container's neighbours,
-/// and a hardware filter would double it.
+/// Both texture sheets, one array layer each, unpacked by texel_decode.comp into
+/// one pixel per 2x2 texel block: R is (even y, even x), G (even y, odd x),
+/// B (odd y, even x), A (odd y, odd x). Only the nibble split is done there, since
+/// the mipmap fold depends on the polygon. Read with texelFetch, never filtered:
+/// this shader does its own bilinear blend.
 layout(set = 0, binding = 0) uniform usampler2DArray uSheets;
 
 /// Luminance RAM, thirty-two kilobytes of tone curves, four bytes to a word.
@@ -216,11 +211,7 @@ const uint kFlagDirect      = 1u << 14;
 /// the stored one, which is how the hardware behaves and what makes a mipmap
 /// level's odd base position work out.
 ///
-/// `sheet` is the array layer, 0 or 1, replacing the packed buffer's byte offset
-/// of a sheet's own base; the decode pass has already turned that into the array
-/// dimension. What is left here is exactly the fold and the four-way channel pick
-/// texel_decode.comp's own header describes, now against a decoded pixel instead
-/// of a raw word.
+/// `sheet` is the array layer, 0 or 1.
 uint fetchTexel(uint sheet, uint baseX, uint baseY, uint x, uint y)
 {
     uint x2 = baseX + x;
@@ -232,8 +223,6 @@ uint fetchTexel(uint sheet, uint baseX, uint baseY, uint x, uint y)
 
     const uvec4 nibbles = texelFetch(uSheets, ivec3(int(x2 >> 1), int(y2 >> 1), int(sheet)), 0);
 
-    // R/G/B/A hold (even y, even x) / (even y, odd x) / (odd y, even x) /
-    // (odd y, odd x), matching texel_decode.comp's layout exactly.
     const uint row    = ((y2 & 1u) == 0u) ? nibbles.x : nibbles.z;  // even-x column
     const uint rowOdd = ((y2 & 1u) == 0u) ? nibbles.y : nibbles.w;  // odd-x column
     return ((x2 & 1u) == 0u) ? row : rowOdd;
@@ -389,9 +378,8 @@ ivec2 filterLevel(PolyParams p, int level, int u, int v, bool translucent)
 /// mantissa bits. MAME takes it from its 3dfx Voodoo renderer; reproducing the
 /// table rather than calling log2 keeps the mipmap level and the blend between
 /// levels identical at every boundary.
-// Module-scope so the compiler materialises it once, not once per fragment:
-// some GLSL compilers (the V3D tiler among them) rebuild a function-local const
-// array on every invocation. Same table, none of the per-pixel cost.
+// Module-scope because some GLSL compilers rebuild a function-local const array
+// on every invocation.
 const uint kLog2Table[128] = uint[128](
       0u,   2u,   5u,   8u,  11u,  14u,  16u,  19u,  22u,  25u,  27u,  30u,
      33u,  35u,  38u,  40u,  43u,  46u,  48u,  51u,  53u,  56u,  58u,  61u,
@@ -536,26 +524,21 @@ void main()
 {
     const PolyParams p = POLYGON(vPolygon);
 
-    // Texture coordinate from the edge walk, not the rasteriser's per-fan-
-    // triangle interpolation of vTexel, which warps textured quads. The vertex
-    // stage applies no Y flip on either target, so gl_FragCoord is already in
-    // the ring's space (bottom-origin on GL, top on Vulkan, but so is the
-    // geometry); only the render scale is divided back out to reach native.
+    // Texture coordinate from the edge walk, not the rasteriser's per-triangle
+    // interpolation of vTexel, which warps textured quads. gl_FragCoord is already
+    // in the ring's space on both targets; only the render scale is divided out.
     const vec2  nativeCoord = gl_FragCoord.xy / float(pc.renderScale);
     const vec3  interp      = polygonInterpolate(vPolygon, nativeCoord.x, nativeCoord.y);
     const float invZ        = interp.z;
     const float zRecon      = 1.0 / invZ;
-    // Raw u,v in eighths, as vTexel used to carry.
+    // Raw u,v in eighths.
     const vec2  texelUV     = vec2(interp.x, interp.y) * zRecon;
 
     const vec2 texelDx = dFdx(texelUV);
     const vec2 texelDy = dFdy(texelUV);
 
-    // Translucency by stipple: a screen-locked checkerboard on the native raster
-    // grid. When the 3D is rasterised at N*native, gl_FragCoord runs at the
-    // scaled resolution, so it is divided back to native pixels first; otherwise
-    // the checkerboard would come out N times finer than the hardware's. At N=1
-    // this is gl_FragCoord unchanged.
+    // Translucency by stipple: a checkerboard locked to the native pixel grid,
+    // so it does not get finer at higher render scales.
     const ivec2 nativePix = ivec2(gl_FragCoord.xy) / int(pc.renderScale);
     if ((p.flags & kFlagChecker) != 0u
         && ((nativePix.x ^ nativePix.y) & 1) == 0) {
@@ -608,21 +591,16 @@ void main()
 
         ivec2 texel = sampleMipChain(p, u, v, mml, level, maxLevel, translucent);
 
-        // Opt-in anisotropic filtering: sample the same mip chain at a few extra
-        // points spread along the direction the texture is most stretched in
-        // screen space, and average. Faithful (textureQuality == 0) keeps the
-        // single tap above exactly, so it is bit-exact. Only the sample
-        // positions change; LOD selection and the stipple are untouched.
+        // Opt-in anisotropic filtering: average extra taps of the same mip chain
+        // along the axis of greatest screen-space stretch. Quality 0 keeps the
+        // single tap above, bit-exact; LOD selection is unchanged.
         if (pc.textureQuality > 1u) {
-            // The longer screen-space gradient axis is the direction of maximum
-            // stretch; step the extra taps along it.
             const vec2 du = texelDx * 32.0;
             const vec2 dv = texelDy * 32.0;
             const float lenx = dot(du, du);
             const float leny = dot(dv, dv);
             const vec2  major = (lenx > leny) ? du : dv;
 
-            // Tap count from the stretch ratio, capped by the requested quality.
             const float ratio = sqrt(max(lenx, leny) / max(min(lenx, leny), 1.0));
             const int   taps  = clamp(int(ratio), 2, int(pc.textureQuality));
             if (taps > 1) {

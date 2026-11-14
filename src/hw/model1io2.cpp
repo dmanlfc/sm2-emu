@@ -145,9 +145,8 @@ void Model1io2::run(u32 host_cycles)
         return;
     }
 
-    // 9.8304 MHz against the main board's 25 MHz. The debt is kept in units of
-    // 25 000 000 so the ratio is exact across slices; at the interleave the
-    // machine uses, rounding per call would lose a large part of the board's time.
+    // 9.8304 MHz against the main board's 25 MHz, with the remainder carried so
+    // the ratio is exact across slices.
     constexpr u64 kHostClock = 25'000'000;
     m_cycle_debt += static_cast<u64>(host_cycles) * kCpuClock;
     const s32 cycles = static_cast<s32>(m_cycle_debt / kHostClock);
@@ -269,13 +268,11 @@ void Model1io2::io_pf_write(u8 value)
     // ------1-  cn6 lcd rw
     // -------0  cn6 lcd rs
     //
-    // Data and chip select settle before the clock edge that samples them, for
-    // the same reason as on the first board.
+    // Data and chip select settle before the clock edge that samples them.
     m_eeprom.set_di(bit(value, 6) != 0);
     m_eeprom.set_cs(bit(value, 4) != 0);
     m_eeprom.set_clk(bit(value, 5) != 0);
-    // The LCD strobe -- bit 3 clear, bit 2 set, bit 1 clear -- is where MAME
-    // writes m_lcd_data to the display. There is no display here.
+    // The LCD strobe (bit 3 clear, bit 2 set, bit 1 clear) is not modelled.
 }
 
 void Model1io2::io_pg_write(u8 value)
@@ -371,8 +368,8 @@ u8 Model1io2::read8(u16 address)
         // ---4----  ROM_EMU jumper JP4, off
         // ----3210  board buttons 0 to 3, active low so released reads high
         //
-        // The four buttons read as released and both jumpers as off, which is the
-        // configuration that runs the game rather than the diagnostic menu.
+        // Buttons released and jumpers off runs the game rather than the
+        // diagnostic menu.
         u8 data = 0x3f;
         if (m_eeprom.data_out()) data |= 0x40;
         data |= 0x80;
@@ -473,8 +470,7 @@ void Model1io2::io_write8(u16 port, u8 value)
     }
     if (low >= kSioBase && low < kSioBase + 4) {
         // Track the register pointer so a data byte written to a control port
-        // cannot be mistaken for a command. Nothing else needs modelling: the
-        // firmware only configures a terminal that is not plugged in.
+        // is not mistaken for a command. The terminal is never connected.
         const u32 offset  = low - kSioBase;
         const u32 channel = (offset >> 1) & 1;
         if ((offset & 1) != 0) {
@@ -503,8 +499,7 @@ u8 Model1io2::interrupt_vector()
 void Model1io2::interrupt_return()
 {
     // Without this the CTC's in-service latch never clears and the timer
-    // interrupt fires exactly once: the board ran ten million instructions and
-    // took one interrupt before this was wired.
+    // interrupt fires only once.
     m_ctc.return_from_interrupt();
 }
 

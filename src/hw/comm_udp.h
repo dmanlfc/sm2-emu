@@ -14,11 +14,10 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-// A CommTransport carrying link-board frames over a LAN by UDP. The board is a
-// ring: receive from the previous cabinet, send to the next. A frame maps
-// one-to-one onto a datagram; the ring protocol re-sends state every frame and
-// tolerates a lost datagram, so UDP fits and avoids a TCP ring's head-of-line
-// stall when a cabinet boots late. Driven from vblank(), so it never blocks.
+// A CommTransport carrying link-board frames over UDP, one frame per datagram:
+// receive from the previous cabinet in the ring, send to the next. The ring
+// protocol re-sends state every frame and tolerates loss, so UDP avoids TCP's
+// head-of-line stall when a cabinet boots late. Never blocks.
 #pragma once
 
 #include "core/net.h"

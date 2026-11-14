@@ -22,13 +22,9 @@
 // flag, the IRQ pin, and the resampler that gets the chip's 55556 Hz output onto
 // the board's 44643 Hz bus.
 //
-// The timers are the reason this chip cannot be left out. The board's sound
-// driver runs its sequencer off Timer B's overflow flag, polling the status
-// register for it, and MAME binds no IRQ handler for this chip so polling is the
-// only route. With the status register stubbed to zero the driver initialises both
-// MultiPCMs, waits for a tick that never comes and never keys a voice on. That
-// was measured both ways: stock MAME keys on 35 voices in Daytona's first ten
-// seconds, and MAME with YM reads forced to zero keys on none.
+// The timers are why this chip cannot be left out: the sound driver polls the
+// status register for Timer B's overflow to run its sequencer, and with it
+// stubbed no voice is ever keyed on.
 
 #pragma once
 
@@ -57,10 +53,8 @@ public:
     void write(u32 offset, u8 value);
 
     /// Add `frames` interleaved stereo frames into `accum`, two s32 per frame,
-    /// at `gain_percent` of full scale.
-    ///
-    /// This is where time passes for the chip: the timers are counted in output
-    /// samples, so it has to be called whether or not anyone is listening.
+    /// at `gain_percent` of full scale. The timers advance here, so it must be
+    /// called whether or not anyone is listening.
     void generate(s32* accum, u32 frames, s32 gain_percent);
 
     /// The chip's native output rate, clock / 144. Not the rate generate()
@@ -89,15 +83,9 @@ private:
 
     // -- ymfm::ymfm_interface --------------------------------------------------
     //
-    // ymfm_sync_mode_write and ymfm_sync_check_interrupts are deliberately not
-    // overridden. MAME defers both onto its scheduler so that a CPU mid-write
-    // does not reorder against the sound stream; there is no scheduler here and
-    // the base class's default is to call the engine straight away, which is what
-    // is wanted.
-    //
-    // ymfm_set_busy_end is not overridden either: ym2612 and ym3438 never arm the
-    // busy flag -- only the older OPN parts do -- so the default "never busy" is
-    // the chip's real behaviour rather than a simplification.
+    // ymfm_sync_mode_write and ymfm_sync_check_interrupts are not overridden:
+    // MAME defers them to its scheduler, but calling the engine straight away is
+    // right here. Nor is ymfm_set_busy_end: the YM3438 never arms the busy flag.
 
     void ymfm_set_timer(u32 tnum, s32 duration_in_clocks) override;
     void ymfm_update_irq(bool asserted) override;

@@ -161,13 +161,9 @@ u32 CoproTgp::host_fifo_read()
 
 void CoproTgp::function_port_write(u32 byte_offset, u32 value)
 {
-    // The port's own address carries the function number, which the host folds
-    // into the command word. Sixteen bytes per function, eight bits of function
-    // number (MAME's copro_function_port_w: `a = (offset >> 2) & 0xff`, offset
-    // being a dword count, so `a == (byte_offset >> 4) & 0xff`) -- twice the
-    // width of the geometrizer's own function port, which is a separate decode
-    // (`geo_w`'s `& 0x3f`). Bits 22:20 of the value are discarded because that is
-    // where the function number lands.
+    // The port address carries an 8-bit function number, 16 bytes per function
+    // (MAME's copro_function_port_w), folded into the command word. Bits 22:20 of
+    // the value are discarded because that is where the function number lands.
     const u32 function = (byte_offset >> 4) & 0xff;
     const u32 command  = (value & 0x800fffffu) | (function << 23);
     m_fifo_in.push(command);
@@ -218,10 +214,8 @@ void CoproTgp::write_data(u16 address, u32 value)
 u32 CoproTgp::read_io(u16 address)
 {
     // The bank register switches the whole io space between external memory and
-    // the mathematical units. That looks odd, because it means the tables are
-    // unreachable while the window is open, but it is what the hardware does: the
-    // window covers the entire space, so the program has to close it before doing
-    // any trigonometry.
+    // the mathematical units, so the tables are unreachable while the window is
+    // open. This matches the hardware.
     if (external_window_enabled()) {
         return external_read(address);
     }
@@ -399,9 +393,7 @@ u32 CoproTgp::inverse_sqrt_read(u16 offset) const
 
 u32 CoproTgp::read_rf(u8 address)
 {
-    // Four bits of address on this part, so anything wider aliases down. The core
-    // passes through what the instruction encoded, exactly as MAME's address space
-    // would before truncating.
+    // Four bits of address on this part, so anything wider aliases down.
     switch (address & 0xf) {
         case 1:
             ++m_activity.commands_received;

@@ -17,24 +17,12 @@
 // The desktop OpenGL 4.3 (or 4.1) core function pointers this renderer calls, and small
 // helpers shared by every gl_*_pass file.
 //
-// Function pointers rather than a generator-based loader (glad, GLEW, epoxy):
-// SDL3 already vendors every constant and PFNGL*PROC typedef this renderer
-// needs (SDL_opengl_glext.h), and SDL_GL_GetProcAddress() resolves them
+// Function pointers rather than a loader such as glad: SDL3 already vendors the
+// constants and PFNGL*PROC typedefs, and SDL_GL_GetProcAddress() resolves them.
 //
-// Every pointer below is named without its "gl" prefix (BindBuffer, not
-// glBindBuffer) and lives inside sm2::render::gl. That is not a style choice:
-// SDL_opengl.h declares GL 1.0/1.1 core functions (glClearColor, glViewport,
-// glEnable, glGetError, ...) as ordinary extern "C" symbols at global scope
-// unconditionally, because it is written for static linking against a real
-// libGL. A *global* variable literally named glClearColor collides with that
-// declaration -- confirmed directly, "redefinition ... as different kind of
-// symbol" -- and no macro suppresses just those declarations while keeping
-// the header's typedefs and constants. Living inside this namespace under
-// the un-prefixed name sidesteps the collision entirely: sm2::render::gl::
-// ClearColor and global ::glClearColor are different symbols by construction,
-// so nothing here ever redeclares anything SDL_opengl.h already declared.
-// Call sites write `gl::BindBuffer(...)` (or `using namespace
-// sm2::render::gl;` once per .cpp and drop the qualifier).
+// The pointers drop the "gl" prefix (gl::BindBuffer) because SDL_opengl.h
+// declares the GL 1.0/1.1 functions as global extern "C" symbols, which a
+// global variable of the same name would collide with.
 #pragma once
 
 #include "core/types.h"
@@ -48,15 +36,9 @@
 
 namespace sm2::render::gl {
 
-// GL 1.0/1.1 entry points have no PFNGL*PROC typedef visible here: SDL3 only
-// emits them when SDL_OPENGL_1_FUNCTION_TYPEDEFS is defined before including
-// SDL_opengl.h, and that same guard also re-exposes the colliding plain
-// extern declarations this header exists to avoid (checked directly: the two
-// live behind the same #ifdef block, not separate ones). These GL 1.1 entry
-// points have been stable for over three decades, so hand-typing them from
-// SDL_opengl.h's own extern signatures (matched line for line, not
-// reconstructed from memory) is a one-time cost, not an ongoing maintenance
-// burden.
+// GL 1.0/1.1 entry points are typed by hand from SDL_opengl.h's signatures:
+// SDL_OPENGL_1_FUNCTION_TYPEDEFS would provide the typedefs, but the same guard
+// re-exposes the colliding extern declarations.
 // clang-format off
 typedef void     (APIENTRYP SM2_PFNGLGENTEXTURESPROC)   (GLsizei n, GLuint* textures);
 typedef void     (APIENTRYP SM2_PFNGLDELETETEXTURESPROC)(GLsizei n, const GLuint* textures);
@@ -198,27 +180,16 @@ extern PFNGLBUFFERSTORAGEPROC           BufferStorage;
 // clang-format on
 
 /// Resolve every GL function pointer this renderer calls, via `get_proc`
-/// (ordinarily SDL_GL_GetProcAddress). Must be called once, after a GL
-/// context is current -- SDL_GL_GetProcAddress's own documentation requires
-/// a current context, and on some platforms the returned pointers are only
-/// valid for the context that was current when they were resolved.
-///
-/// Returns false if any function this renderer actually calls could not be
-/// resolved, naming the first one that failed -- a context that reports 4.3
-/// core but is missing an entry point this renderer needs is a driver bug
-/// worth surfacing by name, not a silent null-pointer crash three calls
-/// later.
+/// (ordinarily SDL_GL_GetProcAddress). Call once, with the context current.
+/// False if any could not be resolved, logging the first by name.
 [[nodiscard]] bool load_gl_functions(SDL_FunctionPointer (*get_proc)(const char*),
                                      std::string* out_error);
 
-/// True once load_gl_functions() has succeeded. Guards every other function
-/// in this namespace from being called before the pointers exist.
+/// True once load_gl_functions() has succeeded.
 [[nodiscard]] bool gl_functions_loaded();
 
-/// Resolves BufferStorage separately from load_gl_functions(): GLES has no
-/// core-promoted equivalent under the desktop name, only glBufferStorageEXT
-/// when GL_EXT_buffer_storage is present. Call once, after
-/// load_gl_functions() succeeds. A null result is not an error.
+/// Resolves BufferStorage separately, since GLES only has glBufferStorageEXT.
+/// Call once, after load_gl_functions(). A null result is not an error.
 void resolve_buffer_storage(SDL_FunctionPointer (*get_proc)(const char*), bool is_es);
 
 /// Resolves the entry points not every supported context has: compute and
@@ -229,37 +200,23 @@ void resolve_buffer_storage(SDL_FunctionPointer (*get_proc)(const char*), bool i
                                               bool compute, bool texture_storage,
                                               std::string* out_error);
 
-/// Extension check that works on a core profile, where glGetString(GL_EXTENSIONS)
-/// was removed: iterates GetStringi(GL_EXTENSIONS, i) for i in
-/// [0, GL_NUM_EXTENSIONS) rather than parsing one space-separated string.
+/// Extension check for a core profile, via GetStringi(GL_EXTENSIONS, i).
 [[nodiscard]] bool has_gl_extension(const char* name);
 
-/// Rewrite an embedded shader's `#version` line for this target and inject
-/// `#define SM2_TARGET_GL 1` immediately after it.
-///
-/// The embedded source (shaders/*_glsl.h) still carries `#version 450`,
-/// which is what the Vulkan SPIR-V compile of the *same* source needs, but
-/// `#version` must be the first token in GLSL source -- confirmed directly,
-/// glslc rejects a #define placed above #version with "must occur first in
-/// shader" -- so SM2_TARGET_GL cannot simply be prepended in front of it the
-/// way a naive read of the shader-editing task might suggest. This finds the
-/// first `#version` line, replaces it with `version_directive`, and inserts
-/// the define on the line after. Every gl_*_pass call site must run its
-/// embedded source through this before handing it to compile_program()/
-/// compile_compute_program().
-/// `extra_define`, when non-null, is emitted as `#define <name> 1`. The embedded
-/// GL source is the raw file, so glslc's build-time `-D` never reaches it; an
-/// `#ifdef`-gated GL variant is activated only by injecting its define here.
+/// Replace an embedded shader's `#version 450` line with `version_directive`
+/// and inject `#define SM2_TARGET_GL 1` after it (`#version` must come first).
+/// Every GL shader goes through this before compile_program().
+/// `extra_define`, when non-null, is emitted as `#define <name> 1`; glslc's
+/// build-time `-D` never reaches the embedded GL source.
 [[nodiscard]] std::string prepare_gl_source(const char* embedded_source,
                                             const char* version_directive,
                                             const char* extra_define = nullptr);
 
-/// "#version 430 core" -- desktop GL's own version_directive for
-/// prepare_gl_source(), named so no call site repeats the literal.
+/// Desktop GL's version_directive for prepare_gl_source().
 inline constexpr const char* kDesktopVersionDirective = "#version 430 core";
 
-/// "#version 410 core" -- the macOS fallback: no compute shaders, storage
-/// buffers, image store or layout(binding). prepare_gl_source() defines
+/// The macOS fallback: no compute shaders, storage buffers, image store or
+/// layout(binding). prepare_gl_source() defines
 /// SM2_GL41 for it, and compile_program() turns binding qualifiers into
 /// uniform/block bindings after link.
 inline constexpr const char* kGl41VersionDirective = "#version 410 core";
@@ -267,10 +224,8 @@ inline constexpr const char* kGl41VersionDirective = "#version 410 core";
 /// True when shaders target kGl41VersionDirective.
 [[nodiscard]] bool is_gl41();
 
-/// "#version 310 es" -- GLES 3.1's own version_directive for
-/// prepare_gl_source(). ES requires explicit precision qualifiers which are
-/// injected by prepare_gl_source() alongside the SM2_TARGET_GL define when
-/// this directive is used.
+/// GLES 3.1's version_directive; prepare_gl_source() also injects the
+/// precision qualifiers ES requires.
 inline constexpr const char* kEsVersionDirective = "#version 310 es";
 
 /// Returns the version directive matching the currently active context.
@@ -281,20 +236,15 @@ inline constexpr const char* kEsVersionDirective = "#version 310 es";
 /// during backend init after the context type (desktop/ES) is known.
 void set_version_directive(const char* directive);
 
-/// Compile a vertex+fragment program from GLSL source already run through
-/// prepare_gl_source(), logging the shader and link error text through
-/// SM2_ERROR on failure rather than aborting -- the same "report and
-/// propagate" convention SM2_VK_TRY already uses on the Vulkan side, adapted
-/// to GL's own GetShaderiv/GetProgramiv query style. Returns 0 on failure.
+/// Compile a vertex+fragment program from source run through
+/// prepare_gl_source(). Logs the error text and returns 0 on failure.
 [[nodiscard]] u32 compile_program(const char* vertex_source, const char* fragment_source);
 
 /// As compile_program(), for a single compute shader.
 [[nodiscard]] u32 compile_compute_program(const char* compute_source);
 
-/// A GL buffer that is either persistently mapped (GL_ARB_buffer_storage) or
-/// backed by plain BufferData with updates going through BufferSubData,
-/// decided once by has_gl_extension("GL_ARB_buffer_storage") and recorded
-/// here so a caller does not have to re-check it per write.
+/// A GL buffer, persistently mapped where GL_ARB_buffer_storage allows, else
+/// updated through BufferSubData.
 struct PersistentBuffer {
     u32   handle = 0;
     void* mapped = nullptr;  ///< null if this buffer is not persistently mapped.

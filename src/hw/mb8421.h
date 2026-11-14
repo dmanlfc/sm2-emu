@@ -6,17 +6,12 @@
 // copyright-holders hap, AJR), reduced to the one configuration a Model 2 board
 // uses: the 2K x 8 part with byte-wide ports on both sides.
 //
-// This is how the original Model 2's i960 talks to its I/O board. The CRX boards
-// replaced it with a 315-5649 wired straight onto the i960's bus, so no other
-// board in this project needs one.
+// The original Model 2's i960 talks to its I/O board through this; the CRX
+// boards use a 315-5649 instead.
 //
-// What is deliberately not modelled: the _BUSY arbitration pins, which MAME also
-// leaves out, and the two mailbox interrupt lines. The interrupts are real -- a
-// write to the top address of one side raises an interrupt on the other -- but
-// neither side of a Model 2 uses them: MAME's model2o machine config binds
-// neither intl_callback nor intr_callback, and the I/O board's Z80 has no
-// interrupt input wired at all. Both sides poll. The mailbox addresses are
-// therefore plain RAM here, which is what makes this file short.
+// Not modelled: the _BUSY arbitration pins (MAME omits them too) and the two
+// mailbox interrupts, which Model 2 leaves unwired. Both sides poll, so the
+// mailbox addresses are plain RAM.
 #pragma once
 
 #include "core/types.h"
@@ -30,13 +25,8 @@ class Archive;
 
 namespace sm2::hw {
 
-/// 2048 bytes reachable from two independent byte-wide ports.
-///
-/// Both ports address the same storage with no arbitration, which is what the
-/// real part does for every address pair except a simultaneous access to the
-/// same cell. Nothing here can observe that case: the two CPUs are stepped in
-/// turn rather than concurrently, so an access from one always completes before
-/// the other begins.
+/// 2048 bytes reachable from two independent byte-wide ports, with no
+/// arbitration: the two CPUs are stepped in turn, so accesses never collide.
 class Mb8421 {
 public:
     static constexpr u32 kSize = 0x800;

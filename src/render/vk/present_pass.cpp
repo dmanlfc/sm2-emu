@@ -47,10 +47,8 @@ struct PushConstants {
     float gain;
 };
 
-/// The sampler slot a scaling method needs. Nearest and Integer sample point
-/// (Integer is an exact multiple, so there is no fractional step); Bilinear and
-/// SharpBilinear sample linear (SharpBilinear does its own texel snap in the
-/// shader and relies on the linear filter for the sub-texel remainder).
+/// The sampler slot a scaling method needs: point for Nearest and Integer,
+/// linear for Bilinear and SharpBilinear (which snaps texels in the shader).
 [[nodiscard]] usize sampler_for(ScalingMethod method)
 {
     switch (method) {
@@ -186,10 +184,8 @@ bool PresentPass::create_targets()
         image.arrayLayers = 1;
         image.samples     = VK_SAMPLE_COUNT_1_BIT;
         image.tiling      = VK_IMAGE_TILING_OPTIMAL;
-        // TRANSFER_SRC so a screenshot can be read straight out of it, which is
-        // the whole reason captures are now at the native size. TRANSFER_DST so
-        // upload_from_host() can put the software renderer's output here by the
-        // same path a screenshot reads it back from.
+        // TRANSFER_SRC so a screenshot can be read straight out of it;
+        // TRANSFER_DST for upload_from_host().
         image.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
                     | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         image.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
@@ -210,12 +206,8 @@ bool PresentPass::create_targets()
         view.subresourceRange.layerCount = 1;
         SM2_VK_TRY(vkCreateImageView(device, &view, nullptr, &target.view));
 
-        // Staging for upload_from_host(). Host-coherent and persistently mapped
-        // like every other per-frame CPU->GPU path in this renderer (see
-        // Poly3DPass::create_host_buffer / TilemapPass::create_surfaces): the
-        // whole point of this path is the software renderer's frame, written
-        // once by the CPU and read once by the GPU, so there is nothing an
-        // explicit flush or a device-local copy would buy.
+        // Staging for upload_from_host(), host-coherent and persistently mapped:
+        // the frame is written once by the CPU and read once by the GPU.
         VkBufferCreateInfo staging{};
         staging.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         staging.size        = static_cast<VkDeviceSize>(m_native_width) * kHeight * sizeof(u32);
@@ -272,9 +264,8 @@ bool PresentPass::create_descriptors()
     pool.pPoolSizes    = &size;
     SM2_VK_TRY(vkCreateDescriptorPool(device, &pool, nullptr, &m_pool));
 
-    // Two sets per target, each naming a fixed image and one of the two
-    // samplers, so nothing is rewritten during a frame; the scaling method
-    // only chooses which pre-built set record() binds.
+    // Each set names a fixed image and one sampler, so nothing is rewritten
+    // during a frame; the scaling method picks which set record() binds.
     for (Target& target : m_targets) {
         for (usize slot = 0; slot < m_samplers.size(); ++slot) {
             VkDescriptorSetAllocateInfo allocate{};
@@ -462,10 +453,7 @@ void PresentPass::upload_from_host(std::span<const u32> pixels)
 
     const VkCommandBuffer cmd = m_context->cmd();
 
-    // From COLOR_ATTACHMENT_OPTIMAL: begin_frame() just put it there, and this
-    // replaces the whole image the same way the tilemap and 3D passes would
-    // have, so the barrier shape matches theirs rather than a fresh UNDEFINED
-    // transition.
+    // From COLOR_ATTACHMENT_OPTIMAL, where begin_frame() just put it.
     record_image_barrier(cmd, target.image, VK_IMAGE_ASPECT_COLOR_BIT,
                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,

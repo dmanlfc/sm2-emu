@@ -29,8 +29,7 @@
 
 namespace sm2::net {
 
-/// One network interface as seen by the host, IPv4 only (the Model 2 comms ring
-/// is IPv4).
+/// One host network interface, IPv4 only (the comms ring is IPv4).
 struct Interface {
     std::string name;         ///< OS interface name, e.g. "en0" or "eth0".
     std::string ipv4;         ///< Dotted-quad address, e.g. "192.168.1.42".
@@ -43,8 +42,6 @@ struct Interface {
 
 /// First non-loopback IPv4 interface, or nullopt if only loopback exists.
 [[nodiscard]] std::optional<Interface> primary_interface();
-
-// -- non-blocking UDP socket ------------------------------------------------
 
 /// A non-blocking datagram socket. Errors surface through valid()/last_error()
 /// so a link that cannot bind degrades to "not linked" rather than throwing.
@@ -88,12 +85,8 @@ private:
     std::string m_last_error;
 };
 
-/// Process-wide network startup/teardown (WSAStartup/WSACleanup on Windows, a
-/// no-op elsewhere). Refcounted, so safe to call in matched pairs.
-/// A non-blocking TCP server that queues text for its clients. Accepting,
-/// flushing and dropping clients all happen in poll(), so nothing blocks the
-/// caller; a client that stops reading is disconnected rather than buffered
-/// without limit.
+/// A non-blocking TCP server that queues text for its clients. A client that
+/// stops reading is disconnected rather than buffered without limit.
 class TcpServer {
 public:
     TcpServer() = default;
@@ -149,6 +142,8 @@ private:
     std::string         m_last_error;
 };
 
+/// Process-wide WSAStartup/WSACleanup on Windows, a no-op elsewhere. Refcounted,
+/// so call in matched pairs.
 bool startup();
 void shutdown();
 

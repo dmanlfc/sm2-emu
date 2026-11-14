@@ -8,29 +8,20 @@
 // Matthew Daniels. The dynamic recompiler is not ported; it is disabled upstream
 // (ENABLE_DRC is 0) and the interpreter is what actually runs.
 //
-// MAME's own TODO list for the part, kept because it records what is known to be
-// missing rather than what merely happens to be unwritten:
+// Known gaps, from MAME: illegal delay slots are unsupported (the hardware's
+// behaviour is unknown), and PDR is not externalised (it drives the Model 2
+// error LEDs).
 //
-//   - the ALU integer/floating point paths want rewriting with templates;
-//   - the FIFO hookups want moving out of the opcodes;
-//   - illegal delay slots are unsupported, and nobody knows what the hardware
-//     does with them;
-//   - PDR wants externalising (it drives the error LEDs on Model 2).
+// Departures from upstream are marked "Deviation:" where they occur. The
+// structural ones:
 //
-// Individual departures from upstream are marked "Deviation:" where they occur.
-// The structural ones, in one place so they are easy to audit:
-//
-//   * every fatalerror() becomes a fault(), which records a message and stops
-//     the core rather than killing the process. The seven unimplemented_*() /
-//     pcs_*() reporters that upstream only wires into the recompiler are used
-//     here as the entry points for the equivalent interpreter conditions.
-//   * the arithmetic condition flags live in the Flags struct and are folded
-//     into ST on demand by pack_st(); upstream keeps them only in ST. RP, LP,
-//     F0-F2 and the FIFO status bits have no struct member and stay in ST.
-//   * MAME reaches the host FIFOs through a device that calls back into
-//     stall()/halt on an access that cannot complete. Here the Bus exposes the
-//     empty/full state and the core tests it before accessing, which moves the
-//     decision inline but keeps the same stall semantics.
+//   * fatalerror() becomes fault(), which records a message and stops the core.
+//     The unimplemented_*() / pcs_*() reporters upstream wires only into the
+//     recompiler are the interpreter's entry points here.
+//   * the arithmetic flags live in the Flags struct and are packed into ST on
+//     demand; RP, LP, F0-F2 and the FIFO bits stay in ST.
+//   * the Bus exposes FIFO empty/full and the core tests it before an access,
+//     with the same stall semantics as MAME's FIFO device callbacks.
 
 #include "cpu/mb86235/mb86235.h"
 
@@ -46,10 +37,7 @@ namespace sm2::cpu::mb86235 {
 
 namespace {
 
-// ---------------------------------------------------------------------------
-// Status word (ST) bit assignments, from MAME
-// ---------------------------------------------------------------------------
-
+// Status word (ST) bit assignments, from MAME.
 constexpr u32 AD  = 0x00000001;  // ALU divide-by-zero
 constexpr u32 AU  = 0x00000002;  // ALU underflow
 constexpr u32 AV  = 0x00000004;  // ALU overflow
@@ -74,13 +62,8 @@ constexpr u32 F0  = 0x10000000;
 constexpr u32 F1  = 0x20000000;
 constexpr u32 F2  = 0x40000000;
 
-/// The bits that pack_st() supplies from the Flags struct. Everything outside
-/// this mask is held directly in m_st.
+/// The bits pack_st() supplies from the Flags struct; the rest live in m_st.
 constexpr u32 kFlagBits = AD | AU | AV | AZ | AN | ZC | IL | NR | ZD | MD | MU | MV | MZ | MN;
-
-// ---------------------------------------------------------------------------
-// Float punning (MAME's corefloat.h)
-// ---------------------------------------------------------------------------
 
 [[nodiscard]] inline float u2f(u32 value)
 {
@@ -94,9 +77,8 @@ constexpr u32 kFlagBits = AD | AU | AV | AZ | AN | ZC | IL | NR | ZD | MD | MU |
 
 }  // namespace
 
-// Instruction field accessors, spelled as upstream spells them. Kept as macros
-// so the ported expressions below stay diffable against mb86235ops.cpp; the
-// operands are parenthesised here, which upstream omits.
+// Instruction field accessors, kept as upstream's macros so the ported code
+// stays diffable against mb86235ops.cpp.
 #define GETAOP(x) (((x) >> 56) & 0x1f)
 #define GETAI1(x) (((x) >> 52) & 0x0f)
 #define GETAI2(x) (((x) >> 47) & 0x1f)
@@ -118,16 +100,13 @@ MB86235::MB86235(Bus& bus) : m_bus(&bus)
 
 void MB86235::reset()
 {
-    // MAME's device_reset touches only these four. The register file and the two
-    // internal RAMs come up as whatever they were, which is what the hardware
-    // does: a reset pulse does not clear RAM, and the microcode the host has
-    // just uploaded is expected to initialise what it uses.
+    // As MAME, reset touches only these: registers and internal RAM survive a
+    // reset pulse, and the uploaded microcode initialises what it uses.
     m_pc         = 0;
     m_delay_pc   = 0;
     m_ppc        = 0;
     m_delay_slot = false;
 
-    // Port-specific state that has no upstream counterpart.
     m_fifo_state             = FifoState{};
     m_fifo_out_pending       = false;
     m_fifo_out_pending_value = 0;
@@ -145,7 +124,6 @@ void MB86235::handle_single_step_execution()
         return;
     }
 
-    // repeat opcode
     if (m_st & RP) {
         --m_rpc;
         if (m_rpc == 1) {
@@ -167,13 +145,9 @@ s32 MB86235::run(s32 cycles)
         return 0;
     }
     if (m_halted) {
-        // The host holds HALT while it uploads microcode, and the FIFO flow
-        // control asserts it when the core cannot make progress. Nothing is
-        // consumed, so the caller decides what to do with the time.
         return 0;
     }
     if (m_faulted) {
-        // Nothing after an unimplemented condition can be trusted.
         return 0;
     }
 
@@ -181,18 +155,13 @@ s32 MB86235::run(s32 cycles)
 
     while (m_icount > 0) {
         if (m_halted) {
-            // A Bus handler asserted halt part-way through the slice. Stop with
-            // the program counter intact.
+            // A Bus handler asserted halt mid-slice.
             break;
         }
 
-        // Deviation: MAME's output FIFO device keeps one extra slot for a push
-        // into a full FIFO and halts the source until it drains. The Bus here
-        // forbids a push while full, so that slot lives in the core instead.
-        // Either way no result is lost and the instruction does not re-run.
+        // Deviation: MAME's FIFO device holds the extra slot; here the core does.
         if (m_fifo_out_pending) {
             if (m_bus->fifo_out_full()) {
-                // Still no room. The core is stopped, but time passes.
                 m_icount = 0;
                 break;
             }
@@ -202,8 +171,7 @@ s32 MB86235::run(s32 cycles)
 
         const u32 curpc = check_previous_op_stall() ? m_fifo_state.pc : m_pc;
 
-        // MAME's program space is 12 bits wide and truncates the address for it;
-        // PC itself is never masked, so the mask goes on the fetch.
+        // The program space is 12 bits; PC itself is never masked.
         const u32 pc_word = curpc & 0xfff;
         const u64 opcode = m_program_fast != nullptr ? m_program_fast[pc_word]
                                                      : m_bus->program_read(pc_word);
@@ -228,9 +196,8 @@ s32 MB86235::run(s32 cycles)
         m_icount--;
         ++m_instruction_count;
 
-        // Stalled on an empty input FIFO: only the host fills it, and the host
-        // does not run during this slice, so the re-runs until its end are
-        // identical. Skip them; the next call retries the instruction.
+        // Stalled on an empty input FIFO: the host cannot fill it during this
+        // slice, so skip the identical re-runs.
         if (m_fifo_state.has_stalled && (m_st & RP) == 0 && !m_fifo_out_pending
             && m_bus->fifo_in_empty()) {
             m_icount = 0;
@@ -238,9 +205,7 @@ s32 MB86235::run(s32 cycles)
         }
     }
 
-    // A control op charges itself extra cycles, so the budget can be overrun by
-    // the last instruction of a slice. The surplus is dropped rather than
-    // charged to the caller, who asked for a bounded amount of work.
+    // Control ops charge extra cycles and can overrun the slice; drop the surplus.
     if (m_icount < 0) {
         m_icount = 0;
     }
@@ -279,10 +244,6 @@ void MB86235::execute_op(u64 op)
 // ============================================================================
 // Fault reporting
 // ============================================================================
-//
-// Upstream calls fatalerror() from every one of these paths, which exits the
-// process. Here the condition is recorded and execution stops, so the host can
-// report it alongside the rest of the machine and keep running.
 
 void MB86235::fault(const char* what, u64 opcode)
 {
@@ -294,8 +255,6 @@ void MB86235::fault(const char* what, u64 opcode)
             std::snprintf(buffer, sizeof(buffer), "%s at pc=%03x (opcode %04x%08x)", what, m_ppc,
                           static_cast<u32>(opcode >> 32), static_cast<u32>(opcode));
         } else {
-            // The sites that report a decoded field rather than a whole word put
-            // the value in the message and have no opcode to hand.
             std::snprintf(buffer, sizeof(buffer), "%s at pc=%03x", what, m_ppc);
         }
         m_fault_message = buffer;
@@ -304,9 +263,8 @@ void MB86235::fault(const char* what, u64 opcode)
         SM2_ERROR("mb86235: %s", state_string().c_str());
     }
 
-    // Abandon the rest of the slice. The instruction in progress still unwinds,
-    // which is why fault() is not allowed to leave the core in a state its
-    // callers cannot cope with: every fault site returns a defined value.
+    // Abandon the slice. The instruction in progress still unwinds, so every
+    // fault site must return a defined value.
     m_icount = 0;
 }
 
@@ -370,11 +328,8 @@ u32 MB86235::pack_st() const
     if (m_flags.mz != 0) value |= MZ;
     if (m_flags.mn != 0) value |= MN;
 
-    // Deviation: upstream leaves the four FIFO status bits at whatever software
-    // last wrote into ST, because a branch on a FIFO condition asks the FIFO
-    // rather than reading ST. They are filled in live here so that microcode
-    // reading ST directly sees the truth instead of a stale value. Only two of
-    // the four are observable through the Bus; the other two read as clear.
+    // Deviation: upstream leaves the FIFO bits as last written; here IFE and OFF
+    // are live, and IFF and OFE read as clear.
     value &= ~(IFE | IFF | OFF | OFE);
     if (m_bus->fifo_in_empty()) value |= IFE;
     if (m_bus->fifo_out_full()) value |= OFF;
@@ -424,11 +379,9 @@ void MB86235::set_alu_flagsi(int val)
 // Memory
 // ============================================================================
 //
-// The A bus and the B bus are not symmetric, and upstream's asymmetry is
-// deliberate rather than an oversight: read_abus/write_abus fall through to the
-// external space for anything at 0x400 or above, offset by the high bits of EB,
-// while read_bbus/write_bbus only ever see the on-chip RAM. The B bus is where
-// the stack lives, so it never needs to leave the chip.
+// The buses are deliberately asymmetric: the A bus reaches external space at
+// 0x400 and above, offset by EB's high bits; the B bus, which holds the stack,
+// only sees on-chip RAM.
 
 u32 MB86235::read_abus(u32 addr)
 {
@@ -461,9 +414,8 @@ u32 MB86235::decode_ea(u8 mode, u8 rx, u8 ry, u16 disp, bool isbbus)
 {
     u32 res;
 
-    // A stalled instruction is going to run again, so the auto-increment and
-    // auto-decrement modes have to leave the address register alone: the re-run
-    // applies it.
+    // A stalled instruction will re-run, so post-modify modes leave the register
+    // alone until then.
     switch (mode) {
         case 0x00:  // ARx
             return m_ar[rx];
@@ -597,11 +549,8 @@ void MB86235::zero_prp()
 // ALU and multiplier
 // ============================================================================
 //
-// Upstream writes the sign-extending casts as ((int(x) << 0) >> 0); the shifts
-// are no-ops and are dropped here. Where upstream would rely on signed overflow
-// or on shifting a negative value left, the arithmetic is done unsigned and cast
-// back, which is the same result on any two's-complement machine without being
-// undefined.
+// Where upstream relies on signed overflow or left-shifting a negative value,
+// the arithmetic is done unsigned and cast back to avoid undefined behaviour.
 
 u32 MB86235::get_prx(u8 which)
 {
@@ -830,10 +779,8 @@ void MB86235::decode_aluop(u8 opcode, u32 src1, u32 src2, u8 imm, u8 dst_which)
             if (f <= 0.0F) {
                 m_flags.il = 1;
             }
-            // Upstream divides the natural log by log10(2) and labels the result
-            // log2, which is not what that gives. Reproduced rather than fixed:
-            // the microcode is calibrated against whatever the part does, and
-            // this is the value MAME's rendering has been checked against.
+            // ln(x) / log10(2) is not log2, but it matches upstream, which
+            // rendering has been checked against.
             f = std::log(f) / 0.301030F;
             set_alu_flagsf(f);
             set_alureg(dst_which, f2u(f));
@@ -1152,12 +1099,9 @@ u32 MB86235::get_transfer_reg(u8 which)
 
                 case 1:  // FI
                 {
-                    // Deviation: MAME pops unconditionally and lets the FIFO
-                    // device call stall() when it turns out to be empty. The Bus
-                    // here promises nothing for a pop from an empty FIFO, so the
-                    // check moves in-line. The stall bookkeeping below is
-                    // upstream's, unchanged: recording the PC is what makes the
-                    // next dispatch re-run this instruction.
+                    // Deviation: the empty check is inline rather than in the
+                    // FIFO device. Recording the PC makes the next dispatch
+                    // re-run this instruction.
                     u32 res = 0;
                     if (m_bus->fifo_in_empty()) {
                         stall();
@@ -1169,8 +1113,7 @@ u32 MB86235::get_transfer_reg(u8 which)
                         if ((m_st & RP) == 0) {
                             m_fifo_state.pc = m_ppc;
                         }
-                        // else: upstream wonders what a stall inside a repeat
-                        // should do, and leaves the question open.
+                        // A stall inside a repeat is unresolved upstream too.
                     }
 
                     return res;
@@ -1211,9 +1154,7 @@ void MB86235::set_transfer_reg(u8 which, u32 value)
             switch (which & 7) {
                 case 0: m_eb = value; break;
                 case 1: m_eb = (m_eb & 0x3fff) | (value << 14); break;
-                // Upstream shifts here too, which looks wrong for the low half
-                // of EB, but it is what the interpreter and the recompiler both
-                // do; left alone rather than second-guessed.
+                // The shift looks wrong for EB's low half but matches upstream.
                 case 2: m_eb = (m_eb & 0xffc000) | (value << 14); break;
                 case 3: m_eo = value; break;
                 case 4: m_sp = value; break;
@@ -1242,9 +1183,7 @@ void MB86235::set_transfer_reg(u8 which, u32 value)
                     break;
                 case 2:  // FO0
                 case 3:  // FO1 (same FIFO output buffer but sets the 33rd bit; not used by Model 2)
-                    // Deviation: see the pending-push slot in run(). Upstream
-                    // pushes regardless and relies on the FIFO device to hold
-                    // the overflowing value and halt the core.
+                    // Deviation: see the pending-push slot in run().
                     if (m_bus->fifo_out_full()) {
                         m_fifo_out_pending       = true;
                         m_fifo_out_pending_value = value;
@@ -1325,7 +1264,6 @@ void MB86235::do_alu2_trans2_1(u64 op)
             return;
     }
 
-    // do alu
     do_alu2(op);
 
     switch (sd) {
@@ -1363,7 +1301,6 @@ void MB86235::do_alu2_trans1_1(u64 op)
             u32 addr = m_eb + m_eo;
             res      = m_bus->external_read(addr);
 
-            // do alu
             do_alu2(op);
 
             dr = (op >> 12) & 0x7f;
@@ -1395,7 +1332,6 @@ void MB86235::do_alu2_trans1_1(u64 op)
                 res = get_transfer_reg(sr);
             }
 
-            // do alu
             do_alu2(op);
 
             const u32 addr = m_eb + m_eo;
@@ -1422,7 +1358,6 @@ void MB86235::do_alu2_trans1_1(u64 op)
             res = get_transfer_reg(sr);
         }
 
-        // do alu
         do_alu2(op);
 
         dr = (op >> 12) & 0x7f;
@@ -1494,7 +1429,6 @@ void MB86235::do_alu1_trans2_2(u64 op)
             return;
     }
 
-    // do alu
     do_alu1(op);
 
     // A bus write
@@ -1549,7 +1483,6 @@ void MB86235::do_alu1_trans1_2(u64 op)
             u32 addr = m_eb + m_eo;
             res      = m_bus->external_read(addr);
 
-            // do alu
             do_alu1(op);
 
             dr = (op >> 24) & 0x7f;
@@ -1587,7 +1520,6 @@ void MB86235::do_alu1_trans1_2(u64 op)
                 res = get_transfer_reg(sr);
             }
 
-            // do alu
             do_alu1(op);
 
             const u32 addr = m_eb + m_eo;
@@ -1614,7 +1546,6 @@ void MB86235::do_alu1_trans1_2(u64 op)
             res = get_transfer_reg(sr);
         }
 
-        // do alu
         do_alu1(op);
 
         dr = (op >> 24) & 0x7f;
@@ -1663,13 +1594,9 @@ void MB86235::do_trans1_3(u64 op)
 
 void MB86235::push_pc(u32 pcval)
 {
-    // Deviation: upstream's interpreter masks PCP to two bits, so a fifth nested
-    // call silently overwrites the oldest return address (its own overflow check
-    // is commented out and, because the mask is applied first, could never have
-    // fired anyway). The recompiler checks properly, and a lost return address
-    // sends control flow somewhere arbitrary, so the recompiler's check is used
-    // here in preference to the wrap. PCP therefore counts 0..4 rather than
-    // wrapping; nothing outside these two functions relies on its range.
+    // Deviation: upstream's interpreter wraps PCP at two bits, overwriting the
+    // oldest return address; this uses the recompiler's overflow check, so PCP
+    // counts 0..4.
     if (m_pcp >= 4) {
         pcs_overflow();
         return;
@@ -1800,8 +1727,6 @@ void MB86235::do_alu_control(u64 op)
             }
             if (ef1 & 2) {  // clear fifo out (CLRFO)
                 m_bus->fifo_out_clear();
-                // The slot holding a result that could not be pushed is part of
-                // the output path, so it goes too.
                 m_fifo_out_pending = false;
             }
             break;
@@ -1929,7 +1854,6 @@ void MB86235::do_alu_control(u64 op)
             break;
     }
 
-    // do alu
     if ((op >> 63) & 1) {
         do_alu1(op);
     } else {

@@ -34,15 +34,9 @@ class Scraper;
 
 /// ImGui overlay drawn on top of the emulator's output.
 ///
-/// The GUI is an overlay that appears when the user presses F1 (or launches
-/// without a ROM). It provides access to settings that persist to keisho.ini
-/// and a game browser for selecting ROMs.
-///
-/// This class owns ImGui's context and its SDL3 platform backend only. Which
-/// GPU API draws the widgets it builds is a render backend's concern, not
-/// this one's -- see render::Backend::draw_overlay(), which calls new_frame()
-/// and draw() here, then renders ImGui's resulting draw data through whatever
-/// renderer backend (Vulkan today) it owns.
+/// Shown on F1 or when launched without a ROM: settings that persist to
+/// keisho.ini and a game browser. Owns ImGui's context and SDL3 platform backend
+/// only; render::Backend::draw_overlay() renders the draw data.
 class Gui {
 public:
     Gui() = default;
@@ -64,10 +58,8 @@ public:
     /// render backend's own new-frame call for its ImGui renderer backend.
     void new_frame();
 
-    /// Draw the GUI windows: the always-on FPS counter, plus the F1 settings
-    /// overlay when visible. Always returns true, since the FPS counter draws
-    /// every frame regardless of `visible()` — the caller should always open a
-    /// rendering scope for the backend's draw_overlay().
+    /// Draw the always-on FPS counter, plus the settings overlay when visible.
+    /// Always returns true, so the caller always opens a draw_overlay() scope.
     [[nodiscard]] bool draw(Config& config,
                             const std::vector<std::string>& gpu_names,
                             float measured_hz,
@@ -185,7 +177,7 @@ public:
 
     // -- on-screen notifications -------------------------------------------
 
-    /// Show a brief top-centered message for a couple of seconds while gameplay
+    /// Show a brief top-centred message for a couple of seconds while gameplay
     /// continues (e.g. "State saved"). Gated by config.show_notifications in
     /// draw(); calling this is harmless when they are off.
     void notify(std::string message);
@@ -253,12 +245,12 @@ public:
         bool metadata_loaded = false;
     };
 
-    /// Turn the picker on with the launchable games (sorted for display), the
-    /// backend (main-thread texture create/destroy) and the scraper (polled
-    /// each frame). A null scraper or empty list still lists/launches by title.
     /// The backend that uploads textures the settings tabs draw.
     void set_texture_backend(render::Backend* backend) { m_backend = backend; }
 
+    /// Turn the picker on with the launchable games (sorted for display), the
+    /// backend (main-thread texture create/destroy) and the scraper (polled
+    /// each frame). A null scraper or empty list still lists/launches by title.
     void enable_picker(std::vector<PickerEntry> entries, render::Backend* backend,
                        Scraper* scraper);
 
@@ -317,17 +309,14 @@ private:
     u32         m_framebuffer_width  = 0;  ///< overlay target extent; 0 = use ImGui's own.
     u32         m_framebuffer_height = 0;
 
-    /// Whether the OS cursor is currently hidden for light-gun mode. Tracked so
-    /// Hide/Show is only called on a change: polling SDL_CursorVisible() every
-    /// frame races the compositor re-showing the cursor on motion, which flickers.
+    /// Whether the OS cursor is hidden for light-gun mode. Tracked so Hide/Show
+    /// is only called on a change; polling SDL_CursorVisible() flickers.
     bool        m_cursor_hidden = false;
     bool        m_mouse_grabbed = false;
 
-    /// The present-stage placement in effect this frame, cached from draw()'s
-    /// config so the crosshair and Sinden-border helpers frame the same
-    /// rectangle the backend draws the image into (see draw_crosshairs /
-    /// draw_sinden_border). Kept in step with the one config value; a mismatch
-    /// would drift the aim from the picture.
+    /// The present-stage placement this frame, cached from draw()'s config so
+    /// the crosshair and Sinden-border helpers frame the rectangle the backend
+    /// draws the image into.
     AspectMode    m_present_aspect = AspectMode::FourThree;
     AspectMode    m_shown_aspect   = AspectMode::FourThree;
     ScalingMethod m_present_method = ScalingMethod::SharpBilinear;
@@ -387,7 +376,7 @@ private:
     std::vector<StateSlot>      m_state_slots;
     std::optional<StateRequest> m_pending_state_request;
 
-    // -- on-screen notification (transient top-centered toast) -------------
+    // -- on-screen notification (transient top-centred toast) -------------
     std::string m_notify_text;
     float       m_notify_seconds_left = 0.0f;  ///< counts down by DeltaTime
 

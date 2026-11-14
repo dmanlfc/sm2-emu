@@ -28,9 +28,8 @@ namespace sm2::hw {
 
 std::unique_ptr<Machine> create_machine(const rom::GameSpec& game, rom::RomSet roms)
 {
-    // Each case gates on rom::board_implemented, the same function RomLoader::load
-    // gates on, so the two stay in sync rather than being separately maintained.
-    // No default: label, so a new enumerator without a case is a -Wswitch error.
+    // Gated on rom::board_implemented, as RomLoader::load is. No default, so a
+    // new enumerator without a case is a -Wswitch error.
     switch (game.board) {
         case rom::Board::Model2A: {
             if (!rom::board_implemented(game.board)) {

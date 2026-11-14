@@ -11,9 +11,7 @@ namespace sm2::hw {
 
 void Io315_5649::reset()
 {
-    // MAME's device_reset only sets the direction register and the mode; the
-    // port latches are initialised once, in the constructor, and survive a
-    // reset. m_port_value is left alone here for that reason.
+    // As in MAME, the port latches survive a reset.
     m_port_config    = 0xff;
     m_mode           = 0;
     m_analog_channel = 0;
@@ -48,8 +46,7 @@ u8 Io315_5649::read(u32 offset)
             }
             break;
 
-        // RS-422 channel 1 input. Nothing on Model 2A drives it, and MAME's
-        // unbound serial callback reads as zero rather than as an idle line.
+        // RS-422 channel 1 input: undriven on Model 2A, reads as zero as in MAME.
         case 0x0b:
             data = 0x00;
             break;
@@ -59,19 +56,14 @@ u8 Io315_5649::read(u32 offset)
             data = m_serial2_read ? m_serial2_read() : 0x00;
             break;
 
-        // RS-422 status. Reported as receive buffers full and transmit buffers
-        // empty, so a game polling for readiness always proceeds. Carried over
-        // from MAME, where it is flagged as a hack; nothing on Model 2 depends on
-        // the real handshake.
+        // RS-422 status: receive full, transmit empty, so polling always
+        // proceeds. MAME's hack; nothing on Model 2 needs the real handshake.
         case 0x0d:
             data = 0x0c;
             break;
 
-        // Analogue input. Reading advances the mux, so a game can sample every
-        // channel with repeated reads of this one register.
+        // Analogue input. Reading advances the mux; an unbound channel reads 0xff.
         case 0x0f: {
-            // An unbound channel reads as an open input, which is what MAME's
-            // default 0xff for an_port_cb gives.
             const InputHandler& handler = m_analog[m_analog_channel];
             data = handler ? handler() : 0xff;
             m_analog_channel = (m_analog_channel + 1) & 0x07;

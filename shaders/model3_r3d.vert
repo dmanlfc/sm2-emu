@@ -94,7 +94,7 @@ layout(location = 5) in vec4  inColour;
 layout(location = 6) in float inTextureNP;
 
 layout(location = 0) out vec3  fsViewVertex;
-layout(location = 1) out vec3  fsViewNormal;   // per vertex normal vector
+layout(location = 1) out vec3  fsViewNormal;
 layout(location = 2) out vec2  fsTexCoord;
 layout(location = 3) out vec4  fsColor;
 layout(location = 4) out float fsFixedShade;
@@ -119,7 +119,6 @@ float CalcBackFace(in vec3 viewVertex)
     vec3 vt = viewVertex;
     vec3 vn = mat3(modelMat) * inFaceNormal;
 
-    // dot product of face normal with view direction
     return dot(vt, vn);
 }
 

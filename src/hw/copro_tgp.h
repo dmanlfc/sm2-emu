@@ -28,9 +28,8 @@ namespace sm2::hw {
 ///             buffer and the coprocessor's data ROM, depending on a bank register
 ///   rf        the two host FIFOs and that bank register
 ///
-/// The lookup tables are the reason a Model 2 can do trigonometry at all: there
-/// is no such instruction. The program writes an argument to a port and reads the
-/// result back, and the tables come from ROMs on the CPU board.
+/// There are no trigonometry instructions: the program writes an argument to a
+/// table port and reads the result back.
 class CoproTgp final : public cpu::mb86233::Bus {
 public:
     /// Words of microcode RAM.
@@ -96,11 +95,8 @@ public:
     /// Words of microcode uploaded since the last upload began.
     [[nodiscard]] u32 uploaded_words() const { return m_upload_count; }
 
-    /// Counts of what the coprocessor did, for diagnostics.
-    ///
-    /// These separate "the coprocessor is running" from "the coprocessor is doing
-    /// the work it exists for". A program can retire millions of instructions in a
-    /// polling loop without ever touching the tables or writing a result.
+    /// Counts of what the coprocessor did, for diagnostics: they tell real work
+    /// apart from a polling loop.
     struct Activity {
         u64 commands_received = 0;  ///< Words popped from the host FIFO.
         u64 results_sent      = 0;  ///< Words pushed to the host FIFO.

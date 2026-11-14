@@ -66,9 +66,8 @@ PolyParams describe_polygon(const hw::RenderPolygon& poly, const hw::Model2Video
         return params;
     }
 
-    // Ten bits of colour base against the 3D half of palette RAM. The
-    // components rather than a resolved colour, because the shade is a
-    // per-pixel matter.
+    // Ten bits of colour base into the 3D half of palette RAM, kept as
+    // components because shading is per pixel.
     params.colour     = video.polygon_colour_components((poly.texheader[3] >> 6) & 0x3ff);
     params.luma_base  = static_cast<u32>(poly.texheader[1] & 0xff) << 7;
     params.luma_scale = poly.luma;
@@ -99,8 +98,7 @@ PolyParams describe_polygon(const hw::RenderPolygon& poly, const hw::Model2Video
     if (mirror_y) {
         params.flags |= kFlagMirrorY;
     }
-    // Smooth wrapping and mirroring are mutually exclusive; MAME masks the one
-    // out when the other is set rather than letting both apply.
+    // Smooth wrapping and mirroring are mutually exclusive, as MAME masks them.
     if (((poly.texheader[0] >> 6) & 1) != 0 && !mirror_x) {
         params.flags |= kFlagWrapX;
     }
@@ -150,14 +148,10 @@ TriangulatedFrame triangulate(const hw::Model2MachineBase* machine,
     std::vector<Deferred> deferred;
 
     for (const hw::RenderPolygon& poly : machine->render_list().polygons) {
-        // Untextured and translucent is the one combination the hardware
-        // draws nothing for: `draw_scanline_solid` in model2rd.ipp begins
-        // with `if (Translucent) return;` because with no texel there is
-        // nothing to alpha-test. The *textured* translucent path does draw —
-        // it alpha-tests each filtered texel and skips the ones below half —
-        // so it must not be culled here. Virtua Fighter 2 draws its sky with
-        // 181 textured translucent polygons, and culling them leaves a flat
-        // band where the sky should be.
+        // Untextured translucent polygons draw nothing (model2rd.ipp's
+        // draw_scanline_solid returns early). Textured translucent ones do
+        // draw, alpha-testing each texel, so they must not be culled
+        // (Virtua Fighter 2's sky).
         if ((poly.texheader[0] & kHeaderTranslucent) != 0
             && (poly.texheader[0] & kHeaderTextured) == 0) {
             ++frame.blank_polygons;
@@ -199,9 +193,7 @@ TriangulatedFrame triangulate(const hw::Model2MachineBase* machine,
         frame.polygons.push_back(params);
 
         // The vertex ring for the fragment shader's edge walk (see PolyGeom).
-        // No 1/8 on u/v here: the shader's int(uv*32) carries the eighths the
-        // software renderer folds into its uoz*z*256, so texelUV stays the raw
-        // p[1]/p[2] the fan path produced.
+        // No 1/8 on u/v: the shader's int(uv*32) carries the eighths.
         PolyGeom geom{};
         geom.num_vertices = poly.num_vertices;
         for (u32 corner = 0; corner < poly.num_vertices; ++corner) {
@@ -240,9 +232,8 @@ TriangulatedFrame triangulate(const hw::Model2MachineBase* machine,
 
         const bool can_early = (params.flags & (kFlagChecker | kFlagTranslucent)) == 0;
 
-        // A new batch starts on a scissor or can_early change, so each batch is
-        // a contiguous same-capability run in list order -- which keeps the
-        // order-based fill mask's global draw order exact.
+        // A new batch starts on a scissor or can_early change, so batches stay
+        // in list order for the order-based fill mask.
         if (frame.batches.empty() || frame.batches.back().scissor.x != scissor.x
             || frame.batches.back().scissor.y != scissor.y
             || frame.batches.back().scissor.width != scissor.width
@@ -305,15 +296,12 @@ Letterbox compute_letterbox(u32           window_width,
         }
     }
 
-    // Integer snapping applies to the shaped fits only. Stretch means "fill the
-    // window", so it is left at the full window size regardless of method --
-    // snapping it would defeat the point and leave bars.
+    // Integer snapping applies to the shaped fits only; stretch fills the
+    // window.
     if (method == ScalingMethod::Integer && aspect != AspectMode::Stretch) {
-        // Aspect-aware: snap the height to a whole native multiple so the
-        // scanlines are pixel-perfect, then set the width from the aspect
-        // rectangle already fitted above. A non-integer horizontal scale is
-        // accepted so the chosen shape (4:3 or square) is honoured -- the
-        // vertical is what the eye reads as "clean scanlines".
+        // Snap the height to a whole native multiple for clean scanlines and
+        // take the width from the fitted aspect, accepting a non-integer
+        // horizontal scale.
         const float fh     = static_cast<float>(kNativeHeight);
         u32         factor = static_cast<u32>(target_height / fh);
         factor             = std::max(factor, 1u);

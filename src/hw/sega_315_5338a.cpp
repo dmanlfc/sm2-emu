@@ -11,10 +11,8 @@ namespace sm2::hw {
 
 void Sega3155338a::reset()
 {
-    // MAME has no device_reset here at all: everything is set once in the
-    // constructor and survives a reset. Only the serial side is cleared, because
-    // a half-loaded address surviving a reset would send the first transfer after
-    // it somewhere arbitrary.
+    // MAME has no device_reset. The serial side is cleared so a half-loaded
+    // address cannot misdirect the first transfer after a reset.
     m_port_config   = 0;
     m_serial_output = 0;
     m_command       = 0;
@@ -70,9 +68,7 @@ u8 Sega3155338a::read(u32 offset)
             data = m_port_config;
             break;
 
-        // The data register reads back what was last written to it. MAME marks
-        // this as a guess; nothing depends on it beyond the firmware's own
-        // read-after-write check.
+        // The data register reads back the last write (a guess in MAME).
         case 0x0a:
             data = m_serial_output;
             break;
@@ -93,8 +89,7 @@ u8 Sega3155338a::read(u32 offset)
         //   -----21-  unknown
         //   -------0  command acknowledged (0 = ack)
         //
-        // Always "finished and acknowledged", as MAME returns: every transfer
-        // here completes inside the write that starts it.
+        // Always finished and acknowledged: transfers complete inside the write.
         case 0x0d:
             data = 0x08;
             break;
@@ -127,9 +122,7 @@ void Sega3155338a::write(u32 offset, u8 value)
         }
 
         // Port direction register: a set bit marks the port as an input. A port
-        // that has just been switched from input to output re-drives its latched
-        // value, which is what stops a lamp changing state when the firmware
-        // finishes configuring the chip.
+        // switched to output re-drives its latched value, so lamps hold state.
         case 0x08: {
             const u8 changed = static_cast<u8>(value ^ m_port_config);
             for (u32 port = 0; port < kPortCount; ++port) {
@@ -144,10 +137,8 @@ void Sega3155338a::write(u32 offset, u8 value)
             break;
         }
 
-        // Command register. This is the serial side's whole control surface: the
-        // address is loaded a byte at a time out of the data register, and a
-        // transfer is then either a write to that address or, for the 0x7n
-        // family, a write to one of eight fixed addresses.
+        // Command register: the address loads a byte at a time from the data
+        // register; a transfer writes there, or for 0x7n to a fixed address.
         case 0x09:
             m_command = value;
             switch (value) {
@@ -176,9 +167,7 @@ void Sega3155338a::write(u32 offset, u8 value)
                     }
                     break;
                 case 0x87:
-                    // Sent after setting up an address and before reading serial
-                    // data back. Nothing to do: the read at offset 0x0c fetches
-                    // from the latched address directly.
+                    // Precedes a serial read; offset 0x0c reads the latched address.
                     break;
                 default:
                     SM2_DEBUG("315-5338a: unknown command %02x", value);

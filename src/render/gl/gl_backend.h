@@ -27,14 +27,9 @@
 
 namespace sm2::render::gl {
 
-/// The OpenGL 4.3 core implementation of render::Backend.
-///
-/// Mirrors render::vk::VulkanBackend's shape (one Context, one TilemapPass,
-/// one Poly3DPass, one PresentPass, one FrameCapture, wired to Backend's
-/// per-frame sequence exactly as documented in backend.h) -- see that
-/// class's own doc comment for why the shape is shared even though the API
-/// underneath differs. Also owns ImGui's OpenGL3 renderer backend, the same
-/// role VulkanBackend plays for imgui_impl_vulkan.
+/// The OpenGL 4.3 core implementation of render::Backend, mirroring
+/// render::vk::VulkanBackend's passes and per-frame sequence. Also owns ImGui's
+/// OpenGL3 renderer backend.
 class GlBackend final : public Backend {
 public:
     GlBackend()  = default;
@@ -142,8 +137,7 @@ private:
     bool m_capture_requested = false;
     bool m_overlay_ready     = false;
 
-    /// Internal 3D render scale (1..kMaxRenderScale). Stored from the config;
-    /// at 1 every target is native size and nothing behaves differently.
+    /// Internal 3D render scale (1..kMaxRenderScale); 1 is native size.
     u32 m_render_scale = 1;
     u32 m_columns      = 0;
 

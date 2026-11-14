@@ -30,20 +30,8 @@
 
 namespace sm2::render::vk {
 
-/// The Vulkan implementation of render::Backend.
-///
-/// Everything here already existed in 0.7.0's main.cpp as a set of concrete
-/// objects (Context, TilemapPass, Poly3DPass, PresentPass, FrameCapture) that
-/// main.cpp called directly; this class owns the same five objects and wraps
-/// their existing call sequence behind render::Backend's interface. Nothing
-/// about how a frame is drawn changes -- see Backend's own doc comment for
-/// the exact sequence, which is unchanged from what main.cpp did itself.
-///
-/// It also owns the ImGui Vulkan renderer backend (the descriptor pool and
-/// `ImGui_ImplVulkan_*` calls), which used to live inside osd::Gui. Gui now
-/// owns only ImGui's context and its SDL3 platform backend; which GPU API
-/// draws the widgets it builds is exactly the kind of decision a render
-/// backend should own.
+/// The Vulkan implementation of render::Backend. Owns the context, the render
+/// passes, frame capture and ImGui's Vulkan renderer backend.
 class VulkanBackend final : public Backend {
 public:
     VulkanBackend()  = default;
@@ -161,8 +149,7 @@ private:
 
     bool m_capture_requested = false;
 
-    /// Internal 3D render scale (1..kMaxRenderScale). Stored from the config;
-    /// at 1 every target is native size and nothing behaves differently.
+    /// Internal 3D render scale (1..kMaxRenderScale); 1 is native.
     u32 m_render_scale = 1;
 
     u32 m_columns         = 0;
@@ -183,10 +170,8 @@ private:
     bool             m_overlay_renderer_ready    = false;
 
     // -- overlay textures (game-picker box art) ------------------------------
-    // Neither ImGui's Vulkan backend nor this renderer has a deletion queue, so
     // destroy_texture() retires resources here and begin_frame() reclaims them
-    // once kFramesInFlight frames have passed -- a submitted frame may still
-    // sample a just-destroyed texture.
+    // after kFramesInFlight frames, as a submitted frame may still sample them.
     struct OverlayTexture {
         VkImage         image      = VK_NULL_HANDLE;
         VkImageView     view       = VK_NULL_HANDLE;

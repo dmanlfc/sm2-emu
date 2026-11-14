@@ -6,18 +6,13 @@
 //
 // Ported from MAME's src/devices/sound/gew.cpp and multipcm.cpp (BSD-3-Clause,
 // copyright-holders Miguel Angel Horna), kept close to the original so the two
-// can be diffed. The differences are structural rather than behavioural: this is
-// a plain object rather than a device, the sample ROM is a span with the board's
-// bank applied here instead of a banked address map, and generate() accumulates
-// into a caller-supplied buffer at a route gain, which is how the Model 1 audio
-// board mixes two of these and a YM3438 in one pass rather than through three
-// streams and a speaker device.
+// can be diffed. The differences are structural: the sample ROM is a span with
+// the board's bank applied here, and generate() accumulates into a caller's
+// buffer at a route gain, so the Model 1 audio board mixes in one pass.
 //
-// One guard is not in the original. VALUE_TO_CHANNEL has -1 in every eighth
-// entry, and upstream stores that straight into m_cur_slot and then indexes
-// m_slots with it; writing 0x07 to the voice-select register is enough to read
-// out of bounds. Here a -1 parks m_cur_slot past the last voice and data writes
-// to it are dropped, which is the same as having selected nothing.
+// Deviation: VALUE_TO_CHANNEL has -1 in every eighth entry, which upstream uses
+// as an index out of bounds. Here it parks m_cur_slot past the last voice and
+// data writes to it are dropped.
 //
 // The sample ROM begins with a metadata table, twelve bytes per instrument:
 // three bytes of start address (bit 22 selects 12-bit rather than 8-bit linear),
@@ -59,27 +54,19 @@ public:
     [[nodiscard]] u8 read() const { return 0; }
 
     /// Add `frames` interleaved stereo frames into `accum`, two s32 per frame,
-    /// at `gain_percent` of full scale.
-    ///
-    /// This is where time passes for the chip: envelopes and LFOs advance per
-    /// frame, so it has to be called whether or not anyone is listening.
-    ///
-    /// The chip's sum is left unclamped; the board scales and clamps the mix.
+    /// at `gain_percent` of full scale, unclamped. Envelopes and LFOs advance
+    /// here, so it must be called even when muted.
     void generate(s32* accum, u32 frames, s32 gain_percent);
 
     [[nodiscard]] u32 sample_rate() const { return m_rate_hz; }
     [[nodiscard]] u32 active_voices() const;
 
-    /// Save/restore the bank and all 28 voices. Each voice's two LFO
-    /// table/scale pointers are EXCLUDED and re-derived on load (from the saved
-    /// lfo_frequency/vibrato/tremolo), like the SCSP. The constant tables and
-    /// sample-ROM span are excluded. The derived rate fields are re-set at
-    /// construction.
+    /// Save/restore the bank and all 28 voices. The LFO table/scale pointers
+    /// are re-derived on load; constant tables and the sample span are excluded.
     void serialize(Archive& ar);
 
-    /// Not in the MAME original. Enough to tell "the chip is running and making
-    /// noise" from "the chip is running and silent" in the headless report, which
-    /// is the difference that matters when bringing a board up.
+    /// Not in MAME: tells a silent chip from a sounding one in the headless
+    /// report.
     struct Stats {
         u64 key_ons     = 0;
         u64 samples     = 0;
@@ -173,9 +160,7 @@ private:
 
     Stats m_stats;
 
-    /// Both derived from the clock in the constructor. Upstream keeps the clock
-    /// itself because a device can be reclocked; nothing here does, so only the
-    /// two derived rates are kept.
+    /// Derived from the clock in the constructor; nothing is reclocked.
     float m_rate    = 0.0F;
     u32   m_rate_hz = 0;
 

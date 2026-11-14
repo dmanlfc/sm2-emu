@@ -16,15 +16,11 @@
 #
 
 # Script-mode helper: embed a GLSL source file as a C++ raw string literal,
-# for a backend that compiles it at runtime with glCompileShader rather than
-# ingesting SPIR-V (see EmbedSpirv.cmake for that path).
+# for the GL backend, which compiles it at runtime (see EmbedSpirv.cmake for
+# the Vulkan path).
 #
 #   cmake -DSM2_IN=x.frag -DSM2_OUT=x_glsl.h -DSM2_SYMBOL=x -DSM2_SOURCE_NAME=x.frag
 #         -P EmbedGlsl.cmake
-#
-# Embedding the source text, rather than shipping the .frag/.comp/.vert files
-# beside the binary, keeps the same "no external files to find" property
-# EmbedSpirv.cmake's embedding already gives the Vulkan path.
 
 foreach(var SM2_IN SM2_OUT SM2_SYMBOL)
     if(NOT DEFINED ${var})
@@ -38,11 +34,8 @@ endif()
 
 file(READ "${SM2_IN}" source)
 
-# A raw string literal's own delimiter must not appear inside the payload.
-# ")glsl\"" cannot occur in this project's shaders (checked when this script
-# was written; re-check by hand if a future shader ever needs a different
-# delimiter), but failing loudly here is cheaper than a build that embeds a
-# truncated shader silently.
+# The raw string delimiter must not appear in the payload, or the embedded
+# shader would be silently truncated.
 string(FIND "${source}" ")glsl\"" collision)
 if(NOT collision EQUAL -1)
     message(FATAL_ERROR

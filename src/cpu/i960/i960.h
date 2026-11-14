@@ -60,14 +60,9 @@ enum LineState {
     kAssertLine = 1,
 };
 
-/// Thrown when the core reaches a condition upstream MAME treats as fatal:
-/// an unimplemented opcode, an unsupported addressing mode, a write to a
-/// literal operand.
-///
-/// Upstream calls fatalerror, which aborts. Throwing instead lets the machine
-/// report what happened, with the address, and stop cleanly rather than killing
-/// the process. The throw sites are all genuinely unreachable in working code,
-/// so this never costs anything on the hot path.
+/// Thrown where MAME calls fatalerror (unimplemented opcode, unsupported
+/// addressing mode, write to a literal operand), so the machine can report it
+/// and stop cleanly instead of aborting.
 class Fault : public std::exception {
 public:
     explicit Fault(std::string message) : m_message(std::move(message)) {}
@@ -106,9 +101,8 @@ public:
     /// Stall the current instruction and re-execute it.
     ///
     /// Called from a bus handler when the geometry coprocessor's output FIFO is
-    /// empty. Rewinding the instruction pointer to the previous instruction means
-    /// the access is retried once the coprocessor has produced data, which is how
-    /// the real hardware's bus stall behaves.
+    /// empty, so the access is retried once data arrives, as the hardware's bus
+    /// stall does.
     void stall()
     {
         m_stalled = true;

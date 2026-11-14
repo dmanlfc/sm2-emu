@@ -278,12 +278,9 @@ void Geometrizer::build_render_list(RenderList* out)
         return;
     }
 
-    // Windows descend and depth buckets ascend, which together give the hardware's
-    // drawing order: a later window always covers an earlier one, and within a
-    // window the nearest bucket goes first. Nearest first is what makes the pixel
-    // stage's one-bit fill mask work as a depth test: the first polygon to reach a
-    // pixel keeps it. The order is established here and simply preserved from here
-    // on.
+    // Windows descend and depth buckets ascend, giving the hardware's drawing
+    // order: a later window covers an earlier one, and within a window the nearest
+    // bucket goes first, so the one-bit fill mask acts as a depth test.
     out->polygons.reserve(raster->poly_list_index);
 
     m_window_polygons.resize(usize(raster->cur_window) + 1);
@@ -420,17 +417,9 @@ inline u16 Geometrizer::float_to_zval(float floatval, s32 z_adjust)
 
 /// Vertices a clipped polygon may have.
 ///
-/// Clipping a *convex* polygon against one half-space yields at most n+1
-/// vertices, so a quad through the four clip planes reaches exactly 8 and no
-/// more — which is why `Polygon::v` and the scratch arrays below are all 8 long.
-///
-/// Geometry that is not convex, or whose coordinates have gone non-finite,
-/// breaks that bound: the inside/outside test can then toggle on more than two
-/// edges and emit up to two vertices per input edge. MAME has the same arrays
-/// and the same unbounded loop, and silently overruns them when that happens.
-/// Top Skater does exactly this, which the stack protector catches as a crash.
-/// The count is therefore capped here. Well-formed geometry never reaches the
-/// cap, so nothing that currently renders is affected.
+/// A convex quad clipped by four planes reaches at most 8. Non-convex or
+/// non-finite geometry can exceed that, overrunning MAME's arrays (Top Skater
+/// does), so the count is capped here; well-formed geometry never reaches it.
 constexpr s32 kMaxClippedVertices = 8;
 
 static_assert(kMaxClippedVertices == std::size(Polygon{}.v),
@@ -691,9 +680,8 @@ void Geometrizer::model2_3d_process_polygon(RasterState *raster, u32 attr)
 		if (clipped_verts <= 2)
 			m_degenerate++;
 
-		// MAME aborts the whole session when the pool runs out. Dropping the polygon
-		// costs part of one frame instead, and the linking further down still has to
-		// run or every polygon after this one would be built from stale vertices.
+		// Deviation: MAME aborts when the pool runs out; drop the polygon instead.
+		// The linking below must still run or later polygons get stale vertices.
 		if (clipped_verts > 2 && raster->poly_list_index >= kMaxPolygons && !m_pool_exhausted)
 		{
 			m_pool_exhausted = true;
@@ -1072,9 +1060,7 @@ void Geometrizer::model2_3d_push(RasterState *raster, u32 input)
 
 			default:
 			{
-				// MAME aborts here. An unknown command means the display list is not
-				// what we think it is, which is worth knowing about but not worth
-				// losing the session over.
+				// Deviation: MAME aborts on an unknown command; warn once instead.
 				if (!m_unknown_command_warned)
 				{
 					m_unknown_command_warned = true;
@@ -1826,9 +1812,8 @@ u32 *Geometrizer::geo_object_data(GeoState *geo, u32 opcode, u32 *input)
 	u32 *obp;                /* Object Pointer */
 
 	/* push the initial set of data to the 3d rasterizer */
-	// Opcode bits 6-7 are a per-object centre-select (eye mode) picking one of
-	// the window's four vanishing points. model2_3d_push reads it from those
-	// bits, so carry them through; MAME pushes only opcode>>23 and loses it.
+	// Deviation: opcode bits 6-7 select one of the window's four vanishing points
+	// (eye mode), so carry them through; MAME pushes only opcode>>23.
 	model2_3d_push(raster, (opcode >> 23) | (opcode & 0x000000c0));
 	model2_3d_push(raster, tpa);
 	model2_3d_push(raster, tha);
@@ -1855,9 +1840,8 @@ u32 *Geometrizer::geo_object_data(GeoState *geo, u32 opcode, u32 *input)
 	if (obc == 0)
 		obc = 0xfffff;
 
-	// Top Skater's objects use geo command 0x11 with compact link records that
-	// omit the reserved normal-word triple; the shared 10-word walk would read
-	// its attribute words as coordinates (the starburst). 0x01 stays 10-word.
+	// Command 0x11 (Top Skater) uses compact link records without the reserved
+	// normal-word triple; 0x01 stays 10-word.
 	const bool compact = ((opcode >> 23) & 0x1f) == 0x11;
 
 	switch (geo->mode & 3)

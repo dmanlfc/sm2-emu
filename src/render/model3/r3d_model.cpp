@@ -15,7 +15,6 @@ namespace sm2::render::model3 {
 
 bool NodeAttributes::Push()
 {
-    // check for overflow
     if (m_depth >= kMaxDepth) {
         return false;
     }
@@ -33,7 +32,7 @@ bool NodeAttributes::Push()
 bool NodeAttributes::Pop()
 {
     if (m_depth == 0) {
-        return false;  // check for underflow
+        return false;
     }
 
     const NodeAttribs& last = m_vecAttribs[--m_depth];

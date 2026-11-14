@@ -34,23 +34,16 @@ namespace sm2::render::vk {
 struct ContextConfig {
     bool        enable_validation = false;
     bool        vsync             = true;
-    /// Exact VkPhysicalDeviceProperties::deviceName to prefer. Empty means
-    /// "pick the best scoring device".
+    /// Exact deviceName to prefer; empty picks the best-scoring device.
     std::string preferred_device;
 };
 
-/// Vulkan instance, device, swapchain and per-frame synchronisation.
-///
-/// Baseline is Vulkan 1.3 core. That buys dynamic rendering and
-/// synchronization2 without extension juggling, which removes VkRenderPass and
-/// VkFramebuffer from the codebase entirely. Model 2 needs nothing beyond
-/// this: no geometry shaders (all geometry work is on the CPU, as it was on the
-/// real hardware), no bindless, no sampler LOD bias.
+/// Vulkan instance, device, swapchain and per-frame synchronisation. Baseline
+/// is Vulkan 1.3 core, for dynamic rendering and synchronization2.
 class Context {
 public:
-    /// Three rather than two so that recording frame N+1 does not wait on the
-    /// GPU finishing frame N. Costs one frame of latency and turns a frame into
-    /// max(CPU, GPU) instead of CPU + GPU.
+    /// Three so recording frame N+1 does not wait on the GPU finishing frame N,
+    /// at the cost of one frame of latency.
     static constexpr u32 kFramesInFlight = 3;
 
     Context() = default;
@@ -67,9 +60,8 @@ public:
     // -- frame lifecycle ---------------------------------------------------
 
     /// Wait for this frame's fence, acquire a swapchain image and begin
-    /// recording. Returns false when there is nothing to draw into (window
-    /// minimised, or the swapchain needed rebuilding); the caller should skip
-    /// the frame rather than treat it as an error.
+    /// recording. False when there is nothing to draw into (minimised, or the
+    /// swapchain needed rebuilding); skip the frame.
     [[nodiscard]] bool begin_frame();
 
     /// Finish recording, submit and present.
@@ -81,33 +73,22 @@ public:
     /// Rebuild the swapchain against the window's current drawable size.
     [[nodiscard]] bool recreate_swapchain();
 
-    /// Block until the device is idle.
-    ///
-    /// Required before destroying anything a submitted command buffer still
-    /// refers to. Renderers own their pipelines and are torn down before the
-    /// context, so they cannot rely on the context's own shutdown wait.
+    /// Block until the device is idle. Renderers call this before destroying
+    /// anything a submitted command buffer may still use.
     void wait_idle();
 
     // -- GPU stage timing ---------------------------------------------------
 
-    /// Whether this device can report GPU timestamps at all. False makes
-    /// write_timestamp() and stage_times() both no-ops, so a benchmark run says
-    /// "not supported" rather than reporting zeros as if they were measured.
+    /// Whether this device can report GPU timestamps. False makes the timing
+    /// calls no-ops.
     [[nodiscard]] bool supports_gpu_timing() const { return m_timestamp_period > 0.0F; }
 
     /// Record a timestamp for `stage`'s start or end into the current frame's
-    /// query slot. No-op if supports_gpu_timing() is false. `is_end` selects
-    /// which of the stage's two queries this writes; the caller is responsible
-    /// for calling both once per frame for a stage it wants timed, in program
-    /// order, since a stage that is skipped some frames (the decode dispatch)
-    /// must still write both or leave both unwritten, never one.
+    /// query slot. A stage must write both or neither in a frame.
     void write_timestamp(VkPipelineStageFlags2 stage_mask, GpuStage stage, bool is_end);
 
-    /// GPU times from the oldest still-in-flight slot, which by construction
-    /// finished at least kFramesInFlight-1 frames ago and so is always safe to
-    /// read without a wait. Call once per frame, after begin_frame(); the result
-    /// lags real time by a couple of frames, which is fine for a benchmark
-    /// averaged over thousands of them.
+    /// GPU times from the oldest in-flight slot, safe to read without a wait.
+    /// Call once per frame, after begin_frame(); lags by a couple of frames.
     [[nodiscard]] GpuStageTimes read_stage_times();
 
     // -- accessors ---------------------------------------------------------
@@ -130,13 +111,8 @@ public:
     [[nodiscard]] VkFormat    swapchain_format() const { return m_swapchain_format; }
     [[nodiscard]] VkExtent2D  swapchain_extent() const { return m_swapchain_extent; }
 
-    /// Stencil-capable format for the fill-mask attachment.
-    ///
-    /// Model 2 has no depth buffer: polygons are sorted front-to-back on the
-    /// CPU and a one-bit fill mask stops anything overwriting a pixel already
-    /// drawn. S8_UINT expresses exactly that, but it is optional in Vulkan and
-    /// several desktop drivers lack it, so this may name a combined format
-    /// whose depth aspect goes unused.
+    /// Stencil-capable format for Model 2's one-bit fill mask. S8_UINT is
+    /// optional, so this may be a combined format whose depth goes unused.
     [[nodiscard]] VkFormat stencil_format()      const { return m_stencil_format; }
     [[nodiscard]] bool     stencil_format_has_depth() const;
 
@@ -183,8 +159,7 @@ private:
     VkPhysicalDeviceProperties m_device_properties{};
     u32                        m_api_version = VK_API_VERSION_1_3;
 
-    /// Set in create_device() when the device offered samplerAnisotropy and it
-    /// was enabled. Optional feature, so a device without it still runs.
+    /// Set when the device offered samplerAnisotropy and it was enabled.
     bool m_anisotropy_enabled = false;
 
     u32     m_graphics_family = VK_QUEUE_FAMILY_IGNORED;
@@ -212,9 +187,8 @@ private:
     /// waiting on it, and presents retire in swapchain-image order.
     std::vector<VkSemaphore> m_render_finished;
 
-    /// Fence of the frame that last used each swapchain image, so a reused
-    /// image is waited on even when it comes back out of step with the frame
-    /// ring.
+    /// Fence of the frame that last used each swapchain image, as images can
+    /// come back out of step with the frame ring.
     std::vector<VkFence> m_images_in_flight;
 
     u32  m_frame_index      = 0;
@@ -225,11 +199,8 @@ private:
     bool m_portability       = false;
 
     // -- GPU stage timing ----------------------------------------------------
-    // Two queries per stage (begin, end), one set per frame in flight so that
-    // recording frame N+1 never overwrites a query frame N's readback has not
-    // happened yet. Nanoseconds per tick; zero from vkGetPhysicalDeviceProperties
-    // means the device did not report a period, which read_stage_times() treats
-    // the same as no support at all rather than dividing by zero.
+    // Two queries per stage (begin, end), one set per frame in flight. A zero
+    // timestamp period means no timing support.
     static constexpr u32 kQueriesPerStage = 2;
     static constexpr u32 kStageCount      = static_cast<u32>(GpuStage::kCount);
     static constexpr u32 kQueriesPerFrame = kStageCount * kQueriesPerStage;
@@ -237,14 +208,8 @@ private:
     VkQueryPool m_query_pool       = VK_NULL_HANDLE;
     float       m_timestamp_period = 0.0F;
 
-    /// Populated by read_back_stage_times() at the start of begin_frame(), the
-    /// one point every frame where a slot's queries are both retired and about
-    /// to be reset; read_stage_times() hands this back to the caller unchanged.
-    /// "Did a stage run" comes from vkGetQueryPoolResults' own availability bit
-    /// on each of that stage's begin/end queries -- a stage skipped this frame
-    /// (the decode dispatch, when texture_generation did not change) simply
-    /// never had its pair written, so both come back unavailable rather than
-    /// needing a separate written-flag to track the same fact twice.
+    /// Filled at the start of begin_frame(), when a slot's queries are retired
+    /// and about to be reset. A skipped stage's queries read back unavailable.
     GpuStageTimes m_last_stage_times{};
 
     /// Passes a frame call's result through, noting a lost device.

@@ -11,29 +11,14 @@
 //
 // NOTICE's section 7 additional terms apply to Keisho's changes only.
 //
-// Notes on the sample ROM banking:
-//
-//   Banking is not fully understood yet. It is presumed that the low 2MB of the
-//   sample ROMs are not banked (MAME), but this is not guaranteed. Below are
-//   examples of known situations where banking helps (sound names are as they
-//   appear in the sound test menu).
-//
-//       sound name
-//           ROM Offsets -> Address
-//
-//       dayto2pe
-//       --------
-//       let's hope he does better
-//           A... -> A...    (400001=3E)
-//       doing good i'd say you have a ..
-//           E... -> E...    (400001=3D)
-//
-//   From the above, it appears that when (400001)&10, then:
+// Sample ROM banking is not fully understood. The low 2 MB is presumed
+// unbanked (MAME). Sound test captures from dayto2pe suggest that when
+// (400001) & 0x10 is set:
 //
 //       ROM A00000-DFFFFF -> A00000-DFFFFF
 //       ROM E00000-FFFFFF -> E00000-FFFFFF
 //
-//   And when that bit is clear (just use default mapping, upper 6MB of ROM):
+//   and when it is clear (the default, upper 6 MB of ROM):
 //
 //       ROM 200000-5FFFFF -> A00000-DFFFFF
 //       ROM 600000-7FFFFF -> E00000-FFFFFF
@@ -423,8 +408,8 @@ void Model3Sound::flush_chunk()
 
 void Model3Sound::mix_down(u32 frames)
 {
-    // The stereo fold is (front + rear) / 2 per side. QuadMix puts
-    // the master in the centre and keeps the slave's stereo.
+    // The stereo fold is (front + rear) / 2 per side. QuadMix puts the master
+    // in the centre and keeps the slave's stereo.
     for (u32 i = 0; i < frames; ++i) {
         const s32 fl = m_front[i * 2];
         const s32 fr = m_front[i * 2 + 1];

@@ -6,32 +6,16 @@
 // copyright-holder Ariane Fugmann).
 //
 // The board is a Z80 with 16 KB of RAM shared with the i960 and a uPD72103 HDLC
-// controller driving the ring of cabinets. MAME does not emulate the Z80 at all:
-// it keeps the shared RAM, the two single-bit handshake registers, and a
-// simulation of the ring protocol that talks over a socket. This is a port of
-// that simulation.
+// controller driving the ring of cabinets. MAME does not emulate the Z80; it
+// keeps the shared RAM, the two handshake registers and a simulation of the
+// ring protocol. This is a port of that simulation.
 //
-// Every Model 2 machine configuration in MAME instantiates one, so every board
-// here needs one too. Leaving it out is not harmless: a linked title polls the
-// two handshake registers at boot and sits on "CHECKING NETWORK NOW" forever
-// when they read back as unmapped. That was stopping Super GT 24h, Rail Chase 2,
-// Dynamite Baseball, Pilot Kids, Zero Gunner, Over Rev, Ski Super G, Manx TT and
-// Daytona USA from ever reaching a 3D scene.
+// Linked titles poll the handshake registers at boot and hang on "CHECKING
+// NETWORK NOW" if they read as unmapped, so every Model 2 board needs one.
 //
-// -- why a loopback rather than a socket -----------------------------------
-//
-// MAME opens a listening socket on comm_localhost:comm_localport and connects to
-// comm_remotehost:comm_remoteport, whose defaults are 0.0.0.0:15112 and
-// 127.0.0.1:15112. Those defaults point at each other, so an unconfigured MAME
-// connects to itself and the ring protocol completes with one node: the board
-// reports link alive, id 1 of 1. Confirmed by reading the shared RAM through the
-// i960's own address space while MAME ran Super GT 24h (tools/mame/commdump.lua):
-// shared[0..3] goes 00 00 00 00, then 00 00 ff ff after the game enables the
-// board, then 01 00 01 01 about four seconds later, and the game proceeds.
-//
-// Reproducing that outcome needs no networking, only the loopback the defaults
-// happen to describe, so the two sockets are replaced by an in-process frame
-// queue. Nothing is sent to or received from the network.
+// Deviation: MAME's default socket addresses point at each other, so an
+// unconfigured MAME links to itself as node 1 of 1. The default here reproduces
+// that with an in-process loopback queue instead of sockets.
 #pragma once
 
 #include "core/types.h"
@@ -50,9 +34,8 @@ namespace sm2::hw {
 
 class M2Comm final : public CommBoard {
 public:
-    /// The shared RAM the i960 sees at 0x01a00000. The board does not own it:
-    /// the i960 reaches it as a burst-capable memory window, so it lives with
-    /// the rest of the board's RAM and is handed over here.
+    /// The shared RAM the i960 sees at 0x01a00000. It lives with the board's
+    /// other RAM (the i960 bursts into it) and is attached here.
     static constexpr u32 kSharedSize = 0x4000;
 
     /// Where in the shared RAM a received frame is deposited. 0x1c0 on every
@@ -80,15 +63,13 @@ public:
     [[nodiscard]] u8 cn_read() const { return static_cast<u8>(m_cn | 0xfe); }
     void             cn_write(u8 value);
 
-    /// 0x01a04002. Bit 0 is the i960's own flip gate, bit 7 is the inverse of
-    /// the Z80's. The Z80's toggles once per received frame, which is how the
-    /// host notices new data without an interrupt.
+    /// 0x01a04002. Bit 0 is the i960's flip gate, bit 7 the inverse of the
+    /// Z80's, which toggles once per received frame.
     [[nodiscard]] u8 fg_read();
     void             fg_write(u8 value) { m_fg = static_cast<u8>(value & 0x01); }
 
-    /// MAME's check_vint_irq, called from the board's vertical blank. Despite
-    /// the name it raises nothing: the IRQ lines are unconnected on Model 2 and
-    /// MAME only uses the call to step the ring simulation.
+    /// MAME's check_vint_irq, called at vertical blank. It only steps the ring:
+    /// the IRQ lines are unconnected on Model 2.
     void vblank() { tick(); }
 
     // -- diagnostics ------------------------------------------------------
@@ -102,23 +83,17 @@ public:
     /// Always true for the loopback; a socket transport reports the peer state.
     [[nodiscard]] bool transport_connected() const;
 
-    /// Save/restore the link registers and frame-assembly buffer. The shared
-    /// RAM span is excluded (serialized once at the machine level and re-bound);
-    /// the transport is excluded (any queued cross-cabinet frame does not
-    /// survive a load, which is acceptable for a single cabinet).
+    /// Save/restore the link registers and frame buffer. The shared RAM is
+    /// saved by the machine; queued transport frames are not saved.
     void serialize(Archive& ar);
 
 private:
     void tick();
     void read_fg();
 
-    /// Pops one frame from the transport. Returns the byte count, which is zero
-    /// when there is nothing waiting.
-    ///
-    /// MAME reads a byte stream and reassembles a partial frame across calls.
-    /// The loopback delivers each frame whole because it was queued whole; the
-    /// UDP transport does the reassembly itself and also hands over whole
-    /// frames, so this side always sees a complete one.
+    /// Pops one whole frame from the transport; returns its size, or zero when
+    /// nothing is waiting. Deviation: MAME reassembles partial frames here; the
+    /// transports always deliver whole ones.
     int  read_frame(int data_size);
     void send_frame(int data_size);
     void send_data(u8 frame_type, int frame_start, int frame_size, int data_size);
@@ -151,9 +126,8 @@ private:
     /// MAME's m_buffer0, the frame being assembled or examined.
     std::array<u8, 0x1000> m_buffer{};
 
-    /// The pair of sockets MAME opens, abstracted. Defaults to an in-process
-    /// loopback so a lone cabinet needs no configuration; a UDP transport is
-    /// injected here for real LAN play.
+    /// MAME's sockets, abstracted: an in-process loopback by default, or a UDP
+    /// transport for LAN play.
     std::unique_ptr<CommTransport> m_transport;
 };
 

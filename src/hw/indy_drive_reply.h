@@ -22,9 +22,8 @@
 
 namespace sm2::hw {
 
-/// The centre the board works from. A blank NVRAM, or one calibrated before the
-/// board's answer was emulated, sends $FF, which is full lock and never a real
-/// centre.
+/// The centre the board works from. A blank or uncalibrated NVRAM sends $FF,
+/// which is full lock and never a real centre.
 [[nodiscard]] constexpr u8 indy_board_centre(u8 sent)
 {
     return sent == 0xff ? u8{0x80} : sent;

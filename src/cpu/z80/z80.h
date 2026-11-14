@@ -14,10 +14,8 @@
 //
 // There is no DRC variant of MAME's Z80, so the interpreter is the whole core.
 //
-// Every original Model 2 title needs one of these: the model1io board runs a
-// plain Z80, model1io2 runs a TMPZ84C015 (a Z80 with integrated CTC/PIO/SIO),
-// and Daytona's drive board is a third. Only the CPU lives here; the peripherals
-// and the boards themselves are somebody else's problem.
+// Z80 CPU core, used by the model1io and model1io2 (TMPZ84C015) boards and
+// Daytona's drive board. Peripherals and boards live elsewhere.
 #pragma once
 
 #include "core/types.h"
@@ -42,31 +40,22 @@ class Bus {
 public:
     virtual ~Bus() = default;
 
-    /// Memory space (64 KB). MAME splits this into AS_PROGRAM, AS_OPCODES and a
-    /// separate stack space so that boards with an encrypted opcode fetch or a
-    /// paged stack can hook them; no Model 2 board does, so the core routes all
-    /// three here.
+    /// Memory space (64 KB). MAME's separate opcode and stack spaces all route
+    /// here, since no Model 2 board needs them.
     [[nodiscard]] virtual u8 read8(u16 address) = 0;
     virtual void write8(u16 address, u8 value) = 0;
 
-    /// Separate I/O space (IN/OUT instructions), 16-bit port address.
-    ///
-    /// The Z80 drives all sixteen address lines during an I/O cycle even though
-    /// `OUT (n),A` only encodes eight of them: the high half carries A. Devices
-    /// that decode only the low half simply ignore it.
+    /// I/O space, 16-bit port address. `OUT (n),A` puts A on the high half.
     [[nodiscard]] virtual u8 io_read8(u16 port) = 0;
     virtual void io_write8(u16 port, u8 value) = 0;
 
-    /// Fetched during an interrupt acknowledge cycle in mode 0/2.
-    ///
-    /// Mode 2 uses it as the low half of the vector table address; mode 0 as an
-    /// opcode to execute. 0xff is what a bus with nothing driving it reads back,
-    /// which in mode 0 is `RST 38h` and so happens to match mode 1.
+    /// Fetched during an interrupt acknowledge in mode 0/2: the low half of the
+    /// vector address in mode 2, an opcode in mode 0. An undriven bus reads 0xff
+    /// (`RST 38h`).
     [[nodiscard]] virtual u8 interrupt_vector() { return 0xff; }
 
-    /// RETI retired. A daisy chain needs this so the peripheral being
-    /// serviced can release its in-service latch and let a lower-priority
-    /// one through; a board with a single interrupting device can ignore it.
+    /// RETI retired, so a daisy-chained peripheral can release its in-service
+    /// latch.
     virtual void interrupt_return() {}
 };
 
@@ -82,39 +71,24 @@ public:
     Z80& operator=(const Z80&) = delete;
 
     /// MAME's device_reset: leaves halt, clears PC/WZ/I/R/IFF and any pending
-    /// NMI. Deliberately does *not* clear the register file, IM or SP — neither
-    /// does the hardware, and neither does MAME. A freshly constructed core is
-    /// already in MAME's post-device_start state (IX = IY = 0xffff, Z set), so
-    /// construct-then-reset is fully deterministic.
+    /// NMI, but not the register file, IM or SP, as on hardware. A new core is
+    /// in MAME's post-device_start state (IX = IY = 0xffff, Z set).
     void reset();
 
-    /// Execute T-states until the budget runs out. Returns how many of the
-    /// requested cycles were charged: never more than `cycles`, and 0 for a
-    /// non-positive budget.
-    ///
-    /// In practice a positive budget always returns exactly `cycles`, and that
-    /// is not an accident worth hiding behind the general wording. Unlike the
-    /// DSP cores in this project the Z80 is genuinely cycle-counted, so a slice
-    /// almost never ends on an instruction boundary. The core rounds up: it
-    /// finishes the instruction it is on, which fills the slice, and the surplus
-    /// is *carried* (see `cycle_debt`) to be pre-charged against the following
-    /// call rather than dropped. Dropping it instead would make the CPU run
-    /// measurably fast against the rest of the machine — a couple of T-states
-    /// per slice, which at one slice per scanline is a few percent.
-    ///
-    /// So callers should treat the return value as "the slice was consumed", not
-    /// as a measurement. `cycles()` is the measurement.
+    /// Execute T-states until the budget runs out. Returns the cycles charged:
+    /// exactly `cycles` for a positive budget, 0 otherwise. The instruction that
+    /// overruns the slice is finished and its surplus carried into the next call
+    /// (see `cycle_debt`) rather than dropped, which would run the CPU fast.
+    /// Use `cycles()` for measurement.
     [[nodiscard]] s32 run(s32 cycles);
 
     // -- interrupt and control lines ----------------------------------------
 
-    /// INT is level-sensitive: it is sampled at the end of every instruction for
-    /// as long as it is held.
+    /// INT is level-sensitive, sampled at the end of every instruction.
     void set_irq_line(bool asserted);
 
-    /// NMI is edge-triggered: the rising edge latches a pending NMI which is
-    /// taken at the next instruction boundary even if the line has dropped by
-    /// then.
+    /// NMI is edge-triggered: the rising edge latches a pending NMI, taken at the
+    /// next instruction boundary even if the line has dropped.
     void set_nmi_line(bool asserted);
 
     /// WAIT stalls the CPU. While held, `run` consumes its budget and retires
@@ -122,19 +96,13 @@ public:
     void set_wait_line(bool asserted) { m_wait_state = asserted; }
 
     /// True between a HALT and the interrupt or reset that lifts it. A halted
-    /// core still consumes its cycle budget, one M1 cycle at a time, but retires
-    /// no instructions.
+    /// core consumes its budget in M1 cycles but retires nothing.
     [[nodiscard]] bool halted() const { return m_halt != 0; }
 
     // -- cycle timing configuration -----------------------------------------
-    // MAME lets a board stretch the three bus cycle types; the TMPZ84C015 and
-    // several arcade boards use it. Defaults are the stock 4/3/4.
-    //
-    // A bus cycle cannot be shorter than the hardware's, and the floors are not
-    // cosmetic: an M1 cycle of zero would make a register-only instruction cost
-    // nothing and `run` would never finish its slice. MAME catches short values
-    // in device_validity_check, which has no equivalent here, so the minima are
-    // enforced at the setter instead.
+    // Boards may stretch the three bus cycle types; defaults are the stock
+    // 4/3/4. The setters enforce the hardware minima (MAME checks them in
+    // device_validity_check): a zero M1 cycle would let `run` never finish.
     static constexpr u8 kMinM1Cycles   = 4;
     static constexpr u8 kMinMreqCycles = 3;
     static constexpr u8 kMinIorqCycles = 4;
@@ -200,10 +168,8 @@ public:
     /// the refresh cycles run while halted do not count at all.
     [[nodiscard]] u64 instructions() const { return m_instruction_count; }
 
-    /// T-states consumed since construction, counting cycles spent halted or
-    /// stalled on WAIT. Together with `cycle_debt` this is what makes `run`'s
-    /// accounting checkable: the sum of everything `run` returned, plus the
-    /// outstanding debt, equals this.
+    /// T-states consumed since construction, including halted and WAIT cycles.
+    /// Equals the sum of `run`'s returns plus the outstanding `cycle_debt`.
     [[nodiscard]] u64 cycles() const { return m_total_cycles; }
 
     /// T-states executed but not yet reported, owed to the next `run`.
@@ -234,16 +200,13 @@ private:
     static constexpr u8 ZF  = 0x40;
     static constexpr u8 SF  = 0x80;
 
-    /// On an NMOS Z80, if `LD A,I` or `LD A,R` is interrupted the P/V flag is
-    /// reset even when IFF2 was set. Fixed on the CMOS part. MAME keeps this
-    /// off because it does not know which variant any given board carries, and
-    /// neither do we.
+    /// NMOS quirk: an interrupted `LD A,I` / `LD A,R` resets P/V even with IFF2
+    /// set. Off, as in MAME, since the variant on each board is unknown.
     static constexpr bool kHasLdairQuirk = false;
 
     // -- 16-bit register pair ----------------------------------------------
-    // MAME's PAIR16. Byte order has to match the host so that `HL` and `H`/`L`
-    // are views of the same storage, which is what lets the ported instruction
-    // bodies take a `u8&` to half of a pair.
+    // MAME's PAIR16. Byte order matches the host so `H`/`L` alias `HL`, letting
+    // the ported bodies take a `u8&` to half of a pair.
     struct BytesLE {
         u8 l;
         u8 h;
@@ -265,11 +228,9 @@ private:
 
     // -- deferred flags -----------------------------------------------------
     //
-    // Ported verbatim from MAME. Rather than assemble F after every operation,
-    // each flag keeps the value it would be derived from and F is only built
-    // when something reads it (PUSH AF, EX AF,AF', the debugger). That is not
-    // just an optimisation: SCF/CCF's X/Y flags depend on whether the *previous*
-    // instruction touched F at all, which is what `q`/`qtemp` track.
+    // Ported verbatim from MAME. Each flag keeps the value it derives from and F
+    // is built only when read. SCF/CCF's X/Y flags depend on whether the
+    // previous instruction wrote F, which `q`/`qtemp` track.
     struct Flags {
         u8   s_val  = 0;  ///< bit 7, other bits don't care
         u8   z_val  = 0;  ///< zero when the result was zero
@@ -297,8 +258,8 @@ private:
     };
 
     // -- service-step attention bits ---------------------------------------
-    // MAME funnels every "something needs looking at before the next opcode"
-    // condition through one bitmap so the hot path is a single test.
+    // Conditions to check before the next opcode, as one bitmap so the hot path
+    // is a single test.
     static constexpr u8 SA_NMI_PENDING = 1;
     static constexpr u8 SA_IRQ_ON      = 2;
     static constexpr u8 SA_HALT        = 3;
@@ -323,8 +284,7 @@ private:
     }
 
     // -- bus access ---------------------------------------------------------
-    // Each of these charges the same number of T-states MAME's corresponding
-    // z80.lst macro does, so the totals match instruction for instruction.
+    // Each charges the same T-states as MAME's z80.lst macro.
 
     [[nodiscard]] u8 data_read(u16 addr);
     void data_write(u16 addr, u8 value);
@@ -353,10 +313,8 @@ private:
     void in_port(u16 port);  ///< TDAT8 = port
     void out_port(u16 port);
 
-    /// Internal cycles during which the address bus holds `addr` but no bus
-    /// cycle is run. The address only matters to MAME's nomreq callback, which
-    /// exists for ULA contention modelling on home computers; it is ignored
-    /// here but kept in the signature to document what the real part drives.
+    /// Internal cycles with `addr` on the bus but no bus cycle. `addr` is unused
+    /// (MAME's nomreq callback) but documents what the part drives.
     void nomreq_addr(u16 addr, int count);
     void nomreq_ir(int count);
 
@@ -432,11 +390,9 @@ private:
     void rrd();
     void rld();
 
-    /// Undocumented-opcode diagnostics. MAME re-reads the bytes through the bus
-    /// to log them; these take what the caller already fetched instead, because
-    /// a diagnostic must not change how many bus cycles an opcode performs — and
-    /// it would, since the logging macro only evaluates its arguments when the
-    /// level is enabled.
+    /// Undocumented-opcode diagnostics. Deviation: MAME re-reads the bytes
+    /// through the bus; these take what was already fetched, so logging cannot
+    /// change bus cycles.
     void illegal_1(u8 prefix, u8 op);
     void illegal_2(u8 op);
 
@@ -450,10 +406,9 @@ private:
     void op_cb(u8 op);
     void op_ed(u8 op);
     void op_xycb(u8 op);
-    /// DD/FD prefix. Returns false when `op` is not an index-register opcode,
-    /// in which case the prefix is discarded and `op` runs from the main table
-    /// — which is what the hardware does, and costs the 4 wasted T-states.
-    /// `prefix` is carried only so the diagnostic can name it.
+    /// DD/FD prefix. Returns false when `op` is not an index-register opcode;
+    /// the prefix is then discarded (4 wasted T-states) and `op` runs from the
+    /// main table. `prefix` is only for the diagnostic.
     [[nodiscard]] bool op_index(u8 prefix, u8 op, Pair16& xy);
 
     void check_interrupts();
@@ -496,9 +451,8 @@ private:
     u8  m_service_attention = 0;
     u32 m_tmp_irq_vector    = 0;
 
-    /// MAME's m_shared_data / m_shared_data2: the scratch the microcode steps
-    /// hand values through. Kept because some flag results are defined in terms
-    /// of it (`block_io_interrupted_flags` reads the byte just transferred).
+    /// MAME's m_shared_data / m_shared_data2: scratch passed between microcode
+    /// steps, which some flag results read.
     Pair16 m_shared_data{};
     Pair16 m_shared_data2{};
 

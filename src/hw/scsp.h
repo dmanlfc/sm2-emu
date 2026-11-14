@@ -16,7 +16,7 @@
 //                              bit timing nothing observes. See midi_in.
 //   machine().rand()           a fixed-seed generator, so runs are reproducible
 //   set_output_gain            m_master_gain, applied in DoMasterSamples
-//   save_item / device_post_load  dropped; no save states yet
+//   save_item / device_post_load  serialize()
 //
 // The slot update, envelope, LFO and DSP feed are upstream's, so fixes there stay
 // diffable.
@@ -65,18 +65,15 @@ public:
 
     // -- audio --------------------------------------------------------------
 
-    /// Produce `frames` interleaved stereo samples at 44100 Hz.
-    ///
-    /// This is also where time passes for the SCSP: the timers, the envelopes,
-    /// the LFOs and the MIDI transmitter all advance one step per frame, so the
-    /// caller has to keep calling it whether or not anything is listening.
+    /// Produce `frames` interleaved stereo samples at 44100 Hz. The timers,
+    /// envelopes, LFOs and MIDI transmitter advance here, so it must be called
+    /// whether or not anything is listening.
     void generate(s16* output, u32 frames);
 
     [[nodiscard]] u32 sample_rate() const { return m_clock / kClockDivider; }
 
     /// Per-slot output gain in 1/256 units (256 == unity), applied before both
-    /// the direct-out and effect-send mixes so it scales the whole voice. All
-    /// unity leaves the mixer bit-exact. The hook for the per-set gain.
+    /// the direct-out and effect-send mixes. All unity leaves the mixer bit-exact.
     void set_slot_gains(const u16 gains[32]);
 
     /// A byte arrived from the host's UART.
@@ -110,12 +107,9 @@ public:
     /// How many of the 32 slots are currently sounding.
     [[nodiscard]] u32 active_slots() const { return m_active_slots; }
 
-    /// Save/restore the whole chip: control registers, all 32 slots, ring
-    /// buffer, IRQ/timer/MIDI/DMA state, the effects DSP and the fixed-seed RNG.
-    /// The big constant tables (EG/pan/LFO/AR/DR) are excluded — rebuilt at
-    /// construction — as are the LFO table/scale pointers inside each slot,
-    /// which are re-derived from the slot registers on load. The ScspMemory
-    /// back-pointer and the three callbacks are excluded (re-bound by wiring).
+    /// Save/restore the whole chip. The constant tables, each slot's LFO table
+    /// pointers (re-derived on load), the ScspMemory pointer and the callbacks
+    /// are excluded.
     void serialize(Archive& ar);
 
 private:
@@ -190,27 +184,19 @@ private:
 
     // -- replacements for MAME's framework ----------------------------------
 
-    /// MAME's timerA/B/C emu_timers. The delay upstream asks for is
-    /// attotime::from_ticks(512, (clock/prescale) / (255 - value)), which at a
-    /// sample rate of clock/512 is exactly prescale * (255 - value) samples, so
-    /// the timers become deadlines on the sample counter and need no scheduler.
+    /// MAME's timerA/B/C emu_timers, as deadlines on the sample counter.
     void kick_timer(int which, u16 value);
     void service_timers();
     void timer_expired(int which);
 
-    /// One sample of the MIDI transmitter's byte clock. Upstream lets
-    /// device_serial_interface shift bits out; nothing here observes the bits, so
-    /// the byte is delivered whole after one byte time. See the note in scsp.cpp.
+    /// One sample of the MIDI transmitter's byte clock. See the note in scsp.cpp.
     void service_midi_out();
     void begin_midi_transmit(u8 value);
 
-    /// MAME's machine().rand(), seeded fixed so that two runs of the emulator
-    /// produce the same noise. Used for the noise slot type and for the LFO's
-    /// noise waveform table.
+    /// MAME's machine().rand(), fixed-seed so runs produce the same noise.
     u32 next_random();
 
-    /// MAME's devcb objects are callable whether or not anything is bound;
-    /// std::function is not, so these wrap the null check.
+    /// devcb stand-ins that wrap the null check.
     void irq_cb(int level, bool assert);
     void main_irq_cb(bool assert);
     [[nodiscard]] bool has_irq_handler() const { return static_cast<bool>(m_irq_cb); }
@@ -300,9 +286,7 @@ private:
     /// applied where the mixer writes its result.
     float m_master_gain = 1.0f;
 
-    /// Per-slot output gain, 1/256 units (256 == unity); see set_slot_gains.
-    /// m_slot_gain_active is false when every entry is unity, bypassing the
-    /// gain path so the faithful case stays bit-exact.
+    /// See set_slot_gains. m_slot_gain_active is false when every entry is unity.
     u16  m_slot_gain[32]     = {};
     bool m_slot_gain_active  = false;
 

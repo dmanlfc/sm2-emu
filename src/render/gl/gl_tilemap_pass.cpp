@@ -100,9 +100,8 @@ void TilemapPass::shutdown()
 
 bool TilemapPass::create_textures()
 {
-    // NEAREST: at N=1 the bands draw 1:1; at N>1 the N*native FBO viewport
-    // integer-upscales them by exactly N, each native texel a crisp NxN block.
-    // The final non-integer magnification to the window is PresentPass's LINEAR.
+    // NEAREST: the N*native target upscales each texel to a crisp NxN block;
+    // the final magnification to the window is PresentPass's.
     GenTextures(1, &m_below_texture);
     BindTexture(GL_TEXTURE_2D, m_below_texture);
     TexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, static_cast<GLsizei>(width()),
@@ -139,8 +138,8 @@ bool TilemapPass::create_programs()
         return false;
     }
 
-    // tilemap_composite.frag's Push block took binding 1 under SM2_TARGET_GL
-    // (binding 0 is uLayer) -- see that shader's own SM2_TARGET_GL comment.
+    // tilemap_composite.frag's Push block is binding 1 under SM2_TARGET_GL
+    // (binding 0 is uLayer).
     m_uniform_block_index = GetUniformBlockIndex(m_program, "Push");
     UniformBlockBinding(m_program, m_uniform_block_index, 1);
     return true;
@@ -182,12 +181,10 @@ bool TilemapPass::create_compute_resources()
 void TilemapPass::upload_surface_to_texture(u32 texture, std::span<const u32> pixels)
 {
     BindTexture(GL_TEXTURE_2D, texture);
-    // The CPU composes this surface top-origin (row 0 = top), but the GL path
-    // stores tilemap textures bottom-origin so fullscreen_quad.vert's clip-Y
-    // flip lands them right-side-up -- the same convention tilemap_compose.comp
-    // writes under SM2_TARGET_GL. This is the only tilemap upload that isn't
-    // already GPU-side, so it flips here. Reached by render test mode (Last
-    // Bronx's framebuffer title) and the CPU tilemap fallback.
+    // The CPU composes this surface top-origin, but the GL path stores tilemap
+    // textures bottom-origin (as tilemap_compose.comp writes them under
+    // SM2_TARGET_GL), so flip it. Used by render test mode and the CPU tilemap
+    // fallback.
     std::vector<u32> flipped(static_cast<usize>(width()) * kSourceHeight);
     for (u32 y = 0; y < kSourceHeight; ++y) {
         const u32 src_row = kSourceHeight - 1 - y;
@@ -202,9 +199,7 @@ void TilemapPass::upload_surface_to_texture(u32 texture, std::span<const u32> pi
 
 void TilemapPass::upload_surface_from_buffer(u32 texture, u32 buffer_handle)
 {
-    // Bind the SSBO as a pixel-unpack source so TexSubImage2D reads from it
-    // directly on the GPU rather than from system memory. This is the GL
-    // equivalent of Vulkan's vkCmdCopyBufferToImage.
+    // Bind the SSBO as a pixel-unpack source so TexSubImage2D copies on the GPU.
     BindBuffer(GL_PIXEL_UNPACK_BUFFER, buffer_handle);
     BindTexture(GL_TEXTURE_2D, texture);
     TexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(width()),
@@ -218,10 +213,8 @@ void TilemapPass::upload(std::span<const u32> below, std::span<const u32> above)
     upload_surface_to_texture(m_below_texture, below);
     upload_surface_to_texture(m_above_texture, above);
 
-    // This slot's staging buffers now hold a CPU-composited frame, not
-    // whatever compute() last wrote -- force its next call to redo the
-    // dispatch regardless of whether the generation counters moved, matching
-    // render::vk::TilemapPass::upload()'s own reasoning exactly.
+    // This slot's staging buffers now hold a CPU-composited frame, so force the
+    // next compute() to redo the dispatch whatever the generation counters say.
     m_tile_generation  = 0;
     m_char_generation  = 0;
     m_table_generation = 0;
@@ -310,20 +303,11 @@ void TilemapPass::dispatch_compose(const hw::Model2MachineBase& machine,
     const u32 groups_y = (kSourceHeight + 15) / 16;
     DispatchCompute(groups_x, groups_y, 1);
 
-    // The composite draws sample the textures these buffers are about to be
-    // copied into, so the compute shader's writes must be visible before
-    // that copy reads them. The GL analogue of the one VkBufferMemoryBarrier2
-    // render::vk::TilemapPass::dispatch_compose() records for the same
-    // reason.
+    // The compute shader's writes must be visible before the copy to textures.
     MemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-    // Upload compute results to textures via PBO bind rather than CPU
-    // readback: binding the staging SSBO as GL_PIXEL_UNPACK_BUFFER and
-    // calling TexSubImage2D with a null data pointer tells the driver to
-    // source the pixel data from the bound buffer object -- a pure GPU-side
-    // copy, matching the Vulkan path's vkCmdCopyBufferToImage. Reading from
-    // the persistently mapped pointer would be undefined (the mapping is
-    // write-only) and forces an implicit pipeline stall in practice.
+    // Copy the compute results to textures on the GPU through a PBO bind. The
+    // persistent mapping is write-only, so it cannot be read back.
     upload_surface_from_buffer(m_below_texture, m_below_staging.handle);
     upload_surface_from_buffer(m_above_texture, m_above_staging.handle);
 }
@@ -355,17 +339,13 @@ void TilemapPass::draw_fullscreen(u32 texture, u32 mode, bool blend, u32 backgro
 
     UseProgram(m_program);
 
-    // A uniform block (this shader's GL-side substitute for Vulkan's push
-    // constant, see tilemap_composite.frag's own SM2_TARGET_GL comment)
-    // needs a real backing buffer, unlike a push constant -- m_push_ubo is
-    // that buffer, created once in create_programs() and rewritten here
+    // The uniform block standing in for Vulkan's push constant, rewritten
     // every draw.
     BindBuffer(GL_UNIFORM_BUFFER, m_push_ubo);
     BufferSubData(GL_UNIFORM_BUFFER, 0, static_cast<GLsizeiptr>(sizeof(PushBlock)), &push);
     BindBufferBase(GL_UNIFORM_BUFFER, 1, m_push_ubo);
 
-    // Premultiplied source, matching render::vk::TilemapPass::create_pipeline's
-    // own blend factors exactly: ONE / ONE_MINUS_SRC_ALPHA on both channels.
+    // Premultiplied source: ONE / ONE_MINUS_SRC_ALPHA, as in the Vulkan pass.
     if (blend) {
         Enable(GL_BLEND);
         BlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

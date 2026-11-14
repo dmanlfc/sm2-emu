@@ -142,11 +142,8 @@ bool load_state_from_buffer(std::span<const u8> data, const std::string& game, u
         return false;
     }
 
-    // Reject-before-commit (design §5(4), requirement 3.2). A scratch machine is
-    // not viable (create_machine consumes the RomSet), so snapshot the current
-    // state to a rollback buffer, apply the file, and if the read ran past the
-    // end restore from the rollback. The Archive zero-fills rather than reading
-    // OOB, so the rollback is always applicable.
+    // Snapshot the current state first and restore it if the file reads short.
+    // The Archive zero-fills rather than reading out of bounds.
     std::vector<u8> rollback;
     {
         Archive save_ar(rollback);
@@ -163,7 +160,6 @@ bool load_state_from_buffer(std::span<const u8> data, const std::string& game, u
         return false;
     }
 
-    // The host's section, when the state has one.
     pending_host_section().clear();
     const usize payload_size = data.size() - payload_offset;
     if (payload_size - load_ar.position() >= sizeof(u32)) {
@@ -186,8 +182,7 @@ bool load_state_from_buffer(std::span<const u8> data, const std::string& game, u
 
 bool write_state_file(const std::string& path, std::span<const u8> data)
 {
-    // Create the parent directory (e.g. the states dir) on first use, the way
-    // the screenshot path does; fopen("wb") will not make it.
+    // fopen("wb") will not create the directory.
     const std::filesystem::path parent = std::filesystem::path(path).parent_path();
     if (!parent.empty()) {
         std::error_code ec;
@@ -313,8 +308,7 @@ std::vector<SlotInfo> list_state_slots(const std::string& dir, const std::string
             info.occupied = true;
             const auto ftime = std::filesystem::last_write_time(p, ec);
             if (!ec) {
-                // file_clock -> system_clock -> time_t, portably enough for a
-                // display stamp (exact epoch alignment does not matter here).
+                // file_clock -> system_clock, approximately; it is only displayed.
                 const auto sctime = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
                     ftime - std::filesystem::file_time_type::clock::now()
                     + std::chrono::system_clock::now());

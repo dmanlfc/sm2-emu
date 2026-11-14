@@ -50,13 +50,11 @@ constexpr u32 kBank4Size   = 0x400000;
 constexpr u32 kBank5Base   = 0xe00000;  // samples + 0x600000, 2 MB
 constexpr u32 kBank5Size   = 0x200000;
 
-/// The SCSP's own view of memory is 20 bits wide, of which the Model 2 sound
-/// board wires up the low 512 KB.
+/// The SCSP's own view of memory is 20 bits wide.
 constexpr u32 kScspAddressMask = 0x000fffff;
 
-/// 68000 clock over host clock, exactly. 45.1584 MHz / 4 over 25 MHz reduces to
-/// 7056/15625, and 5^6 shares no factor with 2^4 * 3^2 * 7^2, so this is lowest
-/// terms and the remainder has to be carried rather than rounded away.
+/// 68000 clock over host clock, exactly: 45.1584 MHz / 4 over 25 MHz in lowest
+/// terms. The remainder is carried, not rounded.
 constexpr u64 kCpuClockNumerator   = 7056;
 constexpr u64 kCpuClockDenominator = 15625;
 
@@ -65,12 +63,8 @@ constexpr u64 kCpuClockDenominator = 15625;
 constexpr u64 kCyclesPerSample = 256;
 
 /// Wait states on a 68000 access to RAM or the SCSP: a fixed two, plus up to
-/// kContentionCycles more as the SCSP's own sample fetches take the RAM bus.
-/// The contention term is fitted to a board capture of House of the Dead. The
-/// fixed two keep the music near the hardware's tempo: House of the Dead's
-/// attract music runs +0.5% against a cabinet recording with them, +1.33%
-/// without; Sega Rally's +0.48% against its soundtrack with them, +1.45%
-/// without.
+/// kContentionCycles more as the SCSP's sample fetches take the RAM bus. Both
+/// are fitted to hardware captures; without them the music runs fast.
 constexpr u32 kBusWaitCycles    = 2;
 constexpr u32 kContentionCycles = 12;
 
@@ -78,14 +72,11 @@ constexpr u32 kContentionCycles = 12;
 /// divided by 512 is 44100 Hz exactly.
 constexpr u32 kScspClock = 22'579'200;
 
-/// Longest run of audio kept while nothing is draining it, in frames. Four video
-/// frames is far more than a healthy consumer needs and small enough that a
-/// headless run does not accumulate a gigabyte of samples.
+/// Longest run of audio kept while nothing is draining it, in frames.
 constexpr usize kMaxPendingFrames = 4 * 800;
 
-/// The reset vector, 16 bytes, is copied from the start of the sound ROM into
-/// RAM. MAME's reset_model2_scsp does the same, with the note that the hardware
-/// presumably arranges it in some way that amounts to this.
+/// The 16-byte reset vector copied from the sound ROM into RAM, as MAME's
+/// reset_model2_scsp does.
 constexpr usize kResetVectorBytes = 16;
 
 }  // namespace
@@ -95,9 +86,8 @@ Model2Sound::Model2Sound() : m_cpu(*this), m_scsp(*this, kScspClock)
     m_ram.assign(kRamSize, 0);
     m_pending.reserve(kMaxPendingFrames * 2);
 
-    // The SCSP's interrupts go to the sound 68000, and only there: on Model 2 the
-    // main_irq callback, which on a Saturn would reach the SH-2, is left unwired,
-    // as MAME leaves it. The host's sound interrupt comes from the UART instead.
+    // The SCSP interrupts only the sound 68000; main_irq is unwired on Model 2.
+    // The host's sound interrupt comes from the UART.
     m_scsp.set_irq_handler([this](int level, bool assert) {
         if (level <= 0) {
             m_cpu.clear_irq_lines();
@@ -132,8 +122,8 @@ void Model2Sound::set_midi_out_handler(Scsp::MidiOutHandler handler)
 
 void Model2Sound::midi_in(u8 value)
 {
-    // The host serial link drives both the SCSP's MIDI port and, on the sets
-    // that carry one, the DSB. MAME fans the same txd out to both.
+    // The host serial link drives the SCSP's MIDI port and, where fitted, the
+    // DSB.
     m_scsp.midi_in(value);
     m_dsb.write_txd(value);
     m_dsb2.write_txd(value);
@@ -156,9 +146,7 @@ void Model2Sound::reset()
     m_dsb.reset();
     m_dsb2.reset();
 
-    // Seed the vector table. Without this the 68000 would fetch its stack
-    // pointer and entry point out of cleared RAM and immediately run off into
-    // nothing.
+    // Seed the vector table, or the 68000 boots from cleared RAM.
     const usize copy = std::min(kResetVectorBytes, m_program_rom.size());
     if (copy != 0) {
         std::copy_n(m_program_rom.begin(), copy, m_ram.begin());
@@ -220,9 +208,8 @@ void Model2Sound::run(u32 host_cycles)
     }
     const u32 frames = static_cast<u32>((m_pending.size() - offset) / 2);
 
-    // The DSB (music board, DSB titles only) runs its Z80 over the same host
-    // interval and mixes its decoded MPEG audio into the frames the SCSP just
-    // produced. Inert -- and free -- for the sets without one.
+    // The DSB music board, where fitted, runs over the same interval and mixes
+    // its MPEG audio into the frames the SCSP just produced.
     if (m_dsb.present()) {
         m_dsb.run(host_cycles);
         m_dsb.mix(m_pending.data() + offset, frames, m_scsp.sample_rate());
@@ -232,9 +219,8 @@ void Model2Sound::run(u32 host_cycles)
         m_dsb2.mix(m_pending.data() + offset, frames, m_scsp.sample_rate());
     }
 
-    // Nothing draining the buffer means a headless run. The SCSP still has to be
-    // stepped, because that is where its timers and envelopes advance, so the
-    // samples are generated and then the oldest are dropped.
+    // Nothing draining the buffer means a headless run. The SCSP must still run
+    // for its timers and envelopes, so drop the oldest samples.
     const usize limit = kMaxPendingFrames * 2;
     if (m_pending.size() > limit) {
         const usize excess = m_pending.size() - limit;
@@ -257,8 +243,7 @@ void Model2Sound::generate_sample()
 
 Model2Sound::Window Model2Sound::resolve(u32 address)
 {
-    // A helper for the read-only sample windows, which differ only in where they
-    // start in the sample ROM.
+    // The read-only sample windows differ only in their start in the ROM.
     const auto sample_window = [this](u32 offset, u32 span) -> Window {
         if (offset >= m_samples.size()) {
             return {};
@@ -312,10 +297,8 @@ void Model2Sound::snd_ctrl_write(u16 value)
 {
     ++m_counters.snd_ctrl_writes;
 
-    // Sample banking, and only for the handful of games whose sample region is
-    // larger than 8 MB. Everything below that, Virtua Fighter 2 included, has
-    // its whole sample ROM permanently visible and this register does nothing;
-    // MAME guards it the same way.
+    // Sample banking applies only to sets with more than 8 MB of samples, as in
+    // MAME.
     if (m_samples.size() <= 0x800000) {
         return;
     }
@@ -331,9 +314,8 @@ void Model2Sound::snd_ctrl_write(u16 value)
 // ---------------------------------------------------------------------------
 // The 68000's bus
 // ---------------------------------------------------------------------------
-// read16/write16 are the primitives: the 68000's bus is 16 bits wide, so a
-// longword access really is two word accesses, and building the wider ones out
-// of them keeps accesses that straddle two regions correct for free.
+// read16/write16 are the primitives: the bus is 16 bits wide, so longword
+// accesses are two word accesses, which also handles region straddles.
 
 u16 Model2Sound::read16(u32 address)
 {
@@ -355,9 +337,8 @@ u16 Model2Sound::read16(u32 address)
         return m_scsp.read((address - kScspBase) >> 1);
     }
 
-    // The banking register is write-only. MAME maps no reader at all, so a read
-    // is an open bus; zero is as good a guess as any and is what an unmapped
-    // read gives elsewhere.
+    // The banking register is write-only; reads return 0 like other unmapped
+    // reads.
     if (address >= kSndCtrl && address < kSndCtrl + 2) {
         return 0;
     }
@@ -369,10 +350,8 @@ u16 Model2Sound::read16(u32 address)
 
 void Model2Sound::configure_balance(const std::string& game_name)
 {
-    // Per-set flat SCSP gain, in 1/256 units (256 == unity), levelling every
-    // set's measured in-game loudness against daytona (a deliberate mastering
-    // choice for a consistent home-listening volume across the library, not a
-    // hardware-accuracy claim
+    // Per-set flat SCSP gain in 1/256 units (256 = unity), levelling loudness
+    // against daytona. A mastering choice, not a hardware property.
     static const std::unordered_map<std::string, u16> kFlatGain = {
         {"airwlkrs", 793},
         {"bel", 902},
@@ -412,8 +391,8 @@ void Model2Sound::configure_balance(const std::string& game_name)
         {"zeroguna", 2824}, {"zerogunaj", 2824},
     };
 
-    // Top Skater's music board, matched to arcade captures of the music against
-    // the effects.
+    // Top Skater's music board level against the effects, matched to arcade
+    // captures.
     static const std::unordered_map<std::string, u16> kDsbGain = {
         {"topskatr", 64}, {"topskatrj", 64}, {"topskatru", 64}, {"topskatruo", 64},
     };
@@ -473,9 +452,8 @@ void Model2Sound::write8(u32 address, u8 value)
     const u32 masked = address & kAddressMask;
     bus_wait(masked);
 
-    // Plain memory takes the byte directly; anything with side effects has to be
-    // told which lane was driven, because a byte write to a 16-bit register must
-    // not clear the other half.
+    // Registers are told which lane was driven, so a byte write to a 16-bit
+    // register does not clear the other half.
     if (const Window window = resolve(masked); window.base != nullptr) {
         if (window.writable) {
             *window.base = value;
@@ -517,9 +495,8 @@ void Model2Sound::write32(u32 address, u32 value)
 // ---------------------------------------------------------------------------
 // The SCSP's bus
 // ---------------------------------------------------------------------------
-// MAME gives the SCSP a 20-bit big-endian space of its own and maps the same
-// "soundram" into it, which is how a slot's sample address reaches data the 68000
-// loaded. Only the low 512 KB is wired, so anything above that reads as nothing.
+// A 20-bit big-endian space: sound RAM at 0x00000-0x7ffff, then the first
+// 512 KB of sample ROM (MAME's device_rom_interface fallback).
 
 u8 Model2Sound::scsp_read_byte(u32 address)
 {
@@ -527,11 +504,6 @@ u8 Model2Sound::scsp_read_byte(u32 address)
     if (address < m_ram.size()) {
         return m_ram[address];
     }
-    // Addresses above the 512 KB RAM window read from the sample ROM, which is
-    // where the SCSP finds PCM data that the 68000 did not copy into RAM. On
-    // Model 2 the SCSP's 20-bit address space maps RAM at 0x00000–0x7FFFF and
-    // the first 512 KB of sample ROM at 0x80000–0xFFFFF. This is what MAME's
-    // device_rom_interface provides as a fallback behind the scsp_map RAM.
     const u32 rom_offset = address - static_cast<u32>(m_ram.size());
     if (rom_offset < m_samples.size()) {
         return m_samples[rom_offset];
@@ -545,7 +517,6 @@ u16 Model2Sound::scsp_read_word(u32 address)
     if (address + 1 < m_ram.size()) {
         return static_cast<u16>((m_ram[address] << 8) | m_ram[address + 1]);
     }
-    // Fall through to sample ROM for addresses above the RAM window.
     const u32 rom_offset = address - static_cast<u32>(m_ram.size());
     if (rom_offset + 1 < m_samples.size()) {
         return static_cast<u16>((m_samples[rom_offset] << 8) | m_samples[rom_offset + 1]);

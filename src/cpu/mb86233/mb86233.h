@@ -20,20 +20,15 @@ namespace sm2::cpu::mb86233 {
 
 /// The geometry coprocessor of Model 1, Model 2 and Model 2A.
 ///
-/// A 32-bit floating-point DSP. Three clocks per instruction, so the 50 MHz part
-/// on a Model 2A retires about 16.7 million instructions a second.
+/// A 32-bit floating-point DSP, three clocks per instruction.
 ///
-/// Two behaviours matter more than the instruction set:
+/// A read from an empty host FIFO stalls the part: the whole instruction is
+/// re-executed later, so the core must be able to abandon an instruction after
+/// it has already touched the ALU (stall() and the do_stall path).
 ///
-/// The part can be stalled. A read from a host FIFO that turns out to be empty
-/// re-executes the whole instruction later rather than returning a value, so the
-/// core has to be able to abandon an instruction after it has already had side
-/// effects on the ALU. That is what stall() and the do_stall path are for.
-///
-/// The part can be halted from outside, which is how the host holds it while
-/// uploading microcode and how the FIFO flow control blocks it. Halt is checked
-/// every instruction, not only on entry, because a FIFO callback can assert it
-/// part-way through a slice.
+/// The part can also be halted from outside, for microcode upload and FIFO flow
+/// control. Halt is checked every instruction because a FIFO callback can assert
+/// it part-way through a slice.
 class MB86233 {
 public:
     /// Clock divider: three clocks per instruction.
@@ -87,10 +82,7 @@ public:
     [[nodiscard]] s32 run(s32 cycles);
 
     /// Abandon the instruction in progress and execute it again next time.
-    ///
-    /// Called from a bus read that could not be satisfied. The instruction's
-    /// effects on the ALU registers are discarded by virtue of the core reloading
-    /// the program counter and starting over.
+    /// Called from a bus read that could not be satisfied.
     void stall() { m_stall = true; }
 
     /// External halt, used while microcode is uploaded and by FIFO flow control.
@@ -117,11 +109,10 @@ public:
 
     [[nodiscard]] std::string state_string() const;
 
-    /// Called after each instruction fetch with the instruction's own address.
-    /// Save/restore the whole register/execution state (all POD; no dispatch
-    /// tables). Bus and trace hook excluded.
+    /// Save/restore the register and execution state. Bus and trace hook excluded.
     void serialize(Archive& ar);
 
+    /// Called after each instruction fetch with the instruction's own address.
     using TraceHook = void (*)(void* context, u16 address);
     void set_trace_hook(TraceHook hook, void* context)
     {
@@ -130,11 +121,8 @@ public:
     }
 
 private:
-    // Everything below this line keeps MAME's names so the ported body reads the
-    // same as its original.
-
-    // MAME's spellings for the flags above. They exist only so the ported ALU
-    // stays textually identical to upstream and remains diffable against it.
+    // Everything below keeps MAME's names, including these spellings of the
+    // flags above, so the ported body stays diffable against upstream.
     static constexpr u32 F_ZRC  = kZeroC;
     static constexpr u32 F_ZRD  = kZeroD;
     static constexpr u32 F_SGC  = kSignC;

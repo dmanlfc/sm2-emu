@@ -30,14 +30,9 @@ namespace sm2::hw {
 
 /// 93C46 serial EEPROM, 64 words of 16 bits.
 ///
-/// Model 2 stores its operator settings here, bit-banged through four lines of
-/// the 315-5649 I/O controller's port A with the data line read back on port B.
-/// The self-test reads it, so a game whose EEPROM never responds will complain
-/// about its settings on every boot.
-///
-/// Modelled from the device's serial protocol rather than ported: it is a small
-/// well-documented state machine, and writing it out makes the timing of the
-/// dummy bit and the write-enable latch explicit.
+/// Model 2 keeps its operator settings here, bit-banged through the 315-5649's
+/// port A with the data line read back on port B. Written from the device's
+/// serial protocol rather than ported.
 class Eeprom93c46 {
 public:
     static constexpr u32 kWordCount = 64;
@@ -99,9 +94,9 @@ private:
 
     u32 m_address = 0;
 
-    /// The outgoing word, held in the top of a 32-bit register so that bit 31 is
-    /// always the current line level. This is MAME's shape, and copying it is
-    /// what keeps the dummy bit and the run of ones after the word right.
+    /// The outgoing word, held in the top of a 32-bit register so bit 31 is
+    /// always the line level, as MAME does; this keeps the dummy bit and the
+    /// trailing ones right.
     u32 m_read_data = 0;
     u32 m_read_bit  = 0;
     bool m_write_enabled = false;

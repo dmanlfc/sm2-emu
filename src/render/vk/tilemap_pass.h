@@ -39,20 +39,11 @@ namespace sm2::render::vk {
 /// The System 24 tilemap layers are composited into two RGBA8 surfaces at the
 /// machine's native 496x384: one for the layers that belong behind the 3D
 /// output and one for the layers in front of it. This pass draws both, one
-/// either side of the 3D, at one texel per pixel.
+/// either side of the 3D, at one texel per pixel, composed either on the GPU
+/// (compute()) or by the CPU (upload()).
 ///
-/// Composition itself happens on the GPU: compute() dispatches
-/// shaders/tilemap_compose.comp against tile RAM, character RAM and the pen
-/// table, gated on the machine's tile_generation()/char_generation()/
-/// table_generation() counters exactly as Poly3DPass gates its own texture and
-/// tone-curve uploads. The shader writes the same packed-RGBA8 layout the CPU
-/// path (hw::Model2Video::compose(), still used by the software renderer) used
-/// to produce, into the same staging buffers, so everything downstream of that
-/// -- the transfer into the sampled images and both draws -- is unchanged.
-///
-/// Nothing here scales. The frame is composited at the native size and magnified
-/// once afterwards by PresentPass, because these two draws and the 3D's blend
-/// between them have to happen on the hardware's own pixels.
+/// Nothing here scales: the draws and the 3D's blend between them happen on the
+/// hardware's own pixels, and PresentPass magnifies once afterwards.
 class TilemapPass {
 public:
     /// Native resolution of the Model 2 raster.
@@ -65,10 +56,9 @@ public:
     TilemapPass(const TilemapPass&)            = delete;
     TilemapPass& operator=(const TilemapPass&) = delete;
 
-    /// The two band surfaces stay native (width() x kSourceHeight); only
-    /// the composite scope this pass opens is sized to N*native so the 3D drawn
-    /// between the bands fills the scaled target. `render_scale` is N;
-    /// `columns` widens the frame on each side for widescreen.
+    /// The band surfaces stay native; only the composite scope is N*native,
+    /// with N = `render_scale`. `columns` widens the frame on each side for
+    /// widescreen.
     [[nodiscard]] bool init(Context& context, u32 render_scale, u32 columns);
 
     /// Width of the band surfaces and the native frame, in native pixels.
@@ -87,31 +77,22 @@ public:
     /// into the staging buffers and schedule the transfer into the sampled
     /// images.
     ///
-    /// The caller decides between this and upload(): compute() replaces the
-    /// tilemap-compositing half of hw::Model2Video::compose(), not the whole of
-    /// what a board's compose_video() does. It is not correct in render test
-    /// mode, where the framebuffer draw over `below` has no GPU equivalent, or
-    /// with no machine loaded, where there is nothing to read tile RAM from --
-    /// see main.cpp's call site for the choice between this and upload() in
-    /// those two cases.
+    /// Replaces only the tilemap half of hw::Model2Video::compose(), so it does
+    /// not apply in render test mode or with no machine loaded.
     ///
     /// Must be called with a command buffer open and outside any dynamic
-    /// rendering scope: the copy is a transfer and the dispatch is compute, and
-    /// neither can run inside a rendering scope.
+    /// rendering scope.
     void compute(const hw::Model2MachineBase& machine, const hw::Model2Video& video);
 
     /// Copy this frame's surfaces into the staging buffers and schedule the
-    /// transfer into the sampled images -- the CPU-composited path, for when
-    /// compute() does not apply (see its own comment).
+    /// transfer into the sampled images: the CPU-composited path.
     ///
     /// Must be called with a command buffer open and outside any dynamic
     /// rendering scope. Both spans must hold kSourceWidth * kSourceHeight
     /// premultiplied RGBA8 pixels; in widescreen they land in the middle.
     ///
-    /// Invalidates this frame-in-flight slot's compute() cache: the two share
-    /// the same staging buffers, and a slot upload() just wrote into must not
-    /// have compute() later assume its own generation counters still describe
-    /// what is in them.
+    /// Invalidates this frame-in-flight slot's compute() cache, since the two
+    /// share the staging buffers.
     void upload(std::span<const u32> below, std::span<const u32> above);
 
     /// Begin drawing into the native frame: resolve the below layers against the
@@ -164,9 +145,7 @@ private:
 
         VkDescriptorSet set = VK_NULL_HANDLE;
 
-        /// Zero means never copied, and the machine's own counters start at
-        /// one, so the first frame always refreshes -- see Poly3DPass::Frame's
-        /// texture_generation for the same convention.
+        /// Zero means never copied; the machine's counters start at one.
         u64 tile_generation  = 0;
         u64 char_generation  = 0;
         u64 table_generation = 0;
@@ -178,9 +157,8 @@ private:
     /// what frame N is still reading.
     static constexpr u32 kSurfacesPerFrame = 2;
 
-    /// Bytes of tile RAM, character RAM and the pen table respectively, sized to
-    /// the largest a board can present: model2.h/model2b.h/model2c.h/
-    /// model2_original.h all `assign` these to the same sizes.
+    /// Sizes of tile RAM, character RAM and the pen table, the same on every
+    /// board.
     static constexpr usize kTileRamBytes = 0x10000;
     static constexpr usize kCharRamBytes = 0x80000;
     static constexpr usize kPenCount     = 0x1000;
@@ -222,8 +200,7 @@ private:
     /// Index of the first surface belonging to the frame being recorded.
     u32 m_frame_surface_base = 0;
 
-    /// Separate from m_pool: that pool's sizing is specific to the fragment
-    /// pass's combined-image-sampler sets and this keeps the two independent.
+    /// Separate from m_pool, which is sized for the fragment pass's sets.
     VkDescriptorPool      m_compute_pool        = VK_NULL_HANDLE;
     VkDescriptorSetLayout m_compute_set_layout = VK_NULL_HANDLE;
     VkPipelineLayout      m_compute_layout      = VK_NULL_HANDLE;

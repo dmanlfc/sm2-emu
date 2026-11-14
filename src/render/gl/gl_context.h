@@ -14,10 +14,8 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-// OpenGL 4.3 core (4.1 on macOS) context creation: the GL analogue of render::vk::Context,
-// covering the same responsibility (own the platform handle, own the
-// swap/present-interval knob, know the device's name and capability limits)
-// against a GL context instead of a Vulkan device and swapchain.
+// OpenGL 4.3 core (4.1 on macOS) context creation: the GL analogue of
+// render::vk::Context.
 #pragma once
 
 #include "core/types.h"
@@ -38,14 +36,10 @@ struct ContextConfig {
     bool es_mode = false;  ///< Request a GLES 3.1 context instead of GL 4.3 (or 4.1) core.
 };
 
-/// Owns the GL context and the small amount of state that has nowhere else
-/// to live: which extensions this driver actually has, and the device name
-/// for diagnostics.
-///
-/// No VMA equivalent and no frames-in-flight ring, unlike render::vk::Context:
-/// GL's driver manages buffer and texture lifetime itself, and
-/// GL_ARB_buffer_storage's persistent mapping (see gl_common.h) replaces the
-/// host-visible-buffer rotation Vulkan requires.
+/// Owns the GL context, the driver's extension flags and the device name.
+/// Unlike render::vk::Context there is no allocator or frames-in-flight ring:
+/// the driver manages lifetimes, and persistent mapping (gl_common.h) replaces
+/// Vulkan's buffer rotation.
 class Context {
 public:
     Context() = default;
@@ -64,9 +58,7 @@ public:
 
     [[nodiscard]] SDL_GLContext handle() const { return m_context; }
 
-    /// GL_ARB_buffer_storage, checked once at init and cached: every
-    /// PersistentBuffer creation call would otherwise re-walk the extension
-    /// string list.
+    /// GL_ARB_buffer_storage (or EXT on GLES), checked once at init.
     [[nodiscard]] bool has_buffer_storage() const { return m_has_buffer_storage; }
 
     /// True when the context was created in GLES 3.1 mode rather than

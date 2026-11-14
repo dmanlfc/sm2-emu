@@ -100,9 +100,7 @@ struct Device {
     std::array<int, 2> raw_range{};  ///< ABS_X, ABS_Y ranges (max - min).
     std::array<int, 2> raw{};        ///< latest raw ABS values.
     LightGuns::Gun state;
-    /// Force feedback: the uploaded rumble effect id, or -1 if the device
-    /// has no motor or the effect could not be created. Set at strength 0
-    /// so fire_recoil can re-upload at the requested level on demand.
+    /// The uploaded rumble effect id, or -1 if the device has no motor.
     int  ff_effect = -1;
     u32  ff_strength = 0;  ///< strength the current effect was built at.
     u16  last_pressed = 0;  ///< most recent EV_KEY press, for GUI capture.
@@ -145,12 +143,9 @@ bool LightGuns::init()
         return false;
     }
 
-    // A single physical gun exposes several input nodes (the Sinden shows both a
-    // "SindenLightgun Mouse" node and a "Sinden Lightgun" node, both tagged
-    // ID_INPUT_GUN), so opening every node would present one gun as two players.
-    // Group nodes by physical device and keep one per device, preferring the
-    // dedicated light-gun node (prio 0) over the "Mouse" node -- the Sinden's
-    // calibration handshake only works through the former.
+    // One physical gun exposes several input nodes (the Sinden has a "Mouse"
+    // node beside the gun node), so keep one node per device, preferring the
+    // gun node: the Sinden's calibration handshake only works through it.
     struct Candidate {
         std::string node;
         std::string phys;  // physical_device_key: one per physical gun.
@@ -222,9 +217,8 @@ bool LightGuns::init()
         if (c.phys == last_phys) {
             continue;  // another node of a device already opened
         }
-        // open_gun rejects a node with no absolute axis; only count the device
-        // as taken once a node actually opened, so a non-aiming node does not
-        // shadow the sibling that carries the aim.
+        // Count the device as taken only once a node opens, so a node without
+        // an absolute axis does not shadow the sibling that carries the aim.
         if (m_impl->open_gun(c.node)) {
             last_phys = c.phys;
         }
@@ -238,8 +232,7 @@ bool LightGuns::init()
 
 bool LightGuns::Impl::open_gun(const std::string& node)
 {
-    // Prefer read-write so a gun with a recoil motor can be driven; fall back to
-    // read-only (input still works, just no recoil) if write access is denied.
+    // Read-write for recoil, falling back to read-only.
     int fd = open(node.c_str(), O_RDWR | O_NONBLOCK | O_CLOEXEC);
     bool writable = fd >= 0;
     if (fd < 0) {
@@ -250,9 +243,7 @@ bool LightGuns::Impl::open_gun(const std::string& node)
         return false;
     }
 
-    // A gun must report an absolute position. A relative mouse mis-tagged, or a
-    // keyboard node of the same composite device, has an empty abs range and is
-    // of no use here.
+    // A gun must report an absolute position.
     input_absinfo abs_x{};
     input_absinfo abs_y{};
     if (ioctl(fd, EVIOCGABS(ABS_X), &abs_x) < 0 || ioctl(fd, EVIOCGABS(ABS_Y), &abs_y) < 0
@@ -267,8 +258,7 @@ bool LightGuns::Impl::open_gun(const std::string& node)
     device.raw_range[0] = abs_x.maximum - abs_x.minimum;
     device.raw_min[1]   = abs_y.minimum;
     device.raw_range[1] = abs_y.maximum - abs_y.minimum;
-    // Start centred, not at the corner, so an untouched gun does not read as
-    // pointing off screen before it has been moved.
+    // Start centred, so an untouched gun does not read as off screen.
     device.raw[0] = abs_x.minimum + device.raw_range[0] / 2;
     device.raw[1] = abs_y.minimum + device.raw_range[1] / 2;
 
@@ -280,10 +270,8 @@ bool LightGuns::Impl::open_gun(const std::string& node)
         device.state.name = node;
     }
 
-    // Recoil: if the device is writable and advertises a rumble force-feedback
-    // effect, upload one at zero strength now. fire_recoil re-uploads it at the
-    // requested level and plays it. The effect id stays -1 for a gun without a
-    // motor, which makes has_recoil() false.
+    // Recoil: upload a rumble effect at zero strength; fire_recoil re-uploads it
+    // at the requested level.
     if (writable) {
         unsigned long ff_bits[(FF_CNT + 8 * sizeof(long) - 1) / (8 * sizeof(long))] = {0};
         if (ioctl(fd, EVIOCGBIT(EV_FF, sizeof ff_bits), ff_bits) >= 0) {
@@ -322,8 +310,7 @@ void LightGuns::fire_recoil(usize index, u32 strength)
         return;
     }
 
-    // Re-upload the effect at the requested magnitude if it changed, keeping the
-    // same effect id (the kernel updates it in place).
+    // The kernel updates an effect in place when re-uploaded with the same id.
     const u32 pct = std::min(strength, 100u);
     if (pct != device.ff_strength) {
         ff_effect effect{};
@@ -339,7 +326,6 @@ void LightGuns::fire_recoil(usize index, u32 strength)
         device.ff_strength = pct;
     }
 
-    // Play one iteration.
     input_event play{};
     play.type  = EV_FF;
     play.code  = static_cast<u16>(device.ff_effect);
@@ -389,7 +375,6 @@ void LightGuns::Impl::read_device(Device& device)
     std::array<u16, 8> fresh{};  // buttons pressed during this poll
     usize fresh_count = 0;
 
-    // Drain the queue: one read() returns a batch of events; loop until EAGAIN.
     input_event events[64];
     for (;;) {
         const ssize_t len = read(device.fd, events, sizeof events);

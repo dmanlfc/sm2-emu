@@ -5,13 +5,9 @@
 
 namespace sm2::cpu::mb86233 {
 
-/// The four address spaces of an MB86233/MB86234.
-///
-/// Every access is a 32-bit word and every address counts words, not bytes, so
-/// there is no width or alignment to describe. That is a genuine property of the
-/// part: it has no byte addressing at all.
-///
-/// The spaces are separate buses, not regions of one address space:
+/// The four address spaces of an MB86233/MB86234, as separate buses. Every
+/// access is a 32-bit word and addresses count words; the part has no byte
+/// addressing.
 ///
 ///   program   4096 words of writable microcode, which the host CPU uploads
 ///   data      two independent RAM banks, at 0x000 and 0x200
@@ -19,16 +15,13 @@ namespace sm2::cpu::mb86233 {
 ///   rf        sixteen "register file" ports, which is where the host FIFOs
 ///             and the external memory bank register live
 ///
-/// Implementations must mask each address to the width of the space they are
-/// serving, because the core passes addresses through with only the mask the
-/// instruction encoding implies. MAME relies on its address spaces to do the
-/// same truncation, so a wider mask here would diverge from it.
+/// Implementations must mask each address to the width of their space, as
+/// MAME's address spaces do; the core applies only the encoding's mask.
 class Bus {
 public:
     virtual ~Bus() = default;
 
-    /// Instruction fetch. Separate from read_program so an implementation can
-    /// treat it differently, and because it is by far the hottest access.
+    /// Instruction fetch, separate from read_program as the hottest access.
     [[nodiscard]] virtual u32 fetch(u16 address) = 0;
 
     /// Program memory read as data. Used by the table-lookup instructions.

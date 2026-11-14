@@ -29,12 +29,10 @@ class Archive;
 
 // Shared save-state file I/O for all four boards.
 //
-// Every board's save_state/load_state is the same envelope around its own
-// serialize(Archive&): write a header + payload on save; on load validate the
-// header (magic/version/game/board), then apply with a snapshot-rollback so a
-// truncated or corrupt file leaves the running machine untouched (requirement
-// 3.2). Only the per-board serialize differs, so it is passed in as a visitor
-// and the envelope lives here once rather than being copied per board.
+// The envelope around each board's serialize(Archive&): a header and payload on
+// save; on load the header (magic/version/game/board) is validated and the
+// payload applied with a snapshot rollback, so a truncated or corrupt file leaves
+// the running machine untouched.
 
 namespace sm2::hw {
 
@@ -96,8 +94,7 @@ struct SlotInfo {
 [[nodiscard]] std::vector<SlotInfo> list_state_slots(const std::string& dir,
                                                      const std::string& game);
 
-/// Delete one slot's file. Returns true if the file was removed; false (logged)
-/// on an I/O error. A missing file is treated as success (nothing to do).
+/// Delete one slot's file. False (logged) on an I/O error; a missing file is success.
 [[nodiscard]] bool delete_state_slot(const std::string& dir, const std::string& game,
                                      const std::string& slot);
 

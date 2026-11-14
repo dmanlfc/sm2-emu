@@ -5,22 +5,13 @@
 // Derived from MAME's src/devices/machine/z80ctc.{h,cpp} (BSD-3-Clause,
 // copyright-holders Wilbert Pol, from Tatsuyuki Satoh's original).
 //
-// Here for the TMPZ84C015 on Virtua Cop's I/O board, which puts a CTC, a PIO and
-// an SIO on one die with the Z80. What that board's firmware asks of the CTC was
-// measured rather than guessed (tools/mame/iotap.lua): it writes the interrupt
-// vector, programs channel 1 as an interrupting timer with a time constant of 38
-// and the 256 prescaler, programs channel 2 as the SIO's baud clock, and never
-// reads a channel back. So the read path exists for completeness and the
-// interrupting timer is the part that has to be right.
+// Here for the TMPZ84C015 on Virtua Cop's I/O board, whose firmware programs
+// channel 1 as an interrupting timer and channel 2 as the SIO's baud clock, and
+// never reads a channel back.
 //
-// MAME drives each channel from a scheduler timer. Keisho has no scheduler, so
-// this counts host cycles instead, the way hw::I8251 does; a channel fires when
-// its accumulated prescaler ticks reach the time constant.
-//
-// What is deliberately not modelled: the zero-cross/timeout output pulse width
-// (the pulse is reported as an event rather than held for one clock, because the
-// only consumer here is a stubbed SIO), and the daisy-chain's interrupt
-// acknowledge/return-from-interrupt handshake beyond what one CTC needs.
+// Deviation: MAME drives each channel from a scheduler timer; this counts host
+// cycles, as hw::I8251 does. The ZC/TO pulse is reported as an event, not held
+// for a clock, and the daisy-chain handshake covers only one CTC.
 #pragma once
 
 #include "core/types.h"

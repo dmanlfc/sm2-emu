@@ -359,7 +359,6 @@ bool Gui::init(SDL_Window* window, const std::string& language)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.IniFilename = nullptr;  // No imgui.ini — settings live in keisho.ini.
 
-    // Dark style with some tweaks.
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowRounding   = 4.0f;
@@ -367,9 +366,8 @@ bool Gui::init(SDL_Window* window, const std::string& language)
     style.GrabRounding     = 2.0f;
     style.WindowBorderSize = 0.0f;
 
-    // The platform backend only, chosen for input/clipboard/cursor handling.
-    // Which GPU API actually draws the result is a render backend's own
-    // ImGui renderer backend, initialised separately.
+    // The platform backend only; each render backend initialises its own ImGui
+    // renderer.
     if (!ImGui_ImplSDL3_InitForOther(window)) {
         SM2_ERROR("gui: ImGui_ImplSDL3_InitForOther failed");
         ImGui::DestroyContext();
@@ -423,11 +421,9 @@ void Gui::new_frame()
         apply_language();
     }
     ImGui_ImplSDL3_NewFrame();
-    // DisplaySize stays the SDL logical size (mouse arrives in that space, so
-    // layout must too); correct DisplayFramebufferScale to the backend's real
-    // pixel extent instead. imgui_impl_vulkan renders at DisplaySize*scale, so
-    // this fills the presented image even where SDL under-reports the surface
-    // pixel size on Wayland.
+    // DisplaySize stays the SDL logical size, which mouse input uses; correct
+    // DisplayFramebufferScale to the backend's real pixel extent instead, since
+    // SDL can under-report it on Wayland.
     if (m_framebuffer_width != 0 && m_framebuffer_height != 0) {
         ImGuiIO& io = ImGui::GetIO();
         if (io.DisplaySize.x > 0.0f && io.DisplaySize.y > 0.0f) {
@@ -441,14 +437,9 @@ void Gui::new_frame()
 
 void Gui::apply_scale()
 {
-    // Scale content with the window. Measured against the base 992x768 on both
-    // axes with the smaller ratio winning, so a wide-but-short window does not
-    // get oversized text; clamped so it stays legible small and sane huge.
-    //
-    // The floor is the font's native size in output pixels: the default font
-    // is drawn for 13 px and turns to mush below that, and on short modes such
-    // as a 640x240 15 kHz CRT the height ratio alone would shrink it to 6.5 px.
-    // A short window gets a scrolling overlay instead of unreadable text.
+    // Scale content against a base of 992x768, the smaller axis ratio winning.
+    // The floor is the font's native size in output pixels, since the default
+    // font is unreadable below 13 px; a short window scrolls instead.
     const ImGuiIO& io = ImGui::GetIO();
     const float    sx = io.DisplaySize.x > 0.0f ? io.DisplaySize.x / 992.0f : 1.0f;
     const float    sy = io.DisplaySize.y > 0.0f ? io.DisplaySize.y / 768.0f : 1.0f;
@@ -456,9 +447,7 @@ void Gui::apply_scale()
     float          scale = std::min(sx, sy);
     scale                = std::clamp(scale, std::clamp(1.0f / fb, 0.5f, 1.0f), 4.0f);
 
-    // Widget metrics are rescaled from a one-time base-style snapshot
-    // (ScaleAllSizes is cumulative), and FontScaleMain drives ImGui 1.92's
-    // dynamic font sizing so text re-rasterises crisply rather than stretching.
+    // Rescale from a base-style snapshot, since ScaleAllSizes is cumulative.
     static const ImGuiStyle base_style = ImGui::GetStyle();
     if (scale != m_ui_scale) {
         m_ui_scale          = scale;
@@ -483,13 +472,12 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
     m_present_aspect = m_shown_aspect;
     m_present_method = config.scaling_method;
 
-    // Shown regardless of F10 when enabled, so the counter is visible whether or
-    // not the settings overlay is open.
+    // Shown whether or not the settings overlay is open.
     if (config.show_fps) {
         draw_fps_overlay(measured_hz, renderer_label);
     }
 
-    // A notification (state saved/loaded), top-centered, over gameplay.
+    // A notification (state saved/loaded), top-centred, over gameplay.
     if (m_notify_seconds_left > 0.0f) {
         m_notify_seconds_left -= ImGui::GetIO().DeltaTime;
         if (config.show_notifications) {
@@ -497,19 +485,10 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
         }
     }
 
-    // A gun game draws the aiming crosshair(s) and hides the OS cursor, so
-    // only the crosshair shows.
-    //
-    // The cursor is only hidden while the settings overlay is CLOSED: with the
-    // overlay open the real pointer is needed to click its buttons and the close
-    // box, and the crosshair is clamped to the game area so it cannot reach them.
-    //
-    // Toggle only on a state change. ImGui's SDL3 backend drives the OS cursor
-    // itself every frame, so a bare SDL_HideCursor() is fought back the next
-    // frame (which is what flickered). NoMouseCursorChange makes ImGui stop
-    // touching the cursor, and then SDL_HideCursor() sticks.
-    // Not while the picker is up: grabbing the pointer there would confine it to
-    // the window, making the title bar and resize edges unreachable.
+    // A gun game hides the OS cursor so only the crosshair shows, but not while
+    // the overlay or picker is open, where the real pointer is needed.
+    // NoMouseCursorChange stops ImGui's SDL3 backend re-showing the cursor every
+    // frame.
     const GameFamily* playing = nullptr;
     for (const GameFamily& f : m_families) {
         if (f.key == m_current_family && !m_current_game.empty()) {
@@ -531,9 +510,8 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
         }
         m_cursor_hidden = hide_cursor;
     }
-    // Confine the pointer while playing fullscreen, so a light gun that presents
-    // as a mouse cannot drag the cursor onto another monitor. In a window it is
-    // left free, so the desktop pointer comes back once it leaves the window.
+    // Confine the pointer in fullscreen, so a light gun that presents as a mouse
+    // cannot drag it onto another monitor.
     const bool grab = hide_cursor && m_window != nullptr
                    && (SDL_GetWindowFlags(m_window) & SDL_WINDOW_FULLSCREEN) != 0;
     if (grab != m_mouse_grabbed) {
@@ -578,9 +556,8 @@ bool Gui::draw(Config& config, const std::vector<std::string>& gpu_names,
 void Gui::end_frame()
 {
     if (!m_initialised) return;
-    // Must be called every frame after new_frame(), regardless of whether
-    // anything was drawn -- a render backend reads ImGui::GetDrawData() after
-    // this to submit it through whatever GPU API it owns.
+    // Every frame, even if nothing was drawn: the render backend reads
+    // ImGui::GetDrawData() afterwards.
     ImGui::Render();
 }
 
@@ -627,9 +604,8 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
         ImGui::SameLine();
         ImGui::TextDisabled("%s", tr("(Model 1 & 2 only)"));
     };
-    // 88% of the space between the menu bar and the status bar, centred,
-    // re-applied every frame so it tracks a resize. On a short display the
-    // bars are a large share of the height, so the window must not cover them.
+    // 88% of the space between the menu and status bars, centred, re-applied
+    // every frame so it tracks a resize.
     const ImGuiViewport* viewport   = ImGui::GetMainViewport();
     const float          status_bar = ImGui::GetFrameHeight() + 4.0f;
     const ImVec2 area(viewport->WorkSize.x, std::max(viewport->WorkSize.y - status_bar, 0.0f));
@@ -746,8 +722,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 config.window_height = static_cast<u32>(std::max(384, h));
             }
 
-            // 3D render scale. Live runtime reallocation is out of scope for
-            // v1, so this only edits the config; it applies on the next launch.
+            // 3D render scale; applies on the next launch.
             ImGui::Separator();
             {
                 static constexpr std::array<const char*, 8> kScaleLabels = {
@@ -770,9 +745,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                 }
             }
 
-            // Present-stage scaling: how the finished frame is put on screen.
-            // Unlike the 3D render scale these are present-only, so they apply
-            // live (main.cpp pushes them to the backend every frame).
+            // Present-stage scaling, applied live.
             ImGui::Separator();
             {
                 static constexpr std::array<const char*, 4> kMethodLabels = {
@@ -865,8 +838,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                            "transparent window."));
             }
 
-            // Enhancement: opt-in quality beyond the original hardware, GPU-gated
-            // and off by default. Applies live (main.cpp pushes it each frame).
+            // Enhancements beyond the original hardware, off by default, applied live.
             ImGui::Separator();
             ImGui::TextDisabled("%s", tr("Enhancement (cosmetic, beyond the original hardware)"));
             {
@@ -923,8 +895,7 @@ void Gui::draw_settings(Config& config, const std::vector<std::string>& gpu_name
                     }
                 }
 
-                // 2D upscale. xBR/ScaleFX need the GPU compute path the tilemap
-                // composite already relies on, so they are always available here.
+                // 2D upscale, always available: it uses the tilemap compute path.
                 static constexpr std::array<const char*, 3> kUpscaleLabels = {
                     N_("Faithful"), "xBR", "ScaleFX"};
                 int up_index = std::clamp(static_cast<int>(config.upscale_2d), 0, 2);
@@ -3107,8 +3078,7 @@ void Gui::draw_states_tab(const Config& config)
                      hotkey_label(config, Config::Hotkey::QuickLoad)).c_str());
     ImGui::Spacing();
 
-    // A table so the three buttons always fit regardless of the overlay width,
-    // rather than fixed SameLine() offsets that push them off the right edge.
+    // A table so the three buttons always fit the overlay width.
     constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_SizingStretchProp;
     // Fixed columns sized to the translated text, which can run longer.
     const ImGuiStyle& style  = ImGui::GetStyle();
@@ -3202,13 +3172,13 @@ void Gui::draw_fps_overlay(float measured_hz, const char* renderer_label)
 }
 
 // ---------------------------------------------------------------------------
-// On-screen notification (transient toast, top-centered)
+// On-screen notification (transient toast, top-centred)
 // ---------------------------------------------------------------------------
 
 void Gui::notify(std::string message)
 {
     m_notify_text         = std::move(message);
-    m_notify_seconds_left = 2.0f;  // a couple of seconds, per the request
+    m_notify_seconds_left = 2.0f;
 }
 
 void Gui::show_load_error(std::string game, std::string message,
@@ -3282,8 +3252,7 @@ void Gui::draw_notification()
 {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-    // Same font and size as the FPS overlay (the default font, no scaling),
-    // top-centered rather than top-right.
+    // Same font and size as the FPS overlay, centred at the top.
     const ImVec2 text_size = ImGui::CalcTextSize(m_notify_text.c_str());
     const ImVec2 padding{8.0F, 4.0F};
     const ImVec2 window_size{text_size.x + padding.x * 2.0F, text_size.y + padding.y * 2.0F};
@@ -3325,9 +3294,8 @@ void Gui::draw_crosshairs(const Config& config, const Input* input)
     }
     update_crosshair_images(config);
 
-    // Each aim is a 0..1 fraction of the game image. Map it back onto the same
-    // letterboxed 4:3 rectangle the frame is presented into, so the crosshair
-    // sits exactly where a shot lands. io.DisplaySize is that window.
+    // Each aim is a 0..1 fraction of the game image, mapped onto the letterboxed
+    // rectangle the frame is presented into.
     const ImGuiIO& io = ImGui::GetIO();
     if (io.DisplaySize.x < 1.0f || io.DisplaySize.y < 1.0f) {
         return;
@@ -3346,12 +3314,8 @@ void Gui::draw_crosshairs(const Config& config, const Input* input)
     const float radius = std::max(8.0f, box.height * 0.02f);
     const auto& aims = input->gun_aims();
 
-    // The aim positions come from the input poll, which does not run while the
-    // game is paused (settings overlay open). So player 1's crosshair would
-    // freeze there. When player 1 is on the mouse fallback (no dedicated gun),
-    // track the live ImGui pointer instead so the crosshair still follows the
-    // mouse in the overlay. A player on a gun or the pad cursor still freezes,
-    // which is correct -- its position only exists when polled.
+    // The input poll stops while paused, so a player 1 on the mouse fallback
+    // tracks the live pointer instead; guns and pad cursors freeze.
 
     for (usize player = 0; player < aims.size(); ++player) {
         const Input::GunAim& aim = aims[player];
@@ -3361,12 +3325,8 @@ void Gui::draw_crosshairs(const Config& config, const Input* input)
         float fx = aim.x;
         float fy = aim.y;
         if (player == 0 && aim.mouse && box.width > 0.0f && box.height > 0.0f) {
-            // Read the pointer straight from SDL rather than io.MousePos: while
-            // the settings window is focused ImGui reports a position relative to
-            // that window, which would confine the crosshair to its width. SDL's
-            // window-relative position spans the whole window. The overlay draws
-            // in io.DisplaySize space, which the SDL3 backend keeps equal to the
-            // window size, so this shares the letterbox already computed above.
+            // From SDL rather than io.MousePos, which is relative to the focused
+            // settings window.
             float mx = 0.0f;
             float my = 0.0f;
             SDL_GetMouseState(&mx, &my);
@@ -3392,11 +3352,8 @@ void Gui::draw_crosshairs(const Config& config, const Input* input)
     }
 }
 
-// A host calibration tool (Batocera's) steps the gun's reported position through
-// its targets and expects the screen to show where each one is, so the player
-// can shoot it. The marker is drawn on the window rather than the game image,
-// because the tool works in screen space, and regardless of the crosshair
-// setting, because these guns usually run without one.
+// Targets for a host gun calibration tool (Batocera's), drawn in window space
+// and regardless of the crosshair setting.
 void Gui::draw_calibration_markers(const Input* input)
 {
     if (input == nullptr) {
@@ -3449,9 +3406,8 @@ void Gui::draw_sinden_border(const Config& config)
         return;
     }
 
-    // Frame the letterboxed game image, not the raw window, so the border sits
-    // on the picture the gun's camera actually sees. In widescreen that is the
-    // whole picture, side columns included, so a gun can aim into them.
+    // Frame the letterboxed game image, including widescreen side columns, which
+    // is what the gun's camera sees.
     const render::Letterbox box = render::compute_letterbox(
         static_cast<u32>(io.DisplaySize.x), static_cast<u32>(io.DisplaySize.y),
         m_present_aspect, m_present_method, m_present_area);
@@ -3697,9 +3653,8 @@ void Gui::enable_picker(std::vector<PickerEntry> entries, render::Backend* backe
         }
     }
 
-    // Load anything already cached up front: the scraper skips a set whose cache
-    // file exists and never pushes a Ready for it, so without this a cached set
-    // would show "Fetching..." forever. Uncached sets fill in from Ready later.
+    // Load anything already cached: the scraper never sends Ready for a set it
+    // has cached.
     if (m_picker_scraper != nullptr) {
         for (PickerEntry& entry : m_picker_entries) {
             const Scraper::Metadata meta =
@@ -3992,8 +3947,7 @@ void Gui::draw_picker(Config& config)
     ImGui::Separator();
 
     // Auto-scroll: hold at the top, creep up until fully past, hold, loop.
-    // m_picker_scroll is seconds since the pick (0 on selection change), so a
-    // new pick always starts at the top. Text that fits never scrolls.
+    // m_picker_scroll is seconds since the pick. Text that fits never scrolls.
     ImGui::BeginChild("##desc", ImVec2(0.0f, 0.0f), false,
                       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     if (cur.description.empty()) {

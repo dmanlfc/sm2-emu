@@ -64,9 +64,7 @@ constexpr u32 kMapPixels   = kCellsAcross * kTileSize;  // 512
                         + (static_cast<usize>(cell_y * kTileSize + y) * kMapPixels)
                         + cell_x * kTileSize;
                 for (u32 x = 0; x < kTileSize; ++x) {
-                    // Scaled to full range rather than run through the palette, so
-                    // that glyphs are legible without depending on the colour
-                    // pipeline being right.
+                    // Scaled rather than palettised, so glyphs show regardless of colour.
                     row[x] = static_cast<u8>(decode_tile_pixel(char_ram, cell.tile, x, y) * 17);
                 }
             }
@@ -103,9 +101,6 @@ struct LayerStats {
 }
 
 /// Write RGBA8 pixels as a binary PPM, flattening them over `background`.
-///
-/// Alpha is either zero or full, so this is a select rather than a blend, but
-/// writing it as a blend keeps it honest if that ever changes.
 [[nodiscard]] bool write_ppm(const std::filesystem::path& path,
                              std::span<const u32>         pixels,
                              u32                          width,
@@ -227,8 +222,7 @@ bool dump_composed_frame(Model2MachineBase& machine, const std::string& director
     const u32          height = Model2Video::kHeight;
     const u32          background = video.background();
 
-    // The raw contents of the two RAMs the tilemap chip reads, so a suspect
-    // picture can be traced to what the program actually wrote.
+    // The raw RAMs the tilemap chip reads.
     {
         const std::span<const u8> tile_ram = machine.tile_ram();
         const std::span<const u8> char_ram = machine.char_ram();
@@ -244,9 +238,8 @@ bool dump_composed_frame(Model2MachineBase& machine, const std::string& director
         }
     }
 
-    // The two halves on their own, over a mid grey so that a transparent pixel is
-    // distinguishable from a black one, and then the pair over the real
-    // background, which is what the screen shows.
+    // Each half over grey, so transparent differs from black, then both over the
+    // real background.
     constexpr u32 kGrey = 0xff404040u;
     if (!write_ppm(base / "frame_below.ppm", video.below(), width, height, kGrey)
         || !write_ppm(base / "frame_above.ppm", video.above(), width, height, kGrey)) {
@@ -267,8 +260,7 @@ bool dump_composed_frame(Model2MachineBase& machine, const std::string& director
         return false;
     }
 
-    // Each layer and category on its own, which is what attributes a missing or
-    // misplaced element to a specific layer rather than to the compositor.
+    // Each layer and category on its own.
     {
         Segaic24Tile&    tiles = machine.video().tiles();
         std::vector<u32> single(static_cast<usize>(width) * height, 0);
@@ -411,9 +403,7 @@ void print_render_list_summary(const Model2MachineBase& machine)
         }
     }
     std::printf("\n");
-    // The pixel path each polygon asks for. Flat shading serves the two opaque
-    // paths; the translucent ones need a texel before they can decide anything, so
-    // until the textured stage exists they are left undrawn.
+    // The pixel path each polygon asks for.
     std::printf("pixel paths        : solid %u, solid translucent %u,"
                 " textured %u, textured translucent %u\n",
                 by_path[0], by_path[1], by_path[2], by_path[3]);
@@ -584,9 +574,7 @@ bool dump_display_list(const Model2MachineBase& machine, const std::string& dire
     std::fwrite(list.data(), sizeof(u32), list.size(), raw);
     std::fclose(raw);
 
-    // The disassembly walks the list the way the geometry engine does, so it stops
-    // where the engine stops rather than running off the end of a mostly-unused
-    // buffer.
+    // Walk the list as the geometry engine does, so it stops where the engine stops.
     static constexpr const char* kOpcodeNames[32] = {
         "nop",     "object",  "direct",  "window",  "texture", "polygon", "texparam",
         "mode",    "zsort",   "focus",   "light",   "matrix",  "translate", "mempush",
@@ -618,9 +606,8 @@ bool dump_display_list(const Model2MachineBase& machine, const std::string& dire
         std::fprintf(out, "%05x: %08x  %-9s", index * 4, opcode, kOpcodeNames[command]);
         ++index;
 
-        // Fixed-length commands, so the operands land on the right lines. Object
-        // and direct data walk polygon memory rather than the list, so only their
-        // header words are here.
+        // Operand counts per command. Object and direct data live in polygon
+        // memory, so only their header words are in the list.
         static constexpr u8 kOperands[32] = {
             0, 4, 2, 6, 0, 0, 0, 1, 1, 2, 3, 12, 3, 2, 0, 0,
             1, 4, 2, 6, 0, 0, 1, 1, 1, 2, 3, 12, 3, 0, 1, 0,
@@ -669,8 +656,7 @@ bool dump_render_list_wireframe(const Model2MachineBase& machine, const std::str
         image[static_cast<usize>(y) * width + static_cast<usize>(x)] = colour;
     };
 
-    // Bresenham, so a line is drawn without any floating point in the inner loop
-    // and every pixel of it lands on the raster grid.
+    // Bresenham.
     const auto line = [&](float x0f, float y0f, float x1f, float y1f, u32 colour) {
         int  x0 = static_cast<int>(std::lround(x0f));
         int  y0 = static_cast<int>(std::lround(y0f));
@@ -730,8 +716,7 @@ bool run_copro_selftest(CoproTgp& copro)
 {
     CoproTgp& tgp = copro;
 
-    // The units live in the io space, which the bank register must not be pointing
-    // at external memory for.
+    // The units are in io space, so the bank register must not select external memory.
     tgp.write_rf(3, 0);
 
     struct Unit {
@@ -743,19 +728,12 @@ bool run_copro_selftest(CoproTgp& copro)
         u32         reported = 0;
     };
 
-    // Tolerances are set by the tables themselves: a quarter turn in 16384 entries
-    // is about 0.0001 radians of resolution, and the reciprocal tables hold 14
-    // bits of mantissa. These are what the hardware can do, not what we would like.
+    // Tolerances follow the table resolution: a quarter turn in 16384 entries, and
+    // 14 mantissa bits for the reciprocals.
     Unit sine{"sine", 0.0, 2.0e-4};
     Unit cosine{"cosine", 0.0, 2.0e-4};
-    // The reciprocal units do not return 1/x and 1/sqrt(x) but fixed multiples of
-    // them: 2/x and 1.5/sqrt(x). Those constants come out of how the mantissa
-    // tables are normalised, and the coprocessor program folds them into its own
-    // arithmetic rather than dividing them out.
-    //
-    // The factors are worth checking rather than assuming, because they hold to
-    // five decimal places across four decades of argument. An index or exponent
-    // mistake would not do that; it would break at a binade boundary.
+    // The reciprocal units return 2/x and 1.5/sqrt(x), from how their mantissa
+    // tables are normalised; the coprocessor program folds the factors in.
     constexpr double kReciprocalScale   = 2.0;
     constexpr double kInverseSqrtScale  = 1.5;
 
@@ -763,8 +741,7 @@ bool run_copro_selftest(CoproTgp& copro)
     Unit inverse_sqrt{"1.5/sqrt", 0.0, 1.0e-3};
     Unit arctangent{"arctangent", 0.0, 3.0e-4};
 
-    // Show the first few disagreements. A worst-case figure says a unit is wrong;
-    // examples say how, and the pattern usually names the mistake outright.
+    // Show the first few disagreements, not just the worst case.
     const auto note = [](Unit& unit, double error, double at, double measured,
                          double expected) {
         ++unit.samples;
@@ -784,8 +761,8 @@ bool run_copro_selftest(CoproTgp& copro)
     std::printf("\n=== coprocessor mathematics ===\n");
 
 
-    // Sine and cosine. The argument is a 16-bit angle over a full turn, and one
-    // write answers both because the second port adds a quarter turn.
+    // The argument is a 16-bit angle over a full turn; one write answers both, as
+    // the second port adds a quarter turn.
     for (u32 step = 0; step < 512; ++step) {
         const u32    angle   = step * (0x10000 / 512);
         const double radians = static_cast<double>(angle) * kTau / 65536.0;
@@ -802,8 +779,7 @@ bool run_copro_selftest(CoproTgp& copro)
              std::cos(radians));
     }
 
-    // Reciprocal and inverse square root, over several binades so the exponent
-    // correction is exercised rather than just the mantissa table.
+    // Several binades, so the exponent correction is exercised too.
     for (u32 step = 1; step <= 400; ++step) {
         const double value = 0.05 + static_cast<double>(step) * 0.05;
         const u32    bits  = f2u(static_cast<float>(value));
@@ -823,9 +799,8 @@ bool run_copro_selftest(CoproTgp& copro)
              measured_sqrt, expected_sqrt);
     }
 
-    // Arctangent. The unit wants the two operands and, separately, the ratio of
-    // the smaller magnitude to the larger, which the coprocessor program divides
-    // out itself.
+    // Arctangent takes both operands and, separately, the ratio of the smaller
+    // magnitude to the larger.
     for (u32 step = 0; step < 256; ++step) {
         const double radians = static_cast<double>(step) * kTau / 256.0;
         const double x       = std::cos(radians);
@@ -842,9 +817,7 @@ bool run_copro_selftest(CoproTgp& copro)
         tgp.write_io(0x27, f2u(static_cast<float>(smaller / larger)));
         const u32 measured = tgp.read_io(0x24) & 0xffff;
 
-        // The answer is a 16-bit angle. Compare as a fraction of a turn, taking
-        // the shorter way round so a result just below zero is not an error of a
-        // whole revolution.
+        // A 16-bit angle, compared as a fraction of a turn the shorter way round.
         const double measured_turns = static_cast<double>(measured) / 65536.0;
         const double expected_turns = radians / kTau;
         double       difference     = measured_turns - expected_turns;
@@ -940,12 +913,8 @@ void print_tilemap_summary(const Model2MachineBase& machine)
         return;
     }
 
-    // A coarse ASCII rendering of each populated layer's visible area, so the
-    // answer to "is there text on screen?" needs no image viewer.
-    //
-    // Any non-zero cell maps to at least the first shading step. Scaling linearly
-    // instead would round a uniform low-intensity fill down to blank and hide a
-    // whole layer, which is exactly what happened the first time.
+    // A coarse ASCII rendering of each populated layer's visible area. Any
+    // non-zero cell maps to at least the first step, so a faint fill still shows.
     static constexpr char kRamp[] = ".:-=+*#%@";
     static constexpr u32  kSteps  = sizeof(kRamp) - 1;
 
@@ -989,9 +958,7 @@ void print_tilemap_summary(const Model2MachineBase& machine)
 
 bool write_wav(const std::string& path, std::span<const s16> samples, u32 sample_rate)
 {
-    // Canonical 44-byte RIFF header, little-endian throughout, which is also the
-    // sample order, so the data can be written straight out on either platform we
-    // build for.
+    // Canonical 44-byte RIFF header; little-endian, like the samples.
     static_assert(std::endian::native == std::endian::little,
                   "the WAV writer assumes a little-endian host");
 

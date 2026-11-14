@@ -40,33 +40,19 @@ namespace sm2::render::vk {
 /// Draws the emulated 3D output.
 ///
 /// The geometry engine has already produced this frame's polygons in screen
-/// space, clipped and in drawing order, so there is no vertex work left to do.
-/// What remains is genuinely a fill: turn each polygon into triangles, give it its
-/// one colour, and honour the hardware's rule about which polygon owns a pixel.
+/// space, clipped and in drawing order, so this pass is purely a fill.
 ///
-/// Two properties of the hardware decide the shape of this pass.
-///
-/// It has no depth buffer. Polygons arrive nearest first and a one-bit fill mask
-/// stops anything drawing over a pixel already claimed. That is reproduced with a
-/// stencil attachment tested for equality against zero and incremented on pass,
-/// which is the same rule stated in Vulkan's terms. A depth test would be the
-/// obvious substitute and would be wrong: games lean on the drawing order, with
-/// per-polygon sort overrides and priority windows that ignore depth altogether.
-///
-/// It rasterises at 496 by 384 and nothing else. So does this pass, into an
-/// offscreen image that is then scaled to the window in one step. Rasterising at
-/// window resolution instead would be visibly wrong rather than merely sharper:
-/// the hardware's translucency is a checkerboard stipple locked to the raster
-/// grid, and its texture level of detail is chosen from raster-pixel
-/// derivatives, so both would come out at the wrong scale.
+/// The hardware has no depth buffer: polygons arrive nearest first and a one-bit
+/// fill mask stops anything drawing over a claimed pixel. That is reproduced with
+/// a stencil tested equal to zero and incremented on pass. A depth test would be
+/// wrong, since games rely on drawing order and priority windows that ignore depth.
 class Poly3DPass {
 public:
     static constexpr u32 kWidth  = 496;
     static constexpr u32 kHeight = 384;
 
-    /// Words in one texture sheet. Only the low half of the two-megabyte texture
-    /// RAM window is ever written, and only that half is addressable by the texel
-    /// arithmetic, so only that half is uploaded.
+    /// Words in one texture sheet: only the low half of the two-megabyte window
+    /// is addressable by the texel arithmetic, so only that half is uploaded.
     static constexpr u32 kSheetWords = 0x40000;
 
     Poly3DPass() = default;
@@ -75,16 +61,13 @@ public:
     Poly3DPass(const Poly3DPass&)            = delete;
     Poly3DPass& operator=(const Poly3DPass&) = delete;
 
-    /// Physical texel containers per sheet: half the 1024x2048 physical texel
-    /// grid in each axis, since the decode pass packs a 2x2 block of texels into
-    /// one image element (see decode_texel.comp).
+    /// Decoded image size per sheet: half the 1024x2048 texel grid in each axis,
+    /// one element per 2x2 block (see texel_decode.comp).
     static constexpr u32 kDecodedWidth  = 512;
     static constexpr u32 kDecodedHeight = 1024;
 
-    /// `render_scale` (N) sizes the fill-mask attachment to N*native so it
-    /// covers the scaled composite scope it is attached to. The vertex path
-    /// stays in native coordinates (projection is scaled by the viewport); only
-    /// the target is larger.
+    /// `render_scale` (N) sizes the fill-mask attachment to N*native. Vertices
+    /// stay in native coordinates; the viewport does the scaling.
     [[nodiscard]] bool init(Context& context, u32 render_scale);
 
     /// Raster width to draw at, up to frame_width(kWideColumns); the fill mask
@@ -93,7 +76,7 @@ public:
     void shutdown();
 
     /// Anisotropic texture-filter quality (0 = faithful single-tap, else the
-    /// tap ceiling). Pushed to the shader each draw; live, no reallocation.
+    /// tap ceiling). Live.
     void set_texture_quality(u32 quality) { m_texture_quality = quality; }
 
     /// Draw the stipple as the 50% blend it's trying to achieve. Needs a fill
@@ -111,15 +94,12 @@ public:
     /// Triangulate this frame's polygons, unpack their texture headers, and refresh
     /// whatever machine memory has changed since this frame last ran.
     ///
-    /// The machine argument is what the pass reads texture RAM, luminance RAM and
-    /// the colour tables from; it also carries the change counters that decide
-    /// whether any of that needs copying again.
+    /// `machine` supplies texture RAM, luminance RAM and the colour tables, and
+    /// the change counters that decide what needs copying again.
     void build(const hw::Model2MachineBase* machine, const hw::Model2Video& video);
 
-    /// Record the fill-mask stencil's transition into an attachment layout,
-    /// which must happen outside any rendering scope. Call with a command buffer
-    /// open and no rendering scope active; stencil_attachment() then hands the
-    /// attachment to the tilemap pass so the 3D draws into the native frame.
+    /// Record the fill-mask stencil's transition into an attachment layout. Call
+    /// with a command buffer open and outside any rendering scope.
     void prepare_stencil();
 
     /// The fill-mask stencil attachment for the native-frame scope, valid after
@@ -127,10 +107,9 @@ public:
     [[nodiscard]] VkRenderingAttachmentInfo stencil_attachment() const;
     [[nodiscard]] bool stencil_has_depth() const { return m_stencil_has_depth; }
 
-    /// Draw what build() prepared directly into the native frame, inside the
-    /// scope the tilemap pass opened (between record_below() and record_above())
-    /// with stencil_attachment() attached. Blends over the below-tilemap with
-    /// premultiplied-over -- the same result the old composite step produced.
+    /// Draw what build() prepared into the native frame, inside the tilemap
+    /// pass's scope between record_below() and record_above(), with
+    /// stencil_attachment() attached. Premultiplied over the below-tilemap.
     void draw_polygons();
 
     // -- diagnostics -------------------------------------------------------
@@ -138,23 +117,18 @@ public:
     [[nodiscard]] u32 triangles() const { return m_vertex_count / 3; }
     [[nodiscard]] u32 drawn_polygons() const { return m_frame_geometry.drawn_polygons; }
 
-    /// Polygons on the one pixel path that draws nothing at all: untextured and
-    /// translucent. Not a gap, but worth counting, because a game asking for many
-    /// of them would mean the path selection is being read wrongly.
+    /// Untextured translucent polygons, which draw nothing. Many of them would
+    /// suggest the pixel path is being chosen wrongly.
     [[nodiscard]] u32 blank_polygons() const { return m_frame_geometry.blank_polygons; }
 
 
 
 private:
-    /// Vertex, PolyParams, kFlag*/kMaxLevelShift and Batch's shape all live in
-    /// render/geometry.h now -- see that header's own doc comment for why.
-    /// scissor_to_vk() below is the one-line conversion at the boundary the
-    /// design calls for, from render::ScissorRect to this API's VkRect2D.
+    /// Shared with the other backends; see render/geometry.h.
     using Vertex     = render::Vertex;
     using PolyParams = render::PolyParams;
 
-    /// The per-window scissor is in native pixels; the target is N*native, so
-    /// the rectangle scales by N to clip the right region (identity at N=1).
+    /// The scissor is in native pixels; the target is N*native.
     [[nodiscard]] VkRect2D scissor_to_vk(const render::ScissorRect& scissor) const
     {
         const int32_t n = static_cast<int32_t>(m_render_scale);
@@ -172,11 +146,8 @@ private:
 
     /// Everything one frame in flight needs of its own.
     ///
-    /// The machine's memory is duplicated per frame rather than shared because
-    /// three frames are in flight and the emulated program keeps writing: a shared
-    /// copy would have to be fenced against frames still reading it. Duplicating
-    /// costs a few megabytes and the copies only happen when the data actually
-    /// changed, which for textures is usually once at startup.
+    /// Machine memory is copied per frame in flight so a copy is never written
+    /// while a frame still reads it. Copies happen only when the data changed.
     struct Frame {
         HostBuffer vertices;
         HostBuffer polygons;
@@ -190,12 +161,9 @@ private:
         HostBuffer    tone_staging;
         bool          tone_uploaded = false;
 
-        /// The two texture sheets, decoded from their packed 4-bit form into one
-        /// pixel per 2x2 texel container (see texel_decode.comp). Sampled by the
-        /// fragment shader in place of the packed buffer directly; rebuilt only
-        /// when texture_generation changes, which is almost always once. One view
-        /// serves both the compute pass's writes and the fragment pass's reads,
-        /// since both name the same uint format.
+        /// The two texture sheets, one pixel per 2x2 texel block (see
+        /// texel_decode.comp), rebuilt when texture_generation changes. One view
+        /// serves both the compute writes and the fragment reads.
         VkImage         decoded       = VK_NULL_HANDLE;
         VmaAllocation   decoded_alloc = nullptr;
         VkImageView     decoded_view  = VK_NULL_HANDLE;
@@ -241,14 +209,9 @@ private:
 
     /// Dispatch the decode pass over the current frame's texture sheets.
     ///
-    /// Unconditional: refresh_machine_data() calls this only when the sheets
-    /// buffer it just copied is new, so there is no separate dirty check here.
-    /// Must be called with a command buffer open and outside any dynamic
-    /// rendering scope, and after the sheets buffer's host writes -- there is no
-    /// memory barrier between them because both are host-coherent CPU writes
-    /// completed before this command is even recorded, and the compute shader's
-    /// own execution dependency (waiting for the copy to finish) is unnecessary
-    /// since there was never a GPU-side write to wait on.
+    /// Called only when the sheets are new. Needs a command buffer open and no
+    /// rendering scope; the sheets buffer is host-coherent and written before
+    /// recording, so no barrier is needed before the dispatch.
     void decode_textures();
 
     [[nodiscard]] Frame& frame();
@@ -266,10 +229,7 @@ private:
     VkPipeline       m_polygon_pipeline_early = VK_NULL_HANDLE;  ///< early-test variant
 
     VkSampler             m_sampler            = VK_NULL_HANDLE;
-    /// Nearest-filtering, non-normalized-adjacent sampler for the decoded texture
-    /// image: the fragment shader still does its own bilinear blend between the
-    /// four taps a container's neighbours provide, so this only ever wants the
-    /// exact texel, never an interpolated one.
+    /// Nearest sampler for the decoded sheets: the shader does its own bilinear.
     VkSampler             m_decoded_sampler    = VK_NULL_HANDLE;
     VkDescriptorPool      m_pool               = VK_NULL_HANDLE;
     VkDescriptorSetLayout m_polygon_set_layout = VK_NULL_HANDLE;
@@ -280,7 +240,7 @@ private:
 
     std::array<Frame, Context::kFramesInFlight> m_frames{};
 
-    /// Built by build() via render::triangulate(), consumed by render().
+    /// Built by build(), consumed by draw_polygons().
     render::TriangulatedFrame m_frame_geometry;
     std::vector<u32>          m_tone_curve;
 

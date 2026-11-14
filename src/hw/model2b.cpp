@@ -246,10 +246,8 @@ void CoproSharc::set_view_half_width(u32 pixels)
 
 void CoproSharc::serialize(Archive& ar)
 {
-    // The SHARC keeps its program on-chip, so its serialize covers the SRAM; no
-    // program RAM lives in this wrapper. The FIFO flag inputs (flag0/flag1) are
-    // part of the SHARC's saved m_flag[] and stay consistent with the restored
-    // FIFO contents, both captured at the same instant.
+    // The SHARC's own serialize covers its on-chip program and the FIFO flag
+    // inputs, which stay consistent with the restored FIFOs.
     m_cpu.serialize(ar);
     m_fifo_in.serialize(ar);
     m_fifo_out.serialize(ar);
@@ -275,15 +273,12 @@ void CoproSharc::control_write(u32 value)
         if ((value & 0x80000000u) != 0) {
             SM2_DEBUG("copro_sharc: microcode upload started");
             m_upload_count = 0;
-            // MAME's model2b_state::copro_halt() is deliberately empty — unlike
-            // the TGP on Model 2A, the SHARC is not halted for the upload. It
-            // is already halted from machine reset and stays that way until the
-            // boot write below.
+            // Unlike the TGP on Model 2A, the SHARC is not halted here: it is
+            // already halted from reset until the boot write (MAME's copro_halt).
         } else {
             SM2_DEBUG("copro_sharc: booting, %u 16-bit word(s) uploaded", m_upload_count);
-            // model2b_state::copro_boot() only clears the halt line. It must
-            // NOT reset the core: a reset would clear the on-chip SRAM banks
-            // that the microcode was just DMA'd into.
+            // Only clear the halt line: a reset would wipe the on-chip SRAM the
+            // microcode was just loaded into.
             m_cpu.set_halted(false);
             find_view_tests();
             apply_view_half_width();
@@ -330,10 +325,8 @@ void CoproSharc::iop_write(u32 offset, u32 data)
 
 // -- sharc::Bus implementation ---------------------------------------------
 
-// The Model 2B board does not map anything into the SHARC's program space —
-// MAME only installs copro_sharc_map on AS_DATA. Program accesses are serviced
-// entirely by the chip's internal SRAM banks inside cpu::sharc::SHARC, so these
-// only ever see out-of-range addresses.
+// Nothing is mapped into the SHARC's program space; its internal SRAM serves
+// every program access, so these only see out-of-range addresses.
 u64 CoproSharc::pm_read48(u32 /*address*/) { return 0; }
 
 void CoproSharc::pm_write48(u32 /*address*/, u64 /*data*/) {}
@@ -392,10 +385,8 @@ void CoproSharc::dm_write32(u32 address, u32 data)
     }
 }
 
-// Unused: the host DMA upload path goes through cpu::sharc::SHARC::
-// external_dma_write, which applies the 16/48 packing and writes into the
-// chip's own program memory. This Bus hook exists only for boards that map
-// external memory into the SHARC's program space; Model 2B does not.
+// Unused: the host upload goes through SHARC::external_dma_write into the chip's
+// own program memory.
 void CoproSharc::external_dma_write(u32 /*address*/, u64 /*data*/) {}
 
 // ===========================================================================
@@ -420,7 +411,6 @@ bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
         return false;
     }
 
-    // Allocate RAM.
     m_work_ram.assign(0x100000, 0);
     // i960 instruction fetch straight from ROM and work RAM (the hot_read windows).
     m_cpu.bind_fetch_window(0, kRomMainCpu, m_rom_maincpu.data(), m_rom_maincpu.size(), 0x200000);
@@ -454,7 +444,6 @@ bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
         return static_cast<u16>((m_crypt_ram[offset] << 8) | m_crypt_ram[offset + 1]);
     });
 
-    // Video stage.
     m_video.attach(m_tile_ram, m_char_ram, m_palette_ram, m_colorxlat);
 
     // The link board's 16 KB is the same storage the i960 reaches at
@@ -474,7 +463,6 @@ bool Model2B::init(const rom::GameSpec& game, rom::RomSet roms)
     m_geometry.attach(as_words(m_rom_polygons), as_halfwords(m_rom_textures),
                       m_buffer_ram);
 
-    // Sound board.
     m_sound.attach(m_roms.region("audiocpu"), m_roms.region("samples"));
     m_sound.configure_balance(m_game.name);
     m_uart.set_tx_handler([this](u8 value) { m_sound.midi_in(value); });
@@ -561,11 +549,8 @@ void Model2B::reset()
     m_io.set_input(3, [this] { return m_inputs.in2; });
     m_io.set_output(5, [this](u8 value) { lamp_output_w(value); });
     m_io.set_input(6, [this] { return m_inputs.dipswitches; });
-    // Bind only the channels the game declares, matching MAME's machine config,
-    // which sets an_port_callback only for its own controls. An undeclared
-    // channel then stays unbound and reads as an open input (0xff), the value
-    // MAME's default an_port_cb returns, rather than 0x00 -- a game that samples
-    // an unconnected channel would otherwise read a false zero.
+    // Bind only the channels the game declares, as MAME does, so an undeclared
+    // channel reads as an open input (0xff) rather than a false zero.
     for (u32 channel = 0; channel < Io315_5649::kAnalogCount; ++channel) {
         if (m_game.analog[channel].control != rom::AnalogControl::None) {
             m_io.set_analog(channel, [this, channel] { return analog_value(channel); });
@@ -588,11 +573,8 @@ void Model2B::reset()
     }
 
     if (m_game.motion_base) {
-        // Rail Chase 2 talks to its motion base over ports D and E and will not
-        // start until the base answers. MAME does not emulate the board either:
-        // rchase2_drive_board_r acknowledges four commands and nothing else, with
-        // the comment "simulate this so that it passes the initial checks". Port D
-        // carries the answer rather than IN2 on this cabinet.
+        // Rail Chase 2 will not start until its motion base answers on port D
+        // (in place of IN2). Like MAME, only the initial checks are simulated.
         m_io.set_output(4, [this](u8 value) { m_motion_command = value; });
         m_io.set_input(3, [this] { return motion_base_read(); });
     }
@@ -727,16 +709,12 @@ void Model2B::on_vblank_start()
     if ((m_videocontrol & 1) == 0 || (m_frames & 1) == 0) {
         m_geometry.set_read_start_address(m_geo_read_start_address);
         // The CRTC sync registers move the projected image relative to the
-        // monitor, and MAME applies them in model2_3d_project on every board.
-        // Leaving them at zero here shifted the whole 3D scene: Wave Runner's
-        // came out 90 lines high and 8 columns right, leaving the bottom of the
-        // screen empty.
+        // monitor, as in MAME's model2_3d_project.
         m_geometry.set_crtc_offsets(m_video.crtc_x_offset(), m_video.crtc_y_offset());
         m_geometry.run(&m_render_list);
     }
     raise_interrupt(1u << 0);
-    // MAME's screen_vblank calls the link board here, after the geometry pass
-    // and the interrupt. It is what steps the ring protocol.
+    // Steps the link ring, after the geometry pass and interrupt as in MAME.
     m_comm.vblank();
 }
 
@@ -968,14 +946,8 @@ Model2B::Window Model2B::resolve(u32 address)
     if (address >= kFramebufferB && address < kFramebufferB + 0x80000) {
         return window(m_framebuffer_b, address - kFramebufferB, true, cpu::kBusFlagBurst);
     }
-    // Model 2B texture RAM: 1 MB each at 0x11000000 and 0x11200000, with mirrors.
-    //
-    // Plain memory, unlike the original and 2A boards. Those decode texture RAM
-    // through a write handler that packs two 16-bit halves into each 32-bit entry
-    // (MAME's tex0_w/tex1_w); 2B and 2C map it as .ram() with no handler at all,
-    // so a write lands where it is addressed. Applying the 2A transform here
-    // halves every destination address and drops the upper half of each sheet,
-    // which is what was streaking Wave Runner's textures.
+    // Texture RAM, 1 MB each with mirrors. Plain memory on 2B and 2C: the 2A
+    // write handler that packs two 16-bit halves per entry does not apply.
     if (in_mirrored(address, kTextureRam0, 0x100000, 0x100000)) {
         m_cpu.add_wait_cycles(static_cast<s32>(m_game.texture_wait));
         return window(m_texture_ram0, address & 0xfffff, true, cpu::kBusFlagBurst,
@@ -1061,10 +1033,8 @@ u32 Model2B::register_read(u32 address, u32 width)
 
     // UART at 0x009c0000 (Model 2B position).
     if (address >= kUart && address < kUart + 0x08) {
-        // MAME maps this range umask32(0x000000ff), so the two registers sit one
-        // dword apart on byte lane 0: data at 0x009c0000 and status at 0x009c0004.
-        // The 2A and 2C boards put the same part at 0x01c80000 with umask16, half
-        // that stride, which is why this differs from theirs.
+        // umask32(0x000000ff): data and status sit a dword apart on byte lane 0,
+        // twice the stride of the 2A and 2C boards' umask16 mapping.
         return m_uart.read((address - kUart) >> 2);
     }
 
@@ -1077,8 +1047,7 @@ u32 Model2B::register_read(u32 address, u32 width)
     }
 
     // Link board handshake registers, on byte lanes 0 and 2 of one dword and
-    // mirrored at 0x01a14000 exactly as MAME maps them. Without these the i960
-    // reads an unmapped bus and a linked title never finishes its network check.
+    // mirrored at 0x01a14000, as MAME maps them.
     if (in_mirrored(address, kCommCtl, 4, 0x10000)) {
         const u32 offset = address & 3;
         if (width == 4) {
@@ -1206,14 +1175,9 @@ void Model2B::register_write(u32 address, u32 value, u32 width)
         return;
     }
 
-    // SHARC IOP register write at 0x008c0000. MAME maps this as a dword
-    // handler (external_iop_write), so the register index it receives is the
-    // byte offset divided by four, not the byte offset itself.
-    //
-    // This is also how Last Bronx uploads its microcode: it configures DMA
-    // channel 6 through these registers and then streams the program through
-    // register 4, the external port buffer, instead of using the FIFO port with
-    // the upload bit set the way every other Model 2B game does.
+    // SHARC IOP registers, indexed by dword. Last Bronx uploads its microcode
+    // here, through DMA channel 6 and the external port buffer, rather than via
+    // the FIFO port as other 2B games do.
     if (address >= kSharcIop && address < kSharcIop + 0x1000) {
         m_copro.iop_write((address - kSharcIop) >> 2, value);
         return;
@@ -1441,15 +1405,9 @@ u32 Model2B::read32(u32 address)
     return register_read(address, 4);
 }
 
-// The i960 reaches an unaligned multi-word access one byte at a time and takes
-// the region's burst capability from the first of those bytes, so a byte access
-// has to report the same flags a dword access would. Without this the base class
-// default of "no burst" applies, the address stops advancing part-way through an
-// unaligned ldl/ldt/ldq or stl/stt/stq, and the rest of the transfer collapses
-// onto one location -- which shows up as a table read from ROM arriving with
-// every entry equal to the first. MAME has the same structure and gets the flags
-// right because its read_byte_flags goes through the same dispatch table as
-// read_dword_flags.
+// The i960 takes an unaligned multi-word access's burst capability from its
+// first byte, so a byte access must report the same flags a dword access would;
+// otherwise the transfer collapses onto one address.
 std::pair<u8, u16> Model2B::read8_flags(u32 address)
 {
     charge_area(address);
@@ -1614,10 +1572,9 @@ void Model2B::compose_video()
     }
     m_video.compose();
 
-    // Render test mode replaces the 3D output with a framebuffer bank, chosen by
-    // frame parity as MAME's draw_framebuffer chooses it. Drawn here rather than
-    // in the renderer because it is opaque 2D output that belongs under the
-    // category-one tilemap layers, which is exactly where the tilemap surface is.
+    // Render test mode replaces the 3D output with a framebuffer bank chosen by
+    // frame parity, as in MAME's draw_framebuffer. It goes under the category-one
+    // tilemap layers, so it is drawn here rather than in the renderer.
     if (m_render_test) {
         m_video.draw_framebuffer(framebuffer((m_frames & 1) != 0 ? 1 : 0));
     }

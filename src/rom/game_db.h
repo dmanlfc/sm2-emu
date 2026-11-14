@@ -46,9 +46,6 @@ public:
     [[nodiscard]] static std::optional<std::string> locate();
 
 private:
-    /// Fold each clone's parent into it, so a child set need only list the
-    /// chips that differ.
-    ///
     /// What each set declared itself, where the parsed value cannot tell.
     struct Declarations {
         std::set<std::string> board_inherited;  ///< Clones with no board attribute.
@@ -57,6 +54,8 @@ private:
         std::set<std::string> model3;           ///< Sets with a <model3> element.
     };
 
+    /// Fold each clone's parent into it, so a child set need only list the
+    /// chips that differ.
     [[nodiscard]] bool merge_clones(const Declarations& declared);
 
     std::vector<GameSpec> m_games;

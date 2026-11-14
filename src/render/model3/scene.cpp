@@ -1092,7 +1092,7 @@ void Scene::CacheModel(Model* m, const u32* data, const u32* end)
             p.faceColour[3] /= 2;
         }
 
-        // if we have flat shading, we can't re-use normals from shared vertices
+        // With flat shading, normals from shared vertices can't be reused.
         for (int i = 0; i < p.number && !ph.SmoothShading(); i++) {
             p.v[i].normal[0] = p.faceNormal[0];
             p.v[i].normal[1] = p.faceNormal[1];
@@ -1244,10 +1244,8 @@ void Scene::calc_viewport(Viewport* vp)
     vp->projectionMatrix.load_identity();
 
     if (widens(*vp)) {
-        // Grow the frustum out to the edges of the wide target at the 4:3
-        // viewport's own scale, so the 4:3 picture stays exactly where it was
-        // (scaling l and r would shift an off-centre one, and stretch a 495-wide
-        // viewport by a pixel), and cull against the wider
+        // Grow the frustum to the wide target's edges at the 4:3 viewport's
+        // own scale, so the 4:3 picture stays put, and cull against the wider
         // one by mapping x back.
         const int   left   = static_cast<int>(m_xOffs) + static_cast<int>(vp->vpX * m_xRatio);
         const int   width  = static_cast<int>(vp->vpWidth * m_xRatio);

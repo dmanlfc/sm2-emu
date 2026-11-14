@@ -65,8 +65,7 @@ public:
     /// Model 3 sound board) queues and sends only when this is true.
     [[nodiscard]] bool ready_for_byte() const { return present() && m_uart.can_receive(); }
 
-    /// A byte the board sends back to the host (unused by the Model 2 titles,
-    /// kept for completeness).
+    /// A byte the board sends back to the host (unused by the Model 2 titles).
     void set_rxd_handler(std::function<void(u8)> handler) { m_rxd_handler = std::move(handler); }
 
     /// Advance the Z80 (and its UART) by the equivalent of `host_cycles` of the
@@ -108,8 +107,7 @@ private:
     void mpeg_stereo_w(u8 data);
     [[nodiscard]] u8 mpeg_pos_r(u32 offset) const;
 
-    /// Fill m_audio_buf with the next decoded MPEG frame, or stop. Returns the
-    /// number of stereo samples now available, 0 at end of stream.
+    /// Fill m_audio_buf with the next decoded MPEG frame, or stop at end of stream.
     void decode_next();
 
     cpu::z80::Z80 m_cpu;

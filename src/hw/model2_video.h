@@ -37,14 +37,10 @@ namespace sm2::hw {
 
 /// The video output stage: palette conversion and 2D composition.
 ///
-/// Model 2 composites in three passes: the tilemap layers whose priority
-/// category is zero, then the 3D output, then the layers whose category is one.
-/// That is what lets a game put a status display in front of the scene using the
-/// same tilemap hardware that draws the background behind it.
-///
-/// This class produces the two tilemap results as separate RGBA8 surfaces so the
-/// 3D pass can be inserted between them later without disturbing either. A pixel
-/// nothing wrote has alpha zero.
+/// Model 2 composites in three passes: the tilemap layers of priority category
+/// zero, then the 3D output, then the category-one layers. This class produces
+/// the two tilemap results as separate RGBA8 surfaces for the 3D to go between.
+/// A pixel nothing wrote has alpha zero.
 class Model2Video {
 public:
     static constexpr u32 kWidth  = Segaic24Tile::kScreenWidth;
@@ -94,8 +90,7 @@ public:
     /// Compose one frame's tilemap layers.
     ///
     /// Produces `below()` and `above()`. Call refresh_pens() first if the
-    /// machine's palette changed, and note that this also runs the tile chip's
-    /// deferred character decode.
+    /// palette changed. Also runs the tile chip's deferred character decode.
     void compose();
 
     /// compose() in two halves, so compose_into() can run on another thread
@@ -132,10 +127,9 @@ public:
 
     /// Draw one framebuffer bank over the layers already in `below()`.
     ///
-    /// Only used in render test mode, where the DSP stops drawing and clearing the
-    /// framebuffer and the host draws into it directly. Opaque over the whole
-    /// raster, as in MAME's draw_framebuffer, so it hides the tilemap pair
-    /// underneath it; the category-one layers still go on top.
+    /// Only used in render test mode, where the host draws into the framebuffer
+    /// directly. Opaque over the whole raster, as in MAME's draw_framebuffer; the
+    /// category-one layers still go on top.
     ///
     /// `pixels` is one bank, 512 pixels per line, xGGGGGRRRRRBBBBB.
     void draw_framebuffer(std::span<const u16> pixels);
@@ -154,11 +148,10 @@ public:
     /// is drawn.
     [[nodiscard]] u32 background() const { return m_pens.empty() ? 0xff000000u : m_pens[0]; }
 
-    /// Wall-clock time the last compose() call took, in nanoseconds -- the
-    /// "tilemap composition" profiler stage.
+    /// Wall-clock time of the last compose(), in nanoseconds.
     [[nodiscard]] u64 last_compose_nanoseconds() const { return m_last_compose_ns; }
 
-    /// The converted palette, for diagnostics and for the 3D pass later.
+    /// The converted palette.
     [[nodiscard]] std::span<const u32> pens() const { return m_pens; }
 
     /// Dimensions of the tone curve: 32 colour components by 256 shades.
@@ -167,11 +160,9 @@ public:
 
     /// Flatten the colour translation table and the gamma ramp into one lookup.
     ///
-    /// The textured 3D path picks a shade for every texel, so the curve cannot be
-    /// evaluated on the host as the tilemaps' and the untextured path's can. This
-    /// hands the whole thing to the renderer as an RGBA8 image, shade across and
-    /// component down. Each channel reads its own component, so a pixel takes
-    /// three lookups from the one image rather than one from three.
+    /// The textured 3D path picks a shade per texel, so the curve goes to the
+    /// renderer as an RGBA8 image, shade across and component down, one channel
+    /// per colour component.
     ///
     /// `out` must hold kToneShades * kToneComponents entries.
     void build_tone_curve(std::span<u32> out) const;
@@ -179,11 +170,9 @@ public:
     /// The three five-bit colour components of a 3D polygon's base colour, packed
     /// as red, green, blue in successive bytes.
     ///
-    /// Components rather than a resolved colour, because the shade that completes
-    /// the lookup is a per-texel matter on the textured path and so has to be
-    /// chosen in the fragment shader. `colour_base` is the ten-bit index the
-    /// polygon's texture header carries, resolved against the 3D half of palette
-    /// RAM.
+    /// Components rather than a resolved colour, because the textured path picks
+    /// the shade per texel. `colour_base` is the ten-bit index from the texture
+    /// header, resolved against the 3D half of palette RAM.
     [[nodiscard]] u32 polygon_colour_components(u32 colour_base) const;
 
     // -- CRTC ---------------------------------------------------------------
@@ -196,10 +185,8 @@ public:
     [[nodiscard]] s16 crtc_x_offset() const { return m_crtc_x_offset; }
     [[nodiscard]] s16 crtc_y_offset() const { return m_crtc_y_offset; }
 
-    /// Save/restore the CRTC offsets. On load the tilemap decode caches and the
-    /// pen table are re-derived rather than serialized: the decoded pixmaps come
-    /// straight from tile/char RAM (invalidate_all) and the pens from palette
-    /// RAM (a palette_dirty bump at the machine level), both of which ARE saved.
+    /// Save/restore the CRTC offsets. The tile decode caches and pens are rebuilt
+    /// from the saved tile, char and palette RAM instead.
     void serialize(Archive& ar);
 
 private:
@@ -209,10 +196,8 @@ private:
 
     /// A 15-bit palette word resolved at a given shade, returned as RGBA8.
     ///
-    /// The word is xRRRRRGGGGGBBBBB: bits 0-4 are red, 5-9 green, 10-14 blue,
-    /// matching MAME's model2_state::palette_w. (An earlier comment here called
-    /// it BGR, which sent a debugging session looking for a red/blue swap that
-    /// does not exist — the channel order is correct throughout.)
+    /// Bits 0-4 are red, 5-9 green, 10-14 blue, as in MAME's
+    /// model2_state::palette_w.
     [[nodiscard]] u32 shade_colour(u16 colour, u32 shade) const;
 
     Segaic24Tile m_tiles;
@@ -227,13 +212,13 @@ private:
     std::span<const u16> m_palette_ram;
     std::span<const u16> m_colour_translate;
 
-    /// Converted palette, RGBA8 with alpha 0xff.
     void draw_overlay(u32* above, u32 row_begin, u32 row_end) const;
 
     std::vector<RenderPolygon> m_overlay;
     std::vector<RenderPolygon> m_overlay_shown;
     s32                        m_overlay_x_offset = 0;
 
+    /// Converted palette, RGBA8 with alpha 0xff.
     std::vector<u32> m_pens;
     bool             m_direct_palette = false;
 

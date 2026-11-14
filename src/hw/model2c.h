@@ -51,11 +51,9 @@ namespace sm2::hw {
 // Matthew Daniels): copro_tgpx4_map, copro_tgpx4_data_map, copro_fifo_w,
 // copro_halt, copro_boot and copro_function_port_w.
 //
-// The MB86235 "TGPx4" replaces Model 2B's SHARC. Unlike the SHARC, whose
-// microcode lives in on-chip SRAM, the TGPx4's program memory is board RAM
-// (MAME's copro_tgpx4_map maps 0x00000000-0x00000fff as RAM shared as
-// "copro_tgpx4_program"), so this class owns it. The host uploads it through
-// the same FIFO port the commands later travel over.
+// The MB86235 "TGPx4" replaces Model 2B's SHARC. Its program memory is board
+// RAM rather than on-chip, so this class owns it; the host uploads it through
+// the same FIFO port the commands later use.
 // ===========================================================================
 
 class CoproTgpx4 final : public cpu::mb86235::Bus {
@@ -145,9 +143,8 @@ public:
     void fifo_in_clear() override { m_fifo_in.clear(); }
     void fifo_out_clear() override { m_fifo_out.clear(); }
 
-    /// Save/restore the coprocessor: its CPU, both FIFOs, the uploaded
-    /// microcode RAM and the control/upload scalars. The data-ROM and
-    /// buffer-RAM spans are excluded (re-bound by attach()).
+    /// Save/restore the coprocessor. The data-ROM and buffer-RAM spans are
+    /// excluded (re-bound by attach()).
     void serialize(Archive& ar);
 
 private:
@@ -156,10 +153,7 @@ private:
     CoproFifo m_fifo_in;
     CoproFifo m_fifo_out;
 
-    /// The board's microcode RAM. Model 2B deliberately has no equivalent
-    /// member because the SHARC keeps its program on-chip; the TGPx4's program
-    /// space is external, so it lives here and is what program_read fetches
-    /// from.
+    /// The board's microcode RAM, which program_read fetches from.
     std::vector<u64> m_program;
 
     std::span<const u32> m_data_rom;
@@ -357,7 +351,7 @@ private:
     void note_video_write(const Window& window, u32 width);
     [[nodiscard]] Window resolve(u32 address);
     /// Main program ROM and work RAM without building a Window; nullptr for
-    /// anything else, which then goes through resolve() as before.
+    /// anything else, which then goes through resolve().
     [[nodiscard]] const u8* hot_read(u32 address, u32 width) const;
     /// Same for writes, work RAM only.
     [[nodiscard]] u8* hot_write(u32 address, u32 width);
@@ -386,8 +380,7 @@ private:
 
 
     // -- lightgun interface board (837-12079) -------------------------------
-    // Hangs off the I/O controller's RS-422 channel 2, exactly as on Model 2A.
-    // MAME wires the same pair of callbacks in model2c_state::hotd.
+    // Hangs off the I/O controller's RS-422 channel 2, as on Model 2A.
     [[nodiscard]] u8 lightgun_mux_read();
     void             lightgun_mux_write(u8 value);
     [[nodiscard]] u8 lightgun_data_read(u8 offset) const;
@@ -396,9 +389,8 @@ private:
     void note_unmapped_read(u32 address, u32 width);
     void note_unmapped_write(u32 address, u32 value, u32 width);
 
-    /// Walk every owned component, RAM region and board scalar through the
-    /// archive in a fixed order. Save and load call this identically; load adds
-    /// the fix-ups afterwards (see load_state).
+    /// Walk every component, RAM region and board scalar through the archive in
+    /// a fixed order. Load applies fix-ups afterwards (see load_state).
     void serialize(Archive& ar);
 
     // -- devices -----------------------------------------------------------
@@ -409,8 +401,7 @@ private:
     Model2Video     m_video;
     CoproTgpx4      m_copro;
     Geometrizer     m_geometry;
-    /// The link board. Present on every Model 2 machine configuration in
-    /// MAME, and a linked title will not leave its network check without one.
+    /// The link board. A linked title will not pass its network check without it.
     M2Comm          m_comm;
     Model2Sound     m_sound;
     I8251           m_uart;
@@ -493,9 +484,7 @@ private:
     u64 m_frame_start = 0;
     u64 m_frames      = 0;
 
-    /// True only while run_frame() is executing. save_state/load_state assert
-    /// this is false so a snapshot is never taken mid-frame (see design §7).
-    /// Transient — never serialized.
+    /// True only while run_frame() runs; save/load assert it is false. Transient.
     bool m_in_frame = false;
 
     u32  m_pending_intena       = 0;

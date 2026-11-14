@@ -29,12 +29,10 @@ namespace sm2::osd {
 /// background thread, cached under an artwork directory and keyed by MAME short
 /// name. Inert when built without libcurl or disabled by the user.
 ///
-/// Thread-safety contract (the reason this class is shaped as it is): the
-/// worker touches only libcurl, the filesystem under the artwork dir, and JSON.
-/// It never calls the renderer/GUI/ImGui/audio/SDL. The one cross-thread
-/// channel is the mutex-guarded name queue drained by take_ready(); image
-/// decode and GPU upload are the main thread's job. The owner joins the thread
-/// (stop()/dtor) before tearing down anything the main thread owns.
+/// Threading: the worker touches only libcurl, the artwork directory and JSON,
+/// never the renderer, GUI, audio or SDL. The one cross-thread channel is the
+/// mutex-guarded name queue drained by take_ready(); image decode and upload
+/// stay on the main thread. stop() (or the destructor) joins the worker.
 class Scraper {
 public:
     struct Entry {

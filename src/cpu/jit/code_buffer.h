@@ -26,8 +26,8 @@
 // W^X: bracket every write in a WriteScope.
 //   macOS arm64  MAP_JIT + pthread_jit_write_protect_np (per thread)
 //   Linux arm64  memfd dual mapping (RW + RX views), mprotect fallback
-//   x86-64       one RWX mapping (toggling the whole region per compile is
-//                far too slow, worst of all under Rosetta); toggle fallback
+//   x86-64       one RWX mapping (per-compile toggling is too slow);
+//                toggle fallback
 //   others       mprotect / VirtualProtect toggling of the whole region; no
 //                thread may run code from the buffer while a scope is open
 // Emitters write through CodeSpan::rw and branch relative to CodeSpan::exec.

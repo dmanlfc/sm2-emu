@@ -14,7 +14,6 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-//
 // MainCpu over the real PowerPC core (SM2_MODEL3_HAVE_PPC builds only).
 
 #include "cpu/ppc/ppc.h"

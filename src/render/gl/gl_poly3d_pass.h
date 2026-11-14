@@ -14,14 +14,9 @@
 // Public License, version 3 or later, with additional terms under section 7 of
 // that licence. See LICENSE and NOTICE.
 //
-// Draws the emulated 3D output. GL analogue of render::vk::Poly3DPass -- see
-// that class's own doc comment for the hardware reasoning this pass exists
-// to satisfy (no depth buffer, native-resolution rasterisation); the
-// algorithm is unchanged here, only the GL entry points differ.
-//
-// No frames-in-flight ring, unlike the Vulkan path: GL's driver manages buffer
-// lifetime itself, so there is one copy of each resource, not three (see
-// gl_context.h).
+// Draws the emulated 3D output: the GL counterpart of render::vk::Poly3DPass,
+// whose comment explains the algorithm. GL manages buffer lifetime itself, so
+// there is one copy of each resource rather than a frames-in-flight ring.
 #pragma once
 
 #include "render/gl/gl_common.h"
@@ -45,12 +40,10 @@ public:
     static constexpr u32 kWidth  = render::kNativeWidth;
     static constexpr u32 kHeight = render::kNativeHeight;
 
-    /// Words in one texture sheet -- see render::vk::Poly3DPass::kSheetWords
-    /// for why only the low half of texture RAM is uploaded.
+    /// Words in one texture sheet; see render::vk::Poly3DPass::kSheetWords.
     static constexpr u32 kSheetWords = 0x40000;
 
-    /// Physical texel containers per sheet, matching
-    /// render::vk::Poly3DPass::kDecodedWidth/kDecodedHeight exactly.
+    /// Physical texel containers per sheet, as in render::vk::Poly3DPass.
     static constexpr u32 kDecodedWidth  = 512;
     static constexpr u32 kDecodedHeight = 1024;
 
@@ -85,10 +78,9 @@ public:
     /// and refresh whatever machine memory changed since it last ran.
     void build(const hw::Model2MachineBase* machine, const hw::Model2Video& video);
 
-    /// Draw what build() prepared directly into the bound native framebuffer,
-    /// between the below and above tilemap layers. Clears the fill-mask stencil,
-    /// then blends the 3D over the below-tilemap with premultiplied-over -- the
-    /// same result the old draw-to-offscreen then composite produced.
+    /// Draw what build() prepared into the bound native framebuffer, between
+    /// the below and above tilemap layers: clears the fill-mask stencil, then
+    /// blends premultiplied-over the below layer.
     void draw_polygons();
 
     // -- diagnostics -------------------------------------------------------
@@ -134,8 +126,7 @@ private:
     u32 m_tone_texture = 0;
     PersistentBuffer m_luma_buffer;
 
-    /// Change counters of the machine data this pass's copies were made
-    /// from. Zero means never copied, matching the Vulkan path's convention.
+    /// Change counters of the machine data last copied; zero means never.
     u64 m_texture_generation = 0;
     u64 m_table_generation   = 0;
 

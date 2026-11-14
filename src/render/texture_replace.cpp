@@ -500,9 +500,8 @@ void TextureReplacements::resolve(const hw::Model2MachineBase& machine,
         level_palette(m_luma, m_tone, params->colour, params->luma_base, poly.luma);
 
     // The image was painted over the reference colouring, so another colouring
-    // or lighting is applied as the ratio between the two, averaged over the
-    // levels the texture actually uses. A single ratio per polygon keeps the
-    // original's low-resolution level boundaries out of the replacement.
+    // is applied as the ratio between the two, averaged over the levels used.
+    // One ratio per polygon keeps the original's level boundaries out.
     const bool translucent = (params->flags & kFlagTranslucent) != 0;
     std::array<float, 3> cur{};
     std::array<float, 3> ref{};

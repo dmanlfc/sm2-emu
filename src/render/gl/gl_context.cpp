@@ -27,9 +27,8 @@
 namespace sm2::render::gl {
 namespace {
 
-/// GLES's mandatory minimums for these can be lower than the version number
-/// implies, so they are checked explicitly rather than assumed from the 3.1
-/// floor check alone.
+/// GLES's mandatory minimums for these can be lower than needed, so they are
+/// checked explicitly.
 struct GlesLimit {
     GLenum      query;
     s32         required;
@@ -73,8 +72,7 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
     m_window = window.handle();
     m_is_es  = config.es_mode;
 
-    // Attributes must be set before context creation; SDL applies them to
-    // the context SDL_GL_CreateContext produces next, not retroactively.
+    // Attributes apply to the next context created, so set them first.
     if (config.es_mode) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -85,10 +83,8 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     }
     // The default framebuffer needs neither depth nor stencil: the 3D pass's
-    // fill mask is a stencil renderbuffer on the composite FBO (PresentPass),
-    // and the only draw to the window is the final letterbox blit, a plain
-    // textured copy. Model 2's hardware has no depth buffer either -- see
-    // backend.h on why draw order, not depth, decides pixel ownership.
+    // stencil lives on the composite FBO, and the window only receives the
+    // final letterbox blit.
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -112,9 +108,7 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
         return false;
     }
 
-    // Function pointers can only be resolved once a context is current --
-    // see load_gl_functions()'s own documentation of why this ordering
-    // matters, not just as a general precaution.
+    // Function pointers can only be resolved once a context is current.
     std::string load_error;
     if (!load_gl_functions(SDL_GL_GetProcAddress, &load_error)) {
         SM2_ERROR("gl: %s", load_error.c_str());
@@ -124,9 +118,7 @@ bool Context::init(osd::Window& window, const ContextConfig& config)
     }
     resolve_buffer_storage(SDL_GL_GetProcAddress, config.es_mode);
 
-    // The version actually granted, not the version requested: a driver can
-    // silently hand back a higher (never lower) context than asked for, and
-    // this is what this backend's declared floor actually depends on having.
+    // Check the version granted, which can be higher than the one requested.
     s32 major = 0;
     s32 minor = 0;
     GetIntegerv(GL_MAJOR_VERSION, &major);

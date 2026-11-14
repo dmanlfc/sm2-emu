@@ -54,23 +54,17 @@ namespace model3 {
 class TextureDumper;
 }
 
-/// What a backend can be asked to do, queried rather than assumed, so a call
-/// site asks "does this backend support X" instead of knowing which backend it
-/// is.
+/// What a backend can do, so a call site need not know which backend it is.
 struct Capabilities {
     /// Compute shaders and storage buffers, which the GPU tilemap pass
-    /// requires. True on Vulkan 1.3, false on a GLES 3.0 / GL 3.3 floor -- which
-    /// is why TilemapPass's CPU path still exists as a fallback.
+    /// requires. False on a GLES 3.0 / GL 3.3 floor, which uses the CPU path.
     bool compute_shaders = true;
 
-    /// Whether the device reports GPU timestamps at all -- see
-    /// Context::supports_gpu_timing()'s own documentation of why this must
-    /// stay distinguishable from "zero", not collapsed into it.
+    /// Whether the device reports GPU timestamps at all.
     bool gpu_timing = true;
 
-    /// Whether the device supports anisotropic sampling, and the maximum ratio
-    /// it allows. Gates and clamps the enhanced 3D texture filter; false / 1.0
-    /// means the anisotropic option is unavailable.
+    /// Anisotropic sampling support and its maximum ratio, gating and clamping
+    /// the enhanced 3D texture filter.
     bool  anisotropy     = false;
     float max_anisotropy = 1.0F;
 
@@ -82,11 +76,8 @@ struct Capabilities {
     bool widescreen = false;
 };
 
-/// A native RGBA8 pixel format identifier, backend-neutral.
-///
-/// Exists only because `render::vk::kNativeColourFormat` is a `VkFormat` and
-/// nothing outside `render/vk/` should know that. Every backend stores the
-/// native frame as packed RGBA8, so this is not a general pixel-format enum.
+/// The native frame's packed RGBA8 format, without naming a VkFormat outside
+/// render/vk/. Not a general pixel-format enum.
 enum class NativeFormat : u32 {
     Rgba8Unorm = 0,
 };
@@ -94,22 +85,13 @@ enum class NativeFormat : u32 {
 // ---------------------------------------------------------------------------
 // The native frame
 // ---------------------------------------------------------------------------
-//
-// Declared here, not in render/vk/vk_common.h, for the same reason GpuStage
-// is: none of the three constants below names a Vulkan type, so every backend
-// -- Vulkan, OpenGL, OpenGL ES -- reads the same definition instead of each
-// carrying its own copy. vk_common.h aliases them, as it already aliases
-// GpuStage.
+// Declared here rather than in render/vk/vk_common.h, which aliases them, so
+// every backend shares one definition.
 
-/// The Model 2 raster. Every emulated pass draws at exactly this size.
-///
-/// Nothing is rendered at the window's resolution. The hardware's
-/// translucency is a checkerboard stipple locked to the raster grid and its
-/// texture level of detail comes from raster-pixel derivatives, so both would
-/// come out at the wrong scale; and the three-way composite between the
-/// tilemap layers and the 3D has to happen before any magnification or its
-/// blends are performed on interpolated colours. The finished frame is scaled
-/// to the window once, at the end.
+/// The Model 2 raster. Every emulated pass draws at exactly this size: the
+/// stipple translucency and texture LOD are locked to the raster grid, and the
+/// composite must happen before magnification. The finished frame is scaled to
+/// the window once, at the end.
 constexpr u32 kNativeWidth  = 496;
 constexpr u32 kNativeHeight = 384;
 
@@ -132,10 +114,7 @@ constexpr u32 kMaxRenderScale = 8;
 [[nodiscard]] constexpr u32 scaled_height(u32 render_scale) { return render_scale * kNativeHeight; }
 
 /// Largest scale in 1..requested whose N*native colour/depth target fits a
-/// device's max 2D image/texture dimension. 8x is 3968x3072, so a device whose
-/// limit is 4096 or above takes the full range; one at 2048 is held to 4x, and
-/// so on down. A limit that cannot hold even native (< 496) still returns 1:
-/// native is the floor, and a device that small cannot run the renderer at all.
+/// device's max 2D image dimension. Never below 1.
 [[nodiscard]] constexpr u32 clamp_scale_to_max_dimension(u32 requested, u32 max_dimension)
 {
     u32 scale = requested;
@@ -146,27 +125,19 @@ constexpr u32 kMaxRenderScale = 8;
     return scale;
 }
 
-/// Aspect ratio the frame is presented at.
-///
-/// The raster is 496x384, which is 1.29:1, but an arcade monitor stretched it
-/// to the usual 4:3, so a square-pixel presentation would be noticeably
-/// narrow.
+/// Aspect ratio the frame is presented at: the 496x384 raster was stretched to
+/// 4:3 on an arcade monitor.
 constexpr float kDisplayAspect = 4.0F / 3.0F;
 
 
 // ---------------------------------------------------------------------------
 // GPU stage timing
 // ---------------------------------------------------------------------------
-//
-// Declared here, not in render/vk/vk_common.h, because neither type below
-// names a Vulkan type: they are milliseconds, a bool and a small enum. Living
-// here is what lets vk_common.h alias them (`vk::GpuStage = render::GpuStage`)
-// instead of the reverse, so this header can be included without pulling in
-// <vulkan/vulkan.h>.
+// Declared here so this header does not pull in <vulkan/vulkan.h>; vk_common.h
+// aliases them.
 
-/// The GPU-side stages the profiler reports: texture decode dispatch, 3D pass,
-/// tilemap/3D composite, present blit. TilemapCompose runs before the other
-/// four but is appended so the existing indices keep their meaning.
+/// The GPU-side stages the profiler reports. TilemapCompose runs first but is
+/// appended so the other indices keep their meaning.
 enum class GpuStage : u32 {
     TextureDecode  = 0,
     Poly3D         = 1,
@@ -176,11 +147,8 @@ enum class GpuStage : u32 {
     kCount         = 5,
 };
 
-/// One stage's GPU time from the most recently completed frame that reached
-/// readback, or "did not run" if that stage's begin/end pair was never written
-/// -- the texture decode dispatch only runs when texture_generation changes,
-/// which is almost always after the first frame, so "zero" and "did not run"
-/// must stay distinguishable rather than the latter reading as a free stage.
+/// One stage's GPU time from the latest frame that reached readback. "Did not
+/// run" stays distinct from zero: texture decode rarely runs after the first frame.
 struct GpuStageTime {
     double milliseconds = 0.0;
     bool   ran          = false;
@@ -188,10 +156,6 @@ struct GpuStageTime {
 
 using GpuStageTimes = std::array<GpuStageTime, static_cast<usize>(GpuStage::kCount)>;
 
-/// The present-stage magnification settings, grouped so the live setter and
-/// BackendConfig carry the same shape. All present-only: changing any of these
-/// touches sampler/shader/letterbox state, never a render target, so it applies
-/// live without a device or swapchain rebuild.
 /// Where the picture goes, as fractions of the window.
 struct PictureArea {
     float x      = 0.0F;
@@ -202,6 +166,7 @@ struct PictureArea {
     bool operator==(const PictureArea&) const = default;
 };
 
+/// Present-stage settings. None touches a render target, so all apply live.
 struct PresentOptions {
     ScalingMethod scaling_method = ScalingMethod::SharpBilinear;
     AspectMode    aspect_mode    = AspectMode::FourThree;
@@ -218,9 +183,8 @@ struct PresentOptions {
     float gain = 1.0f;
 };
 
-/// Graphics enhancement settings, grouped like PresentOptions. All default to
-/// faithful, so a backend that ignores them behaves exactly as before.
-/// GPU-gated at the point of use against Capabilities.
+/// Graphics enhancement settings, defaulting to faithful. Gated against
+/// Capabilities at the point of use.
 struct EnhancementOptions {
     TextureFilter texture_filter = TextureFilter::Faithful;
     u32           anisotropy     = 4;  // tap ceiling, clamped to the GPU max
@@ -236,9 +200,8 @@ struct BackendConfig {
     /// entries. Empty means "pick the best scoring device".
     std::string preferred_device;
 
-    /// Internal 3D render scale, N in 1..kMaxRenderScale. The 3D pass and
-    /// composite run at N*native; at 1 the pipeline is native and behaves
-    /// exactly as before this feature. The software renderer forces this to 1.
+    /// Internal 3D render scale, N in 1..kMaxRenderScale; the 3D pass and
+    /// composite run at N*native. The software renderer forces this to 1.
     u32 render_scale = 1;
 
     PresentOptions     present;
@@ -247,40 +210,22 @@ struct BackendConfig {
 
 /// The render backend main.cpp drives, one frame at a time.
 ///
-/// The call sequence a frame makes, in order, mirrors exactly what 0.7.0's
-/// main.cpp did directly against Context/TilemapPass/Poly3DPass/PresentPass/
-/// FrameCapture -- this interface did not invent a new shape, it named the
-/// existing one:
+/// A frame's call sequence:
 ///
-///   1. begin_frame() -- returns false on a window that cannot be drawn into
-///      right now (minimised, swapchain rebuilding); the caller should skip
-///      the rest of the loop body for this iteration.
-///   2. compute_tilemap() or upload_tilemap() -- the caller chooses based on
-///      whether the GPU tilemap path applies this frame (see main.cpp's
-///      own use_gpu_tilemap condition, which is a machine/mode question, not
-///      a backend one).
-///   3. submit_polygons() -- triangulates and uploads this frame's 3D
-///      geometry. Skipped when the software renderer is drawing instead.
-///   4. render_polygons() -- draws the uploaded geometry into the offscreen
-///      native frame. Skipped alongside submit_polygons().
-///   5. Either composite_native_frame() (the Vulkan three-way composite:
-///      tilemap below, then the 3D output already drawn by render_polygons(),
-///      then tilemap above) or submit_native_frame() (hands the software
-///      renderer's already-composited pixels to the same native target, so
-///      capture and presentation stay renderer-agnostic).
+///   1. begin_frame() -- false when the window cannot be drawn into right now
+///      (minimised, swapchain rebuilding); skip the rest of this iteration.
+///   2. compute_tilemap() or upload_tilemap(), as main.cpp decides.
+///   3. submit_polygons() -- skipped when the software renderer draws instead.
+///   4. render_polygons() -- skipped alongside submit_polygons().
+///   5. composite_native_frame(), or submit_native_frame() with the software
+///      renderer's composited pixels.
 ///   6. request_capture() -- if a screenshot was asked for this frame.
-///   7. blit_to_swapchain() -- the one magnification, letterboxed to 4:3.
-///   8. begin_overlay_frame() / draw_overlay() -- ImGui, drawn over the
-///      already-presented frame.
-///   9. end_frame() -- submits and presents. Returns false on a failed
-///      submission.
+///   7. blit_to_swapchain() -- the one magnification, letterboxed.
+///   8. begin_overlay_frame() / draw_overlay() -- ImGui over the frame.
+///   9. end_frame() -- submits and presents; false on a failed submission.
 ///
 /// Capture is two-phase (request during the frame, save_capture() once the
-/// submission has completed) rather than a single blocking call, because a
-/// numbered capture series is saved every frame (after a wait) while a single
-/// final screenshot is saved once after the whole run -- collapsing that into
-/// one call would either force a wait every frame or lose the single-shot
-/// path's timing.
+/// submission has completed) so a capture series need not block every frame.
 class Backend {
 public:
     virtual ~Backend() = default;
@@ -292,16 +237,11 @@ public:
     [[nodiscard]] virtual bool init(osd::Window& window, const BackendConfig& config) = 0;
     virtual void               shutdown()                                            = 0;
 
-    /// Wire up whichever GPU renderer backend ImGui needs. Must be called
-    /// after both init() (the window and swapchain must exist) and
-    /// `gui.init()` (ImGui's own context must exist first: the renderer
-    /// backend's init call reads ImGui::GetIO(), which asserts otherwise).
+    /// Wire up ImGui's GPU renderer backend. Call after both init() and
+    /// `gui.init()`, since it reads ImGui::GetIO().
     [[nodiscard]] virtual bool init_overlay(osd::Gui& gui) = 0;
 
-    /// Tear down what init_overlay() set up. Must be called before
-    /// `gui.shutdown()` destroys ImGui's context, for the same reason in
-    /// reverse: the renderer backend's own shutdown call also reads
-    /// ImGui::GetIO().
+    /// Tear down what init_overlay() set up. Call before `gui.shutdown()`.
     virtual void shutdown_overlay() = 0;
 
     [[nodiscard]] virtual Capabilities capabilities() const = 0;
@@ -331,16 +271,13 @@ public:
     /// The GPU driver reset the device, so no frame can be drawn again.
     [[nodiscard]] virtual bool device_lost() const { return false; }
 
-    /// GPU tilemap composite: dispatches the compute shader
-    /// against tile RAM, character RAM and the pen table if their generation
-    /// counters changed.
+    /// GPU tilemap composite, dispatched when the tile RAM, character RAM or
+    /// pen table generation counters changed.
     virtual void compute_tilemap(const hw::Model2MachineBase& machine,
                                  const hw::Model2Video&       video) = 0;
 
     /// CPU-composited tilemap upload, for when compute_tilemap() does not
-    /// apply this frame (render test mode, or a --soft-render comparison
-    /// capture needing a fresh CPU oracle -- see TilemapPass::upload()'s own
-    /// documentation of the two cases and why they share staging buffers).
+    /// apply this frame. See TilemapPass::upload().
     virtual void upload_tilemap(std::span<const u32> below, std::span<const u32> above) = 0;
 
     /// Triangulate and upload this frame's 3D geometry. `machine` may be
@@ -348,8 +285,7 @@ public:
     virtual void submit_polygons(const hw::Model2MachineBase* machine,
                                  const hw::Model2Video&       video) = 0;
 
-    /// Draw the geometry submit_polygons() uploaded into the offscreen native
-    /// frame.
+    /// Draw the uploaded geometry into the offscreen native frame.
     virtual void render_polygons() = 0;
 
     /// The hardware's three-way composite: tilemap layers of priority
@@ -363,25 +299,19 @@ public:
     /// native_width() * native_height() RGBA8 texels.
     virtual void submit_native_frame(std::span<const u32> pixels) = 0;
 
-    /// Record a copy of the native frame into a readback buffer this frame,
-    /// if capture support was requested at init(). Returns false on a
-    /// recording failure; a backend with no capture support configured
-    /// always returns true and stores nothing.
+    /// Record a copy of the native frame into a readback buffer, if capture was
+    /// requested at init(). False on a recording failure.
     [[nodiscard]] virtual bool request_capture() = 0;
 
     /// Write what request_capture() captured. Only valid once the frame's
-    /// submission has completed -- the caller must have called end_frame()
-    /// and, for anything but the very next frame's begin_frame(), waited for
-    /// the device to go idle first.
+    /// submission has completed (end_frame(), then wait_idle() or the next
+    /// begin_frame()).
     [[nodiscard]] virtual bool save_capture(const std::string& path) const = 0;
 
-    /// Adopt new present-stage magnification options live, before the next
-    /// blit_to_swapchain(). Present-only state (sampler/shader/letterbox), so
-    /// this never reallocates a target and is safe to call between frames.
+    /// Adopt new present options before the next blit_to_swapchain().
     virtual void set_present_options(const PresentOptions& options) = 0;
 
-    /// Adopt new enhancement options before the next frame. Shader/pass state,
-    /// so this reallocates nothing and is safe to call between frames.
+    /// Adopt new enhancement options before the next frame; reallocates nothing.
     virtual void set_enhancement_options(const EnhancementOptions& options) = 0;
 
     /// Custom textures to draw in place of the game's own, or null for none.
@@ -394,9 +324,8 @@ public:
     /// draws the 2D layers behind the 3D across the added columns: 0 leaves
     /// them black, 1 mirrors the screen edge where nothing better is known,
     /// 2 leaves such pixels black, 3 leaves them black only for a menu panel
-    /// (a row-scroll layer's foreground tile). Bits 8-17 and 18-27, when set,
-    /// are unused and bits 28-31, when
-    /// set, are the tile layers a HUD spread by set_hud_bands() is drawn on.
+    /// (a row-scroll layer's foreground tile). Bits 8-27 are unused; bits 28-31
+    /// are the tile layers a HUD spread by set_hud_bands() is drawn on.
     /// Model 3: 0 keeps the 3D 4:3, 1 also widens the scrolling 2D below it,
     /// 2 widens the 3D alone.
     virtual void set_widescreen(u32 columns, u32 wide_background) = 0;
@@ -408,26 +337,18 @@ public:
     /// current aspect mode.
     virtual void blit_to_swapchain() = 0;
 
-    /// Begin this frame's ImGui build on whichever GPU renderer backend ImGui
-    /// is using. Call before gui.new_frame() -- ImGui's own renderer backend
-    /// must see its new-frame call before ImGui::NewFrame() does.
+    /// Begin this frame's ImGui build. Call before gui.new_frame().
     virtual void begin_overlay_frame() = 0;
 
-    /// Draw ImGui's draw data, built by the caller's own gui.draw() in
-    /// between begin_overlay_frame() and this call, over the already-blitted
-    /// window contents. `active` is draw()'s return value -- true whenever
-    /// there is anything to submit, which since the always-on FPS overlay is
-    /// every frame a machine is loaded. ImGui::Render() has already run by
-    /// the time this is called (via gui.end_frame()) regardless of `active`,
-    /// since ImGui requires that every frame it opened with new_frame().
+    /// Draw ImGui's draw data over the blitted frame. `active` is gui.draw()'s
+    /// return value; ImGui::Render() has already run via gui.end_frame().
     virtual void draw_overlay(bool active) = 0;
 
     [[nodiscard]] virtual bool end_frame() = 0;
 
-    /// Block until the device has finished everything submitted so far.
-    /// Required before destroying anything a submitted frame still refers
-    /// to, and before save_capture() can trust a capture is complete. Also
-    /// lets go of any Model 3 VideoFrame.
+    /// Block until the device has finished everything submitted so far, as
+    /// needed before destroying anything a frame refers to. Also lets go of any
+    /// Model 3 VideoFrame.
     virtual void wait_idle() = 0;
 
     // -- Sega Model 3 ---------------------------------------------------------
@@ -485,28 +406,16 @@ public:
     virtual void overlay_framebuffer_size(u32* width, u32* height) const = 0;
 };
 
-/// Names of every device a backend could be asked to prefer via
-/// BackendConfig::preferred_device, for a --list-gpus report or a settings
-/// dropdown. Free rather than a Backend method: it must be callable before
-/// any backend has been constructed.
+/// Names of every device BackendConfig::preferred_device can name. Callable
+/// before any backend is constructed.
 [[nodiscard]] std::vector<std::string> enumerate_render_devices();
 
 /// Construct the Vulkan backend, uninitialised (call init() before use).
-/// The caller (main.cpp) names this and Backend, never VulkanBackend itself.
 [[nodiscard]] std::unique_ptr<Backend> create_vulkan_backend();
 
-/// Construct the OpenGL backend, uninitialised. Whether this creates a
-/// desktop GL 4.3 core or a GLES 3.1 context depends on which CMake option
-/// was active at build time (SM2_BUILD_OPENGL_DESKTOP vs SM2_BUILD_OPENGL_ES;
-/// they are mutually exclusive).
-///
-/// Declared unconditionally so main.cpp can name it without an #ifdef; only
-/// defined (in sm2_render_gl) when either GL option was on at configure time.
-/// main.cpp guards the *call* behind
-/// `#if defined(SM2_HAVE_OPENGL_DESKTOP) || defined(SM2_HAVE_OPENGL_ES)`,
-/// so a build without this backend fails at --graphics-backend parsing with
-/// a named error rather than failing to link over an undefined symbol it
-/// was never going to call.
+/// Construct the OpenGL backend, uninitialised: desktop GL 4.3 core or GLES 3.1
+/// per SM2_BUILD_OPENGL_DESKTOP / SM2_BUILD_OPENGL_ES. Declared unconditionally
+/// but only defined when a GL option is on; main.cpp guards the call.
 [[nodiscard]] std::unique_ptr<Backend> create_opengl_backend();
 
 }  // namespace sm2::render

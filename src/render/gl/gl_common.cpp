@@ -26,10 +26,8 @@
 
 namespace sm2::render::gl {
 
-// One X-macro list drives both the declarations in gl_common.h and the
-// definitions + loader here, so the two cannot drift out of sync with each
-// other. See gl_common.h's own top comment for why every entry is named
-// without its "gl" prefix.
+// One X-macro list drives the declarations in gl_common.h and the definitions
+// and loader here.
 // clang-format off
 #define SM2_GL_FUNCTION_LIST(F) \
     F(GenBuffers, PFNGLGENBUFFERSPROC) \
@@ -158,9 +156,8 @@ bool gl_functions_loaded()
 
 void resolve_buffer_storage(SDL_FunctionPointer (*get_proc)(const char*), bool is_es)
 {
-    // GLES exposes this only as glBufferStorageEXT, never under the
-    // unsuffixed desktop name. A null result is not an error here --
-    // create_persistent_buffer() falls back to BufferSubData.
+    // GLES has only glBufferStorageEXT. Null is fine: create_persistent_buffer()
+    // falls back to BufferSubData.
     BufferStorage = reinterpret_cast<PFNGLBUFFERSTORAGEPROC>(
         get_proc(is_es ? "glBufferStorageEXT" : "glBufferStorage"));
 }
@@ -281,20 +278,13 @@ std::string prepare_gl_source(const char* embedded_source, const char* version_d
                                                     : line_end - version_pos + 1);
     }
 
-    // Strip Vulkan-only "set = N, " from layout qualifiers. OpenGL has no
-    // descriptor sets -- it uses a flat binding-point namespace -- so the
-    // set qualifier is illegal in desktop GLSL and must be removed. The
-    // shaders are authored for Vulkan (where set is required) and shared
-    // with the GL backend via this mechanical rewrite.
-    //
-    // The match requires that "set" is not preceded by an alphanumeric or
-    // underscore character, to avoid false positives like "offset = ...".
+    // Strip Vulkan-only "set = N, " from layout qualifiers; GL has no
+    // descriptor sets. "set" must not follow an identifier character, so
+    // "offset = ..." is left alone.
     {
         const std::string pattern = "set = ";
         usize pos = 0;
         while ((pos = source.find(pattern, pos)) != std::string::npos) {
-            // Only match if "set" is at the start or preceded by a non-identifier
-            // character (comma, open-paren, space, etc.).
             if (pos > 0) {
                 const char prev = source[pos - 1];
                 if ((prev >= 'a' && prev <= 'z') || (prev >= 'A' && prev <= 'Z')
@@ -304,13 +294,10 @@ std::string prepare_gl_source(const char* embedded_source, const char* version_d
                 }
             }
 
-            // Find the end of "set = N, " -- skip digits after "set = ", then
-            // consume the trailing ", " (comma + optional space).
             usize end = pos + pattern.size();
             while (end < source.size() && source[end] >= '0' && source[end] <= '9') {
                 ++end;
             }
-            // Consume ", " that follows the digit(s).
             if (end < source.size() && source[end] == ',') {
                 ++end;
                 if (end < source.size() && source[end] == ' ') {
@@ -351,18 +338,13 @@ std::string prepare_gl_source(const char* embedded_source, const char* version_d
                   "precision highp uimage2DArray;\n";
     }
     if (es || gl41) {
-        // ESSL and GLSL before 4.20 treat `const` on a local variable as "compile-time constant
-        // expression required" rather than the desktop-GL meaning of "immutable
-        // after initialisation". Strip `const ` from lines inside function
-        // bodies (identified by leading whitespace) so runtime-initialised
-        // locals compile. Global-scope const (no leading whitespace) is left
-        // alone -- those are literal constants the ESSL compiler accepts.
+        // ESSL and GLSL before 4.20 require a local `const` to be a constant
+        // expression. Strip `const ` from indented lines so runtime-initialised
+        // locals compile; unindented global constants are left alone.
         {
             const std::string pat = "const ";
             usize pos = 0;
             while ((pos = source.find(pat, pos)) != std::string::npos) {
-                // Check if this is inside a function body: preceded by a
-                // newline then at least one space/tab (indented line).
                 bool indented = false;
                 if (pos > 0) {
                     usize line_start = source.rfind('\n', pos - 1);
@@ -545,8 +527,7 @@ void apply_bindings(u32 program, const std::vector<BindingFixup>& fixups)
     UseProgram(static_cast<u32>(previous));
 }
 
-/// Compile one shader stage, logging its info log on failure. Returns 0 on
-/// failure, matching compile_program()'s own convention.
+/// Compile one shader stage, logging its info log on failure. 0 on failure.
 [[nodiscard]] u32 compile_stage(u32 stage_type, const char* source)
 {
     // Non-ASCII only appears in comments (the file banner); not every GLSL
@@ -657,12 +638,8 @@ PersistentBuffer create_persistent_buffer(usize bytes, u32 target)
     GenBuffers(1, &buffer.handle);
     BindBuffer(target, buffer.handle);
 
-    // GL_ARB_buffer_storage (core since 4.4) gives a persistently-mapped
-    // buffer, matching the Vulkan path's own host-coherent, always-mapped
-    // resources. Below that -- a 4.3-only driver -- BufferData plus
-    // BufferSubData per write is the correct fallback, not a gap: this
-    // project's floor is 4.1, and 4.3-only hardware without this extension
-    // is expected to exist even if none was available to test against.
+    // GL_ARB_buffer_storage gives a persistently mapped buffer like the Vulkan
+    // path's; without it, BufferSubData per write.
     if (has_gl_extension("GL_ARB_buffer_storage")) {
         constexpr GLbitfield kStorageFlags =
             GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;

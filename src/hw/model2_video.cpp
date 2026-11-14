@@ -17,11 +17,8 @@
 namespace sm2::hw {
 namespace {
 
-/// Where each colour component's block starts in the translation table, as word
-/// indices.
-///
-/// The table is three blocks of 32 components by 256 shades. Within a block the
-/// component selects a curve and the shade indexes along it.
+/// Where each colour's block starts in the translation table, in words. Each
+/// block is 32 components (curves) by 256 shades.
 constexpr u32 kRedBlockBase   = 0x0000 >> 1;
 constexpr u32 kGreenBlockBase = 0x4000 >> 1;
 constexpr u32 kBlueBlockBase  = 0x8000 >> 1;
@@ -29,10 +26,7 @@ constexpr u32 kBlueBlockBase  = 0x8000 >> 1;
 /// Stride between adjacent components within a block.
 constexpr u32 kComponentStride = 0x100;
 
-/// The shade flat 2D output always uses. The 3D pipeline picks its own from the
-/// polygon's luminance, which is six bits, so the shades below this one belong to
-/// 3D and this one sits just above them. It is also where the gamma curve has its
-/// bias.
+/// The shade flat 2D output uses, just above the 3D's six-bit luminance range.
 constexpr u32 kFlatShade = 0x40;
 
 /// Palette RAM is split: the 3D pipeline's colour bases are resolved against the
@@ -123,8 +117,6 @@ void Model2Video::serialize(Archive& ar)
     ar.raw(m_crtc_x_offset);
     ar.raw(m_crtc_y_offset);
     if (ar.loading() && !ar.failed()) {
-        // The decode caches are re-derived from the (restored) tile/char RAM;
-        // the pens from the (restored) palette RAM.
         m_tiles.invalidate_all();
         refresh_pens();
     }
@@ -274,11 +266,10 @@ void Model2Video::compose_rows(std::span<const u8> tile_ram, bool mask_a_hidden,
     std::fill(above + first, above + last, 0u);
     std::fill(front + first, front + last, u8{0});
 
-    // The layers are mixed among themselves first, back to front, so layer 0
-    // ends up on top whatever the categories. Pair B is drawn opaque: it is the
-    // backdrop. The category of the pixel that ends up on top then puts it
-    // behind or in front of the 3D. The vcop2 stage select needs this: pair B
-    // there is category one, yet "SHOOT TO SELECT" on pair A stays over it.
+    // The layers are mixed back to front first, so layer 0 ends up on top
+    // whatever the categories; pair B is the opaque backdrop. The top pixel's
+    // category then places it behind or in front of the 3D (vcop2's stage select
+    // needs this).
     const int begin = static_cast<int>(row_begin);
     const int end   = static_cast<int>(row_end);
     for (u32 layer = kTileLayers; layer-- > 0;) {
@@ -338,37 +329,30 @@ void Model2Video::draw_overlay(u32* above, u32 row_begin, u32 row_end) const
     }
 }
 
+// Derived from MAME's model2_state::draw_framebuffer. The visible raster is a
+// window into the 512-pixel-wide framebuffer, placed by the CRTC offsets.
 void Model2Video::draw_framebuffer(std::span<const u16> pixels)
 {
     if (pixels.empty()) {
         return;
     }
 
-    // Derived from MAME's model2_state::draw_framebuffer. The framebuffer is 512
-    // pixels wide and the visible raster is a window into it whose position is the
-    // inverse of the CRTC offsets that move the 3D projection.
-    //
-    // The source index is deliberately one linear offset rather than a clamped
-    // (x, y) pair: the horizontal offset is negative, so the leftmost columns of
-    // each raster line come from the end of the line above it in the buffer. That
-    // wrap is what the hardware reads and what MAME reproduces, and clamping the
-    // two axes separately blanks those columns instead.
+    // The raster is a window into the 512-wide framebuffer at the inverse of the
+    // CRTC offsets. The index is one linear offset, not a clamped (x, y): with the
+    // negative horizontal offset the leftmost columns wrap from the line above,
+    // as on hardware.
     constexpr s32 kFramebufferWidth  = 512;
     constexpr s32 kFramebufferHeight = 512;
     const s32     x_offset           = -m_crtc_x_offset;
     const s32     y_offset           = (kFramebufferHeight - static_cast<s32>(kHeight))
                             - m_crtc_y_offset;
 
-    // MAME's loops stop one short of the clip rectangle's last row and column, so
-    // the bottom row and right column keep the tilemap pixel underneath. Matched
-    // here because the target is its output, not its intent.
+    // As MAME, the last row and column are not drawn and keep the tilemap pixel.
     const u32 last_x = kWidth - 1;
     const u32 last_y = kHeight - 1;
 
-    // Note the component order: unlike palette RAM, which is xBBBBBGGGGGRRRRR,
-    // the framebuffer is xGGGGGRRRRRBBBBB. It is still resolved through the scroll
-    // colour table, so a framebuffer pixel and a tilemap pixel of the same colour
-    // come out the same.
+    // The framebuffer is xGGGGGRRRRRBBBBB, unlike palette RAM's xBBBBBGGGGGRRRRR,
+    // but still goes through the scroll colour table.
     for (u32 y = 0; y < last_y; ++y) {
         const s32 row = (static_cast<s32>(y) + y_offset) * kFramebufferWidth;
         for (u32 x = 0; x < last_x; ++x) {

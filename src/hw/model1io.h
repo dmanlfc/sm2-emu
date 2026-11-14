@@ -5,30 +5,17 @@
 // Derived from MAME's src/mame/sega/model1io.{h,cpp} (BSD-3-Clause,
 // copyright-holders Dirk Best).
 //
-// A whole small computer bolted to the side of the main board: a 4 MHz Z80, 16 KB
-// of its own firmware, 8 KB of RAM, a 315-5338A I/O expander for the switches and
-// lamps, an MSM6253 for the analogue controls, and a 93C45 holding the operator
-// settings. The main board never sees any of it directly -- the only connection is
-// a 2K dual-port RAM, which the Z80 fills in and the i960 reads.
+// A 4 MHz Z80 with 16 KB of firmware, 8 KB of RAM, a 315-5338A I/O expander, an
+// MSM6253 for the analogue controls and a 93C45 for the operator settings. The
+// main board reaches it only through a 2K dual-port RAM that the Z80 fills in,
+// so inputs appear only while the board's program is running.
 //
-// That indirection is the reason this board exists as a device rather than as a
-// handful of registers: on the CRX boards Sega replaced the whole thing with a
-// 315-5649 wired straight onto the i960's bus, so on the original Model 2 the
-// input path runs through a second CPU executing a real program, and inputs only
-// appear if that program is actually running.
+// Not modelled: the on-board push buttons (read as released), the dipswitch
+// banks (read as all ones, as every title expects), the opto-isolators, the
+// watchdog and the network connector.
 //
-// What is deliberately not modelled:
-//
-//   * The four on-board push buttons (MAME's "buttons" port, SW4 to SW7). They
-//     read as released, which is their idle state.
-//   * The three on-board dipswitch banks. They read as all ones, which is what
-//     every Model 2 title's PORT_DIPUNUSED default gives them; no title in scope
-//     reads a meaningful value from them.
-//   * The opto-isolators, the watchdog and the network connector.
-//
-// Note that only the low 16 KB of the 64 KB EPROM is addressable: MAME's mem_map
-// maps 0x0000-0x3fff and the ROM region is 0x10000 bytes. That is the board, not
-// an oversight -- the part is a 27C512 in a socket wired for a smaller device.
+// Only the low 16 KB of the 64 KB EPROM is addressable; the socket is wired for
+// a smaller part.
 #pragma once
 
 #include "core/types.h"
@@ -77,9 +64,8 @@ public:
     Model1io(const Model1io&)            = delete;
     Model1io& operator=(const Model1io&) = delete;
 
-    /// Attach the firmware. `firmware` is the `ioboard` ROM region; only its low
-    /// 16 KB is mapped, and an empty span leaves the board inert with a warning
-    /// rather than refusing to start, so a synthetic machine stays usable.
+    /// Attach the `ioboard` ROM region. An empty span leaves the board inert
+    /// with a warning.
     void attach(std::span<const u8> firmware);
 
     void reset();
@@ -88,11 +74,8 @@ public:
     [[nodiscard]] bool present() const { return !m_firmware.empty(); }
 
     /// Advance the board by its share of `host_cycles` of the main board's 25 MHz
-    /// clock.
-    ///
-    /// The board's Z80 runs at 4 MHz against that, so the remainder is carried
-    /// between calls rather than rounded away; at the fine interleave the machine
-    /// uses, rounding would lose most of the board's time.
+    /// clock. The remainder is carried between calls; at the machine's fine
+    /// interleave, rounding would lose most of the board's time.
     void run(u32 host_cycles);
 
     // -- wiring ------------------------------------------------------------
@@ -100,9 +83,8 @@ public:
     /// The dual-port RAM shared with the main board. Bound to its left-hand port.
     void set_dual_port(DualPortRead read_handler, DualPortWrite write_handler);
 
-    /// One of the three digital input ports. Index 0 is IN0 (coins, service, test,
-    /// start), 1 is IN1 (player 1) and 2 is IN2 (player 2, unbound on Desert
-    /// Tank, matching MAME's model2o config which only binds 0 and 1).
+    /// One of the three digital input ports: 0 is IN0 (coins, service, test,
+    /// start), 1 is IN1 (player 1), 2 is IN2 (player 2, unbound on Desert Tank).
     void set_input(u32 index, InputHandler handler);
 
     /// One of the eight analogue channels. MAME's an_callback<N>.

@@ -79,8 +79,7 @@ constexpr u32 kModeBlendOver             = 1;
     return true;
 }
 
-/// As record_image_barrier (vk_common.h), for a buffer. Only this file needs
-/// one so far; promote it if a second caller appears.
+/// As record_image_barrier (vk_common.h), for a buffer.
 void record_buffer_barrier(VkCommandBuffer      cmd,
                           VkBuffer              buffer,
                           VkDeviceSize          size,
@@ -126,18 +125,16 @@ bool TilemapPass::init(Context& context, u32 render_scale, u32 columns)
     m_panorama_cleared    = false;
     m_sky_generation      = 0;
 
-    // NEAREST: at N=1 the bands draw 1:1 (filter is a no-op); at N>1 they are
-    // integer-upscaled by exactly N into the scaled composite scope, so each
-    // native texel becomes a crisp NxN block with no interpolation. The final
-    // non-integer magnification to the window is PresentPass's LINEAR, separate.
+    // NEAREST: at N>1 the bands are integer-upscaled into the scaled composite, so
+    // each native texel becomes a crisp NxN block. PresentPass does the final
+    // non-integer magnification.
     VkSamplerCreateInfo sampler{};
     sampler.sType     = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler.magFilter = VK_FILTER_NEAREST;
     sampler.minFilter = VK_FILTER_NEAREST;
     sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-    // Clamping matters: the fullscreen triangle's texture coordinates reach
-    // exactly 1.0 at the right and bottom edges, and repeating would wrap the
-    // filter kernel round to the opposite side.
+    // Clamp: the fullscreen triangle's coordinates reach exactly 1.0 at the right
+    // and bottom, and repeating would wrap the filter to the opposite side.
     sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
@@ -246,15 +243,13 @@ bool TilemapPass::create_surfaces()
         VkBufferCreateInfo buffer{};
         buffer.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         buffer.size  = surface_bytes();
-        // STORAGE_BUFFER so the compose shader can write into this buffer
-        // directly; TRANSFER_SRC is unchanged, for the copy into the sampled
-        // image right after.
+        // STORAGE_BUFFER so the compose shader can write it; TRANSFER_SRC for the copy
+        // into the sampled image.
         buffer.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
         buffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        // Persistently mapped and host-coherent: the CPU writes a whole surface
-        // every frame, so there is nothing to gain from a device-local staging
-        // dance and no need for explicit flushes.
+        // Persistently mapped and host-coherent: the CPU path writes a whole surface
+        // every frame, so staging and flushes gain nothing.
         VmaAllocationCreateInfo allocation{};
         allocation.usage = VMA_MEMORY_USAGE_AUTO;
         allocation.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
@@ -329,8 +324,8 @@ bool TilemapPass::create_descriptors()
     pool.pPoolSizes    = &size;
     SM2_VK_TRY(vkCreateDescriptorPool(device, &pool, nullptr, &m_pool));
 
-    // One set per surface. Each names a fixed image, so nothing is rewritten
-    // during a frame and there is no risk of updating a set the GPU is reading.
+    // One set per surface, each naming a fixed image, so no set the GPU is reading
+    // is ever rewritten.
     for (Surface& surface : m_surfaces) {
         VkDescriptorSetAllocateInfo allocate{};
         allocate.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -468,10 +463,9 @@ bool TilemapPass::create_pipeline(bool blend, VkPipeline* out_pipeline)
     rendering.colorAttachmentCount    = 1;
     const VkFormat colour_format      = kNativeColourFormat;
     rendering.pColorAttachmentFormats = &colour_format;
-    // These draws never touch the stencil, but dynamic rendering requires a
-    // pipeline's declared formats to match the scope's exactly (no
-    // VK_EXT_dynamic_rendering_unused_attachments on the tiler targets), and the
-    // scope carries the 3D pass's fill-mask stencil, so declare it here too.
+    // These draws never touch the stencil, but dynamic rendering requires the
+    // pipeline's formats to match the scope's, which carries the 3D pass's
+    // fill-mask stencil.
     const VkFormat stencil_format     = m_context->stencil_format();
     rendering.stencilAttachmentFormat = stencil_format;
     rendering.depthAttachmentFormat =
@@ -508,9 +502,7 @@ bool TilemapPass::create_host_buffer(VkDeviceSize       size,
     buffer.usage       = usage;
     buffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    // Persistently mapped and host-coherent, as Poly3DPass::create_host_buffer:
-    // these are written whole by the CPU and read once by the GPU per refresh,
-    // which is rare after the first frame.
+    // Persistently mapped and host-coherent, as Poly3DPass::create_host_buffer.
     VmaAllocationCreateInfo allocation{};
     allocation.usage = VMA_MEMORY_USAGE_AUTO;
     allocation.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
@@ -569,8 +561,7 @@ bool TilemapPass::create_compute_resources()
     }
 
     // Six storage buffers: tile RAM, character RAM and pens (read), below and
-    // above (written -- the same staging buffers create_surfaces() made, now
-    // also bound here as this frame's compose target), and the panorama.
+    // above (the staging buffers from create_surfaces(), written), and the panorama.
     VkDescriptorSetLayoutBinding bindings[6]{};
     for (u32 index = 0; index < 6; ++index) {
         bindings[index].binding         = index;
@@ -607,9 +598,7 @@ bool TilemapPass::create_compute_resources()
         allocate.pSetLayouts        = &m_compute_set_layout;
         SM2_VK_TRY(vkAllocateDescriptorSets(device, &allocate, &target.set));
 
-        // Below/above bindings 3/4 name the same surfaces upload() used to
-        // memcpy into: surface 0 of this frame index is below, surface 1 is
-        // above (see kSurfacesPerFrame's layout in surface()/upload()).
+        // Bindings 3/4: surface 0 of this frame index is below, surface 1 above.
         const u32 below_index = index * kSurfacesPerFrame + 0;
         const u32 above_index = index * kSurfacesPerFrame + 1;
 
@@ -717,11 +706,9 @@ void TilemapPass::upload(std::span<const u32> below, std::span<const u32> above)
         transition_for_sampling(surface(index));
     }
 
-    // This slot's staging buffers now hold a CPU-composited frame, not
-    // whatever compute() last wrote -- force its next call to redo the
-    // dispatch regardless of whether the generation counters moved. Only the
-    // counters reset, not the whole struct: the buffers and descriptor set are
-    // live GPU resources that must survive to be reused, not recreated.
+    // This slot's staging buffers now hold a CPU-composited frame, so force the
+    // next compute() to redo its dispatch. Only the counters reset; the buffers and
+    // descriptor set are reused.
     ComputeFrame& stale     = compute_frame();
     stale.tile_generation   = 0;
     stale.char_generation   = 0;
@@ -794,9 +781,8 @@ void TilemapPass::dispatch_compose()
     m_context->write_timestamp(VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT,
                                GpuStage::TilemapCompose, false);
 
-    // The shader's writes to below/above are plain host-coherent buffers, not
-    // images, so there is no layout to transition -- only a barrier making
-    // sure the compute write finishes before the copy that follows reads it.
+    // The compose targets are buffers, so only a barrier is needed before the copy
+    // reads them.
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, m_compute_pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, m_compute_layout, 0, 1,
                             &target.set, 0, nullptr);
@@ -853,10 +839,9 @@ void TilemapPass::dispatch_compose()
 
 void TilemapPass::transition_for_transfer(const Surface& target)
 {
-    // From UNDEFINED: the previous contents are about to be overwritten in full,
-    // so there is nothing to preserve. The wait is on the fragment shader of the
-    // frame that last sampled this image, which the frame fence has already
-    // retired; the barrier is what makes that ordering explicit to the driver.
+    // From UNDEFINED: the contents are overwritten in full. The wait on the last
+    // frame's fragment shader is already retired by the fence but makes the
+    // ordering explicit.
     record_image_barrier(m_context->cmd(), target.image, VK_IMAGE_ASPECT_COLOR_BIT,
                          VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, 0,
@@ -949,9 +934,7 @@ void TilemapPass::record_above()
 {
     const VkCommandBuffer cmd = m_context->cmd();
 
-    // The 3D draw between record_below() and here set per-batch scissors; restore
-    // the full composite viewport and scissor so this fullscreen draw is not
-    // clipped to the last polygon batch's rectangle.
+    // Restore the full viewport and scissor after the 3D pass's per-batch scissors.
     const VkExtent2D extent{width() * m_render_scale, kSourceHeight * m_render_scale};
     const VkViewport viewport{0.0F, 0.0F, static_cast<float>(extent.width),
                               static_cast<float>(extent.height), 0.0F, 1.0F};

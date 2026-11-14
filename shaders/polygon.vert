@@ -17,22 +17,12 @@
 //
 // Positions a Model 2 polygon vertex and sets up perspective-correct texturing.
 //
-// The geometry engine has already done everything a vertex shader would normally
-// do: transform, project and clip. What arrives here is a screen-space position in
-// the raster's own coordinates, its view depth, and the raw texture point the
-// polygon ROM supplied for it.
-//
-// The one piece of arithmetic left is what makes texturing perspective-correct.
-// The hardware interpolates u/z, v/z and 1/z linearly across a scanline and
-// divides at every pixel. That is exactly what a GPU does to any varying when the
-// clip-space w is the view depth, so this shader puts the depth in w and
-// pre-multiplies the position by it. The divide the rasteriser performs then
-// cancels the multiplication for the position and supplies it for the texture
-// coordinates, and 1/w arrives in the fragment stage as gl_FragCoord.w for the
-// level-of-detail calculation to use.
-//
-// Depth itself is written as zero. There is no depth buffer to write to: which
-// polygon owns a pixel is decided by the stencil fill mask instead.
+// The geometry engine has already transformed, projected and clipped, so this
+// receives a raster-space position, its view depth and the raw texture point.
+// The hardware interpolates u/z, v/z and 1/z linearly and divides per pixel,
+// which is what a GPU does when clip-space w is the view depth, so the depth
+// goes in w and the position is pre-multiplied by it. 1/w reaches the fragment
+// stage as gl_FragCoord.w for the level-of-detail calculation.
 
 layout(location = 0) in vec2  inPosition;  // raster space: 0..496 by 0..384
 layout(location = 1) in vec2  inTexel;     // texture point, in texels
@@ -42,12 +32,8 @@ layout(location = 3) in uint  inPolygon;   // index into the parameter buffer
 layout(location = 0) out vec2      vTexel;
 layout(location = 1) out flat uint vPolygon;
 
-// Push constants need no backing buffer or descriptor under Vulkan, but GL/GLES
-// have no push-constant concept at all -- their nearest equivalent is a small
-// uniform block, which does need one. Branching here rather than adding a real
-// GL-only descriptor binding to the Vulkan pipeline keeps the working Vulkan
-// path untouched; see fullscreen_quad.vert's SM2_TARGET_GL define, set the same
-// way for the same reason.
+// GL/GLES have no push constants, so they use a small uniform block instead;
+// see fullscreen_quad.vert.
 #ifdef SM2_TARGET_GL
 layout(binding = 4) uniform Push {
 #else
@@ -56,21 +42,15 @@ layout(push_constant) uniform Push {
     // Reciprocal of the raster size, so the divide happens once per frame on the
     // host rather than twice per vertex here.
     vec2 invRaster;
-    // Render scale N (1 at native); read by polygon.frag, which shares this
-    // block. Unused here, but part of the same layout so both stages agree.
+    // Render scale (1 at native) and anisotropic filter quality, read only by
+    // polygon.frag but part of the shared layout.
     uint renderScale;
-    // Anisotropic texture-filter quality; read by polygon.frag. Unused here,
-    // part of the same layout so both stages agree on the block.
     uint textureQuality;
 } pc;
 
 void main()
 {
     vec2 ndc = inPosition * pc.invRaster * 2.0 - 1.0;
-
-    // No clip-Y flip on either target: the 3D now draws straight into the native
-    // framebuffer alongside the tilemap layers, agreeing with them. The old GL
-    // flip only cancelled the extra flip of the deleted offscreen-composite chain.
 
     // Clipping already discarded everything behind the eye, so the depth is
     // positive; the floor only guards against a denormal reaching the divide.

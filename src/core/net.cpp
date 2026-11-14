@@ -239,7 +239,6 @@ bool UdpSocket::open(const std::string& bind_ip, u16 port)
         return false;
     }
 
-    // Non-blocking.
 #if defined(_WIN32)
     u_long nonblock = 1;
     ioctlsocket(static_cast<SOCKET>(fd), FIONBIO, &nonblock);
@@ -296,7 +295,7 @@ bool UdpSocket::recv_from(std::vector<u8>& out)
 {
     if (m_fd == kInvalid) return false;
 
-    // Model 2 comm frames top out at 0x1000+1 bytes; a page is ample headroom.
+    // Model 2 comm frames top out at 0x1001 bytes.
     u8 buffer[0x10000];
     const auto n = ::recvfrom(
 #if defined(_WIN32)
@@ -313,10 +312,6 @@ bool UdpSocket::recv_from(std::vector<u8>& out)
     out.assign(buffer, buffer + n);
     return true;
 }
-
-// ---------------------------------------------------------------------------
-// Process startup / teardown
-// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // TcpServer
@@ -496,6 +491,10 @@ void TcpServer::flush()
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Process startup / teardown
+// ---------------------------------------------------------------------------
 
 #if defined(_WIN32)
 

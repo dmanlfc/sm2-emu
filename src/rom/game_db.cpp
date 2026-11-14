@@ -1112,9 +1112,8 @@ bool GameDatabase::merge_clones(const Declarations& declared)
             }
         }
 
-        // Revisions share a cabinet, so the control wiring is inherited whole
-        // rather than per channel: a clone that declares any analogue channel
-        // of its own is describing a different machine config and keeps it.
+        // The control wiring is inherited whole, not per channel: a clone that
+        // declares any analogue channel describes a different cabinet.
         const bool declares_analog =
             std::any_of(game.analog.begin(), game.analog.end(), [](const AnalogChannel& c) {
                 return c.control != AnalogControl::None;
@@ -1138,9 +1137,7 @@ bool GameDatabase::merge_clones(const Declarations& declared)
         }
         if (!game.motion_base)         { game.motion_base = parent.motion_base; }
         if (game.device_sets.empty())  { game.device_sets = parent.device_sets; }
-        // A clone cannot be more validated than its parent unless it has been
-        // explicitly boot-tested as well. Keep preliminary status conservative
-        // across revisions so --list-games does not advertise an unverified set.
+        // A clone is no more validated than its parent unless boot-tested itself.
         game.preliminary = game.preliminary || parent.preliminary;
 
         // A region the child redefines replaces the parent's entirely, which is
