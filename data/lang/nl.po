@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -73,6 +73,266 @@ msgstr "geen"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "Linkerhendel omlaag"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "Linkerhendel omhoog"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "Linkerhendel links"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "Linkerhendel rechts"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "Rechterhendel omlaag"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "Rechterhendel omhoog"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "Rechterhendel links"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "Rechterhendel rechts"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "Linkerschot"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "Rechterschot"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "Linkerdash"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "Rechterdash"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "Linkerhendel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Rechterhendel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "Linkerstok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "Rechterstok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "Lijnspanning"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "Joystick"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "Richten"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "Hengel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "Sturen"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Trekker"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "Herladen"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "Raket"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "Ontwijken"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "Blokkeren"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "Trap"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "Stoot"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "Slaan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "Opladen"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "Springen"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "Zijstap"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "Lange pass"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "Schieten"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "Korte pass"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (rood)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (blauw)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (geel)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (groen)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "Event 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "Event 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "Uitwerpen"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "Selecteren"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "Muziekkeuze"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Beeld"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "Handrem"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "Pedaal"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "Selecteren 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "Selecteren 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "Selecteren 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "Trekker 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "Trekker 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "Bestand"
 
@@ -110,11 +370,6 @@ msgstr "FPS-teller"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "Meldingen op scherm"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "Lichtpistoolmodus"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1343,11 +1598,6 @@ msgstr "Sturen / richten"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "Rechterhendel"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "Rechterstick"
 
@@ -1390,21 +1640,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "Trekker"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "Raket"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "Herladen"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "Laser"
 
@@ -1415,8 +1650,18 @@ msgstr "Torpedo"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "Beeld"
+msgid "Throttle back"
+msgstr "Gas terug"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "Gas vooruit"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Gas"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1457,6 +1702,31 @@ msgstr "Beeld 4"
 #, no-c-format
 msgid "Stick"
 msgstr "Stick"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "Kanon"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "Links kantelen"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "Rechts kantelen"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "Fout annuleren"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "Netwerk annuleren"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1658,14 +1928,34 @@ msgstr "Volume"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "Auto"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "Uit"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "Aan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "Pistoolmodus"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"Toon het richtkruis en verberg de muiscursor\n"
-"voor de lichtpistoolspellen (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"Het richtkruis om te richten, met de muisaanwijzer verborgen.\n"
+"Auto zet het aan in een schietspel; Aan verbergt de\n"
+"aanwijzer in elk spel; Uit toont nooit een richtkruis."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1716,11 +2006,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"Speler 1 richt met de muis; de linkerknop schiet en de rechterknop herlaadt "
-"(schiet buiten het scherm)."
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "Standaard richt speler 1 met de muis (de linkerknop schiet en de rechterknop herlaadt door buiten het scherm te schieten) en speler 2 met een gamepad."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2265,6 +2553,28 @@ msgid "No description available."
 msgstr "Geen beschrijving beschikbaar."
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "Lichtpistoolmodus"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "Toon het richtkruis en verberg de muiscursor\n"
+#~ "voor de lichtpistoolspellen (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "Speler 1 richt met de muis; de linkerknop schiet en de rechterknop "
+#~ "herlaadt (schiet buiten het scherm)."
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "Waar F12-schermafbeeldingen worden opgeslagen."
 
@@ -2330,10 +2640,6 @@ msgstr "Geen beschrijving beschikbaar."
 #~ "bestuurt het spel nog steeds, en de knoppen en assen ervan zijn\n"
 #~ "hieronder toe te wijzen zonder terug te klikken in dit venster.\n"
 #~ "Toetsenbord en muis hebben het venster nog steeds vooraan nodig."
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "Gas"
 
 #, no-c-format
 #~ msgid "Throttle Up"

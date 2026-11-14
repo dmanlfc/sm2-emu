@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -71,6 +71,266 @@ msgstr "няма"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "Ляв лост надолу"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "Ляв лост нагоре"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "Ляв лост наляво"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "Ляв лост надясно"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "Десен лост надолу"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "Десен лост нагоре"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "Десен лост наляво"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "Десен лост надясно"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "Ляв изстрел"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "Десен изстрел"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "Ляво ускорение"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "Дясно ускорение"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "Ляв лост"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Десен лост"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "Лява щека"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "Дясна щека"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "Опъване на влакното"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "Джойстик"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "Прицел"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "Въдица"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "Завой"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Спусък"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "Презареждане"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "Ракета"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "Избягване"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "Блок"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "Ритник"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "Удар"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "Атака"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "Заряд"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "Скок"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "Странична стъпка"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "Дълъг пас"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "Шут"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "Къс пас"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (червен)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (син)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (жълт)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (зелен)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "Събитие 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "Събитие 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "Замятане"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "Избор"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "Избор на музика"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Изглед"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "Ръчна спирачка"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "Педал"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "Избор 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "Избор 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "Избор 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "Спусък 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "Спусък 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "Файл"
 
@@ -108,11 +368,6 @@ msgstr "Брояч на FPS"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "Известия на екрана"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "Режим светлинен пистолет"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1341,11 +1596,6 @@ msgstr "Завой / Прицел"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "Десен лост"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "Десен стик"
 
@@ -1388,21 +1638,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "Спусък"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "Ракета"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "Презареждане"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "Лазер"
 
@@ -1413,8 +1648,18 @@ msgstr "Торпедо"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "Изглед"
+msgid "Throttle back"
+msgstr "Газ назад"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "Газ напред"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Газ"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1455,6 +1700,31 @@ msgstr "Изглед 4"
 #, no-c-format
 msgid "Stick"
 msgstr "Стик"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "Оръдие"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "Наклон наляво"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "Наклон надясно"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "Отказ на грешка"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "Отказ на мрежа"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1653,14 +1923,34 @@ msgstr "Сила на звука"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "Авто"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "Изкл."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "Вкл."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "Режим пистолет"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"Показва мерника и скрива курсора на мишката за\n"
-"игрите със светлинен пистолет (Virtua Cop 2, House of\n"
-"the Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"Мерникът за прицелване, със скрит показалец на мишката.\n"
+"Авто го включва в игри с пистолет; Вкл. скрива показалеца\n"
+"във всяка игра; Изкл. никога не показва мерник."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1711,11 +2001,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"Играч 1 се прицелва с мишката; левият бутон стреля, а десният презарежда "
-"(изстрел извън екрана)."
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "По подразбиране играч 1 се прицелва с мишката (левият бутон стреля, а десният презарежда чрез изстрел извън екрана), а играч 2 — с геймпад."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2259,6 +2547,28 @@ msgid "No description available."
 msgstr "Няма налично описание."
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "Режим светлинен пистолет"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "Показва мерника и скрива курсора на мишката за\n"
+#~ "игрите със светлинен пистолет (Virtua Cop 2, House of\n"
+#~ "the Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "Играч 1 се прицелва с мишката; левият бутон стреля, а десният презарежда "
+#~ "(изстрел извън екрана)."
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "Къде се записват снимките на екрана с F12."
 
@@ -2323,10 +2633,6 @@ msgstr "Няма налично описание."
 #~ "играта, а бутоните и осите им могат да се зададат по-долу, без\n"
 #~ "да се щраква обратно в този прозорец. Клавиатурата и мишката\n"
 #~ "пак изискват прозорецът да е отпред."
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "Газ"
 
 #, no-c-format
 #~ msgid "Throttle Up"

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -67,6 +67,266 @@ msgstr "žiadna"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "Ľavá páka dole"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "Ľavá páka hore"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "Ľavá páka vľavo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "Ľavá páka vpravo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "Pravá páka dole"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "Pravá páka hore"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "Pravá páka vľavo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "Pravá páka vpravo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "Ľavý výstrel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "Pravý výstrel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "Ľavý šprint"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "Pravý šprint"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "Ľavá páka"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Pravá páka"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "Ľavá palica"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "Pravá palica"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "Napätie vlasca"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "Joystick"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "Mierenie"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "Prút"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "Riadenie"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Spúšť"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "Prebitie"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "Raketa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "Úhyb"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "Kryt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "Kop"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "Úder"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "Útok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "Nabitie"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "Skok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "Úkrok"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "Dlhá prihrávka"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "Strela"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "Krátka prihrávka"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (červené)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (modré)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (žlté)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (zelené)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "Udalosť 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "Udalosť 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "Nahodenie"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "Výber"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "Výber hudby"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Pohľad"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "Ručná brzda"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "Pedál"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "Výber 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "Výber 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "Výber 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "Spúšť 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "Spúšť 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "Súbor"
 
@@ -104,11 +364,6 @@ msgstr "Počítadlo FPS"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "Oznámenia na obrazovke"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "Režim svetelnej pištole"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1336,11 +1591,6 @@ msgstr "Riadenie / Mierenie"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "Pravá páka"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "Pravá páčka"
 
@@ -1383,21 +1633,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "Spúšť"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "Raketa"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "Prebitie"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "Laser"
 
@@ -1408,8 +1643,18 @@ msgstr "Torpédo"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "Pohľad"
+msgid "Throttle back"
+msgstr "Plyn späť"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "Plyn dopredu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Plyn"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1450,6 +1695,31 @@ msgstr "Pohľad 4"
 #, no-c-format
 msgid "Stick"
 msgstr "Páčka"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "Kanón"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "Náklon vľavo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "Náklon vpravo"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "Zrušiť chybu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "Zrušiť sieť"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1648,14 +1918,34 @@ msgstr "Hlasitosť"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "Auto"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "Vypnuté"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "Zapnuté"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "Režim pištole"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"Zobrazí zameriavač a skryje kurzor myši\n"
-"v hrách pre pištoľ (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"Zameriavač na mierenie, so skrytým kurzorom myši.\n"
+"Auto ho zapne v hre so zbraňou; Zapnuté skryje kurzor\n"
+"v každej hre; Vypnuté nikdy nezobrazí zameriavač."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1706,11 +1996,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"Hráč 1 mieri myšou; ľavé tlačidlo strieľa a pravé nabíja (výstrel mimo "
-"obrazovky)."
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "Predvolene hráč 1 mieri myšou (ľavé tlačidlo strieľa a pravé nabíja výstrelom mimo obrazovky) a hráč 2 gamepadom."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2254,6 +2542,28 @@ msgid "No description available."
 msgstr "Popis nie je k dispozícii."
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "Režim svetelnej pištole"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "Zobrazí zameriavač a skryje kurzor myši\n"
+#~ "v hrách pre pištoľ (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "Hráč 1 mieri myšou; ľavé tlačidlo strieľa a pravé nabíja (výstrel mimo "
+#~ "obrazovky)."
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "Kam sa ukladajú snímky obrazovky z F12."
 
@@ -2317,10 +2627,6 @@ msgstr "Popis nie je k dispozícii."
 #~ "panel automatu cez vJoy) ďalej riadi hru a jeho tlačidlá a osi\n"
 #~ "sa dajú priradiť nižšie bez kliknutia späť do tohto okna.\n"
 #~ "Klávesnica a myš stále potrebujú okno vpredu."
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "Plyn"
 
 #, no-c-format
 #~ msgid "Throttle Up"

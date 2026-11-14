@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -72,6 +72,266 @@ msgstr "कोई नहीं"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "बायाँ लीवर नीचे"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "बायाँ लीवर ऊपर"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "बायाँ लीवर बाएँ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "बायाँ लीवर दाएँ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "दायाँ लीवर नीचे"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "दायाँ लीवर ऊपर"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "दायाँ लीवर बाएँ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "दायाँ लीवर दाएँ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "बायाँ शॉट"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "दायाँ शॉट"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "बायाँ डैश"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "दायाँ डैश"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "बायाँ लीवर"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "दायाँ लीवर"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "बायाँ पोल"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "दायाँ पोल"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "डोरी का तनाव"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "जॉयस्टिक"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "निशाना"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "रॉड"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "स्टीयरिंग"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "ट्रिगर"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "बंदूक रीलोड"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "मिसाइल"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "बचाव"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "गार्ड"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "किक"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "पंच"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "वार"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "चार्ज वार"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "कूद"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "साइडस्टेप"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "लंबा पास"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "शूट"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "छोटा पास"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (लाल)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (नीला)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (पीला)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (हरा)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "इवेंट 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "इवेंट 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "कास्ट"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "चयन"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "संगीत चयन"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "व्यू"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "हैंडब्रेक"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "पैडल"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "चयन 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "चयन 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "चयन 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "ट्रिगर 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "ट्रिगर 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "फ़ाइल"
 
@@ -109,11 +369,6 @@ msgstr "FPS काउंटर"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "स्क्रीन पर सूचनाएँ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "लाइट-गन मोड"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1338,11 +1593,6 @@ msgstr "स्टीयर / निशाना"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "दायाँ लीवर"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "दायाँ स्टिक"
 
@@ -1385,21 +1635,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "ट्रिगर"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "मिसाइल"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "बंदूक रीलोड"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "लेज़र"
 
@@ -1410,8 +1645,18 @@ msgstr "टॉरपीडो"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "व्यू"
+msgid "Throttle back"
+msgstr "थ्रॉटल पीछे"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "थ्रॉटल आगे"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "थ्रॉटल"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1452,6 +1697,31 @@ msgstr "व्यू 4"
 #, no-c-format
 msgid "Stick"
 msgstr "स्टिक"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "तोप"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "बाएँ झुकाव"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "दाएँ झुकाव"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "त्रुटि रद्द करें"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "नेटवर्क रद्द करें"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1651,14 +1921,34 @@ msgstr "वॉल्यूम"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "स्वचालित"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "बंद"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "चालू"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "गन मोड"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"निशाने का क्रॉसहेयर दिखाएँ और माउस कर्सर छिपाएँ,\n"
-"लाइट-गन गेम के लिए (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)।"
+"निशाने का क्रॉसहेयर, माउस पॉइंटर छिपाकर।\n"
+"स्वचालित इसे गन गेम में चालू करता है; चालू हर गेम में\n"
+"पॉइंटर छिपाता है; बंद कभी क्रॉसहेयर नहीं दिखाता।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1709,11 +1999,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"खिलाड़ी 1 माउस से निशाना लगाता है; बायाँ बटन गोली चलाता है और दायाँ बटन रीलोड करता "
-"है (स्क्रीन के बाहर शूट)।"
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "डिफ़ॉल्ट रूप से खिलाड़ी 1 माउस से निशाना लगाता है (बायाँ बटन फ़ायर करता है और दायाँ स्क्रीन के बाहर शॉट करके रीलोड करता है) और खिलाड़ी 2 गेमपैड से।"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2254,6 +2542,28 @@ msgid "No description available."
 msgstr "कोई विवरण उपलब्ध नहीं।"
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "लाइट-गन मोड"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "निशाने का क्रॉसहेयर दिखाएँ और माउस कर्सर छिपाएँ,\n"
+#~ "लाइट-गन गेम के लिए (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)।"
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "खिलाड़ी 1 माउस से निशाना लगाता है; बायाँ बटन गोली चलाता है और दायाँ बटन रीलोड "
+#~ "करता है (स्क्रीन के बाहर शूट)।"
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "F12 स्क्रीनशॉट कहाँ लिखे जाते हैं।"
 
@@ -2316,10 +2626,6 @@ msgstr "कोई विवरण उपलब्ध नहीं।"
 #~ "vJoy से कैबिनेट पैनल) फिर भी गेम चलाता है, और इस विंडो में\n"
 #~ "वापस क्लिक किए बिना नीचे उसके बटन और अक्ष जोड़े जा सकते हैं।\n"
 #~ "कीबोर्ड और माउस के लिए विंडो सामने होनी चाहिए।"
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "थ्रॉटल"
 
 #, no-c-format
 #~ msgid "Throttle Up"

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -67,6 +67,266 @@ msgstr "tidak ada"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "Tuas Kiri Bawah"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "Tuas Kiri Atas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "Tuas Kiri Kiri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "Tuas Kiri Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "Tuas Kanan Bawah"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "Tuas Kanan Atas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "Tuas Kanan Kiri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "Tuas Kanan Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "Tembak Kiri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "Tembak Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "Dash Kiri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "Dash Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "Tuas Kiri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Tuas Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "Tongkat Kiri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "Tongkat Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "Tegangan Senar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "Joystick"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "Bidik"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "Joran"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "Kemudi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Pelatuk"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "Isi ulang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "Misil"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "Menghindar"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "Tangkis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "Tendang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "Pukul"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "Serang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "Serangan Kuat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "Lompat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "Langkah Samping"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "Umpan Panjang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "Tembakan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "Umpan Pendek"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (merah)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (biru)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (kuning)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (hijau)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "Event 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "Event 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "Lempar Kail"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "Pilih"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "Pilih Musik"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Tampilan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "Rem Tangan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "Pedal"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "Pilih 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "Pilih 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "Pilih 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "Pelatuk 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "Pelatuk 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "Berkas"
 
@@ -104,11 +364,6 @@ msgstr "Penghitung FPS"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "Notifikasi di layar"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "Mode light gun"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1333,11 +1588,6 @@ msgstr "Kemudi / Bidik"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "Tuas Kanan"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "Stik Kanan"
 
@@ -1380,21 +1630,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "Pelatuk"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "Misil"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "Isi ulang"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "Laser"
 
@@ -1405,8 +1640,18 @@ msgstr "Torpedo"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "Tampilan"
+msgid "Throttle back"
+msgstr "Gas Mundur"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "Gas Maju"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Throttle"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1447,6 +1692,31 @@ msgstr "Tampilan 4"
 #, no-c-format
 msgid "Stick"
 msgstr "Stik"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "Meriam"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "Miring Kiri"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "Miring Kanan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "Batalkan Galat"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "Batalkan Jaringan"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1645,14 +1915,34 @@ msgstr "Volume"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "Otomatis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "Mati"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "Nyala"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "Mode senjata"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"Tampilkan crosshair dan sembunyikan kursor mouse, untuk\n"
-"game light gun (Virtua Cop 2, House of the Dead,\n"
-"Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"Crosshair bidik, dengan penunjuk mouse disembunyikan.\n"
+"Otomatis menyalakannya di game senjata; Nyala menyembunyikan\n"
+"penunjuk di semua game; Mati tak pernah menampilkan crosshair."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1703,11 +1993,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"Pemain 1 membidik dengan mouse; tombol kiri menembak dan tombol kanan "
-"mengisi ulang (tembak ke luar layar)."
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "Secara bawaan pemain 1 membidik dengan mouse (tombol kiri menembak dan tombol kanan mengisi ulang dengan menembak ke luar layar) dan pemain 2 dengan gamepad."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2252,6 +2540,28 @@ msgid "No description available."
 msgstr "Deskripsi tidak tersedia."
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "Mode light gun"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "Tampilkan crosshair dan sembunyikan kursor mouse, untuk\n"
+#~ "game light gun (Virtua Cop 2, House of the Dead,\n"
+#~ "Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "Pemain 1 membidik dengan mouse; tombol kiri menembak dan tombol kanan "
+#~ "mengisi ulang (tembak ke luar layar)."
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "Tempat tangkapan layar F12 ditulis."
 
@@ -2316,10 +2626,6 @@ msgstr "Deskripsi tidak tersedia."
 #~ "mesin arkade lewat vJoy, misalnya) tetap mengemudikan game, dan\n"
 #~ "tombol serta sumbunya bisa dipasang di bawah tanpa mengklik\n"
 #~ "kembali jendela ini. Keyboard dan mouse tetap butuh jendela di depan."
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "Throttle"
 
 #, no-c-format
 #~ msgid "Throttle Up"

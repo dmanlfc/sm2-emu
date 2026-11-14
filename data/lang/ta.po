@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -72,6 +72,266 @@ msgstr "ஏதுமில்லை"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "இடது லீவர் கீழே"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "இடது லீவர் மேலே"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "இடது லீவர் இடது"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "இடது லீவர் வலது"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "வலது லீவர் கீழே"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "வலது லீவர் மேலே"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "வலது லீவர் இடது"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "வலது லீவர் வலது"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "இடது ஷாட்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "வலது ஷாட்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "இடது டாஷ்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "வலது டாஷ்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "இடது லீவர்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "வலது லீவர்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "இடது கம்பு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "வலது கம்பு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "நூல் இழுவிசை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "ஜாய்ஸ்டிக்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "குறி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "தூண்டில்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "ஸ்டீயரிங்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "டிரிகர்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "மீள்நிரப்பு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "ஏவுகணை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "விலகு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "தடு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "உதை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "குத்து"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "அடி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "சார்ஜ் அடி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "குதி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "பக்கவாட்டு நகர்வு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "நீண்ட பாஸ்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "ஷூட்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "குறுகிய பாஸ்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (சிவப்பு)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (நீலம்)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (மஞ்சள்)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (பச்சை)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "நிகழ்வு 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "நிகழ்வு 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "தூண்டில் வீசு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "தேர்வு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "இசைத் தேர்வு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "காட்சி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "ஹேண்ட்பிரேக்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "பெடல்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "தேர்வு 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "தேர்வு 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "தேர்வு 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "டிரிகர் 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "டிரிகர் 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "கோப்பு"
 
@@ -109,11 +369,6 @@ msgstr "FPS கணக்கி"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "திரை அறிவிப்புகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "லைட்-கன் பயன்முறை"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1340,11 +1595,6 @@ msgstr "திருப்பு / குறிவை"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "வலது லீவர்"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "வலது ஸ்டிக்"
 
@@ -1387,21 +1637,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "டிரிகர்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "ஏவுகணை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "மீள்நிரப்பு"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "லேசர்"
 
@@ -1412,8 +1647,18 @@ msgstr "டார்பிடோ"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "காட்சி"
+msgid "Throttle back"
+msgstr "த்ராட்டில் பின்னால்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "த்ராட்டில் முன்னால்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "த்ராட்டில்"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1454,6 +1699,31 @@ msgstr "காட்சி 4"
 #, no-c-format
 msgid "Stick"
 msgstr "ஸ்டிக்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "பீரங்கி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "இடது சாய்வு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "வலது சாய்வு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "பிழையை ரத்துசெய்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "நெட்வொர்க்கை ரத்துசெய்"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1652,14 +1922,34 @@ msgstr "ஒலியளவு"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "தானியங்கு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "அணை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "இயக்கு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "துப்பாக்கி பயன்முறை"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"குறிவைக்கும் குறுக்குக்கோட்டைக் காட்டி, மவுஸ் சுட்டியை மறை,\n"
-"லைட்-கன் கேம்களுக்கு (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"மவுஸ் சுட்டியை மறைத்து காட்டப்படும் குறிவைப்பு.\n"
+"தானியங்கு துப்பாக்கி விளையாட்டில் இதை இயக்கும்; இயக்கு எல்லா\n"
+"விளையாட்டிலும் சுட்டியை மறைக்கும்; அணை குறிவைப்பை ஒருபோதும் காட்டாது."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1710,11 +2000,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"வீரர் 1 மவுஸால் குறிவைக்கிறார்; இடது பொத்தான் சுடும், வலது பொத்தான் மீண்டும் நிரப்பும் "
-"(திரைக்கு வெளியே சுடுதல்)."
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "இயல்பாக பிளேயர் 1 மவுஸால் குறிவைக்கிறார் (இடது பொத்தான் சுடும், வலது பொத்தான் திரைக்கு வெளியே சுட்டு மீண்டும் நிரப்பும்), பிளேயர் 2 கேம்பேடால்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2259,6 +2547,28 @@ msgid "No description available."
 msgstr "விளக்கம் இல்லை."
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "லைட்-கன் பயன்முறை"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "குறிவைக்கும் குறுக்குக்கோட்டைக் காட்டி, மவுஸ் சுட்டியை மறை,\n"
+#~ "லைட்-கன் கேம்களுக்கு (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "வீரர் 1 மவுஸால் குறிவைக்கிறார்; இடது பொத்தான் சுடும், வலது பொத்தான் மீண்டும் நிரப்பும் "
+#~ "(திரைக்கு வெளியே சுடுதல்)."
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "F12 திரைப்பிடிப்புகள் எழுதப்படும் இடம்."
 
@@ -2323,10 +2633,6 @@ msgstr "விளக்கம் இல்லை."
 #~ "இயக்கும்; இந்தச் சாளரத்தில் மீண்டும் கிளிக் செய்யாமல் கீழே\n"
 #~ "அதன் பொத்தான்களையும் அச்சுகளையும் இணைக்கலாம். விசைப்பலகையும்\n"
 #~ "சுட்டியும் சாளரம் முன்னால் இருக்க வேண்டும்."
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "த்ராட்டில்"
 
 #, no-c-format
 #~ msgid "Throttle Up"

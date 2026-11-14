@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -72,6 +72,266 @@ msgstr "ไม่มี"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "คันโยกซ้ายลง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "คันโยกซ้ายขึ้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "คันโยกซ้ายไปซ้าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "คันโยกซ้ายไปขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "คันโยกขวาลง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "คันโยกขวาขึ้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "คันโยกขวาไปซ้าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "คันโยกขวาไปขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "ยิงซ้าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "ยิงขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "แดชซ้าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "แดชขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "คันโยกซ้าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "คันโยกขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "ไม้ค้ำซ้าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "ไม้ค้ำขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "แรงตึงสายเบ็ด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "จอยสติก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "เล็ง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "คันเบ็ด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "บังคับเลี้ยว"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "ไก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "บรรจุกระสุน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "ขีปนาวุธ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "หลบ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "ป้องกัน"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "เตะ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "ต่อย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "โจมตี"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "ชาร์จ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "กระโดด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "ก้าวหลบ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "ส่งยาว"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "ยิงประตู"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "ส่งสั้น"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (แดง)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (น้ำเงิน)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (เหลือง)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (เขียว)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "อีเวนต์ 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "อีเวนต์ 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "เหวี่ยงเบ็ด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "เลือก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "เลือกเพลง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "มุมมอง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "เบรกมือ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "แป้นเหยียบ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "เลือก 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "เลือก 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "เลือก 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "ไก 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "ไก 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "ไฟล์"
 
@@ -109,11 +369,6 @@ msgstr "ตัวนับ FPS"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "การแจ้งเตือนบนหน้าจอ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "โหมดปืนแสง"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1336,11 +1591,6 @@ msgstr "บังคับเลี้ยว / เล็ง"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "คันโยกขวา"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "สติกขวา"
 
@@ -1383,21 +1633,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "ไก"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "ขีปนาวุธ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "บรรจุกระสุน"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "เลเซอร์"
 
@@ -1408,8 +1643,18 @@ msgstr "ตอร์ปิโด"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "มุมมอง"
+msgid "Throttle back"
+msgstr "ลดคันเร่ง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "เพิ่มคันเร่ง"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "คันเร่ง"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1450,6 +1695,31 @@ msgstr "มุมมอง 4"
 #, no-c-format
 msgid "Stick"
 msgstr "สติก"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "ปืนใหญ่"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "เอียงซ้าย"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "เอียงขวา"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "ยกเลิกข้อผิดพลาด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "ยกเลิกเครือข่าย"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1646,14 +1916,34 @@ msgstr "ระดับเสียง"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "อัตโนมัติ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "ปิด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "เปิด"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "โหมดปืน"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"แสดงเป้าเล็งและซ่อนเคอร์เซอร์เมาส์\n"
-"สำหรับเกมปืนแสง (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)"
+"เป้าเล็งสำหรับเล็ง โดยซ่อนตัวชี้เมาส์\n"
+"อัตโนมัติจะเปิดในเกมยิงปืน เปิดจะซ่อนตัวชี้ใน\n"
+"ทุกเกม ปิดจะไม่แสดงเป้าเล็งเลย"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1704,9 +1994,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr "ผู้เล่น 1 เล็งด้วยเมาส์ ปุ่มซ้ายยิง ปุ่มขวาบรรจุกระสุน (ยิงนอกจอ)"
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "โดยค่าเริ่มต้น ผู้เล่น 1 เล็งด้วยเมาส์ (ปุ่มซ้ายยิง ปุ่มขวารีโหลดโดยยิงออกนอกจอ) และผู้เล่น 2 ใช้เกมแพด"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2243,6 +2533,26 @@ msgid "No description available."
 msgstr "ไม่มีคำอธิบาย"
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "โหมดปืนแสง"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "แสดงเป้าเล็งและซ่อนเคอร์เซอร์เมาส์\n"
+#~ "สำหรับเกมปืนแสง (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr "ผู้เล่น 1 เล็งด้วยเมาส์ ปุ่มซ้ายยิง ปุ่มขวาบรรจุกระสุน (ยิงนอกจอ)"
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "ตำแหน่งที่บันทึกภาพหน้าจอจาก F12"
 
@@ -2304,10 +2614,6 @@ msgstr "ไม่มีคำอธิบาย"
 #~ "ผ่าน vJoy) ยังบังคับเกมได้ และกำหนดปุ่มกับแกนของมันได้ด้านล่าง\n"
 #~ "โดยไม่ต้องคลิกกลับมาที่หน้าต่างนี้ คีย์บอร์ดและเมาส์ยังต้องให้\n"
 #~ "หน้าต่างอยู่ด้านหน้า"
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "คันเร่ง"
 
 #, no-c-format
 #~ msgid "Throttle Up"

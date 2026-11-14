@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -70,6 +70,266 @@ msgstr "無"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "左操縱桿下"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "左操縱桿上"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "左操縱桿左"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "左操縱桿右"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "右操縱桿下"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "右操縱桿上"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "右操縱桿左"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "右操縱桿右"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "左射擊"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "右射擊"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "左衝刺"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "右衝刺"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "左操縱桿"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "右操縱桿"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "左雪杖"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "右雪杖"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "釣線張力"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "搖桿"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "瞄準"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "釣竿"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "轉向"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "扳機"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "裝彈"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "飛彈"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "閃避"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "防禦"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "踢"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "拳"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "攻擊"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "集氣"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "跳躍"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "側閃"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "長傳"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "射門"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "短傳"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1（紅）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2（藍）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3（黃）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4（綠）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "事件 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "事件 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "拋竿"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "選擇"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "選擇音樂"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "視角"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "手煞車"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "踏板"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "選擇 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "選擇 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "選擇 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "扳機 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "扳機 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "檔案"
 
@@ -107,11 +367,6 @@ msgstr "FPS 計數器"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "螢幕通知"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "光線槍模式"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1332,11 +1587,6 @@ msgstr "轉向 / 瞄準"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "右操縱桿"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "右類比搖桿"
 
@@ -1379,21 +1629,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "扳機"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "飛彈"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "裝彈"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "雷射"
 
@@ -1404,8 +1639,18 @@ msgstr "魚雷"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "視角"
+msgid "Throttle back"
+msgstr "收油門"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "推油門"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "油門"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1446,6 +1691,31 @@ msgstr "視角 4"
 #, no-c-format
 msgid "Stick"
 msgstr "搖桿"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "主砲"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "左傾"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "右傾"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "取消錯誤"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "取消網路"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1643,14 +1913,34 @@ msgstr "音量"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "自動"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "關閉"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "開啟"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "光線槍模式"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"顯示瞄準準星並隱藏滑鼠游標，\n"
-"用於光線槍遊戲（Virtua Cop 2、House of the\n"
-"Dead、Gunblade NY、Rail Chase 2、Behind Enemy Lines）。"
+"瞄準用的準星，同時隱藏滑鼠指標。\n"
+"自動：在光線槍遊戲中開啟；開啟：在所有\n"
+"遊戲中隱藏指標；關閉：永不顯示準星。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1701,9 +1991,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr "玩家 1 以滑鼠瞄準；左鍵射擊，右鍵裝填（朝畫面外射擊）。"
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "預設由玩家 1 以滑鼠瞄準（左鍵射擊，右鍵向螢幕外射擊以裝填），玩家 2 則使用遊戲手把。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2241,6 +2531,26 @@ msgid "No description available."
 msgstr "沒有簡介。"
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "光線槍模式"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "顯示瞄準準星並隱藏滑鼠游標，\n"
+#~ "用於光線槍遊戲（Virtua Cop 2、House of the\n"
+#~ "Dead、Gunblade NY、Rail Chase 2、Behind Enemy Lines）。"
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr "玩家 1 以滑鼠瞄準；左鍵射擊，右鍵裝填（朝畫面外射擊）。"
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "F12 螢幕截圖的儲存位置。"
 
@@ -2301,10 +2611,6 @@ msgstr "沒有簡介。"
 #~ "驅動的方向盤或面板（例如透過 vJoy 的大型機台面板）仍能操控\n"
 #~ "遊戲，其按鍵和軸也可在下方綁定，無需再點回此視窗。\n"
 #~ "鍵盤和滑鼠仍需視窗在前景。"
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "油門"
 
 #, no-c-format
 #~ msgid "Throttle Up"

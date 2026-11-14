@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -70,6 +70,266 @@ msgstr "なし"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "左レバー下"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "左レバー上"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "左レバー左"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "左レバー右"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "右レバー下"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "右レバー上"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "右レバー左"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "右レバー右"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "左ショット"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "右ショット"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "左ダッシュ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "右ダッシュ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "左レバー"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "右レバー"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "左ストック"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "右ストック"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "ラインテンション"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "ジョイスティック"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "照準"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "ロッド"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "ステアリング"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "トリガー"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "リロード"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "ミサイル"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "エスケープ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "ガード"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "キック"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "パンチ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "ビート"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "チャージ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "ジャンプ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "シフト"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "ロングパス"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "シュート"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "ショートパス"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1（赤）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2（青）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3（黄）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4（緑）"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "イベント 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "イベント 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "キャスト"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "セレクト"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "ミュージックセレクト"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "視点"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "サイドブレーキ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "ペダル"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "セレクト 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "セレクト 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "セレクト 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "トリガー 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "トリガー 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "ファイル"
 
@@ -107,11 +367,6 @@ msgstr "FPS 表示"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "画面上の通知"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "ライトガンモード"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1341,11 +1596,6 @@ msgstr "ステアリング / 照準"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "右レバー"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "右スティック"
 
@@ -1388,21 +1638,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "トリガー"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "ミサイル"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "リロード"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "レーザー"
 
@@ -1413,8 +1648,18 @@ msgstr "魚雷"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "視点"
+msgid "Throttle back"
+msgstr "スロットル手前"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "スロットル奥"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "スロットル"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1455,6 +1700,31 @@ msgstr "視点 4"
 #, no-c-format
 msgid "Stick"
 msgstr "スティック"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "主砲"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "左へ傾ける"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "右へ傾ける"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "エラー解除"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "ネットワーク解除"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1654,14 +1924,34 @@ msgstr "音量"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "自動"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "オフ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "オン"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "ガンモード"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"照準を表示し、マウスカーソルを隠します\n"
-"（ライトガンタイトル用: Virtua Cop 2、House of the\n"
-"Dead、Gunblade NY、Rail Chase 2、Behind Enemy Lines）。"
+"マウスポインターを隠して照準を表示します。\n"
+"自動はガンゲームでのみ、オンは全ゲームで\n"
+"ポインターを隠します。オフは照準を表示しません。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1712,11 +2002,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"プレイヤー1はマウスで狙います。左ボタンで射撃、右ボタンでリロード（画面外を撃"
-"つ）。"
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "既定ではプレイヤー1はマウスで照準し（左ボタンで射撃、右ボタンで画面外を撃ってリロード）、プレイヤー2はゲームパッドを使います。"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2261,6 +2549,28 @@ msgid "No description available."
 msgstr "説明はありません。"
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "ライトガンモード"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "照準を表示し、マウスカーソルを隠します\n"
+#~ "（ライトガンタイトル用: Virtua Cop 2、House of the\n"
+#~ "Dead、Gunblade NY、Rail Chase 2、Behind Enemy Lines）。"
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "プレイヤー1はマウスで狙います。左ボタンで射撃、右ボタンでリロード（画面外"
+#~ "を撃つ）。"
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "F12 のスクリーンショットの保存先です。"
 
@@ -2326,10 +2636,6 @@ msgstr "説明はありません。"
 #~ "このウィンドウをクリックし直さずに下でボタンや軸を割り当て\n"
 #~ "られます。キーボードとマウスはウィンドウが前面にある必要が\n"
 #~ "あります。"
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "スロットル"
 
 #, no-c-format
 #~ msgid "Throttle Up"

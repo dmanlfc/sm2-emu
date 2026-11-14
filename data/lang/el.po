@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -71,6 +71,266 @@ msgstr "κανένα"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "Αριστερός μοχλός κάτω"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "Αριστερός μοχλός πάνω"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "Αριστερός μοχλός αριστερά"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "Αριστερός μοχλός δεξιά"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "Δεξής μοχλός κάτω"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "Δεξής μοχλός πάνω"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "Δεξής μοχλός αριστερά"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "Δεξής μοχλός δεξιά"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "Αριστερή βολή"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "Δεξιά βολή"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "Αριστερή ώθηση"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "Δεξιά ώθηση"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "Αριστερός μοχλός"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Δεξής μοχλός"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "Αριστερό μπατόν"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "Δεξί μπατόν"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "Τάση πετονιάς"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "Joystick"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "Σκόπευση"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "Καλάμι"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "Διεύθυνση"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Σκανδάλη"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "Επαναγέμιση"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "Πύραυλος"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "Αποφυγή"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "Άμυνα"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "Κλοτσιά"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "Γροθιά"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "Χτύπημα"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "Φόρτιση"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "Άλμα"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "Πλάγιο βήμα"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "Μακριά πάσα"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "Σουτ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "Κοντή πάσα"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (κόκκινο)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (μπλε)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (κίτρινο)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (πράσινο)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "Συμβάν 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "Συμβάν 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "Ρίψη"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "Επιλογή"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "Επιλογή μουσικής"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Οπτική"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "Χειρόφρενο"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "Πεντάλ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "Επιλογή 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "Επιλογή 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "Επιλογή 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "Σκανδάλη 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "Σκανδάλη 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "Αρχείο"
 
@@ -108,11 +368,6 @@ msgstr "Μετρητής FPS"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "Ειδοποιήσεις στην οθόνη"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "Λειτουργία όπλου φωτός"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1346,11 +1601,6 @@ msgstr "Διεύθυνση / Σκόπευση"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "Δεξής μοχλός"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "Δεξής μοχλίσκος"
 
@@ -1393,21 +1643,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "Σκανδάλη"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "Πύραυλος"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "Επαναγέμιση"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "Λέιζερ"
 
@@ -1418,8 +1653,18 @@ msgstr "Τορπίλη"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "Οπτική"
+msgid "Throttle back"
+msgstr "Γκάζι πίσω"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "Γκάζι μπροστά"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Γκάζι"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1460,6 +1705,31 @@ msgstr "Οπτική 4"
 #, no-c-format
 msgid "Stick"
 msgstr "Μοχλίσκος"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "Κανόνι"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "Κλίση αριστερά"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "Κλίση δεξιά"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "Ακύρωση σφάλματος"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "Ακύρωση δικτύου"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1659,14 +1929,34 @@ msgstr "Ένταση"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "Αυτόματο"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "Ανενεργό"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "Ενεργό"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "Λειτουργία όπλου"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"Εμφάνιση στόχαστρου και απόκρυψη δείκτη ποντικιού,\n"
-"για τα παιχνίδια με όπλο φωτός (Virtua Cop 2, House of\n"
-"the Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"Το στόχαστρο σκόπευσης, με κρυμμένο τον δείκτη του ποντικιού.\n"
+"Το Αυτόματο το ενεργοποιεί σε παιχνίδια όπλου· το Ενεργό\n"
+"κρύβει τον δείκτη παντού· το Ανενεργό δεν δείχνει ποτέ στόχαστρο."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1717,11 +2007,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"Ο Παίκτης 1 σκοπεύει με το ποντίκι· το αριστερό κουμπί πυροβολεί και το δεξί "
-"γεμίζει (βολή εκτός οθόνης)."
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "Από προεπιλογή ο παίκτης 1 σκοπεύει με το ποντίκι (το αριστερό κουμπί πυροβολεί και το δεξί γεμίζει με βολή εκτός οθόνης) και ο παίκτης 2 με χειριστήριο."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2269,6 +2557,28 @@ msgid "No description available."
 msgstr "Δεν υπάρχει διαθέσιμη περιγραφή."
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "Λειτουργία όπλου φωτός"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "Εμφάνιση στόχαστρου και απόκρυψη δείκτη ποντικιού,\n"
+#~ "για τα παιχνίδια με όπλο φωτός (Virtua Cop 2, House of\n"
+#~ "the Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "Ο Παίκτης 1 σκοπεύει με το ποντίκι· το αριστερό κουμπί πυροβολεί και το "
+#~ "δεξί γεμίζει (βολή εκτός οθόνης)."
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "Πού γράφονται τα στιγμιότυπα οθόνης του F12."
 
@@ -2334,10 +2644,6 @@ msgstr "Δεν υπάρχει διαθέσιμη περιγραφή."
 #~ "να οδηγεί το παιχνίδι, και τα κουμπιά και οι άξονές του\n"
 #~ "αντιστοιχίζονται παρακάτω χωρίς κλικ πίσω σε αυτό το παράθυρο.\n"
 #~ "Το πληκτρολόγιο και το ποντίκι θέλουν ακόμα το παράθυρο μπροστά."
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "Γκάζι"
 
 #, no-c-format
 #~ msgid "Throttle Up"

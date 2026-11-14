@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -70,6 +70,266 @@ msgstr "nėra"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "Kairė svirtis žemyn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "Kairė svirtis aukštyn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "Kairė svirtis kairėn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "Kairė svirtis dešinėn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "Dešinė svirtis žemyn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "Dešinė svirtis aukštyn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "Dešinė svirtis kairėn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "Dešinė svirtis dešinėn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "Kairysis šūvis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "Dešinysis šūvis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "Kairysis spurtas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "Dešinysis spurtas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "Kairė svirtis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "Dešinė svirtis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "Kairė lazda"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "Dešinė lazda"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "Valo įtempimas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "Vairalazdė"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "Taikymas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "Meškerė"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "Vairavimas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "Gaidukas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "Užtaisymas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "Raketa"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "Išsisukimas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "Gynyba"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "Spyris"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "Smūgis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "Kirtis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "Įkrautas kirtis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "Šuolis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "Žingsnis į šoną"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "Ilgas perdavimas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "Smūgis į vartus"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "Trumpas perdavimas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (raudona)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (mėlyna)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (geltona)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (žalia)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "Įvykis 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "Įvykis 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "Užmetimas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "Pasirinkimas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "Muzikos pasirinkimas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "Vaizdas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "Rankinis stabdys"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "Pedalas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "Pasirinkimas 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "Pasirinkimas 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "Pasirinkimas 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "Gaidukas 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "Gaidukas 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "Failas"
 
@@ -107,11 +367,6 @@ msgstr "FPS skaitiklis"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "Pranešimai ekrane"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "Šviesos ginklo režimas"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1344,11 +1599,6 @@ msgstr "Vairuoti / taikyti"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "Dešinė svirtis"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "Dešinė lazdelė"
 
@@ -1391,21 +1641,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "Gaidukas"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "Raketa"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "Užtaisymas"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "Lazeris"
 
@@ -1416,8 +1651,18 @@ msgstr "Torpeda"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "Vaizdas"
+msgid "Throttle back"
+msgstr "Droselis atgal"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "Droselis pirmyn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "Droselis"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1458,6 +1703,31 @@ msgstr "Vaizdas 4"
 #, no-c-format
 msgid "Stick"
 msgstr "Lazdelė"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "Patranka"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "Pasvirimas kairėn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "Pasvirimas dešinėn"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "Atšaukti klaidą"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "Atšaukti tinklą"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1656,14 +1926,34 @@ msgstr "Garsumas"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "Automatiškai"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "Išjungta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "Įjungta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "Ginklo režimas"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"Rodyti taikiklį ir slėpti pelės žymeklį\n"
-"šviesos ginklo žaidimams (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"Taikiklis, paslėpus pelės žymeklį.\n"
+"Automatiškai įjungia jį ginklo žaidime; Įjungta slepia\n"
+"žymeklį visuose žaidimuose; Išjungta niekada nerodo taikiklio."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1714,11 +2004,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"Žaidėjas 1 taiko pele; kairysis mygtukas šauna, o dešinysis užtaiso (šaukite "
-"už ekrano ribų)."
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "Pagal numatytuosius nustatymus 1 žaidėjas taiko pele (kairysis mygtukas šauna, dešinysis užtaiso šaudant už ekrano), o 2 žaidėjas – pulteliu."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2264,6 +2552,28 @@ msgid "No description available."
 msgstr "Aprašymo nėra."
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "Šviesos ginklo režimas"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "Rodyti taikiklį ir slėpti pelės žymeklį\n"
+#~ "šviesos ginklo žaidimams (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "Žaidėjas 1 taiko pele; kairysis mygtukas šauna, o dešinysis užtaiso "
+#~ "(šaukite už ekrano ribų)."
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "Kur įrašomos F12 ekrano nuotraukos."
 
@@ -2328,10 +2638,6 @@ msgstr "Aprašymo nėra."
 #~ "automato pultas per vJoy) vis tiek valdo žaidimą, o jo mygtukus\n"
 #~ "ir ašis galima priskirti žemiau, nespaudžiant atgal į šį langą.\n"
 #~ "Klaviatūrai ir pelei langas vis tiek turi būti priekyje."
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "Droselis"
 
 #, no-c-format
 #~ msgid "Throttle Up"

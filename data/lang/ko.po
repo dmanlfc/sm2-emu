@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 12:00+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -70,6 +70,266 @@ msgstr "없음"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "왼쪽 레버 아래"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "왼쪽 레버 위"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "왼쪽 레버 왼쪽"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "왼쪽 레버 오른쪽"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "오른쪽 레버 아래"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "오른쪽 레버 위"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "오른쪽 레버 왼쪽"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "오른쪽 레버 오른쪽"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "왼쪽 샷"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "오른쪽 샷"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "왼쪽 대시"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "오른쪽 대시"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "왼쪽 레버"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "오른쪽 레버"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "왼쪽 폴"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "오른쪽 폴"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "낚싯줄 장력"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "조이스틱"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "조준"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "낚싯대"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "조향"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "트리거"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "재장전"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "미사일"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "회피"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "가드"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "킥"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "펀치"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "공격"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "차지 공격"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "점프"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "사이드스텝"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "롱 패스"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "슛"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "숏 패스"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (빨강)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (파랑)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (노랑)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (초록)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "이벤트 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "이벤트 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "캐스팅"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "선택"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "음악 선택"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "시점"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "핸드브레이크"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "페달"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "선택 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "선택 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "선택 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "트리거 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "트리거 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "파일"
 
@@ -107,11 +367,6 @@ msgstr "FPS 표시"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "화면 알림"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "라이트건 모드"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1334,11 +1589,6 @@ msgstr "조향 / 조준"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "오른쪽 레버"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "오른쪽 스틱"
 
@@ -1381,21 +1631,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "트리거"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "미사일"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "재장전"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "레이저"
 
@@ -1406,8 +1641,18 @@ msgstr "어뢰"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "시점"
+msgid "Throttle back"
+msgstr "스로틀 뒤로"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "스로틀 앞으로"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "스로틀"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1448,6 +1693,31 @@ msgstr "시점 4"
 #, no-c-format
 msgid "Stick"
 msgstr "스틱"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "주포"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "왼쪽 기울기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "오른쪽 기울기"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "오류 취소"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "네트워크 취소"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1646,14 +1916,34 @@ msgstr "볼륨"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "자동"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "끔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "켬"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "건 모드"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"조준점을 표시하고 마우스 커서를 숨깁니다\n"
-"(라이트건 게임용: Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"마우스 포인터를 숨기고 조준선을 표시합니다.\n"
+"자동은 건 게임에서만 켜고, 켬은 모든 게임에서\n"
+"포인터를 숨기며, 끔은 조준선을 표시하지 않습니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1704,11 +1994,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"플레이어 1은 마우스로 조준합니다. 왼쪽 버튼으로 사격하고 오른쪽 버튼으로 재장"
-"전합니다 (화면 밖 사격)."
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "기본적으로 플레이어 1은 마우스로 조준하고(왼쪽 버튼은 발사, 오른쪽 버튼은 화면 밖을 쏴서 재장전) 플레이어 2는 게임패드로 조준합니다."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2252,6 +2540,28 @@ msgid "No description available."
 msgstr "설명이 없습니다."
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "라이트건 모드"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "조준점을 표시하고 마우스 커서를 숨깁니다\n"
+#~ "(라이트건 게임용: Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "플레이어 1은 마우스로 조준합니다. 왼쪽 버튼으로 사격하고 오른쪽 버튼으로 "
+#~ "재장전합니다 (화면 밖 사격)."
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "F12 스크린샷이 저장되는 위치입니다."
 
@@ -2316,10 +2626,6 @@ msgstr "설명이 없습니다."
 #~ "통한 기체 패널)로도 계속 게임을 조작하고, 이 창을 다시\n"
 #~ "클릭하지 않고 아래에서 버튼과 축을 지정할 수 있습니다.\n"
 #~ "키보드와 마우스는 여전히 창이 앞에 있어야 합니다."
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "스로틀"
 
 #, no-c-format
 #~ msgid "Throttle Up"

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sm2-emu\n"
 "Report-Msgid-Bugs-To: https://github.com/dmanlfc/sm2-emu/issues\n"
-"POT-Creation-Date: 2026-11-10 17:25+1000\n"
+"POT-Creation-Date: 2026-11-14 11:53+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -68,6 +68,266 @@ msgstr "لا شيء"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Left Lever Down"
+msgstr "الذراع الأيسر لأسفل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Up"
+msgstr "الذراع الأيسر لأعلى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Left"
+msgstr "الذراع الأيسر لليسار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever Right"
+msgstr "الذراع الأيسر لليمين"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Down"
+msgstr "الذراع الأيمن لأسفل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Up"
+msgstr "الذراع الأيمن لأعلى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Left"
+msgstr "الذراع الأيمن لليسار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever Right"
+msgstr "الذراع الأيمن لليمين"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Shot"
+msgstr "الطلقة اليسرى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Shot"
+msgstr "الطلقة اليمنى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Dash"
+msgstr "الاندفاع الأيسر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Dash"
+msgstr "الاندفاع الأيمن"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Lever"
+msgstr "الذراع الأيسر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Lever"
+msgstr "الذراع الأيمن"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Pole"
+msgstr "العصا اليسرى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Pole"
+msgstr "العصا اليمنى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Line Tension"
+msgstr "شد الخيط"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Joystick"
+msgstr "عصا التحكم"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Aim"
+msgstr "تصويب"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rod"
+msgstr "الصنارة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steer"
+msgstr "توجيه"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger"
+msgstr "الزناد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun Reload"
+msgstr "إعادة تعبئة المسدس"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Missile"
+msgstr "صاروخ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape"
+msgstr "مراوغة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guard"
+msgstr "صدّ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Kick"
+msgstr "ركلة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Punch"
+msgstr "لكمة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Beat"
+msgstr "ضربة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Charge"
+msgstr "شحن"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Jump"
+msgstr "قفز"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift"
+msgstr "خطوة جانبية"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Long Pass"
+msgstr "تمريرة طويلة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shoot"
+msgstr "تسديد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Short Pass"
+msgstr "تمريرة قصيرة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR1 (red)"
+msgstr "VR1 (أحمر)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR2 (blue)"
+msgstr "VR2 (أزرق)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR3 (yellow)"
+msgstr "VR3 (أصفر)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "VR4 (green)"
+msgstr "VR4 (أخضر)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 1"
+msgstr "حدث 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Event 2"
+msgstr "حدث 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cast"
+msgstr "رمي الصنارة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select"
+msgstr "اختيار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Music Select"
+msgstr "اختيار الموسيقى"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "View"
+msgstr "العرض"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handbrake"
+msgstr "فرامل اليد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pedal"
+msgstr "دواسة"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 1"
+msgstr "اختيار 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 2"
+msgstr "اختيار 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Select 3"
+msgstr "اختيار 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 1"
+msgstr "الزناد 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Trigger 2"
+msgstr "الزناد 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "File"
 msgstr "ملف"
 
@@ -105,11 +365,6 @@ msgstr "عداد FPS"
 #, no-c-format
 msgid "On-screen notifications"
 msgstr "الإشعارات على الشاشة"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light-gun mode"
-msgstr "وضع المسدس الضوئي"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1337,11 +1592,6 @@ msgstr "توجيه / تصويب"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Lever"
-msgstr "الذراع الأيمن"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Right Stick"
 msgstr "العصا اليمنى"
 
@@ -1384,21 +1634,6 @@ msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Trigger"
-msgstr "الزناد"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Missile"
-msgstr "صاروخ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun Reload"
-msgstr "إعادة تعبئة المسدس"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Laser"
 msgstr "ليزر"
 
@@ -1409,8 +1644,18 @@ msgstr "طوربيد"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "View"
-msgstr "العرض"
+msgid "Throttle back"
+msgstr "الخانق للخلف"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle forward"
+msgstr "الخانق للأمام"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Throttle"
+msgstr "دواسة الوقود"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1451,6 +1696,31 @@ msgstr "العرض 4"
 #, no-c-format
 msgid "Stick"
 msgstr "عصا"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cannon"
+msgstr "مدفع"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Left"
+msgstr "ميل لليسار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pitch Right"
+msgstr "ميل لليمين"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Error"
+msgstr "إلغاء الخطأ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cancel Network"
+msgstr "إلغاء الشبكة"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1649,14 +1919,34 @@ msgstr "مستوى الصوت"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Auto"
+msgstr "تلقائي"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Off"
+msgstr "إيقاف"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "On"
+msgstr "تشغيل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gun mode"
+msgstr "وضع المسدس"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid ""
-"Show the aiming crosshair and hide the mouse cursor,\n"
-"for the light-gun titles (Virtua Cop 2, House of the\n"
-"Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+"The aiming crosshair, with the mouse pointer hidden.\n"
+"Auto turns it on in a gun game; On hides the pointer in\n"
+"every game; Off never shows a crosshair."
 msgstr ""
-"إظهار علامة التصويب وإخفاء مؤشر الفأرة،\n"
-"لألعاب المسدس الضوئي (Virtua Cop 2 و House of the\n"
-"Dead و Gunblade NY و Rail Chase 2 و Behind Enemy Lines)."
+"علامة التصويب، مع إخفاء مؤشر الفأرة.\n"
+"تلقائي يفعّلها في ألعاب المسدس؛ تشغيل يخفي المؤشر\n"
+"في كل لعبة؛ إيقاف لا يُظهر علامة التصويب أبدًا."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1707,11 +1997,9 @@ msgstr ""
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Player 1 aims with the mouse; the left button fires and the right button "
-"reloads (shoot off screen)."
-msgstr ""
-"اللاعب 1 يصوّب بالفأرة؛ الزر الأيسر يطلق والزر الأيمن يعيد التلقيم (أطلق خارج "
-"الشاشة)."
+"By default player 1 aims with the mouse (the left button fires and the right "
+"reloads by shooting off screen) and player 2 with a gamepad."
+msgstr "افتراضيًا، يصوّب اللاعب 1 بالفأرة (الزر الأيسر يطلق النار والأيمن يعيد التحميل بالإطلاق خارج الشاشة) واللاعب 2 بيد التحكم."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2254,6 +2542,28 @@ msgid "No description available."
 msgstr "لا يتوفر وصف."
 
 #, no-c-format
+#~ msgid "Light-gun mode"
+#~ msgstr "وضع المسدس الضوئي"
+
+#, no-c-format
+#~ msgid ""
+#~ "Show the aiming crosshair and hide the mouse cursor,\n"
+#~ "for the light-gun titles (Virtua Cop 2, House of the\n"
+#~ "Dead, Gunblade NY, Rail Chase 2, Behind Enemy Lines)."
+#~ msgstr ""
+#~ "إظهار علامة التصويب وإخفاء مؤشر الفأرة،\n"
+#~ "لألعاب المسدس الضوئي (Virtua Cop 2 و House of the\n"
+#~ "Dead و Gunblade NY و Rail Chase 2 و Behind Enemy Lines)."
+
+#, no-c-format
+#~ msgid ""
+#~ "Player 1 aims with the mouse; the left button fires and the right button "
+#~ "reloads (shoot off screen)."
+#~ msgstr ""
+#~ "اللاعب 1 يصوّب بالفأرة؛ الزر الأيسر يطلق والزر الأيمن يعيد التلقيم (أطلق "
+#~ "خارج الشاشة)."
+
+#, no-c-format
 #~ msgid "Where F12 screenshots are written."
 #~ msgstr "المكان الذي تُكتب فيه لقطات الشاشة بـ F12."
 
@@ -2317,10 +2627,6 @@ msgstr "لا يتوفر وصف."
 #~ "يبقى يوجّه اللعبة، ويمكن ربط أزرارها ومحاورها أدناه دون\n"
 #~ "العودة بالنقر إلى هذه النافذة. أما لوحة المفاتيح والفأرة\n"
 #~ "فتحتاجان إلى النافذة في المقدمة."
-
-#, no-c-format
-#~ msgid "Throttle"
-#~ msgstr "دواسة الوقود"
 
 #, no-c-format
 #~ msgid "Throttle Up"
