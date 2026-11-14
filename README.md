@@ -34,13 +34,13 @@ translations, and Claude for the Top Skater graphics problems.
 **Status: playable.** All four Model 2 boards run (original, 2A, 2B and 2C), as
 does Model 1: Virtua Racing, Virtua Formula, Virtua Fighter, Star Wars Arcade
 and Wing War. NetMerc runs but is nearly silent, because one of its sample ROM
-dumps is blank. The database has 164 sets (100 Model 1 and 2, 64 Model 3), and
+dumps is blank. The database has 163 sets (100 Model 1 and 2, 63 Model 3), and
 most of them play with full 3D and sound on all three GPU renderers (Vulkan,
 OpenGL and OpenGL ES) and on the software renderer.
 
 **Model 3:** of the 54 sets tried so far, 52 reach gameplay. The two Sega Rally
 2 prototypes can't run on any existing dump. The drive boards, the billboard,
-the net board (as a single cabinet) and the DSB1/DSB2 music boards all work.
+the net board and the DSB1/DSB2 music boards all work.
 The PowerPC runs through a JIT on arm64 and x86-64. None of the sets need
 operator setup in the test menu. Star Wars Trilogy's flight-stick firmware
 isn't dumped, so the stick is simulated for the handshake and has no force
@@ -67,9 +67,10 @@ frame is built at the hardware's 496x384 and scaled once at the end.
 
 ## System requirements
 
-**Speed depends on one fast CPU core.** The main CPU and the geometry
-coprocessor both run as interpreters on a single thread, so how fast one core
-runs decides whether a game holds full speed. The GPU, the number of cores and
+**Speed depends on one fast CPU core.** On Model 1 and 2 the main CPU and the
+geometry coprocessor both run as interpreters on a single thread, so how fast
+one core runs decides whether a game holds full speed; Model 3's PowerPC runs
+through a JIT. The GPU, the number of cores and
 the clock speed on its own matter much less. The Model 2B (SHARC) and 2C
 (MB86235) sets are the heaviest; the original Model 2, 2A and Model 1 sets are
 noticeably lighter.
@@ -112,7 +113,7 @@ choice there, and the only one that widens 2D backgrounds in 16:9.
 | **x86-64 Linux** | The main target. Any modern desktop or laptop runs every set at full speed on any renderer. |
 | **x86-64 Windows** | Built with MSVC, with the software, OpenGL and Vulkan renderers. Less tested than Linux. |
 | **macOS** | Apple Silicon (recommended) or a 2015+ Intel Mac. The release dmg includes MoltenVK and needs nothing else installed. |
-| **ARM (SBCs, handhelds)** | A **Raspberry Pi 5** or better. The Pi 5 runs most games at full speed; the heaviest Model 2B/2C games run just below it. |
+| **ARM (SBCs, handhelds)** | A **Raspberry Pi 5** or better. The Pi 5 runs most Model 1 and 2 games at full speed; the heaviest Model 2B/2C games run just below it. Model 3 games run below full speed on a Pi 5, mostly at 42-56 fps at 1080p. |
 
 On a Raspberry Pi 5 with the software renderer, Virtua Fighter 2, Daytona USA,
 Sega Rally and Manx TT run comfortably above 57.5 Hz. House of the Dead,
@@ -344,7 +345,7 @@ updates every catalogue after the source strings change.
 
 Set in the **Video** tab and applied live:
 
-- **Scaling:** nearest, bilinear, sharp bilinear (default) or integer.
+- **Scaling:** nearest (default), bilinear, sharp bilinear or integer.
 - **Aspect:** 4:3 (the arcade monitor), square pixels, 16:9 or stretch. 16:9
   draws the 3D wider and keeps the 2D in the middle (experimental).
 - **Render scale:** draws the 3D at up to 8x native (GPU renderers only). The
@@ -357,7 +358,6 @@ Set in the **Video** tab and applied live:
   `--fullscreen-resolution`) runs fullscreen at a lower mode the compositor
   scales up. On a slow GPU (Raspberry Pi 5 with Vulkan) this is much faster, at
   the cost of a slightly softer picture.
-
 - **CRT filter:** optional scanlines, mask, glow and curvature.
 - **Bezels:** artwork around the 4:3 picture, fullscreen only. Put PNGs in the
   bezels folder (Paths tab), named after the set (`daytona.png`), its parent,
@@ -449,14 +449,14 @@ it isn't rollback netplay.
 
 Model 3 link games (Daytona USA 2, Scud Race, Sega Rally 2, Le Mans 24,
 Spikeout, Harley-Davidson, Ski Champ, Virtual On 2, Dirt Devils) use the same
-settings; set LINK ID (MASTER on one cabinet) in the game's test menu.
+settings; in each game's test menu, set one cabinet as master and the others
+as slaves.
 Cabinets can start in any order. Every frame, each one waits if it must for
 the others' last few frames, so a linked race runs at the slowest machine's
-speed. A lost packet is asked for again, so Wi-Fi works. Daytona USA 2 has been
-raced between a Mac and a Raspberry Pi 5, and Daytona USA 2, Scud Race and Le
-Mans 24 four ways over Wi-Fi between a Mac and three Android-class handhelds
-running Batocera (Daytona USA 2 with one of them as the LIVE monitor). The other
-link games haven't been tried linked yet.
+speed. A lost packet is asked for again, so Wi-Fi works. All nine have been
+played linked between two machines, and Daytona USA 2, Scud Race and Le Mans
+24 four ways over Wi-Fi between a Mac and three handhelds running Batocera
+(Daytona USA 2 with one of them as the LIVE monitor).
 
 ## Frame pacing
 
