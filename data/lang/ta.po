@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Keisho\n"
 "Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
-"POT-Creation-Date: 2026-11-14 11:53+1000\n"
+"POT-Creation-Date: 2026-11-14 21:42+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -332,77 +332,88 @@ msgstr "டிரிகர் 2"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "File"
-msgstr "கோப்பு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Hide overlay"
-msgstr "மேலடுக்கை மறை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Quit"
-msgstr "வெளியேறு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Settings"
-msgstr "அமைப்புகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Vsync"
-msgstr "Vsync"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Fullscreen"
-msgstr "முழுத்திரை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "FPS counter"
-msgstr "FPS கணக்கி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "On-screen notifications"
-msgstr "திரை அறிவிப்புகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "(Model 1 & 2 only)"
-msgstr "(Model 1 & 2 மட்டும்)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Video"
-msgstr "வீடியோ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wait for vertical blank before presenting.\n"
-"Prevents tearing but adds up to one frame of latency."
+msgid "Display"
 msgstr ""
-"காட்டுவதற்கு முன் செங்குத்து வெற்றிடத்திற்குக் காத்திரு.\n"
-"கிழிசலைத் தடுக்கும், ஆனால் ஒரு ஃபிரேம் வரை தாமதம் சேர்க்கும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Notifications"
-msgstr "அறிவிப்புகள்"
+msgid "Audio"
+msgstr "ஆடியோ"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "GPU"
-msgstr "GPU"
+msgid "Input"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Auto (best)"
-msgstr "தானியங்கு (சிறந்தது)"
+msgid "Paths"
+msgstr "பாதைகள்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "நிலைகள்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hotkeys"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "System"
+msgstr "கணினி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "பற்றி"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s: back"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Esc"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LB/RB: pages"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saved"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s   %.1f Hz"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Changes are saved as you make them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "next launch"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 1 & 2 only"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -417,54 +428,88 @@ msgstr "மென்பொருள்"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Which renderer draws the game. Applies on the\n"
-"next launch - save settings and relaunch."
+"Which renderer draws the game. The software renderer needs no GPU and suits "
+"small boards; Vulkan and OpenGL pull ahead on desktop graphics."
 msgstr ""
-"எந்த ரெண்டரர் கேமை வரைகிறது. அடுத்த\n"
-"துவக்கத்தில் பொருந்தும் - அமைப்புகளைச் சேமித்து மீண்டும் துவக்கவும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Window size"
-msgstr "சாளர அளவு"
+msgid "What draws the game."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Width"
-msgstr "அகலம்"
+msgid "Automatic (best)"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Height"
-msgstr "உயரம்"
+msgid "Graphics card"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "1x (native)"
-msgstr "1x (இயல்பான)"
+msgid "The device the GPU renderers draw on."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "8x (4K)"
-msgstr "8x (4K)"
+msgid ""
+"Waits for the display before showing a frame. Stops tearing; adds up to a "
+"frame of delay."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "Vsync"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wait for vertical blank before presenting."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "முழுத்திரை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "In windowed mode."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window width"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window height"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Picture"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution, times the native 496x384. Higher is "
+"crisper 3D; the 2D stays sharp either way. GPU renderers only."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x is the arcade's own. 8x suits a 4K display."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "3D render scale"
 msgstr "3D ரெண்டர் அளவுகோல்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Internal 3D rendering resolution. Higher is crisper 3D\n"
-"(2D/HUD stays sharp). GPU backends only; the software\n"
-"renderer stays native. Applies on the next launch - save\n"
-"settings and relaunch."
-msgstr ""
-"உள் 3D ரெண்டரிங் தெளிவுத்திறன். அதிகமானால் 3D கூர்மையாகும்\n"
-"(2D/HUD கூர்மையாகவே இருக்கும்). GPU பின்தளங்களுக்கு மட்டும்;\n"
-"மென்பொருள் ரெண்டரர் இயல்பாகவே இருக்கும். அடுத்த துவக்கத்தில்\n"
-"பொருந்தும் - அமைப்புகளைச் சேமித்து மீண்டும் துவக்கவும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -483,38 +528,36 @@ msgstr "அருகாமை"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Sharp-bilinear"
-msgstr "கூர்மையான பைலீனியர்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "2D scaling"
-msgstr "2D அளவிடல்"
+msgid "Sharp"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"How the frame is magnified to the window.\n"
-"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
-"nearest shows at non-integer window sizes. Integer snaps\n"
-"to a whole multiple (pixel-perfect, with black bars).\n"
-"Applies live."
+"How the finished frame is magnified to the window. Sharp keeps 2D text crisp "
+"without the shimmer Nearest shows at odd sizes. Integer snaps to a whole "
+"multiple, with black bars."
 msgstr ""
-"ஃபிரேம் சாளரத்திற்கு எப்படிப் பெரிதாக்கப்படுகிறது.\n"
-"கூர்மையான பைலீனியர், முழு எண் அல்லாத சாளர அளவுகளில்\n"
-"அருகாமை காட்டும் மினுமினுப்பு இல்லாமல் 2D உரையைக் கூர்மையாக்கும்.\n"
-"முழு எண், முழு மடங்குக்குப் பொருத்தும் (பிக்சல்-துல்லியம், கருப்புப் பட்டைகளுடன்).\n"
-"உடனே பொருந்தும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "16:9 (widescreen)"
-msgstr "16:9 (அகலத்திரை)"
+msgid "How the frame is magnified to the window."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "4:3 (arcade)"
-msgstr "4:3 (ஆர்கேட்)"
+msgid "Scaling"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "16:9"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -528,23 +571,28 @@ msgstr "நீட்டு"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape. Square pixels shows the raw 496x384, "
+"slightly narrow. 16:9 draws the 3D wider with the 2D in the middle (GPU "
+"renderers). Stretch fills the window."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Aspect"
 msgstr "விகிதம்"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"4:3 is the arcade monitor's shape (the default).\n"
-"Square pixels shows the raw 496x384 (slightly narrow).\n"
-"16:9 (experimental) draws the 3D wider, with the 2D in the middle.\n"
-"Stretch fills the whole window.\n"
-"GPU renderers only. Applies live."
+msgid "The shape the picture is shown at."
 msgstr ""
-"4:3 என்பது ஆர்கேட் திரையின் வடிவம் (இயல்புநிலை).\n"
-"சதுரப் பிக்சல்கள் மூல 496x384 ஐக் காட்டும் (சற்று குறுகலாக).\n"
-"16:9 (சோதனை) 3D ஐ அகலமாக வரையும், 2D நடுவில் இருக்கும்.\n"
-"நீட்டு முழுச் சாளரத்தையும் நிரப்பும்.\n"
-"GPU ரெண்டரர்களுக்கு மட்டும். உடனே பொருந்தும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the picture's black sits. 50% matches an arcade capture; lower is "
+"darker."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -554,13 +602,20 @@ msgstr "ஒளிர்வு"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the Model 2 picture's black sits. 50% is the default,\n"
-"matched to an arcade capture; lower is darker, higher is\n"
-"brighter. Applies live."
+"In fullscreen, frame the 4:3 picture with an image from the bezels folder: "
+"<game>.png, the parent set's, or default.png. The picture fills the image's "
+"transparent window."
 msgstr ""
-"Model 2 படத்தின் கருப்பு எங்கே அமைகிறது. 50% இயல்புநிலை,\n"
-"ஓர் ஆர்கேட் பதிவுடன் பொருத்தப்பட்டது; குறைவு இருண்டது, அதிகம் ஒளிமிக்கது.\n"
-"உடனே பொருந்தும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bezel"
+msgstr "சட்டகம்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet artwork around the picture in fullscreen."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -570,13 +625,14 @@ msgstr "CRT வடிகட்டி"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"A cosmetic arcade-monitor look over the finished frame:\n"
-"scanlines, an RGB shadow mask, glow and optional screen\n"
-"curvature. Purely visual; applies live."
+"A cosmetic arcade-monitor look over the finished frame: scanlines, a shadow "
+"mask, glow and optional curvature. Purely visual."
 msgstr ""
-"முடிந்த ஃபிரேமின் மேல் ஒரு அலங்கார ஆர்கேட்-மானிட்டர் தோற்றம்:\n"
-"ஸ்கேன்லைன்கள், RGB நிழல் முகமூடி, ஒளிர்வு, விருப்பத்தேர்வான\n"
-"திரை வளைவு. காட்சிக்கு மட்டும்; உடனே பொருந்தும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines, mask, glow and curvature."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -600,26 +656,8 @@ msgstr "வளைவு"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Bezel"
-msgstr "சட்டகம்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"In fullscreen, frame the 4:3 picture with an image from\n"
-"the bezels directory (Paths tab): <game>.png, the parent\n"
-"set's, or default.png. The picture fills the image's\n"
-"transparent window."
+msgid "Enhancements beyond the original hardware"
 msgstr ""
-"முழுத்திரையில், 4:3 படத்தைச் சட்டக அடைவிலுள்ள\n"
-"(பாதைகள் தாவல்) ஒரு படத்தால் சூழும்: <game>.png, பெற்றோர்\n"
-"தொகுப்பின் படம், அல்லது default.png. விளையாட்டுப் படம்\n"
-"சட்டகத்தின் ஒளிபுகும் சாளரத்தை நிரப்பும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Enhancement (cosmetic, beyond the original hardware)"
-msgstr "மேம்பாடு (அலங்காரம், அசல் வன்பொருளுக்கு அப்பால்)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -633,13 +671,8 @@ msgstr "அசலானது"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "3D texture filter"
-msgstr "3D டெக்ஸ்சர் வடிகட்டி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "(unsupported)"
-msgstr "(ஆதரவில்லை)"
+msgid "Anisotropic filtering sharpens textures seen at a slant."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -648,24 +681,30 @@ msgstr "இந்த GPU அனிசோட்ரோபிக் வடிகட
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "3D texture filter"
+msgstr "3D டெக்ஸ்சர் வடிகட்டி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Not available on this GPU."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Anisotropy"
 msgstr "அனிசோட்ரோபி"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "2D upscale"
-msgstr "2D மேம்படுத்தல்"
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and ScaleFX round "
+"diagonals; Faithful keeps crisp pixels."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
-"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
-"Applies live."
-msgstr ""
-"2D அடுக்குகளின் (HUD, உரை, மெனுக்கள்) விளிம்புகளை மென்மையாக்கு.\n"
-"xBR, ScaleFX மூலைவிட்டங்களை வட்டமாக்கும்; அசலானது கூர்மையான பிக்சல்களை வைத்திருக்கும்.\n"
-"உடனே பொருந்தும்."
+msgid "2D upscale"
+msgstr "2D மேம்படுத்தல்"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -679,19 +718,28 @@ msgstr "புள்ளியிடல்"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass, shadows) as a "
+"checkerboard. Blended draws the 50% see-through surface it is trying to "
+"achieve."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Translucency"
 msgstr "ஒளிபுகுதன்மை"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"The hardware draws see-through surfaces (lights, glass,\n"
-"shadows) as a checkerboard. Blended draws the 50%\n"
-"see-through surface it's trying to achieve. Applies live."
+"Draw the scenery to the edge of the course instead of the arcade's short "
+"range, so it no longer pops in. Daytona USA only."
 msgstr ""
-"வன்பொருள் ஊடுருவும் பரப்புகளை (விளக்குகள், கண்ணாடி,\n"
-"நிழல்கள்) சதுரங்கப் பலகையாக வரைகிறது. கலந்தது, அது அடைய முயலும்\n"
-"50% ஊடுருவும் பரப்பை வரையும். உடனே பொருந்தும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Daytona USA."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -701,13 +749,9 @@ msgstr "நீட்டிக்கப்பட்ட வரைதல் தொ�
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw the scenery to the edge of the course instead of\n"
-"the arcade's short range, so it no longer pops in.\n"
-"Daytona USA only. Applies live."
+"Replace the game's 3D textures with images saved in saves/textures/<game>/"
+"load, named as dumped. GPU renderers only."
 msgstr ""
-"ஆர்கேடின் குறுகிய வரம்பிற்குப் பதிலாக பாதையின் விளிம்பு வரை\n"
-"காட்சியை வரைகிறது, அதனால் அது திடீரென்று தோன்றாது.\n"
-"Daytona USA மட்டும். உடனே பொருந்தும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -716,24 +760,33 @@ msgstr "தனிப்பயன் டெக்ஸ்சர்கள்"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Replace the game's 3D textures with images saved in\n"
-"saves/textures/<game>/load, named as dumped. GPU\n"
-"renderers only; Reload picks up edited files."
+msgid "Replacement textures from the saves folder."
 msgstr ""
-"கேமின் 3D டெக்ஸ்சர்களை saves/textures/<game>/load\n"
-"இல் சேமித்த படங்களால் மாற்று, டம்ப் செய்த பெயரிலேயே. GPU\n"
-"ரெண்டரர்களுக்கு மட்டும்; மீண்டும் ஏற்று திருத்திய கோப்புகளை எடுக்கும்."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%zu loaded"
-msgstr "%zu ஏற்றப்பட்டன"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Reload"
 msgstr "மீண்டும் ஏற்று"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu texture loaded"
+msgid_plural "%zu textures loaded"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Loaded textures"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them, with an index.html "
+"to browse, to saves/textures/<game>/dump when the game exits or this is "
+"turned off."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -742,771 +795,129 @@ msgstr "டெக்ஸ்சர்களை டம்ப் செய்"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Collect every 3D texture the game draws and write them,\n"
-"with an index.html to browse, to saves/textures/<game>/dump\n"
-"when the game exits or this is turned off."
+msgid "Write every texture the game draws."
 msgstr ""
-"கேம் வரையும் ஒவ்வொரு 3D டெக்ஸ்சரையும் சேகரித்து, உலாவ ஒரு\n"
-"index.html உடன், saves/textures/<game>/dump இல் எழுதும் —\n"
-"கேம் வெளியேறும்போது அல்லது இது அணைக்கப்படும்போது."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Audio"
-msgstr "ஆடியோ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Paths"
-msgstr "பாதைகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Browse..."
-msgstr "உலாவு..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Config directory"
-msgstr "கட்டமைப்பு அடைவு"
+msgid "Performance"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where keisho.ini is read from and saved to.\n"
-"Set with --config <dir>; cannot be changed here."
+"Hold the machine to its own 57.5 Hz. Off runs as fast as the host can, "
+"without sound sync."
 msgstr ""
-"keisho.ini படிக்கப்பட்டு சேமிக்கப்படும் இடம்.\n"
-"--config <dir> மூலம் அமைக்கவும்; இங்கே மாற்ற முடியாது."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "ROM directory"
-msgstr "ROM அடைவு"
+msgid "Limit speed"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Run at the arcade's 57.5 Hz."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the ROM archives live. A game launched by name is\n"
-"loaded from here as <name>.zip or <name>.7z."
+"The software renderer draws each frame on a second thread, one frame behind "
+"the emulation."
 msgstr ""
-"ROM காப்பகங்கள் உள்ள இடம். பெயரால் துவக்கப்படும் கேம்\n"
-"இங்கிருந்து <name>.zip அல்லது <name>.7z ஆக ஏற்றப்படும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Model 1 ROM directory"
-msgstr "Model 1 ROM அடைவு"
+msgid "Faster; a frame of latency."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software renderer on a second thread"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the Model 1 ROM archives live.\n"
-"Empty means the ROM directory."
+"On a big.LITTLE chip, the drawing runs on the little cores and leaves the "
+"big ones to the emulation."
 msgstr ""
-"Model 1 ROM காப்பகங்கள் இருக்கும் இடம்.\n"
-"காலியெனில் ROM அடைவு."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Model 3 ROM directory"
-msgstr "Model 3 ROM அடைவு"
+msgid "Draw on the slow cores"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "big.LITTLE hosts, with the second thread."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the Model 3 ROM archives live.\n"
-"Empty means the ROM directory."
+"Model 3 builds each frame on a second thread while the next one is emulated; "
+"shown a frame later."
 msgstr ""
-"Model 3 ROM காப்பகங்கள் இருக்கும் இடம்.\n"
-"காலியெனில் ROM அடைவு."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Saves directory"
-msgstr "சேமிப்பு அடைவு"
+msgid "Model 3 frame build on a second thread"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "ஒலியளவு"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
-"(.eeprom) images -- high scores and operator settings."
+"Only for games with a separate music board: Star Wars Arcade, Sega Touring "
+"Car Championship, Top Skater and the Model 3 games with a DSB. Sound effects "
+"stay as they are."
 msgstr ""
-"பேட்டரி சேமிப்புகள்: ஒவ்வொரு கேமுக்கான NVRAM (.nv), EEPROM\n"
-"(.eeprom) படங்கள் -- அதிக மதிப்பெண்கள், ஆபரேட்டர் அமைப்புகள்."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Screenshots directory"
-msgstr "திரைப்பிடிப்பு அடைவு"
+msgid "Music volume"
+msgstr "இசை ஒலியளவு"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Where screenshots are written."
-msgstr "திரைப்பிடிப்புகள் எழுதப்படும் இடம்."
+msgid "The music board's level, where a game has one."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Bezels directory"
-msgstr "சட்டக அடைவு"
+msgid "Per-game volume"
+msgstr "கேம்வாரி ஒலியளவு"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside keisho.ini."
+"Raise or lower a game's volume from its default level. One slider covers "
+"every revision of a game. Off plays every game at its default, whatever the "
+"sliders say. Above 100% loud effects can clip."
 msgstr ""
-"சட்டகப் படங்கள்: <game>.png, பெற்றோர் தொகுப்பின் படம், அல்லது default.png.\n"
-"காலியெனில் keisho.ini அருகிலுள்ள bezels கோப்புறை."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Crosshairs directory"
-msgstr "குறிவைப்பு கோப்புறை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Crosshair images: <game>-p1.png (-p2 for player 2) or\n"
-"<game>.png for both, then the parent set's, then default.\n"
-"Drawn at their own size on a 1080-line picture. Without\n"
-"one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside keisho.ini."
+msgid "Each game at its own level."
 msgstr ""
-"குறிவைப்பு படங்கள்: <game>-p1.png (வீரர் 2-க்கு -p2) அல்லது\n"
-"இருவருக்கும் <game>.png, பின் மூல தொகுப்பினுடையது, பின் default.\n"
-"1080-வரி படத்தில் சொந்த அளவில் வரையப்படும். இல்லையெனில்\n"
-"உள்ளமைந்த குறிவைப்பு வரையப்படும்.\n"
-"காலியாக இருந்தால் keisho.ini அருகே crosshairs கோப்புறை."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Scrape artwork online"
-msgstr "ஆன்லைனில் கலைப்படங்களைப் பெறு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps Keisho offline: the\n"
-"picker still lists and launches every game, with placeholder\n"
-"tiles and no descriptions."
-msgstr ""
-"கேம் தேர்வி பெட்டிப் படங்களையும் விளக்கங்களையும் நெட்வொர்க் வழியாக\n"
-"ArcadeDB இலிருந்து பெற அனுமதி. அணைத்தால் Keisho ஆஃப்லைனில் இருக்கும்:\n"
-"தேர்வி இன்னும் எல்லா கேம்களையும் பட்டியலிட்டுத் துவக்கும், இடம்பிடி\n"
-"ஓடுகளுடன், விளக்கங்கள் இல்லாமல்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gamepad"
-msgstr "கேம்பேட்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Wheel"
-msgstr "ஸ்டீயரிங்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light Gun"
-msgstr "லைட் கன்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Network"
-msgstr "நெட்வொர்க்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "States"
-msgstr "நிலைகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "System"
-msgstr "கணினி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "About"
-msgstr "பற்றி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr "ஒரு Sega Model 1, 2 & 3 ஆர்கேட் எமுலேட்டர்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "GPL-3.0-or-later licence. See LICENSE."
-msgstr "GPL-3.0-or-later உரிமம். LICENSE ஐப் பார்க்கவும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Keisho exists because of open source shared with the community."
-msgstr "சமூகத்துடன் பகிரப்பட்ட திறந்த மூலத்தால்தான் Keisho உள்ளது."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "With thanks to the projects whose code makes it possible:"
-msgstr "இதைச் சாத்தியமாக்கும் குறியீட்டை வழங்கிய திட்டங்களுக்கு நன்றி:"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "The MAME project - Sega Model 2 emulation guidance"
-msgstr "MAME திட்டம் - Sega Model 2 எமுலேஷன் வழிகாட்டல்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
-msgstr "Musashi - Motorola 68000 CPU மையம் (Karl Stenerud)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
-msgstr "ymfm - Yamaha FM ஒலி மையங்கள் (Aaron Giles)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "SDL - windowing, input and audio"
-msgstr "SDL - சாளரம், உள்ளீடு மற்றும் ஆடியோ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Dear ImGui - this user interface (Omar Cornut)"
-msgstr "Dear ImGui - இந்தப் பயனர் இடைமுகம் (Omar Cornut)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "pugixml - games.xml parsing"
-msgstr "pugixml - games.xml பாகுபடுத்தல்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "miniz - ZIP archive decompression"
-msgstr "miniz - ZIP காப்பக விரிவாக்கம்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
-msgstr "LZMA SDK - 7-Zip காப்பக விரிவாக்கம் (Igor Pavlov)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
-msgstr "VulkanMemoryAllocator - GPU நினைவகம் (AMD / GPUOpen)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "shaderc / glslang - shader compilation"
-msgstr "shaderc / glslang - ஷேடர் தொகுப்பு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "stb_image - box-art image decoding (Sean Barrett)"
-msgstr "stb_image - பெட்டிப் பட டிகோடிங் (Sean Barrett)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
-msgstr "கேம்பேட் படம் - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "libcurl - artwork scraping (optional)"
-msgstr "libcurl - கலைப்படங்களைப் பெறுதல் (விருப்பத்தேர்வு)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "HarfBuzz - text shaping for translations"
-msgstr "HarfBuzz - மொழிபெயர்ப்புகளுக்கான உரை வடிவமைப்பு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
-msgstr "SheenBidi - வலமிருந்து இடமான உரை அமைப்பு (Muhammad Tayyab Akram)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Game artwork and descriptions from ArcadeDB"
-msgstr "கேம் கலைப்படங்களும் விளக்கங்களும் ArcadeDB இலிருந்து"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "(adb.arcadeitalia.net, by Motoschifo)."
-msgstr "(adb.arcadeitalia.net, Motoschifo வழங்கியது)."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "See NOTICE for full per-component attribution."
-msgstr "முழு கூறுவாரியான நன்றியுரைக்கு NOTICE ஐப் பார்க்கவும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "If you'd like to support development:"
-msgstr "மேம்பாட்டை ஆதரிக்க விரும்பினால்:"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Save settings"
-msgstr "அமைப்புகளைச் சேமி"
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Saved to %s"
-msgstr "%s இல் சேமிக்கப்பட்டது"
+msgid "%zu game changed"
+msgid_plural "%zu games changed"
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Wheel connected."
-msgstr "ஸ்டீயரிங் இணைக்கப்பட்டது."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "No wheel connected. Settings still apply once one is."
-msgstr "ஸ்டீயரிங் இணைக்கப்படவில்லை. இணைத்ததும் அமைப்புகள் பொருந்தும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Force feedback"
-msgstr "ஃபோர்ஸ் ஃபீட்பேக்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wheel force on driving games: centring and cornering\n"
-"forces decoded from the game's own drive-board commands,\n"
-"plus an impact jolt when you hit something."
+msgid "Find a game"
 msgstr ""
-"டிரைவிங் கேம்களில் ஸ்டீயரிங் விசை: கேமின் சொந்த டிரைவ்-போர்டு\n"
-"கட்டளைகளிலிருந்து பெறப்பட்ட மையப்படுத்தல், திருப்ப விசைகள்,\n"
-"ஏதாவது மோதும்போது ஒரு அதிர்ச்சியும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Resistance"
-msgstr "எதிர்ப்பு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"A gain on every force of the drive board. At 100 %, the\n"
-"board's full power (63) gives the wheel's full force, every\n"
-"force in proportion. 200 % doubles every force: those above\n"
-"half the board's power (32, Sega Rally's strongest torque)\n"
-"then saturate."
-msgstr ""
-"டிரைவ் போர்டின் ஒவ்வொரு விசைக்குமான ஒரு பெருக்கம். 100 %-இல்\n"
-"போர்டின் முழு சக்தி (63) ஸ்டீயரிங்கின் முழு விசையைத் தரும்,\n"
-"ஒவ்வொரு விசையும் விகிதத்தில். 200 % ஒவ்வொரு விசையையும்\n"
-"இரட்டிப்பாக்கும்: போர்டின் பாதி சக்திக்கு (32, Sega Rally-யின்\n"
-"வலிமையான டார்க்) மேலான விசைகள் அப்போது நிறைவுறும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Panel spring"
-msgstr "பேனல் ஸ்பிரிங்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The centring spring of the Sega Rally Championship and\n"
-"Daytona USA cabinets: very light, it brings the wheel\n"
-"back and is barely felt when held against. A share of\n"
-"the resistance above. The other games' cabinets drive\n"
-"the wheel with no spring, and ignore this setting."
-msgstr ""
-"Sega Rally Championship மற்றும் Daytona USA கேபினட்டுகளின்\n"
-"மையப்படுத்தும் ஸ்பிரிங்: மிக லேசானது, ஸ்டீயரிங்கைத் திருப்பிக்\n"
-"கொண்டுவரும், பிடித்தால் அரிதாகவே உணரப்படும். மேலே உள்ள\n"
-"எதிர்ப்பின் ஒரு பங்கு. மற்ற விளையாட்டுகளின் கேபினட்டுகள்\n"
-"ஸ்பிரிங் இல்லாமல் இயக்குவதால் இந்த அமைப்பைப் புறக்கணிக்கும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Sega Rally Championship and Daytona USA only, all versions."
-msgstr "Sega Rally Championship மற்றும் Daytona USA மட்டும், அனைத்து பதிப்புகளும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Drive board DIP strength"
-msgstr "டிரைவ் போர்டின் DIP வலிமை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The motor strength set on the drive board's DIP switches,\n"
-"the switches ON counted in binary: 0 = all OFF.\n"
-"Sega Rally: switches 1-3, 0 to 7 added to every torque.\n"
-"Daytona USA: switches 1-3, 4 times that.\n"
-"Indy 500, Touring Car, Over Rev, Super GT 24h:\n"
-"switches 1-1 to 1-3, 0 to 7 added to every force."
-msgstr ""
-"டிரைவ் போர்டின் DIP சுவிட்சுகளால் அமைக்கப்படும் மோட்டார் வலிமை,\n"
-"ON சுவிட்சுகள் இருமத்தில் எண்ணப்படும்: 0 = அனைத்தும் OFF.\n"
-"Sega Rally: சுவிட்சுகள் 1-3, ஒவ்வொரு\n"
-"டார்க்கிலும் 0 முதல் 7 சேர்க்கப்படும். Daytona USA: சுவிட்சுகள்\n"
-"1-3, அதன் 4 மடங்கு. Indy 500, Touring Car, Over Rev, Super GT\n"
-"24h: சுவிட்சுகள் 1-1 முதல் 1-3, ஒவ்வொரு விசையிலும் 0 முதல் 7."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Invert force feedback"
-msgstr "ஃபோர்ஸ் ஃபீட்பேக்கைத் தலைகீழாக்கு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"For a wheel whose driver pushes the wrong way: it pulls\n"
-"away from the centre instead of bringing it back, and\n"
-"the game's forces go the opposite way."
-msgstr ""
-"டிரைவர் தவறான திசையில் தள்ளும் ஸ்டீயரிங்கிற்கு: அது மையத்திற்குத்\n"
-"திரும்பக் கொண்டுவருவதற்குப் பதிலாக விலகி இழுக்கும், மேலும்\n"
-"கேமின் விசைகள் எதிர்த் திசையில் செல்லும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rumble"
-msgstr "அதிர்வு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Vibrates on the game's impacts, for wheels without force\n"
-"feedback. It never runs alongside force feedback."
-msgstr ""
-"ஃபோர்ஸ் ஃபீட்பேக் இல்லாத ஸ்டீயரிங்குகளுக்கு, கேமின் மோதல்களில்\n"
-"அதிரும். ஃபோர்ஸ் ஃபீட்பேக்குடன் ஒருபோதும் சேர்ந்து இயங்காது."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rumble strength"
-msgstr "அதிர்வு வலிமை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Engine vibration"
-msgstr "எஞ்சின் அதிர்வு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"An added vibration that grows with the throttle. It is not\n"
-"from the game. Turn it off to feel only the game's force feedback."
-msgstr ""
-"த்ராட்டிலுடன் அதிகரிக்கும் கூடுதல் அதிர்வு. இது கேமிலிருந்து\n"
-"வருவதல்ல. கேமின் ஃபோர்ஸ் ஃபீட்பேக்கை மட்டும் உணர இதை அணைக்கவும்."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%u deg"
-msgstr "%u டிகிரி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Steering range"
-msgstr "ஸ்டீயரிங் வரம்பு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Set this to your wheel's own rotation range. The lock\n"
-"angle below is mapped onto it, so matching your wheel\n"
-"gives arcade-like response."
-msgstr ""
-"இதை உங்கள் ஸ்டீயரிங்கின் சொந்தச் சுழற்சி வரம்புக்கு அமைக்கவும். கீழே உள்ள\n"
-"லாக் கோணம் இதன் மேல் பொருத்தப்படும், எனவே உங்கள் ஸ்டீயரிங்குடன்\n"
-"பொருத்தினால் ஆர்கேட் போன்ற பதில் கிடைக்கும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Lock angle"
-msgstr "லாக் கோணம்"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%d deg"
-msgstr "%d டிகிரி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"How far to physically turn for full game lock (total,\n"
-"so half each side of centre). Lower is more sensitive."
-msgstr ""
-"கேமின் முழு லாக்கிற்கு எவ்வளவு உண்மையில் திருப்ப வேண்டும் (மொத்தம்,\n"
-"எனவே மையத்தின் இருபுறமும் பாதி). குறைவாக இருந்தால் அதிக உணர்திறன்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Centre deadzone"
-msgstr "மைய டெட்ஸோன்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wheel travel about centre that reads as centre. Most wheels\n"
-"want none; a little covers one whose centre wanders. The bar\n"
-"shows the wheel now against the shaded zone."
-msgstr ""
-"மையத்தைச் சுற்றி மையமாகவே படிக்கப்படும் ஸ்டீயரிங் நகர்வு. பெரும்பாலான\n"
-"ஸ்டீயரிங்குகளுக்கு இது தேவையில்லை; மையம் அலையும் ஒன்றுக்குச் சிறிது உதவும்.\n"
-"பட்டை தற்போதைய ஸ்டீயரிங்கை நிழலிட்ட பகுதியுடன் காட்டும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Wheel position"
-msgstr "ஸ்டீயரிங் நிலை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Axes"
-msgstr "அச்சுகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
-msgstr ""
-"தானாகக் கண்டறியப்பட்டது. ஸ்டீயரிங் அல்லது பெடல் தவறாக இருந்தால் மீண்டும் அளவீடு செய்யவும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Steering"
-msgstr "ஸ்டீயரிங்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Accelerator"
-msgstr "ஆக்ஸிலரேட்டர்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Brake"
-msgstr "பிரேக்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "auto"
-msgstr "தானியங்கு"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d (half, +)"
-msgstr "அச்சு %d (பாதி, +)"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d (half, -)"
-msgstr "அச்சு %d (பாதி, -)"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d (inverted)"
-msgstr "அச்சு %d (தலைகீழ்)"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d"
-msgstr "அச்சு %d"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "operate it..."
-msgstr "அதை இயக்கவும்..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "cancel"
-msgstr "ரத்து"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Calibrate"
-msgstr "அளவீடு செய்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Buttons"
-msgstr "பொத்தான்கள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Press Bind, then press the wheel button for that control."
-msgstr "இணை என்பதை அழுத்தி, பின் அந்தக் கட்டுப்பாட்டிற்கான ஸ்டீயரிங் பொத்தானை அழுத்தவும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Start"
-msgstr "Start"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Coin"
-msgstr "நாணயம்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 1"
-msgstr "பொத்தான் 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 2"
-msgstr "பொத்தான் 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 3"
-msgstr "பொத்தான் 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 4"
-msgstr "பொத்தான் 4"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Shift up"
-msgstr "கியர் மேலே"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Shift down"
-msgstr "கியர் கீழே"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 1"
-msgstr "கியர் 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 2"
-msgstr "கியர் 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 3"
-msgstr "கியர் 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 4"
-msgstr "கியர் 4"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Neutral"
-msgstr "நியூட்ரல்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Test"
-msgstr "சோதனை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Service"
-msgstr "சர்வீஸ்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Menu (F10)"
-msgstr "மெனு (F10)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "unbound"
-msgstr "இணைக்கப்படவில்லை"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "button %d"
-msgstr "பொத்தான் %d"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "press a button..."
-msgstr "ஒரு பொத்தானை அழுத்தவும்..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Bind"
-msgstr "இணை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "clear"
-msgstr "அழி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear shifter"
-msgstr "கியர் லீவர்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Daytona USA and Sega Rally Championship, all versions."
-msgstr "Daytona USA மற்றும் Sega Rally Championship, அனைத்து பதிப்புகளும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Neutral when no gear is engaged"
-msgstr "எந்த கியரும் இல்லாதபோது நியூட்ரல்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"With an H shifter bound to Gear 1..4: its lever in none\n"
-"of the gears is in neutral, as on the cabinet. Off, the\n"
-"last gear stays engaged until another is selected or\n"
-"Neutral is pressed."
-msgstr ""
-"கியர் 1..4 உடன் இணைக்கப்பட்ட H ஷிஃப்டருடன்: லீவர் எந்த\n"
-"கியரிலும் இல்லையெனில், கேபினட்டில் போல நியூட்ரலில்\n"
-"இருக்கும். அணைத்தால்: வேறு கியர் தேர்ந்தெடுக்கும் வரை\n"
-"அல்லது நியூட்ரல் அழுத்தும் வரை கடைசி கியர் இருக்கும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Neutral between gears"
-msgstr "கியர்களுக்கு இடையே நியூட்ரல்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Shift up / Shift down (and a gamepad's RB / LB) from one\n"
-"gear to another pass through neutral this long, as a\n"
-"lever crosses the gate's centre. 0 shifts straight."
-msgstr ""
-"கியர் மேலே / கியர் கீழே (மற்றும் கேம்பேடின் RB / LB) ஒரு\n"
-"கியரிலிருந்து மற்றொன்றுக்கு இவ்வளவு நேரம் நியூட்ரல் வழியே\n"
-"செல்லும், லீவர் கேட்டின் நடுவைக் கடப்பது போல. 0 நேரடியாக மாற்றும்."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%d gamepad connected."
-msgid_plural "%d gamepads connected."
-msgstr[0] "%d கேம்பேட் இணைக்கப்பட்டுள்ளது."
-msgstr[1] "%d கேம்பேடுகள் இணைக்கப்பட்டுள்ளன."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "No gamepad connected. Settings still apply once one is."
-msgstr "கேம்பேட் இணைக்கப்படவில்லை. இணைத்ததும் அமைப்புகள் பொருந்தும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Default"
-msgstr "இயல்புநிலை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Game"
-msgstr "கேம்"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1515,48 +926,808 @@ msgstr "கேம்களை வடிகட்டு"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "custom"
-msgstr "தனிப்பயன்"
+msgid "Reset all"
+msgstr "அனைத்தையும் மீட்டமை"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Used by every game without its own layout."
-msgstr "சொந்த அமைப்பு இல்லாத ஒவ்வொரு விளையாட்டும் இதைப் பயன்படுத்தும்."
+msgid "Games"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Uses the default layout until a binding is changed."
-msgstr "ஒரு பிணைப்பு மாற்றப்படும் வரை இயல்புநிலை அமைப்பைப் பயன்படுத்தும்."
+msgid "playing"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "This game has its own layout."
-msgstr "இந்த விளையாட்டுக்குச் சொந்த அமைப்பு உள்ளது."
+msgid "Gamepad"
+msgstr "கேம்பேட்"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Player"
-msgstr "வீரர்"
+msgid "Light gun"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Reset to SDL defaults"
-msgstr "SDL இயல்புநிலைகளுக்கு மீட்டமை"
+msgid "Wheel"
+msgstr "ஸ்டீயரிங்"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Use Default Layout"
-msgstr "இயல்புநிலை அமைப்பைப் பயன்படுத்து"
+msgid "Pause"
+msgstr "இடைநிறுத்து"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Show bindings"
-msgstr "பிணைப்புகளைக் காட்டு"
+msgid "Fast-forward"
+msgstr "வேகமாக முன்னோக்கு"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Show shortcuts"
-msgstr "குறுக்குவழிகளைக் காட்டு"
+msgid "While held."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Held: runs the game backwards. Needs Rewind on, on the System page."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind"
+msgstr "பின்னோக்கு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quick-save"
+msgstr "விரைவு சேமிப்பு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves the whole machine to the quick slot."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quick-load"
+msgstr "விரைவு ஏற்றம்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Restores the quick slot."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "FPS கணக்கி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "அமைப்புகள்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This menu."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshot"
+msgstr "திரைப்பிடிப்பு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Back to games"
+msgstr "கேம்களுக்குத் திரும்பு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Leaves the game for the game list, or quits."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "வெளியேறு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Playing"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Leaving"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a key..."
+msgstr "ஒரு விசையை அழுத்தவும்..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Clear"
+msgstr "அழி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Default"
+msgstr "இயல்புநிலை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a key, then press the new one. Escape cancels. A key a game also uses "
+"does both."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hold Guide and press a button for the menu, save, load, rewind and the rest; "
+"the Input page lists them. Off for a host that maps the hotkeys itself, such "
+"as Batocera."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guide button shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guide held with a button: menu, save, load, rewind..."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet link"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same title (Sega "
+"Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps this cabinet "
+"standalone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "நெட்வொர்க் வழியாக கேபினெட்டுகளை இணை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Takes effect at the next game launch."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next. For two machines, point each at the other. The master/slave "
+"role is chosen in the game's own test menu, not here."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "இந்த கேபினெட்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank listens on every interface. "
+"Detect fills it from the primary network adapter."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "கண்டறி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "உள்ளூர் IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "every interface"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "சப்நெட் மாஸ்க்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "கேட்கும் போர்ட்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring, from 0. For your own bookkeeping; the "
+"game negotiates the real link id from the ring."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "கேபினெட் எண்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets' data is read. Raise "
+"it if a race over Wi-Fi stutters; lower it on a wired LAN. Each frame shows "
+"the other cars 1/60 s later."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "In frames; Model 3."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link delay"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "வளையத்தில் அடுத்த கேபினெட்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the other machine's IP. "
+"Blank means this cabinet does not forward (the tail of a chain)."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "அடுத்த IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "அடுத்த போர்ட்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "நிலை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "இணைப்பு அமைக்கப்பட்டது; அடுத்த கேம் துவக்கத்தில் தொடங்கும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "தனித்து (கேபினெட் இணைப்பு இல்லை)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "கேம் இணைப்பு போர்டை இயக்கக் காத்திருக்கிறது..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "இணைக்கப்பட்டது: கேபினெட் %u / %u."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "வளையம் அமைக்கப்படுகிறது..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet outputs"
+msgstr "கேபினட் வெளியீடுகள்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Send lamps, gun recoil and drive-board output to MAMEHooker, Hook Of The "
+"Reaper and similar tools, using MAME's network output protocol."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lamps and drive-board bytes, as MAME sends them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network outputs"
+msgstr "நெட்வொர்க் வெளியீடுகள்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "MAME uses 8000."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Port"
+msgstr "போர்ட்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The same outputs over MAME's Windows message protocol, for tools that hook "
+"MAME that way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Windows outputs"
+msgstr "Windows வெளியீடுகள்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "உலாவு..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"One zip or 7z per game, named as in MAME. A game launched by name is loaded "
+"as <name>.zip or <name>.7z from its system's folder; Model 1 and Model 3 "
+"fall back to the Model 2 folder."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 1 ROM folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where the Model 1 ROM archives live. Empty means the Model 2 folder."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "the Model 2 folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 2 ROM folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "One zip or 7z per game, named as in MAME."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 2 ROM archives live, and any Model 1 or Model 3 archives "
+"kept with them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "not set"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 3 ROM folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where the Model 3 ROM archives live. Empty means the Model 2 folder."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves and pictures"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "NVRAM, EEPROM, save states and textures."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM (.eeprom) images, high "
+"scores and operator settings."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where screenshots are written."
+msgstr "திரைப்பிடிப்புகள் எழுதப்படும் இடம்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bezels"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Bezel images: <game>.png, the parent set's, or default.png. Empty means a "
+"bezels folder beside keisho.ini."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "beside keisho.ini"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Crosshairs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Crosshair images: <game>-p1.png (-p2 for player 2) or <game>.png for both, "
+"then the parent set's, then default. Without one the built-in crosshair is "
+"drawn. Empty means a crosshairs folder beside keisho.ini."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game list"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game list fetch box art and descriptions from ArcadeDB over the "
+"network. Off keeps Keisho offline: the list still launches every game, with "
+"plain tiles."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Box art and descriptions from ArcadeDB."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetch artwork online"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho files"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where keisho.ini is read from and saved to. Set with --config <dir>."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings file"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Artwork cache"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "நிலையைச் சேமிக்கவும் மீட்கவும் ஒரு கேமை ஏற்றவும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save states"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is %s, "
+"quick-load is %s."
+msgstr ""
+"முழு இயந்திரத்தையும் ஒரு ஸ்லாட்டில் சேமித்து பின்னர் மீட்கவும். விரைவு-சேமிப்பு %s, "
+"விரைவு-ஏற்றம் %s."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "நீக்கு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "ஏற்று"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "சேமி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "காலி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Interface"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "தானியங்கு (கணினி)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "மொழி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Theme"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "In the top-right corner."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brief notes such as \"State saved\"."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "அறிவிப்புகள்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Play"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheels and gamepads keep working while the window is not in front. Keyboard "
+"and mouse still need the window in front."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Background controller input"
+msgstr "பின்னணியில் கட்டுப்படுத்தி உள்ளீடு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pads and wheels work while the window is behind."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Keeps the last stretch of play in memory. Hold the rewind key and the game "
+"runs backwards through it at double speed; let go and play carries on from "
+"there. Taking the snapshots costs a little speed."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "The key is %s."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No key is set for it: see the Hotkeys page."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keep recent play in memory to run back through."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"RAM set aside for the history, not disk. Snapshots are stored as what "
+"changed, so 128 MiB holds about half a minute of most games."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "More memory keeps more of the past."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind memory"
+msgstr "பின்னோக்கு நினைவகம்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 1, 2 & 3 arcade emulator"
+msgstr "ஒரு Sega Model 1, 2 & 3 ஆர்கேட் எமுலேட்டர்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Version"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Copyright"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPL-3.0-or-later with additional terms; see LICENSE and NOTICE."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Licence"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Support development"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho exists because of open source shared with the community."
+msgstr "சமூகத்துடன் பகிரப்பட்ட திறந்த மூலத்தால்தான் Keisho உள்ளது."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Model 1, 2 and 3 emulation guidance"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 3 reference (Bart Trzynadlowski and the Supermodel team)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Motorola 68000 CPU core (Karl Stenerud)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yamaha FM sound cores (Aaron Giles)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "windowing, input and audio"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "this user interface (Omar Cornut)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "games.xml parsing"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ZIP archive decompression"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "7-Zip archive decompression (Igor Pavlov)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU memory (AMD / GPUOpen)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shader compilation"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "image decoding (Sean Barrett)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "the menu's font (The Noto Project Authors), OFL 1.1"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "artwork fetching (optional)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "text shaping for translations"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "game artwork and descriptions (adb.arcadeitalia.net, by Motoschifo)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "பிரேக்"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1585,8 +1756,43 @@ msgstr "கீழே நகர்"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Coin"
+msgstr "நாணயம்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "ஆக்ஸிலரேட்டர்"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Gear Up"
 msgstr "கியர் மேலே"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "பொத்தான் 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "பொத்தான் 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "பொத்தான் 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "பொத்தான் 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1595,45 +1801,8 @@ msgstr "திருப்பு / குறிவை"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Stick"
-msgstr "வலது ஸ்டிக்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Left Stick"
-msgstr "இடது ஸ்டிக்"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%s (inverted)"
-msgstr "%s (தலைகீழ்)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click, then push a stick.\n"
-"Right-click to go back to the default."
+msgid "Elevation"
 msgstr ""
-"கிளிக் செய்து, பின் ஒரு ஸ்டிக்கைத் தள்ளவும்.\n"
-"இயல்புநிலைக்குத் திரும்ப வலது-கிளிக் செய்யவும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click, then pull the trigger, push a stick\n"
-"or press a button. Right-click for the default."
-msgstr ""
-"கிளிக் செய்து, பின் டிரிகரை இழுக்கவும், ஸ்டிக்கைத் தள்ளவும்\n"
-"அல்லது பொத்தானை அழுத்தவும். இயல்புநிலைக்கு வலது-கிளிக்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click, then press a button or pull a trigger.\n"
-"Right-click to unbind."
-msgstr ""
-"கிளிக் செய்து, பின் பொத்தானை அழுத்தவும் அல்லது டிரிகரை இழுக்கவும்.\n"
-"இணைப்பை நீக்க வலது-கிளிக்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1702,8 +1871,33 @@ msgstr "ஸ்டிக்"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Forward"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reverse"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Lever"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Cannon"
 msgstr "பீரங்கி"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "ஸ்டீயரிங்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Turret"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1717,6 +1911,11 @@ msgstr "வலது சாய்வு"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Handlebars"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Cancel Error"
 msgstr "பிழையை ரத்துசெய்"
 
@@ -1727,23 +1926,271 @@ msgstr "நெட்வொர்க்கை ரத்துசெய்"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Screenshot"
-msgstr "திரைப்பிடிப்பு"
+msgid "Flight Stick"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Skis"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handle"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bomb"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shot"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Board"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bunt"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Swing"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Run"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering Wheel"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bat"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift Up"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift Down"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shifter"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "P%d: %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "%d கேம்பேட் இணைக்கப்பட்டுள்ளது."
+msgstr[1] "%d கேம்பேடுகள் இணைக்கப்பட்டுள்ளன."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "கேம்பேட் இணைக்கப்படவில்லை. இணைத்ததும் அமைப்புகள் பொருந்தும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "custom"
+msgstr "தனிப்பயன்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Every game uses the default layout until it is given one of its own. Pick a "
+"game, change a binding, and the game keeps the change. A game shows only the "
+"controls its cabinet has."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Layout for"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "வீரர்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Used by every game without its own layout."
+msgstr "சொந்த அமைப்பு இல்லாத ஒவ்வொரு விளையாட்டும் இதைப் பயன்படுத்தும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Uses the default layout until a binding is changed."
+msgstr "ஒரு பிணைப்பு மாற்றப்படும் வரை இயல்புநிலை அமைப்பைப் பயன்படுத்தும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This game has its own layout."
+msgstr "இந்த விளையாட்டுக்குச் சொந்த அமைப்பு உள்ளது."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Gamepad shows the pad with every binding. Cabinet shows the game's controls "
+"as the cabinet has them, each with what the pad does for it. Shortcuts lists "
+"what Guide held with another button does."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "இணைக்கப்படவில்லை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "வலது ஸ்டிக்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "இடது ஸ்டிக்"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (தலைகீழ்)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "D-Pad"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Face buttons"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "SDL இயல்புநிலைகளுக்கு மீட்டமை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Use default layout"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide unused"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show unused"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Map all"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Map all asks for each control of the cabinet in turn: press the pad input "
+"for it, or wait and it moves on. Show unused adds the slots this cabinet has "
+"no control for, to bind them anyway."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Layout"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press each of its inputs in turn. Right-click or Delete clears "
+"them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press the pad input for it. Right-click or Delete clears it."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Click, then push a stick. Right-click to go back to the default."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then move a stick the way that should read as up. Right-click for the "
+"default."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick or press a button. Right-click "
+"for the default."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Click, then press a button or pull a trigger. Right-click to unbind."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "அதை இயக்கவும்..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "ஒரு பொத்தானை அழுத்தவும்..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "சர்வீஸ்"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Left held"
 msgstr "இடது அழுத்தி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rewind"
-msgstr "பின்னோக்கு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Fast-forward"
-msgstr "வேகமாக முன்னோக்கு"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1757,23 +2204,58 @@ msgstr "வெளியேறு"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Quick-load"
-msgstr "விரைவு ஏற்றம்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Quick-save"
-msgstr "விரைவு சேமிப்பு"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Settings menu"
 msgstr "அமைப்புகள் மெனு"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Test"
+msgstr "சோதனை"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Hold first"
 msgstr "முதலில் அழுத்திப் பிடி"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Press the pad button for %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Push the stick for %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Move the stick the way that raises %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Pull the trigger or push the stick for %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu of %zu   ·   %d s, then the next   ·   Escape stops"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape cancels"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Skip"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stop"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1785,22 +2267,38 @@ msgstr ""
 "கேம்கள் இருந்தால் வெளியேறு அவற்றுக்குத் திரும்பும். சர்வீஸ், சோதனை எப்போதும் வேலை செய்யும்."
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Slots are named for this game's controls; dimmed ones are not used. Show "
-"shortcuts lists the Guide combinations."
-msgstr ""
-"இடங்கள் இந்த விளையாட்டின் கட்டுப்பாடுகளின் பெயரில் உள்ளன; மங்கியவை பயன்படுத்தப்படாது. "
-"குறுக்குவழிகளைக் காட்டு Guide சேர்க்கைகளைப் பட்டியலிடும்."
+"Click a control or press Enter on it, then press the pad input for it. Right-"
+"click, Delete or X clears it. %d slot this cabinet has no control for is "
+"hidden: Show unused lists it."
+msgid_plural ""
+"Click a control or press Enter on it, then press the pad input for it. Right-"
+"click, Delete or X clears it. %d slots this cabinet has no control for are "
+"hidden: Show unused lists them."
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
-"is Virtual On's. Show shortcuts lists the Guide combinations."
+"Click a control or press Enter on it, then press the pad input for it. Right-"
+"click, Delete or X clears it. The left stick also moves; the shoulders also "
+"act as Button 3/4."
 msgstr ""
-"இடது ஸ்டிக்கும் நகர்த்தும்; தோள் பொத்தான்கள் Button 3/4 ஆகவும் செயல்படும். வலது லீவர் "
-"Virtual On க்கானது. குறுக்குவழிகளைக் காட்டு Guide சேர்க்கைகளைப் பட்டியலிடும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sticks"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Stick travel about centre that reads as centre. Let go of the stick and "
+"raise this until the marker below sits inside the shaded zone. Also applies "
+"to stick aiming."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1809,19 +2307,21 @@ msgstr "ஸ்டிக் டெட்ஸோன்"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Stick travel about centre that reads as centre. The bar shows\n"
-"the stick now: let go of it and raise this until the marker\n"
-"sits inside the shaded zone. Also applies to stick aiming."
-msgstr ""
-"மையத்தைச் சுற்றி மையமாகவே படிக்கப்படும் ஸ்டிக் நகர்வு. பட்டை தற்போதைய\n"
-"ஸ்டிக்கைக் காட்டும்: அதை விட்டுவிட்டு, குறி நிழலிட்ட பகுதிக்குள்\n"
-"வரும் வரை இதை உயர்த்தவும். ஸ்டிக் குறிவைப்புக்கும் பொருந்தும்."
+msgid "Stick position"
+msgstr "ஸ்டிக் நிலை"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Stick position"
-msgstr "ஸ்டிக் நிலை"
+msgid "The stick now, against the deadzone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection is always "
+"full lock; under 100% the middle of the travel does less, over 100% it does "
+"more."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1830,23 +2330,36 @@ msgstr "ஸ்டிக் உணர்திறன்"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Response of a stick's travel past its deadzone. Full deflection\n"
-"is always full lock; under 100% the middle of the travel does\n"
-"less, over 100% it does more."
-msgstr ""
-"டெட்ஸோனைத் தாண்டிய ஸ்டிக் நகர்வின் பதில். முழு விலக்கம்\n"
-"எப்போதும் முழு லாக்; 100% க்குக் கீழ் நகர்வின் நடுப்பகுதி\n"
-"குறைவாகச் செய்யும், 100% க்கு மேல் அதிகமாகச் செய்யும்."
+msgid "Rumble"
+msgstr "அதிர்வு"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Vibrates on the game's impacts in driving games.\n"
-"Other games stay quiet."
+"Vibrates on the game's impacts in driving games. Other games stay quiet."
 msgstr ""
-"டிரைவிங் கேம்களில் கேமின் மோதல்களில் அதிரும்.\n"
-"மற்ற கேம்கள் அமைதியாக இருக்கும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The game's impacts, in driving games."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "அதிர்வு வலிமை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not from the game. Turn it "
+"off to feel only the game's impacts."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Grows as you steer; not from the game."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1855,75 +2368,314 @@ msgstr "ஸ்டீயரிங் அதிர்வு"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"An added vibration that grows as you steer. It is not\n"
-"from the game. Turn it off to feel only the game's force feedback."
-msgstr ""
-"திருப்பும்போது அதிகரிக்கும் கூடுதல் அதிர்வு. இது கேமிலிருந்து\n"
-"வருவதல்ல. கேமின் ஃபோர்ஸ் ஃபீட்பேக்கை மட்டும் உணர இதை அணைக்கவும்."
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "ஸ்டீயரிங் இணைக்கப்படவில்லை. இணைத்ததும் அமைப்புகள் பொருந்தும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Reset"
-msgstr "மீட்டமை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Music volume"
-msgstr "இசை ஒலியளவு"
+msgid "Wheel connected."
+msgstr "ஸ்டீயரிங் இணைக்கப்பட்டது."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Only for games with a separate music board: Star Wars\n"
-"Arcade, Sega Touring Car Championship and Top Skater.\n"
-"Sound effects stay as they are."
+"Wheel force on driving games: centring and cornering forces decoded from the "
+"game's own drive-board commands, plus an impact jolt when you hit something."
 msgstr ""
-"தனி இசைப் பலகை உள்ள விளையாட்டுகளுக்கு மட்டும்:\n"
-"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
-"ஒலி விளைவுகள் அப்படியே இருக்கும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Per-game volume"
-msgstr "கேம்வாரி ஒலியளவு"
+msgid "Force feedback"
+msgstr "ஃபோர்ஸ் ஃபீட்பேக்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The drive board's forces, on a wheel that can make them."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Raise or lower a game's volume from its default level.\n"
-"One slider covers every revision of a game. Off plays\n"
-"every game at its default, whatever the sliders say.\n"
-"\n"
-"Warning: above 100% loud effects can clip (audible\n"
-"distortion)."
+"A gain on every force of the drive board. At 100%, the board's full power "
+"(63) gives the wheel's full force, every force in proportion. 200% doubles "
+"every force: those above half the board's power (32, Sega Rally's strongest "
+"torque) then saturate."
 msgstr ""
-"ஒரு கேமின் ஒலியளவை அதன் இயல்புநிலையிலிருந்து கூட்டவும் அல்லது குறைக்கவும்.\n"
-"ஒரு ஸ்லைடர் ஒரு கேமின் எல்லாப் பதிப்புகளுக்கும் பொருந்தும். அணைத்தால்\n"
-"ஸ்லைடர்கள் எதைக் காட்டினாலும் எல்லா கேம்களும் இயல்புநிலையில் ஒலிக்கும்.\n"
-"\n"
-"எச்சரிக்கை: 100% க்கு மேல் உரத்த ஒலிகள் கிளிப் ஆகலாம் (கேட்கக்கூடிய\n"
-"சிதைவு)."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "Now playing: %s"
-msgstr "இப்போது இயங்குவது: %s"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Reset all"
-msgstr "அனைத்தையும் மீட்டமை"
+msgid "Resistance"
+msgstr "எதிர்ப்பு"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Volume"
-msgstr "ஒலியளவு"
+msgid ""
+"The centring spring of the Sega Rally Championship and Daytona USA cabinets: "
+"very light, it brings the wheel back and is barely felt when held against. A "
+"share of the resistance above. The other games' cabinets drive the wheel "
+"with no spring, and ignore this setting."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Panel spring"
+msgstr "பேனல் ஸ்பிரிங்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Rally Championship and Daytona USA only, all versions."
+msgstr "Sega Rally Championship மற்றும் Daytona USA மட்டும், அனைத்து பதிப்புகளும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The motor strength set on the drive board's DIP switches, the switches ON "
+"counted in binary: 0 = all OFF. Sega Rally: switches 1-3, 0 to 7 added to "
+"every torque. Daytona USA: switches 1-3, 4 times that. Indy 500, Touring "
+"Car, Over Rev, Super GT 24h: switches 1-1 to 1-3, 0 to 7 added to every "
+"force."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Drive board DIP strength"
+msgstr "டிரைவ் போர்டின் DIP வலிமை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The operator's setting, 0 to 7."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls away from the centre "
+"instead of bringing it back, and the game's forces go the opposite way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "ஃபோர்ஸ் ஃபீட்பேக்கைத் தலைகீழாக்கு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force feedback. It never "
+"runs alongside force feedback."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "For wheels without force feedback."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not from the game. "
+"Turn it off to feel only the game's force feedback."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "எஞ்சின் அதிர்வு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Grows with the throttle; not from the game."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock angle below is mapped "
+"onto it, so matching your wheel gives arcade-like response."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "ஸ்டீயரிங் வரம்பு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Your wheel's own rotation, in degrees."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total, so half each side of "
+"centre). Lower is more sensitive."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "லாக் கோணம்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rotation to full lock, both sides together."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel travel about centre that reads as centre. Most wheels want none; a "
+"little covers one whose centre wanders. The bar below shows the wheel now "
+"against the shaded zone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Centre deadzone"
+msgstr "மைய டெட்ஸோன்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The wheel now, against the deadzone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel position"
+msgstr "ஸ்டீயரிங் நிலை"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "அச்சுகள்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Auto-detected. Calibrate one if steering or a pedal is wrong: click its "
+"value, then operate that control."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Auto"
 msgstr "தானியங்கு"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "தானியங்கு"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (half, +)"
+msgstr "அச்சு %d (பாதி, +)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (half, -)"
+msgstr "அச்சு %d (பாதி, -)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "அச்சு %d (தலைகீழ்)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "அச்சு %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "பொத்தான்கள்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Click a value, then press the wheel button for that control."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "கியர் மேலே"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "கியர் கீழே"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 1"
+msgstr "கியர் 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 2"
+msgstr "கியர் 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 3"
+msgstr "கியர் 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 4"
+msgstr "கியர் 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Neutral"
+msgstr "நியூட்ரல்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "பொத்தான் %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear shifter"
+msgstr "கியர் லீவர்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"With an H shifter bound to Gear 1..4: its lever in none of the gears is in "
+"neutral, as on the cabinet. Off, the last gear stays engaged until another "
+"is selected or Neutral is pressed."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Daytona USA and Sega Rally Championship, all versions."
+msgstr "Daytona USA மற்றும் Sega Rally Championship, அனைத்து பதிப்புகளும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Neutral when no gear is engaged"
+msgstr "எந்த கியரும் இல்லாதபோது நியூட்ரல்"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Shift up / Shift down (and a gamepad's RB / LB) from one gear to another "
+"pass through neutral this long, as a lever crosses the gate's centre. 0 "
+"shifts straight."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Neutral between gears"
+msgstr "கியர்களுக்கு இடையே நியூட்ரல்"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1937,19 +2689,32 @@ msgstr "இயக்கு"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid ""
+"The aiming crosshair, with the mouse pointer hidden. Auto turns it on in a "
+"gun game; On hides the pointer in every game; Off never shows a crosshair."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Crosshair and hidden pointer: in gun games, always, or never."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Gun mode"
 msgstr "துப்பாக்கி பயன்முறை"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"The aiming crosshair, with the mouse pointer hidden.\n"
-"Auto turns it on in a gun game; On hides the pointer in\n"
-"every game; Off never shows a crosshair."
+"Draw Keisho's own crosshair. Turn off if the gun has its own sight (e.g. a "
+"Sinden). Positional-gun titles always draw their own regardless."
 msgstr ""
-"மவுஸ் சுட்டியை மறைத்து காட்டப்படும் குறிவைப்பு.\n"
-"தானியங்கு துப்பாக்கி விளையாட்டில் இதை இயக்கும்; இயக்கு எல்லா\n"
-"விளையாட்டிலும் சுட்டியை மறைக்கும்; அணை குறிவைப்பை ஒருபோதும் காட்டாது."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho's own sight."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1959,13 +2724,15 @@ msgstr "குறுக்குக்கோட்டைக் காட்ட�
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw Keisho's own crosshair. Turn off if the gun\n"
-"has its own sight (e.g. a Sinden). Positional-gun\n"
-"titles always draw their own regardless."
+"A gamepad's stick points at the screen: the crosshair sits in the centre at "
+"rest and reaches the edge at full tilt. Off, the stick moves the crosshair "
+"like a mouse."
 msgstr ""
-"Keisho இன் சொந்தக் குறுக்குக்கோட்டை வரை. கன்னுக்குச் சொந்தக்\n"
-"குறிகாட்டி இருந்தால் (எ.கா. Sinden) அணைக்கவும். நிலை-கன்\n"
-"கேம்கள் எப்படியும் தங்களுடையதை எப்போதும் வரையும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A stick points at the screen instead of moving the sight."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1975,13 +2742,9 @@ msgstr "மைய குச்சி குறிவைப்பு"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"A gamepad's stick points at the screen: the crosshair\n"
-"sits in the centre at rest and reaches the edge at full\n"
-"tilt. Off, the stick moves the crosshair like a mouse."
+"Hide the white flash Virtua Cop, Virtua Cop 2 and House of the Dead show on "
+"each shot."
 msgstr ""
-"கேம்பேட் குச்சி திரையைச் சுட்டுகிறது: ஓய்வில் குறிவைப்பு\n"
-"மையத்தில் இருக்கும், முழுமையாகச் சாய்த்தால் விளிம்பை அடையும்.\n"
-"அணைத்தால் குச்சி குறிவைப்பை மவுஸ் போல நகர்த்தும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1990,19 +2753,22 @@ msgstr "சுடும் ஒளிர்வை மறை"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
-"House of the Dead show on each shot."
+msgid "The white flash of the gun games."
 msgstr ""
-"Virtua Cop, Virtua Cop 2, House of the Dead\n"
-"ஒவ்வொரு சுடுதலிலும் காட்டும் வெள்ளை ஒளிர்வை மறை."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "சாதனங்கள்"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "By default player 1 aims with the mouse (the left button fires and the right "
 "reloads by shooting off screen) and player 2 with a gamepad."
-msgstr "இயல்பாக பிளேயர் 1 மவுஸால் குறிவைக்கிறார் (இடது பொத்தான் சுடும், வலது பொத்தான் திரைக்கு வெளியே சுட்டு மீண்டும் நிரப்பும்), பிளேயர் 2 கேம்பேடால்."
+msgstr ""
+"இயல்பாக பிளேயர் 1 மவுஸால் குறிவைக்கிறார் (இடது பொத்தான் சுடும், வலது பொத்தான் திரைக்கு "
+"வெளியே சுட்டு மீண்டும் நிரப்பும்), பிளேயர் 2 கேம்பேடால்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2012,18 +2778,14 @@ msgstr "பின்னுதைப்பு"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Kick the gun's rumble motor on each shot, for guns\n"
-"that have one (Sinden and similar). No effect on a\n"
-"gun without a motor."
+"Kick the gun's rumble motor on each shot, for guns that have one (Sinden and "
+"similar). No effect on a gun without a motor."
 msgstr ""
-"ஒவ்வொரு சுடுதலிலும் கன்னின் அதிர்வு மோட்டாரைத் தூண்டு, மோட்டார்\n"
-"உள்ள கன்களுக்கு (Sinden போன்றவை). மோட்டார் இல்லாத\n"
-"கன்னில் எந்த விளைவும் இல்லை."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Enable recoil"
-msgstr "பின்னுதைப்பை இயக்கு"
+msgid "The gun's motor kicks on each shot."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2031,14 +2793,14 @@ msgid "Strength"
 msgstr "வலிமை"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "Devices"
-msgstr "சாதனங்கள்"
+#, c-format
+msgid "Gun %zu"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Gun %zu (player %zu): %s"
-msgstr "கன் %zu (வீரர் %zu): %s"
+msgid "Player %zu"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2063,16 +2825,6 @@ msgstr ""
 "பிரத்யேக லைட் கன்கள் கண்டறியப்படவில்லை. வீரர் 1 மவுஸால் குறிவைக்கிறார்; இடது பொத்தான் "
 "சுடும், வலது பொத்தான் மீண்டும் நிரப்பும் (திரைக்கு வெளியே சுடுதல்). ஒவ்வொரு வீரரும் "
 "தனித்தனியாகக் குறிவைக்க, ID_INPUT_GUN எனக் குறிக்கப்பட்ட கன்களை இணைக்கவும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun buttons"
-msgstr "கன் பொத்தான்கள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Press Bind, then press the button on that player's gun."
-msgstr "இணை என்பதை அழுத்தி, பின் அந்த வீரரின் கன்னில் உள்ள பொத்தானை அழுத்தவும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2101,8 +2853,15 @@ msgstr "ஹாட் மேலே"
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Player %d"
-msgstr "வீரர் %d"
+msgid "Gun buttons, player %d"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a value, then press the button on that player's gun. With no gun, a "
+"mouse button binds too."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2112,13 +2871,9 @@ msgstr "Sinden விளிம்பு"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"A bright frame around the game image that a Sinden\n"
-"gun's camera tracks for aiming. Only shown in\n"
-"light-gun mode."
+"A bright frame around the game image that a Sinden gun's camera tracks for "
+"aiming. Only shown in light-gun mode."
 msgstr ""
-"கேம் படத்தைச் சுற்றி ஒரு பிரகாசமான சட்டகம், அதை Sinden\n"
-"கன்னின் கேமரா குறிவைக்கப் பின்தொடர்கிறது. லைட்-கன்\n"
-"பயன்முறையில் மட்டும் காட்டப்படும்."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2127,335 +2882,23 @@ msgstr "விளிம்பைக் காட்டு"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "The frame a Sinden gun's camera tracks."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Colour"
 msgstr "நிறம்"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "In game-image pixels."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Thickness"
 msgstr "தடிமன்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Link cabinets over the network"
-msgstr "நெட்வொர்க் வழியாக கேபினெட்டுகளை இணை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Race linked with other machines on the same LAN running the same\n"
-"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
-"this cabinet standalone. Takes effect on the next game launch."
-msgstr ""
-"அதே LAN இல் அதே கேமை இயக்கும் மற்ற இயந்திரங்களுடன் இணைந்து\n"
-"பந்தயம் (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). அணைத்தால்\n"
-"இந்த கேபினெட் தனியாக இருக்கும். அடுத்த கேம் துவக்கத்தில் பொருந்தும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The comms board is a ring: each cabinet listens on its own address and sends "
-"to the next cabinet. For two machines, point each at the other. The master/"
-"slave role is chosen in the game's own test menu, not here."
-msgstr ""
-"கம்யூனிகேஷன் போர்டு ஒரு வளையம்: ஒவ்வொரு கேபினெட்டும் தன் சொந்த முகவரியில் கேட்டு, அடுத்த "
-"கேபினெட்டுக்கு அனுப்பும். இரண்டு இயந்திரங்களுக்கு, ஒவ்வொன்றையும் மற்றொன்றை நோக்கி "
-"அமைக்கவும். மாஸ்டர்/ஸ்லேவ் பங்கு கேமின் சொந்தச் சோதனை மெனுவில் தேர்ந்தெடுக்கப்படும், இங்கே "
-"அல்ல."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "This cabinet"
-msgstr "இந்த கேபினெட்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Local IP"
-msgstr "உள்ளூர் IP"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Detect"
-msgstr "கண்டறி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"This machine's address on the cabinet LAN. Blank\n"
-"listens on every interface. Detect fills it from the\n"
-"primary network adapter."
-msgstr ""
-"கேபினெட் LAN இல் இந்த இயந்திரத்தின் முகவரி. காலியாக\n"
-"இருந்தால் எல்லா இடைமுகங்களிலும் கேட்கும். கண்டறி அதை\n"
-"முதன்மை நெட்வொர்க் அடாப்டரிலிருந்து நிரப்பும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Subnet mask"
-msgstr "சப்நெட் மாஸ்க்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Listen port"
-msgstr "கேட்கும் போர்ட்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Cabinet number"
-msgstr "கேபினெட் எண்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Where this cabinet sits in the ring (0-based).\n"
-"For your own bookkeeping; the game negotiates the\n"
-"actual link id from the ring."
-msgstr ""
-"வளையத்தில் இந்த கேபினெட்டின் இடம் (0 இலிருந்து).\n"
-"உங்கள் சொந்தக் குறிப்புக்காக; உண்மையான இணைப்பு id ஐ\n"
-"கேம் வளையத்திலிருந்து பேசித் தீர்மானிக்கும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Link delay (frames)"
-msgstr "இணைப்புத் தாமதம் (சட்டங்கள்)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Model 3 only. How many frames late the other cabinets'\n"
-"data is read. Raise it if a race over Wi-Fi stutters;\n"
-"lower it on a wired LAN. Each frame shows the other\n"
-"cars 1/60 s later."
-msgstr ""
-"Model 3 மட்டும். மற்ற கேபினட்களின் தரவு எத்தனை\n"
-"சட்டங்கள் தாமதமாகப் படிக்கப்படும். Wi-Fi-இல் பந்தயம்\n"
-"தடுமாறினால் உயர்த்துங்கள்; கம்பி LAN-இல் குறைக்கவும்.\n"
-"ஒவ்வொரு சட்டமும் மற்ற கார்களை 1/60 வினாடி பின்னர் காட்டும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Next cabinet in the ring"
-msgstr "வளையத்தில் அடுத்த கேபினெட்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Next IP"
-msgstr "அடுத்த IP"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The cabinet this one sends to. For two machines, the\n"
-"other machine's IP. Blank means this cabinet does not\n"
-"forward (tail of a chain)."
-msgstr ""
-"இது அனுப்பும் கேபினெட். இரண்டு இயந்திரங்களுக்கு, மற்ற\n"
-"இயந்திரத்தின் IP. காலியாக இருந்தால் இந்த கேபினெட் அனுப்பாது\n"
-"(சங்கிலியின் கடைசி)."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Next port"
-msgstr "அடுத்த போர்ட்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Status"
-msgstr "நிலை"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Link configured; starts at the next game launch."
-msgstr "இணைப்பு அமைக்கப்பட்டது; அடுத்த கேம் துவக்கத்தில் தொடங்கும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Standalone (no cabinet link)."
-msgstr "தனித்து (கேபினெட் இணைப்பு இல்லை)."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Waiting for the game to switch the link board on..."
-msgstr "கேம் இணைப்பு போர்டை இயக்கக் காத்திருக்கிறது..."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "Linked: cabinet %u of %u."
-msgstr "இணைக்கப்பட்டது: கேபினெட் %u / %u."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Establishing the ring..."
-msgstr "வளையம் அமைக்கப்படுகிறது..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "This machine's interfaces:"
-msgstr "இந்த இயந்திரத்தின் இடைமுகங்கள்:"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Automatic (system)"
-msgstr "தானியங்கு (கணினி)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Language"
-msgstr "மொழி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Background controller input"
-msgstr "பின்னணியில் கட்டுப்படுத்தி உள்ளீடு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wheels and gamepads keep working while the window is\n"
-"not in front. Keyboard and mouse still need the window\n"
-"in front."
-msgstr ""
-"சாளரம் முன்னால் இல்லாதபோதும் ஸ்டீயரிங் மற்றும் கேம்பேடுகள்\n"
-"வேலை செய்யும். விசைப்பலகை மற்றும் சுட்டிக்கு சாளரம்\n"
-"முன்னால் இருக்க வேண்டும்."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid ""
-"Hold %s to step back through play.\n"
-"Costs a little speed on every frame while on."
-msgstr ""
-"ஆட்டத்தில் பின்னோக்கிச் செல்ல %s ஐ அழுத்திப் பிடிக்கவும்.\n"
-"இயக்கத்தில் இருக்கும்போது ஒவ்வொரு பிரேமிலும் சற்று வேகம் குறையும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rewind memory"
-msgstr "பின்னோக்கு நினைவகம்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Cabinet outputs"
-msgstr "கேபினட் வெளியீடுகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Network outputs"
-msgstr "நெட்வொர்க் வெளியீடுகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Send lamps, gun recoil and drive-board output to\n"
-"MAMEHooker, Hook Of The Reaper and similar tools,\n"
-"using MAME's network output protocol."
-msgstr ""
-"விளக்குகள், துப்பாக்கி பின்னுதைப்பு, டிரைவ் போர்டு வெளியீட்டை\n"
-"MAMEHooker, Hook Of The Reaper போன்ற கருவிகளுக்கு\n"
-"MAME இன் நெட்வொர்க் வெளியீட்டு நெறிமுறையில் அனுப்பு."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Port"
-msgstr "போர்ட்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Windows outputs"
-msgstr "Windows வெளியீடுகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The same outputs over MAME's Windows message\n"
-"protocol, for tools that hook MAME that way."
-msgstr ""
-"அதே வெளியீடுகள் MAME இன் Windows செய்தி நெறிமுறை வழியாக,\n"
-"அவ்வாறு MAME உடன் இணையும் கருவிகளுக்காக."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Keyboard shortcuts"
-msgstr "விசைப்பலகை குறுக்குவழிகள்"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Back to games"
-msgstr "கேம்களுக்குத் திரும்பு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Settings overlay"
-msgstr "அமைப்புகள் மேலடுக்கு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Pause"
-msgstr "இடைநிறுத்து"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Fast-forward (held)"
-msgstr "வேகமாக முன்னோக்கு (அழுத்திப் பிடி)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rewind (held)"
-msgstr "பின்னோக்கு (அழுத்திப் பிடி)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "press a key..."
-msgstr "ஒரு விசையை அழுத்தவும்..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Clear"
-msgstr "அழி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click a key, then press the new one. Escape cancels.\n"
-"A key a game also uses does both."
-msgstr ""
-"ஒரு விசையைக் கிளிக் செய்து, புதியதை அழுத்தவும். Escape ரத்து செய்யும்.\n"
-"கேமும் பயன்படுத்தும் விசை இரண்டையும் செய்யும்."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Load a game to save and restore its state."
-msgstr "நிலையைச் சேமிக்கவும் மீட்கவும் ஒரு கேமை ஏற்றவும்."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid ""
-"Save the whole machine to a slot and restore it later. Quick-save is %s, "
-"quick-load is %s."
-msgstr ""
-"முழு இயந்திரத்தையும் ஒரு ஸ்லாட்டில் சேமித்து பின்னர் மீட்கவும். விரைவு-சேமிப்பு %s, "
-"விரைவு-ஏற்றம் %s."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Delete"
-msgstr "நீக்கு"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Load"
-msgstr "ஏற்று"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Save"
-msgstr "சேமி"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "empty"
-msgstr "காலி"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2513,28 +2956,51 @@ msgid "Cancel"
 msgstr "ரத்து"
 
 #: src/osd/gui.cpp
+#, no-c-format
+msgid "All"
+msgstr ""
+
+#: src/osd/gui.cpp
 #, c-format
-msgid "%s: toggle overlay"
-msgstr "%s: மேலடுக்கை மாற்று"
+msgid "%zu of %zu"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Select a game"
-msgstr "ஒரு கேமைத் தேர்ந்தெடு"
+msgid "Search"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Enter: launch   %s: settings   %s: quit"
-msgstr "Enter: துவக்கு   %s: அமைப்புகள்   %s: வெளியேறு"
+msgid "Enter: play   %s: settings   %s: quit"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A: play"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Type to search. Arrows or the D-pad choose."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No ROM archives were found in the ROM directories. Set them in Settings (F1) "
-"> Paths, then relaunch."
+"No ROM archives were found in the ROM folders. Set them in Settings > Paths, "
+"then relaunch."
 msgstr ""
-"ROM அடைவுகளில் ROM காப்பகங்கள் எதுவும் கிடைக்கவில்லை. அமைப்புகள் (F1) > பாதைகள் இல் "
-"அவற்றை அமைத்து, மீண்டும் துவக்கவும்."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No game matches."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2545,6 +3011,1004 @@ msgstr "விளக்கம் பெறப்படுகிறது..."
 #, no-c-format
 msgid "No description available."
 msgstr "விளக்கம் இல்லை."
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Ink"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "charcoal and warm grey, a cool blue"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Sunset"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "indigo night, coral and pink from the logo"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Paper"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "light: warm paper, vermilion and indigo"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Arcade"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Sega blue skies with a yellow sun"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "High contrast"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "black, white and yellow; heavier lines"
+msgstr ""
+
+#, no-c-format
+#~ msgid "Show bindings"
+#~ msgstr "பிணைப்புகளைக் காட்டு"
+
+#, no-c-format
+#~ msgid "Show shortcuts"
+#~ msgstr "குறுக்குவழிகளைக் காட்டு"
+
+#, no-c-format
+#~ msgid ""
+#~ "Click, then push a stick.\n"
+#~ "Right-click to go back to the default."
+#~ msgstr ""
+#~ "கிளிக் செய்து, பின் ஒரு ஸ்டிக்கைத் தள்ளவும்.\n"
+#~ "இயல்புநிலைக்குத் திரும்ப வலது-கிளிக் செய்யவும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Click, then pull the trigger, push a stick\n"
+#~ "or press a button. Right-click for the default."
+#~ msgstr ""
+#~ "கிளிக் செய்து, பின் டிரிகரை இழுக்கவும், ஸ்டிக்கைத் தள்ளவும்\n"
+#~ "அல்லது பொத்தானை அழுத்தவும். இயல்புநிலைக்கு வலது-கிளிக்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Click, then press a button or pull a trigger.\n"
+#~ "Right-click to unbind."
+#~ msgstr ""
+#~ "கிளிக் செய்து, பின் பொத்தானை அழுத்தவும் அல்லது டிரிகரை இழுக்கவும்.\n"
+#~ "இணைப்பை நீக்க வலது-கிளிக்."
+
+#, no-c-format
+#~ msgid "Select a game"
+#~ msgstr "ஒரு கேமைத் தேர்ந்தெடு"
+
+#, c-format
+#~ msgid "Enter: launch   %s: settings   %s: quit"
+#~ msgstr "Enter: துவக்கு   %s: அமைப்புகள்   %s: வெளியேறு"
+
+#, no-c-format
+#~ msgid "File"
+#~ msgstr "கோப்பு"
+
+#, no-c-format
+#~ msgid "Hide overlay"
+#~ msgstr "மேலடுக்கை மறை"
+
+#, no-c-format
+#~ msgid "On-screen notifications"
+#~ msgstr "திரை அறிவிப்புகள்"
+
+#, no-c-format
+#~ msgid "(Model 1 & 2 only)"
+#~ msgstr "(Model 1 & 2 மட்டும்)"
+
+#, no-c-format
+#~ msgid "Video"
+#~ msgstr "வீடியோ"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wait for vertical blank before presenting.\n"
+#~ "Prevents tearing but adds up to one frame of latency."
+#~ msgstr ""
+#~ "காட்டுவதற்கு முன் செங்குத்து வெற்றிடத்திற்குக் காத்திரு.\n"
+#~ "கிழிசலைத் தடுக்கும், ஆனால் ஒரு ஃபிரேம் வரை தாமதம் சேர்க்கும்."
+
+#, no-c-format
+#~ msgid "GPU"
+#~ msgstr "GPU"
+
+#, no-c-format
+#~ msgid "Auto (best)"
+#~ msgstr "தானியங்கு (சிறந்தது)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Which renderer draws the game. Applies on the\n"
+#~ "next launch - save settings and relaunch."
+#~ msgstr ""
+#~ "எந்த ரெண்டரர் கேமை வரைகிறது. அடுத்த\n"
+#~ "துவக்கத்தில் பொருந்தும் - அமைப்புகளைச் சேமித்து மீண்டும் துவக்கவும்."
+
+#, no-c-format
+#~ msgid "Window size"
+#~ msgstr "சாளர அளவு"
+
+#, no-c-format
+#~ msgid "Width"
+#~ msgstr "அகலம்"
+
+#, no-c-format
+#~ msgid "Height"
+#~ msgstr "உயரம்"
+
+#, no-c-format
+#~ msgid "1x (native)"
+#~ msgstr "1x (இயல்பான)"
+
+#, no-c-format
+#~ msgid "8x (4K)"
+#~ msgstr "8x (4K)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Internal 3D rendering resolution. Higher is crisper 3D\n"
+#~ "(2D/HUD stays sharp). GPU backends only; the software\n"
+#~ "renderer stays native. Applies on the next launch - save\n"
+#~ "settings and relaunch."
+#~ msgstr ""
+#~ "உள் 3D ரெண்டரிங் தெளிவுத்திறன். அதிகமானால் 3D கூர்மையாகும்\n"
+#~ "(2D/HUD கூர்மையாகவே இருக்கும்). GPU பின்தளங்களுக்கு மட்டும்;\n"
+#~ "மென்பொருள் ரெண்டரர் இயல்பாகவே இருக்கும். அடுத்த துவக்கத்தில்\n"
+#~ "பொருந்தும் - அமைப்புகளைச் சேமித்து மீண்டும் துவக்கவும்."
+
+#, no-c-format
+#~ msgid "Sharp-bilinear"
+#~ msgstr "கூர்மையான பைலீனியர்"
+
+#, no-c-format
+#~ msgid "2D scaling"
+#~ msgstr "2D அளவிடல்"
+
+#, no-c-format
+#~ msgid ""
+#~ "How the frame is magnified to the window.\n"
+#~ "Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+#~ "nearest shows at non-integer window sizes. Integer snaps\n"
+#~ "to a whole multiple (pixel-perfect, with black bars).\n"
+#~ "Applies live."
+#~ msgstr ""
+#~ "ஃபிரேம் சாளரத்திற்கு எப்படிப் பெரிதாக்கப்படுகிறது.\n"
+#~ "கூர்மையான பைலீனியர், முழு எண் அல்லாத சாளர அளவுகளில்\n"
+#~ "அருகாமை காட்டும் மினுமினுப்பு இல்லாமல் 2D உரையைக் கூர்மையாக்கும்.\n"
+#~ "முழு எண், முழு மடங்குக்குப் பொருத்தும் (பிக்சல்-துல்லியம், கருப்புப் பட்டைகளுடன்).\n"
+#~ "உடனே பொருந்தும்."
+
+#, no-c-format
+#~ msgid "16:9 (widescreen)"
+#~ msgstr "16:9 (அகலத்திரை)"
+
+#, no-c-format
+#~ msgid "4:3 (arcade)"
+#~ msgstr "4:3 (ஆர்கேட்)"
+
+#, no-c-format
+#~ msgid ""
+#~ "4:3 is the arcade monitor's shape (the default).\n"
+#~ "Square pixels shows the raw 496x384 (slightly narrow).\n"
+#~ "16:9 (experimental) draws the 3D wider, with the 2D in the middle.\n"
+#~ "Stretch fills the whole window.\n"
+#~ "GPU renderers only. Applies live."
+#~ msgstr ""
+#~ "4:3 என்பது ஆர்கேட் திரையின் வடிவம் (இயல்புநிலை).\n"
+#~ "சதுரப் பிக்சல்கள் மூல 496x384 ஐக் காட்டும் (சற்று குறுகலாக).\n"
+#~ "16:9 (சோதனை) 3D ஐ அகலமாக வரையும், 2D நடுவில் இருக்கும்.\n"
+#~ "நீட்டு முழுச் சாளரத்தையும் நிரப்பும்.\n"
+#~ "GPU ரெண்டரர்களுக்கு மட்டும். உடனே பொருந்தும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the Model 2 picture's black sits. 50% is the default,\n"
+#~ "matched to an arcade capture; lower is darker, higher is\n"
+#~ "brighter. Applies live."
+#~ msgstr ""
+#~ "Model 2 படத்தின் கருப்பு எங்கே அமைகிறது. 50% இயல்புநிலை,\n"
+#~ "ஓர் ஆர்கேட் பதிவுடன் பொருத்தப்பட்டது; குறைவு இருண்டது, அதிகம் ஒளிமிக்கது.\n"
+#~ "உடனே பொருந்தும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "A cosmetic arcade-monitor look over the finished frame:\n"
+#~ "scanlines, an RGB shadow mask, glow and optional screen\n"
+#~ "curvature. Purely visual; applies live."
+#~ msgstr ""
+#~ "முடிந்த ஃபிரேமின் மேல் ஒரு அலங்கார ஆர்கேட்-மானிட்டர் தோற்றம்:\n"
+#~ "ஸ்கேன்லைன்கள், RGB நிழல் முகமூடி, ஒளிர்வு, விருப்பத்தேர்வான\n"
+#~ "திரை வளைவு. காட்சிக்கு மட்டும்; உடனே பொருந்தும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "In fullscreen, frame the 4:3 picture with an image from\n"
+#~ "the bezels directory (Paths tab): <game>.png, the parent\n"
+#~ "set's, or default.png. The picture fills the image's\n"
+#~ "transparent window."
+#~ msgstr ""
+#~ "முழுத்திரையில், 4:3 படத்தைச் சட்டக அடைவிலுள்ள\n"
+#~ "(பாதைகள் தாவல்) ஒரு படத்தால் சூழும்: <game>.png, பெற்றோர்\n"
+#~ "தொகுப்பின் படம், அல்லது default.png. விளையாட்டுப் படம்\n"
+#~ "சட்டகத்தின் ஒளிபுகும் சாளரத்தை நிரப்பும்."
+
+#, no-c-format
+#~ msgid "Enhancement (cosmetic, beyond the original hardware)"
+#~ msgstr "மேம்பாடு (அலங்காரம், அசல் வன்பொருளுக்கு அப்பால்)"
+
+#, no-c-format
+#~ msgid "(unsupported)"
+#~ msgstr "(ஆதரவில்லை)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+#~ "ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+#~ "Applies live."
+#~ msgstr ""
+#~ "2D அடுக்குகளின் (HUD, உரை, மெனுக்கள்) விளிம்புகளை மென்மையாக்கு.\n"
+#~ "xBR, ScaleFX மூலைவிட்டங்களை வட்டமாக்கும்; அசலானது கூர்மையான பிக்சல்களை "
+#~ "வைத்திருக்கும்.\n"
+#~ "உடனே பொருந்தும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "The hardware draws see-through surfaces (lights, glass,\n"
+#~ "shadows) as a checkerboard. Blended draws the 50%\n"
+#~ "see-through surface it's trying to achieve. Applies live."
+#~ msgstr ""
+#~ "வன்பொருள் ஊடுருவும் பரப்புகளை (விளக்குகள், கண்ணாடி,\n"
+#~ "நிழல்கள்) சதுரங்கப் பலகையாக வரைகிறது. கலந்தது, அது அடைய முயலும்\n"
+#~ "50% ஊடுருவும் பரப்பை வரையும். உடனே பொருந்தும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Draw the scenery to the edge of the course instead of\n"
+#~ "the arcade's short range, so it no longer pops in.\n"
+#~ "Daytona USA only. Applies live."
+#~ msgstr ""
+#~ "ஆர்கேடின் குறுகிய வரம்பிற்குப் பதிலாக பாதையின் விளிம்பு வரை\n"
+#~ "காட்சியை வரைகிறது, அதனால் அது திடீரென்று தோன்றாது.\n"
+#~ "Daytona USA மட்டும். உடனே பொருந்தும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Replace the game's 3D textures with images saved in\n"
+#~ "saves/textures/<game>/load, named as dumped. GPU\n"
+#~ "renderers only; Reload picks up edited files."
+#~ msgstr ""
+#~ "கேமின் 3D டெக்ஸ்சர்களை saves/textures/<game>/load\n"
+#~ "இல் சேமித்த படங்களால் மாற்று, டம்ப் செய்த பெயரிலேயே. GPU\n"
+#~ "ரெண்டரர்களுக்கு மட்டும்; மீண்டும் ஏற்று திருத்திய கோப்புகளை எடுக்கும்."
+
+#, c-format
+#~ msgid "%zu loaded"
+#~ msgstr "%zu ஏற்றப்பட்டன"
+
+#, no-c-format
+#~ msgid ""
+#~ "Collect every 3D texture the game draws and write them,\n"
+#~ "with an index.html to browse, to saves/textures/<game>/dump\n"
+#~ "when the game exits or this is turned off."
+#~ msgstr ""
+#~ "கேம் வரையும் ஒவ்வொரு 3D டெக்ஸ்சரையும் சேகரித்து, உலாவ ஒரு\n"
+#~ "index.html உடன், saves/textures/<game>/dump இல் எழுதும் —\n"
+#~ "கேம் வெளியேறும்போது அல்லது இது அணைக்கப்படும்போது."
+
+#, no-c-format
+#~ msgid "Config directory"
+#~ msgstr "கட்டமைப்பு அடைவு"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where keisho.ini is read from and saved to.\n"
+#~ "Set with --config <dir>; cannot be changed here."
+#~ msgstr ""
+#~ "keisho.ini படிக்கப்பட்டு சேமிக்கப்படும் இடம்.\n"
+#~ "--config <dir> மூலம் அமைக்கவும்; இங்கே மாற்ற முடியாது."
+
+#, no-c-format
+#~ msgid "ROM directory"
+#~ msgstr "ROM அடைவு"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the ROM archives live. A game launched by name is\n"
+#~ "loaded from here as <name>.zip or <name>.7z."
+#~ msgstr ""
+#~ "ROM காப்பகங்கள் உள்ள இடம். பெயரால் துவக்கப்படும் கேம்\n"
+#~ "இங்கிருந்து <name>.zip அல்லது <name>.7z ஆக ஏற்றப்படும்."
+
+#, no-c-format
+#~ msgid "Model 1 ROM directory"
+#~ msgstr "Model 1 ROM அடைவு"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the Model 1 ROM archives live.\n"
+#~ "Empty means the ROM directory."
+#~ msgstr ""
+#~ "Model 1 ROM காப்பகங்கள் இருக்கும் இடம்.\n"
+#~ "காலியெனில் ROM அடைவு."
+
+#, no-c-format
+#~ msgid "Model 3 ROM directory"
+#~ msgstr "Model 3 ROM அடைவு"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the Model 3 ROM archives live.\n"
+#~ "Empty means the ROM directory."
+#~ msgstr ""
+#~ "Model 3 ROM காப்பகங்கள் இருக்கும் இடம்.\n"
+#~ "காலியெனில் ROM அடைவு."
+
+#, no-c-format
+#~ msgid "Saves directory"
+#~ msgstr "சேமிப்பு அடைவு"
+
+#, no-c-format
+#~ msgid ""
+#~ "Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+#~ "(.eeprom) images -- high scores and operator settings."
+#~ msgstr ""
+#~ "பேட்டரி சேமிப்புகள்: ஒவ்வொரு கேமுக்கான NVRAM (.nv), EEPROM\n"
+#~ "(.eeprom) படங்கள் -- அதிக மதிப்பெண்கள், ஆபரேட்டர் அமைப்புகள்."
+
+#, no-c-format
+#~ msgid "Screenshots directory"
+#~ msgstr "திரைப்பிடிப்பு அடைவு"
+
+#, no-c-format
+#~ msgid "Bezels directory"
+#~ msgstr "சட்டக அடைவு"
+
+#, no-c-format
+#~ msgid ""
+#~ "Bezel images: <game>.png, the parent set's, or default.png.\n"
+#~ "Empty means a bezels folder beside keisho.ini."
+#~ msgstr ""
+#~ "சட்டகப் படங்கள்: <game>.png, பெற்றோர் தொகுப்பின் படம், அல்லது default.png.\n"
+#~ "காலியெனில் keisho.ini அருகிலுள்ள bezels கோப்புறை."
+
+#, no-c-format
+#~ msgid "Crosshairs directory"
+#~ msgstr "குறிவைப்பு கோப்புறை"
+
+#, no-c-format
+#~ msgid ""
+#~ "Crosshair images: <game>-p1.png (-p2 for player 2) or\n"
+#~ "<game>.png for both, then the parent set's, then default.\n"
+#~ "Drawn at their own size on a 1080-line picture. Without\n"
+#~ "one the built-in crosshair is drawn.\n"
+#~ "Empty means a crosshairs folder beside keisho.ini."
+#~ msgstr ""
+#~ "குறிவைப்பு படங்கள்: <game>-p1.png (வீரர் 2-க்கு -p2) அல்லது\n"
+#~ "இருவருக்கும் <game>.png, பின் மூல தொகுப்பினுடையது, பின் default.\n"
+#~ "1080-வரி படத்தில் சொந்த அளவில் வரையப்படும். இல்லையெனில்\n"
+#~ "உள்ளமைந்த குறிவைப்பு வரையப்படும்.\n"
+#~ "காலியாக இருந்தால் keisho.ini அருகே crosshairs கோப்புறை."
+
+#, no-c-format
+#~ msgid "Scrape artwork online"
+#~ msgstr "ஆன்லைனில் கலைப்படங்களைப் பெறு"
+
+#, no-c-format
+#~ msgid ""
+#~ "Let the game picker fetch box art and descriptions from\n"
+#~ "ArcadeDB over the network. Off keeps Keisho offline: the\n"
+#~ "picker still lists and launches every game, with placeholder\n"
+#~ "tiles and no descriptions."
+#~ msgstr ""
+#~ "கேம் தேர்வி பெட்டிப் படங்களையும் விளக்கங்களையும் நெட்வொர்க் வழியாக\n"
+#~ "ArcadeDB இலிருந்து பெற அனுமதி. அணைத்தால் Keisho ஆஃப்லைனில் இருக்கும்:\n"
+#~ "தேர்வி இன்னும் எல்லா கேம்களையும் பட்டியலிட்டுத் துவக்கும், இடம்பிடி\n"
+#~ "ஓடுகளுடன், விளக்கங்கள் இல்லாமல்."
+
+#, no-c-format
+#~ msgid "Light Gun"
+#~ msgstr "லைட் கன்"
+
+#, no-c-format
+#~ msgid "Network"
+#~ msgstr "நெட்வொர்க்"
+
+#, no-c-format
+#~ msgid "GPL-3.0-or-later licence. See LICENSE."
+#~ msgstr "GPL-3.0-or-later உரிமம். LICENSE ஐப் பார்க்கவும்."
+
+#, no-c-format
+#~ msgid "With thanks to the projects whose code makes it possible:"
+#~ msgstr "இதைச் சாத்தியமாக்கும் குறியீட்டை வழங்கிய திட்டங்களுக்கு நன்றி:"
+
+#, no-c-format
+#~ msgid "The MAME project - Sega Model 2 emulation guidance"
+#~ msgstr "MAME திட்டம் - Sega Model 2 எமுலேஷன் வழிகாட்டல்"
+
+#, no-c-format
+#~ msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+#~ msgstr "Musashi - Motorola 68000 CPU மையம் (Karl Stenerud)"
+
+#, no-c-format
+#~ msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+#~ msgstr "ymfm - Yamaha FM ஒலி மையங்கள் (Aaron Giles)"
+
+#, no-c-format
+#~ msgid "SDL - windowing, input and audio"
+#~ msgstr "SDL - சாளரம், உள்ளீடு மற்றும் ஆடியோ"
+
+#, no-c-format
+#~ msgid "Dear ImGui - this user interface (Omar Cornut)"
+#~ msgstr "Dear ImGui - இந்தப் பயனர் இடைமுகம் (Omar Cornut)"
+
+#, no-c-format
+#~ msgid "pugixml - games.xml parsing"
+#~ msgstr "pugixml - games.xml பாகுபடுத்தல்"
+
+#, no-c-format
+#~ msgid "miniz - ZIP archive decompression"
+#~ msgstr "miniz - ZIP காப்பக விரிவாக்கம்"
+
+#, no-c-format
+#~ msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+#~ msgstr "LZMA SDK - 7-Zip காப்பக விரிவாக்கம் (Igor Pavlov)"
+
+#, no-c-format
+#~ msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+#~ msgstr "VulkanMemoryAllocator - GPU நினைவகம் (AMD / GPUOpen)"
+
+#, no-c-format
+#~ msgid "shaderc / glslang - shader compilation"
+#~ msgstr "shaderc / glslang - ஷேடர் தொகுப்பு"
+
+#, no-c-format
+#~ msgid "stb_image - box-art image decoding (Sean Barrett)"
+#~ msgstr "stb_image - பெட்டிப் பட டிகோடிங் (Sean Barrett)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+#~ msgstr "கேம்பேட் படம் - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+
+#, no-c-format
+#~ msgid "libcurl - artwork scraping (optional)"
+#~ msgstr "libcurl - கலைப்படங்களைப் பெறுதல் (விருப்பத்தேர்வு)"
+
+#, no-c-format
+#~ msgid "HarfBuzz - text shaping for translations"
+#~ msgstr "HarfBuzz - மொழிபெயர்ப்புகளுக்கான உரை வடிவமைப்பு"
+
+#, no-c-format
+#~ msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+#~ msgstr "SheenBidi - வலமிருந்து இடமான உரை அமைப்பு (Muhammad Tayyab Akram)"
+
+#, no-c-format
+#~ msgid "Game artwork and descriptions from ArcadeDB"
+#~ msgstr "கேம் கலைப்படங்களும் விளக்கங்களும் ArcadeDB இலிருந்து"
+
+#, no-c-format
+#~ msgid "(adb.arcadeitalia.net, by Motoschifo)."
+#~ msgstr "(adb.arcadeitalia.net, Motoschifo வழங்கியது)."
+
+#, no-c-format
+#~ msgid "See NOTICE for full per-component attribution."
+#~ msgstr "முழு கூறுவாரியான நன்றியுரைக்கு NOTICE ஐப் பார்க்கவும்."
+
+#, no-c-format
+#~ msgid "If you'd like to support development:"
+#~ msgstr "மேம்பாட்டை ஆதரிக்க விரும்பினால்:"
+
+#, no-c-format
+#~ msgid "Save settings"
+#~ msgstr "அமைப்புகளைச் சேமி"
+
+#, c-format
+#~ msgid "Saved to %s"
+#~ msgstr "%s இல் சேமிக்கப்பட்டது"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wheel force on driving games: centring and cornering\n"
+#~ "forces decoded from the game's own drive-board commands,\n"
+#~ "plus an impact jolt when you hit something."
+#~ msgstr ""
+#~ "டிரைவிங் கேம்களில் ஸ்டீயரிங் விசை: கேமின் சொந்த டிரைவ்-போர்டு\n"
+#~ "கட்டளைகளிலிருந்து பெறப்பட்ட மையப்படுத்தல், திருப்ப விசைகள்,\n"
+#~ "ஏதாவது மோதும்போது ஒரு அதிர்ச்சியும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "A gain on every force of the drive board. At 100 %, the\n"
+#~ "board's full power (63) gives the wheel's full force, every\n"
+#~ "force in proportion. 200 % doubles every force: those above\n"
+#~ "half the board's power (32, Sega Rally's strongest torque)\n"
+#~ "then saturate."
+#~ msgstr ""
+#~ "டிரைவ் போர்டின் ஒவ்வொரு விசைக்குமான ஒரு பெருக்கம். 100 %-இல்\n"
+#~ "போர்டின் முழு சக்தி (63) ஸ்டீயரிங்கின் முழு விசையைத் தரும்,\n"
+#~ "ஒவ்வொரு விசையும் விகிதத்தில். 200 % ஒவ்வொரு விசையையும்\n"
+#~ "இரட்டிப்பாக்கும்: போர்டின் பாதி சக்திக்கு (32, Sega Rally-யின்\n"
+#~ "வலிமையான டார்க்) மேலான விசைகள் அப்போது நிறைவுறும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "The centring spring of the Sega Rally Championship and\n"
+#~ "Daytona USA cabinets: very light, it brings the wheel\n"
+#~ "back and is barely felt when held against. A share of\n"
+#~ "the resistance above. The other games' cabinets drive\n"
+#~ "the wheel with no spring, and ignore this setting."
+#~ msgstr ""
+#~ "Sega Rally Championship மற்றும் Daytona USA கேபினட்டுகளின்\n"
+#~ "மையப்படுத்தும் ஸ்பிரிங்: மிக லேசானது, ஸ்டீயரிங்கைத் திருப்பிக்\n"
+#~ "கொண்டுவரும், பிடித்தால் அரிதாகவே உணரப்படும். மேலே உள்ள\n"
+#~ "எதிர்ப்பின் ஒரு பங்கு. மற்ற விளையாட்டுகளின் கேபினட்டுகள்\n"
+#~ "ஸ்பிரிங் இல்லாமல் இயக்குவதால் இந்த அமைப்பைப் புறக்கணிக்கும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "The motor strength set on the drive board's DIP switches,\n"
+#~ "the switches ON counted in binary: 0 = all OFF.\n"
+#~ "Sega Rally: switches 1-3, 0 to 7 added to every torque.\n"
+#~ "Daytona USA: switches 1-3, 4 times that.\n"
+#~ "Indy 500, Touring Car, Over Rev, Super GT 24h:\n"
+#~ "switches 1-1 to 1-3, 0 to 7 added to every force."
+#~ msgstr ""
+#~ "டிரைவ் போர்டின் DIP சுவிட்சுகளால் அமைக்கப்படும் மோட்டார் வலிமை,\n"
+#~ "ON சுவிட்சுகள் இருமத்தில் எண்ணப்படும்: 0 = அனைத்தும் OFF.\n"
+#~ "Sega Rally: சுவிட்சுகள் 1-3, ஒவ்வொரு\n"
+#~ "டார்க்கிலும் 0 முதல் 7 சேர்க்கப்படும். Daytona USA: சுவிட்சுகள்\n"
+#~ "1-3, அதன் 4 மடங்கு. Indy 500, Touring Car, Over Rev, Super GT\n"
+#~ "24h: சுவிட்சுகள் 1-1 முதல் 1-3, ஒவ்வொரு விசையிலும் 0 முதல் 7."
+
+#, no-c-format
+#~ msgid ""
+#~ "For a wheel whose driver pushes the wrong way: it pulls\n"
+#~ "away from the centre instead of bringing it back, and\n"
+#~ "the game's forces go the opposite way."
+#~ msgstr ""
+#~ "டிரைவர் தவறான திசையில் தள்ளும் ஸ்டீயரிங்கிற்கு: அது மையத்திற்குத்\n"
+#~ "திரும்பக் கொண்டுவருவதற்குப் பதிலாக விலகி இழுக்கும், மேலும்\n"
+#~ "கேமின் விசைகள் எதிர்த் திசையில் செல்லும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Vibrates on the game's impacts, for wheels without force\n"
+#~ "feedback. It never runs alongside force feedback."
+#~ msgstr ""
+#~ "ஃபோர்ஸ் ஃபீட்பேக் இல்லாத ஸ்டீயரிங்குகளுக்கு, கேமின் மோதல்களில்\n"
+#~ "அதிரும். ஃபோர்ஸ் ஃபீட்பேக்குடன் ஒருபோதும் சேர்ந்து இயங்காது."
+
+#, no-c-format
+#~ msgid ""
+#~ "An added vibration that grows with the throttle. It is not\n"
+#~ "from the game. Turn it off to feel only the game's force feedback."
+#~ msgstr ""
+#~ "த்ராட்டிலுடன் அதிகரிக்கும் கூடுதல் அதிர்வு. இது கேமிலிருந்து\n"
+#~ "வருவதல்ல. கேமின் ஃபோர்ஸ் ஃபீட்பேக்கை மட்டும் உணர இதை அணைக்கவும்."
+
+#, c-format
+#~ msgid "%u deg"
+#~ msgstr "%u டிகிரி"
+
+#, no-c-format
+#~ msgid ""
+#~ "Set this to your wheel's own rotation range. The lock\n"
+#~ "angle below is mapped onto it, so matching your wheel\n"
+#~ "gives arcade-like response."
+#~ msgstr ""
+#~ "இதை உங்கள் ஸ்டீயரிங்கின் சொந்தச் சுழற்சி வரம்புக்கு அமைக்கவும். கீழே உள்ள\n"
+#~ "லாக் கோணம் இதன் மேல் பொருத்தப்படும், எனவே உங்கள் ஸ்டீயரிங்குடன்\n"
+#~ "பொருத்தினால் ஆர்கேட் போன்ற பதில் கிடைக்கும்."
+
+#, c-format
+#~ msgid "%d deg"
+#~ msgstr "%d டிகிரி"
+
+#, no-c-format
+#~ msgid ""
+#~ "How far to physically turn for full game lock (total,\n"
+#~ "so half each side of centre). Lower is more sensitive."
+#~ msgstr ""
+#~ "கேமின் முழு லாக்கிற்கு எவ்வளவு உண்மையில் திருப்ப வேண்டும் (மொத்தம்,\n"
+#~ "எனவே மையத்தின் இருபுறமும் பாதி). குறைவாக இருந்தால் அதிக உணர்திறன்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Wheel travel about centre that reads as centre. Most wheels\n"
+#~ "want none; a little covers one whose centre wanders. The bar\n"
+#~ "shows the wheel now against the shaded zone."
+#~ msgstr ""
+#~ "மையத்தைச் சுற்றி மையமாகவே படிக்கப்படும் ஸ்டீயரிங் நகர்வு. பெரும்பாலான\n"
+#~ "ஸ்டீயரிங்குகளுக்கு இது தேவையில்லை; மையம் அலையும் ஒன்றுக்குச் சிறிது உதவும்.\n"
+#~ "பட்டை தற்போதைய ஸ்டீயரிங்கை நிழலிட்ட பகுதியுடன் காட்டும்."
+
+#, no-c-format
+#~ msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+#~ msgstr ""
+#~ "தானாகக் கண்டறியப்பட்டது. ஸ்டீயரிங் அல்லது பெடல் தவறாக இருந்தால் மீண்டும் அளவீடு செய்யவும்."
+
+#, no-c-format
+#~ msgid "cancel"
+#~ msgstr "ரத்து"
+
+#, no-c-format
+#~ msgid "Calibrate"
+#~ msgstr "அளவீடு செய்"
+
+#, no-c-format
+#~ msgid "Press Bind, then press the wheel button for that control."
+#~ msgstr "இணை என்பதை அழுத்தி, பின் அந்தக் கட்டுப்பாட்டிற்கான ஸ்டீயரிங் பொத்தானை அழுத்தவும்."
+
+#, no-c-format
+#~ msgid "Menu (F10)"
+#~ msgstr "மெனு (F10)"
+
+#, no-c-format
+#~ msgid "Bind"
+#~ msgstr "இணை"
+
+#, no-c-format
+#~ msgid "clear"
+#~ msgstr "அழி"
+
+#, no-c-format
+#~ msgid ""
+#~ "With an H shifter bound to Gear 1..4: its lever in none\n"
+#~ "of the gears is in neutral, as on the cabinet. Off, the\n"
+#~ "last gear stays engaged until another is selected or\n"
+#~ "Neutral is pressed."
+#~ msgstr ""
+#~ "கியர் 1..4 உடன் இணைக்கப்பட்ட H ஷிஃப்டருடன்: லீவர் எந்த\n"
+#~ "கியரிலும் இல்லையெனில், கேபினட்டில் போல நியூட்ரலில்\n"
+#~ "இருக்கும். அணைத்தால்: வேறு கியர் தேர்ந்தெடுக்கும் வரை\n"
+#~ "அல்லது நியூட்ரல் அழுத்தும் வரை கடைசி கியர் இருக்கும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Shift up / Shift down (and a gamepad's RB / LB) from one\n"
+#~ "gear to another pass through neutral this long, as a\n"
+#~ "lever crosses the gate's centre. 0 shifts straight."
+#~ msgstr ""
+#~ "கியர் மேலே / கியர் கீழே (மற்றும் கேம்பேடின் RB / LB) ஒரு\n"
+#~ "கியரிலிருந்து மற்றொன்றுக்கு இவ்வளவு நேரம் நியூட்ரல் வழியே\n"
+#~ "செல்லும், லீவர் கேட்டின் நடுவைக் கடப்பது போல. 0 நேரடியாக மாற்றும்."
+
+#, no-c-format
+#~ msgid "Game"
+#~ msgstr "கேம்"
+
+#, no-c-format
+#~ msgid "Use Default Layout"
+#~ msgstr "இயல்புநிலை அமைப்பைப் பயன்படுத்து"
+
+#, no-c-format
+#~ msgid ""
+#~ "Slots are named for this game's controls; dimmed ones are not used. Show "
+#~ "shortcuts lists the Guide combinations."
+#~ msgstr ""
+#~ "இடங்கள் இந்த விளையாட்டின் கட்டுப்பாடுகளின் பெயரில் உள்ளன; மங்கியவை பயன்படுத்தப்படாது. "
+#~ "குறுக்குவழிகளைக் காட்டு Guide சேர்க்கைகளைப் பட்டியலிடும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "The left stick also moves; the shoulders also act as Button 3/4. Right "
+#~ "Lever is Virtual On's. Show shortcuts lists the Guide combinations."
+#~ msgstr ""
+#~ "இடது ஸ்டிக்கும் நகர்த்தும்; தோள் பொத்தான்கள் Button 3/4 ஆகவும் செயல்படும். வலது லீவர் "
+#~ "Virtual On க்கானது. குறுக்குவழிகளைக் காட்டு Guide சேர்க்கைகளைப் பட்டியலிடும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Stick travel about centre that reads as centre. The bar shows\n"
+#~ "the stick now: let go of it and raise this until the marker\n"
+#~ "sits inside the shaded zone. Also applies to stick aiming."
+#~ msgstr ""
+#~ "மையத்தைச் சுற்றி மையமாகவே படிக்கப்படும் ஸ்டிக் நகர்வு. பட்டை தற்போதைய\n"
+#~ "ஸ்டிக்கைக் காட்டும்: அதை விட்டுவிட்டு, குறி நிழலிட்ட பகுதிக்குள்\n"
+#~ "வரும் வரை இதை உயர்த்தவும். ஸ்டிக் குறிவைப்புக்கும் பொருந்தும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Response of a stick's travel past its deadzone. Full deflection\n"
+#~ "is always full lock; under 100% the middle of the travel does\n"
+#~ "less, over 100% it does more."
+#~ msgstr ""
+#~ "டெட்ஸோனைத் தாண்டிய ஸ்டிக் நகர்வின் பதில். முழு விலக்கம்\n"
+#~ "எப்போதும் முழு லாக்; 100% க்குக் கீழ் நகர்வின் நடுப்பகுதி\n"
+#~ "குறைவாகச் செய்யும், 100% க்கு மேல் அதிகமாகச் செய்யும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Vibrates on the game's impacts in driving games.\n"
+#~ "Other games stay quiet."
+#~ msgstr ""
+#~ "டிரைவிங் கேம்களில் கேமின் மோதல்களில் அதிரும்.\n"
+#~ "மற்ற கேம்கள் அமைதியாக இருக்கும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "An added vibration that grows as you steer. It is not\n"
+#~ "from the game. Turn it off to feel only the game's force feedback."
+#~ msgstr ""
+#~ "திருப்பும்போது அதிகரிக்கும் கூடுதல் அதிர்வு. இது கேமிலிருந்து\n"
+#~ "வருவதல்ல. கேமின் ஃபோர்ஸ் ஃபீட்பேக்கை மட்டும் உணர இதை அணைக்கவும்."
+
+#, no-c-format
+#~ msgid "Reset"
+#~ msgstr "மீட்டமை"
+
+#, no-c-format
+#~ msgid ""
+#~ "Only for games with a separate music board: Star Wars\n"
+#~ "Arcade, Sega Touring Car Championship and Top Skater.\n"
+#~ "Sound effects stay as they are."
+#~ msgstr ""
+#~ "தனி இசைப் பலகை உள்ள விளையாட்டுகளுக்கு மட்டும்:\n"
+#~ "Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+#~ "ஒலி விளைவுகள் அப்படியே இருக்கும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Raise or lower a game's volume from its default level.\n"
+#~ "One slider covers every revision of a game. Off plays\n"
+#~ "every game at its default, whatever the sliders say.\n"
+#~ "\n"
+#~ "Warning: above 100% loud effects can clip (audible\n"
+#~ "distortion)."
+#~ msgstr ""
+#~ "ஒரு கேமின் ஒலியளவை அதன் இயல்புநிலையிலிருந்து கூட்டவும் அல்லது குறைக்கவும்.\n"
+#~ "ஒரு ஸ்லைடர் ஒரு கேமின் எல்லாப் பதிப்புகளுக்கும் பொருந்தும். அணைத்தால்\n"
+#~ "ஸ்லைடர்கள் எதைக் காட்டினாலும் எல்லா கேம்களும் இயல்புநிலையில் ஒலிக்கும்.\n"
+#~ "\n"
+#~ "எச்சரிக்கை: 100% க்கு மேல் உரத்த ஒலிகள் கிளிப் ஆகலாம் (கேட்கக்கூடிய\n"
+#~ "சிதைவு)."
+
+#, c-format
+#~ msgid "Now playing: %s"
+#~ msgstr "இப்போது இயங்குவது: %s"
+
+#, no-c-format
+#~ msgid ""
+#~ "The aiming crosshair, with the mouse pointer hidden.\n"
+#~ "Auto turns it on in a gun game; On hides the pointer in\n"
+#~ "every game; Off never shows a crosshair."
+#~ msgstr ""
+#~ "மவுஸ் சுட்டியை மறைத்து காட்டப்படும் குறிவைப்பு.\n"
+#~ "தானியங்கு துப்பாக்கி விளையாட்டில் இதை இயக்கும்; இயக்கு எல்லா\n"
+#~ "விளையாட்டிலும் சுட்டியை மறைக்கும்; அணை குறிவைப்பை ஒருபோதும் காட்டாது."
+
+#, no-c-format
+#~ msgid ""
+#~ "Draw Keisho's own crosshair. Turn off if the gun\n"
+#~ "has its own sight (e.g. a Sinden). Positional-gun\n"
+#~ "titles always draw their own regardless."
+#~ msgstr ""
+#~ "Keisho இன் சொந்தக் குறுக்குக்கோட்டை வரை. கன்னுக்குச் சொந்தக்\n"
+#~ "குறிகாட்டி இருந்தால் (எ.கா. Sinden) அணைக்கவும். நிலை-கன்\n"
+#~ "கேம்கள் எப்படியும் தங்களுடையதை எப்போதும் வரையும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "A gamepad's stick points at the screen: the crosshair\n"
+#~ "sits in the centre at rest and reaches the edge at full\n"
+#~ "tilt. Off, the stick moves the crosshair like a mouse."
+#~ msgstr ""
+#~ "கேம்பேட் குச்சி திரையைச் சுட்டுகிறது: ஓய்வில் குறிவைப்பு\n"
+#~ "மையத்தில் இருக்கும், முழுமையாகச் சாய்த்தால் விளிம்பை அடையும்.\n"
+#~ "அணைத்தால் குச்சி குறிவைப்பை மவுஸ் போல நகர்த்தும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+#~ "House of the Dead show on each shot."
+#~ msgstr ""
+#~ "Virtua Cop, Virtua Cop 2, House of the Dead\n"
+#~ "ஒவ்வொரு சுடுதலிலும் காட்டும் வெள்ளை ஒளிர்வை மறை."
+
+#, no-c-format
+#~ msgid ""
+#~ "Kick the gun's rumble motor on each shot, for guns\n"
+#~ "that have one (Sinden and similar). No effect on a\n"
+#~ "gun without a motor."
+#~ msgstr ""
+#~ "ஒவ்வொரு சுடுதலிலும் கன்னின் அதிர்வு மோட்டாரைத் தூண்டு, மோட்டார்\n"
+#~ "உள்ள கன்களுக்கு (Sinden போன்றவை). மோட்டார் இல்லாத\n"
+#~ "கன்னில் எந்த விளைவும் இல்லை."
+
+#, no-c-format
+#~ msgid "Enable recoil"
+#~ msgstr "பின்னுதைப்பை இயக்கு"
+
+#, c-format
+#~ msgid "Gun %zu (player %zu): %s"
+#~ msgstr "கன் %zu (வீரர் %zu): %s"
+
+#, no-c-format
+#~ msgid "Gun buttons"
+#~ msgstr "கன் பொத்தான்கள்"
+
+#, no-c-format
+#~ msgid "Press Bind, then press the button on that player's gun."
+#~ msgstr "இணை என்பதை அழுத்தி, பின் அந்த வீரரின் கன்னில் உள்ள பொத்தானை அழுத்தவும்."
+
+#, c-format
+#~ msgid "Player %d"
+#~ msgstr "வீரர் %d"
+
+#, no-c-format
+#~ msgid ""
+#~ "A bright frame around the game image that a Sinden\n"
+#~ "gun's camera tracks for aiming. Only shown in\n"
+#~ "light-gun mode."
+#~ msgstr ""
+#~ "கேம் படத்தைச் சுற்றி ஒரு பிரகாசமான சட்டகம், அதை Sinden\n"
+#~ "கன்னின் கேமரா குறிவைக்கப் பின்தொடர்கிறது. லைட்-கன்\n"
+#~ "பயன்முறையில் மட்டும் காட்டப்படும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Race linked with other machines on the same LAN running the same\n"
+#~ "title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+#~ "this cabinet standalone. Takes effect on the next game launch."
+#~ msgstr ""
+#~ "அதே LAN இல் அதே கேமை இயக்கும் மற்ற இயந்திரங்களுடன் இணைந்து\n"
+#~ "பந்தயம் (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). அணைத்தால்\n"
+#~ "இந்த கேபினெட் தனியாக இருக்கும். அடுத்த கேம் துவக்கத்தில் பொருந்தும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "The comms board is a ring: each cabinet listens on its own address and "
+#~ "sends to the next cabinet. For two machines, point each at the other. The "
+#~ "master/slave role is chosen in the game's own test menu, not here."
+#~ msgstr ""
+#~ "கம்யூனிகேஷன் போர்டு ஒரு வளையம்: ஒவ்வொரு கேபினெட்டும் தன் சொந்த முகவரியில் கேட்டு, "
+#~ "அடுத்த கேபினெட்டுக்கு அனுப்பும். இரண்டு இயந்திரங்களுக்கு, ஒவ்வொன்றையும் மற்றொன்றை நோக்கி "
+#~ "அமைக்கவும். மாஸ்டர்/ஸ்லேவ் பங்கு கேமின் சொந்தச் சோதனை மெனுவில் தேர்ந்தெடுக்கப்படும், இங்கே "
+#~ "அல்ல."
+
+#, no-c-format
+#~ msgid ""
+#~ "This machine's address on the cabinet LAN. Blank\n"
+#~ "listens on every interface. Detect fills it from the\n"
+#~ "primary network adapter."
+#~ msgstr ""
+#~ "கேபினெட் LAN இல் இந்த இயந்திரத்தின் முகவரி. காலியாக\n"
+#~ "இருந்தால் எல்லா இடைமுகங்களிலும் கேட்கும். கண்டறி அதை\n"
+#~ "முதன்மை நெட்வொர்க் அடாப்டரிலிருந்து நிரப்பும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Where this cabinet sits in the ring (0-based).\n"
+#~ "For your own bookkeeping; the game negotiates the\n"
+#~ "actual link id from the ring."
+#~ msgstr ""
+#~ "வளையத்தில் இந்த கேபினெட்டின் இடம் (0 இலிருந்து).\n"
+#~ "உங்கள் சொந்தக் குறிப்புக்காக; உண்மையான இணைப்பு id ஐ\n"
+#~ "கேம் வளையத்திலிருந்து பேசித் தீர்மானிக்கும்."
+
+#, no-c-format
+#~ msgid "Link delay (frames)"
+#~ msgstr "இணைப்புத் தாமதம் (சட்டங்கள்)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Model 3 only. How many frames late the other cabinets'\n"
+#~ "data is read. Raise it if a race over Wi-Fi stutters;\n"
+#~ "lower it on a wired LAN. Each frame shows the other\n"
+#~ "cars 1/60 s later."
+#~ msgstr ""
+#~ "Model 3 மட்டும். மற்ற கேபினட்களின் தரவு எத்தனை\n"
+#~ "சட்டங்கள் தாமதமாகப் படிக்கப்படும். Wi-Fi-இல் பந்தயம்\n"
+#~ "தடுமாறினால் உயர்த்துங்கள்; கம்பி LAN-இல் குறைக்கவும்.\n"
+#~ "ஒவ்வொரு சட்டமும் மற்ற கார்களை 1/60 வினாடி பின்னர் காட்டும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "The cabinet this one sends to. For two machines, the\n"
+#~ "other machine's IP. Blank means this cabinet does not\n"
+#~ "forward (tail of a chain)."
+#~ msgstr ""
+#~ "இது அனுப்பும் கேபினெட். இரண்டு இயந்திரங்களுக்கு, மற்ற\n"
+#~ "இயந்திரத்தின் IP. காலியாக இருந்தால் இந்த கேபினெட் அனுப்பாது\n"
+#~ "(சங்கிலியின் கடைசி)."
+
+#, no-c-format
+#~ msgid "This machine's interfaces:"
+#~ msgstr "இந்த இயந்திரத்தின் இடைமுகங்கள்:"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wheels and gamepads keep working while the window is\n"
+#~ "not in front. Keyboard and mouse still need the window\n"
+#~ "in front."
+#~ msgstr ""
+#~ "சாளரம் முன்னால் இல்லாதபோதும் ஸ்டீயரிங் மற்றும் கேம்பேடுகள்\n"
+#~ "வேலை செய்யும். விசைப்பலகை மற்றும் சுட்டிக்கு சாளரம்\n"
+#~ "முன்னால் இருக்க வேண்டும்."
+
+#, c-format
+#~ msgid ""
+#~ "Hold %s to step back through play.\n"
+#~ "Costs a little speed on every frame while on."
+#~ msgstr ""
+#~ "ஆட்டத்தில் பின்னோக்கிச் செல்ல %s ஐ அழுத்திப் பிடிக்கவும்.\n"
+#~ "இயக்கத்தில் இருக்கும்போது ஒவ்வொரு பிரேமிலும் சற்று வேகம் குறையும்."
+
+#, no-c-format
+#~ msgid ""
+#~ "Send lamps, gun recoil and drive-board output to\n"
+#~ "MAMEHooker, Hook Of The Reaper and similar tools,\n"
+#~ "using MAME's network output protocol."
+#~ msgstr ""
+#~ "விளக்குகள், துப்பாக்கி பின்னுதைப்பு, டிரைவ் போர்டு வெளியீட்டை\n"
+#~ "MAMEHooker, Hook Of The Reaper போன்ற கருவிகளுக்கு\n"
+#~ "MAME இன் நெட்வொர்க் வெளியீட்டு நெறிமுறையில் அனுப்பு."
+
+#, no-c-format
+#~ msgid ""
+#~ "The same outputs over MAME's Windows message\n"
+#~ "protocol, for tools that hook MAME that way."
+#~ msgstr ""
+#~ "அதே வெளியீடுகள் MAME இன் Windows செய்தி நெறிமுறை வழியாக,\n"
+#~ "அவ்வாறு MAME உடன் இணையும் கருவிகளுக்காக."
+
+#, no-c-format
+#~ msgid "Keyboard shortcuts"
+#~ msgstr "விசைப்பலகை குறுக்குவழிகள்"
+
+#, no-c-format
+#~ msgid "Settings overlay"
+#~ msgstr "அமைப்புகள் மேலடுக்கு"
+
+#, no-c-format
+#~ msgid "Fast-forward (held)"
+#~ msgstr "வேகமாக முன்னோக்கு (அழுத்திப் பிடி)"
+
+#, no-c-format
+#~ msgid "Rewind (held)"
+#~ msgstr "பின்னோக்கு (அழுத்திப் பிடி)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Click a key, then press the new one. Escape cancels.\n"
+#~ "A key a game also uses does both."
+#~ msgstr ""
+#~ "ஒரு விசையைக் கிளிக் செய்து, புதியதை அழுத்தவும். Escape ரத்து செய்யும்.\n"
+#~ "கேமும் பயன்படுத்தும் விசை இரண்டையும் செய்யும்."
+
+#, c-format
+#~ msgid "%s: toggle overlay"
+#~ msgstr "%s: மேலடுக்கை மாற்று"
+
+#, no-c-format
+#~ msgid ""
+#~ "No ROM archives were found in the ROM directories. Set them in Settings "
+#~ "(F1) > Paths, then relaunch."
+#~ msgstr ""
+#~ "ROM அடைவுகளில் ROM காப்பகங்கள் எதுவும் கிடைக்கவில்லை. அமைப்புகள் (F1) > பாதைகள் இல் "
+#~ "அவற்றை அமைத்து, மீண்டும் துவக்கவும்."
 
 #, no-c-format
 #~ msgid "Light-gun mode"

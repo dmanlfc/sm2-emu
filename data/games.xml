@@ -8372,7 +8372,7 @@
     </roms>
   </game>
 
-  <game name="lostwsga" board="model3">
+  <game name="lostwsga" board="model3" gun_handheld="true">
     <title>The Lost World</title>
     <version>Japan, Revision A</version>
     <manufacturer>Sega</manufacturer>
@@ -8460,7 +8460,7 @@
     </roms>
   </game>
 
-  <game name="lostwsgp" parent="lostwsga" board="model3">
+  <game name="lostwsgp" parent="lostwsga" board="model3" gun_handheld="true">
     <!-- build 1997/06/24, location test or preview version, about half of game is available, Stage 3-2 ends with "Coming Soon?" -->
     <title>The Lost World</title>
     <version>Location Test</version>

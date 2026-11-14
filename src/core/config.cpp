@@ -359,7 +359,7 @@ void resolve_default_paths(Config* config, bool config_in_cwd,
             config_dir.empty() ? std::filesystem::path(".") : std::filesystem::path(config_dir);
         config->artwork_dir = (dir / "artwork").string();
     }
-    // rom_dir intentionally left empty: no sensible default.
+    // model2_rom_dir intentionally left empty: no sensible default.
 }
 
 namespace {
@@ -551,6 +551,8 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             }
         } else if (key == "language") {
             out->language = value.empty() ? "auto" : value;
+        } else if (key == "theme") {
+            out->theme = value.empty() ? "ink" : lowered(value);
         } else if (key == "show_notifications") {
             if (!parse_bool(value, &out->show_notifications)) {
                 bad_value();
@@ -981,10 +983,10 @@ bool load_config(const std::string& path, Config* out, std::vector<std::string>*
             } else {
                 bad_value();
             }
-        } else if (key == "rom_dir") {
-            out->rom_dir = value;
         } else if (key == "model1_rom_dir") {
             out->model1_rom_dir = value;
+        } else if (key == "model2_rom_dir" || key == "rom_dir") {  // rom_dir: the older spelling
+            out->model2_rom_dir = value;
         } else if (key == "model3_rom_dir") {
             out->model3_rom_dir = value;
         } else if (key == "nvram_dir") {
@@ -1118,8 +1120,8 @@ bool save_config(const std::string& path, const Config& config)
         }
     }
     out << "\n[paths]\n"
-        << "rom_dir = " << config.rom_dir << "\n"
         << "model1_rom_dir = " << config.model1_rom_dir << "\n"
+        << "model2_rom_dir = " << config.model2_rom_dir << "\n"
         << "model3_rom_dir = " << config.model3_rom_dir << "\n"
         << "nvram_dir = " << config.nvram_dir << "\n"
         << "screenshot_dir = " << config.screenshot_dir << "\n"
@@ -1199,6 +1201,7 @@ bool save_config(const std::string& path, const Config& config)
         << "outputs_windows = " << bool_text(config.outputs_windows) << "\n"
         << "\n[system]\n"
         << "language = " << config.language << "\n"
+        << "theme = " << config.theme << "\n"
         << "input_background = " << bool_text(config.input_background) << "\n"
         << "rewind = " << bool_text(config.rewind) << "\n"
         << "rewind_buffer_mb = " << config.rewind_buffer_mb << "\n";

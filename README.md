@@ -185,8 +185,9 @@ picks one. For example, the four Virtua Fighter 2 revisions share one file:
 ```
 
 A clone lists only the chips it changes and takes the rest from its parent,
-even from the parent's archive. Model 1 and Model 3 archives can live in their
-own folders (`--model1-rom-dir`, `--model3-rom-dir` or the Paths tab).
+even from the parent's archive. Each system has its own folder on the Paths
+tab (`--model1-rom-dir`, `--model2-rom-dir`, `--model3-rom-dir`); Model 1 and
+Model 3 fall back to the Model 2 folder when theirs is empty.
 
 Dropping a `.zip` or `.7z` on the window starts that game. If a set can't
 start, a dialog says why and lists any missing chips.

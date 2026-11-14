@@ -187,7 +187,7 @@ struct Options {
         bool validation = false;
         bool log_level  = false;
         bool gpu        = false;
-        bool rom_dir    = false;
+        bool model2_rom_dir = false;
         bool model1_rom_dir = false;
         bool model3_rom_dir = false;
         bool nvram_dir  = false;
@@ -287,7 +287,7 @@ void print_usage()
         "                      compositor scales up (faster on slow GPUs)\n"
         "      --game <name>   Load this set specifically, for archives that\n"
         "                      hold several revisions; with no path given, the\n"
-        "                      archive is found in --rom-dir\n"
+        "                      archive is found in its system's ROM folder\n"
         "      --gpu <name>    Use the device with this exact name\n"
         "      --graphics-backend <software|vulkan|opengl>\n"
         "                      Which renderer to use. 'opengl' means whichever GL\n"
@@ -305,12 +305,14 @@ void print_usage()
         "      --render-scale <n>  Internal 3D render scale, 1..8 (default 1 =\n"
         "                      native, 8 = ~4K). GPU backends only; native under\n"
         "                      software; auto-reduced if the GPU cannot allocate it\n"
-        "      --rom-dir <dir> Where the ROM archives live; a game named with no\n"
-        "                      path is loaded from <dir>/<name>.zip or .7z\n"
         "      --model1-rom-dir <dir>  Where the Model 1 archives live, if not\n"
-        "                      in --rom-dir\n"
+        "                      in --model2-rom-dir\n"
+        "      --model2-rom-dir <dir>  Where the Model 2 archives live; a game\n"
+        "                      named with no path is loaded from its system's\n"
+        "                      folder, else from <dir>/<name>.zip or .7z\n"
+        "                      (--rom-dir is the older spelling)\n"
         "      --model3-rom-dir <dir>  Where the Model 3 archives live, if not\n"
-        "                      in --rom-dir\n"
+        "                      in --model2-rom-dir\n"
         "      --screenshot-dir <dir>  Where screenshots are written\n"
         "      --load-state <file>  Restore this save state before running, so a\n"
         "                      one-frame --screenshot captures that exact moment\n"
@@ -523,10 +525,11 @@ void print_usage()
             // handled
         } else if (takes_value("--load-state", &out->load_state)) {
             // handled
-        } else if (takes_value("--rom-dir", &out->config.rom_dir)) {
-            out->given.rom_dir = true;
         } else if (takes_value("--model1-rom-dir", &out->config.model1_rom_dir)) {
             out->given.model1_rom_dir = true;
+        } else if (takes_value("--model2-rom-dir", &out->config.model2_rom_dir)
+                   || takes_value("--rom-dir", &out->config.model2_rom_dir)) {
+            out->given.model2_rom_dir = true;
         } else if (takes_value("--model3-rom-dir", &out->config.model3_rom_dir)) {
             out->given.model3_rom_dir = true;
         } else if (takes_value("--nvram", &out->config.nvram_dir)) {
@@ -684,7 +687,7 @@ struct LoadedMachine {
 };
 
 /// The folder set `name` loads from: model1_rom_dir / model3_rom_dir for a
-/// Model 1 / Model 3 set when one is given, else rom_dir.
+/// Model 1 / Model 3 set when one is given, else model2_rom_dir.
 [[nodiscard]] const std::string& rom_dir_for(const sm2::rom::GameDatabase& database,
                                              const sm2::Config& config,
                                              const std::string& name)
@@ -698,7 +701,7 @@ struct LoadedMachine {
         && !config.model3_rom_dir.empty()) {
         return config.model3_rom_dir;
     }
-    return config.rom_dir;
+    return config.model2_rom_dir;
 }
 
 /// The archive that set `name` loads from: its own <name>.zip or .7z, else,
@@ -864,8 +867,8 @@ sm2::Config persisted_config(const sm2::Config& current, const Options& options,
     keep(g.validation, &Config::validation);
     keep(g.log_level, &Config::log_level);
     keep(g.gpu, &Config::gpu);
-    keep(g.rom_dir, &Config::rom_dir);
     keep(g.model1_rom_dir, &Config::model1_rom_dir);
+    keep(g.model2_rom_dir, &Config::model2_rom_dir);
     keep(g.model3_rom_dir, &Config::model3_rom_dir);
     keep(g.nvram_dir, &Config::nvram_dir);
     keep(g.screenshot_dir, &Config::screenshot_dir);
@@ -946,11 +949,11 @@ int main(int argc, char** argv)
     if (!options.given.gpu) {
         options.config.gpu = from_file.gpu;
     }
-    if (!options.given.rom_dir) {
-        options.config.rom_dir = from_file.rom_dir;
-    }
     if (!options.given.model1_rom_dir) {
         options.config.model1_rom_dir = from_file.model1_rom_dir;
+    }
+    if (!options.given.model2_rom_dir) {
+        options.config.model2_rom_dir = from_file.model2_rom_dir;
     }
     if (!options.given.model3_rom_dir) {
         options.config.model3_rom_dir = from_file.model3_rom_dir;
@@ -1021,6 +1024,7 @@ int main(int argc, char** argv)
     options.config.rewind              = from_file.rewind;
     options.config.rewind_buffer_mb    = from_file.rewind_buffer_mb;
     options.config.language            = from_file.language;
+    options.config.theme               = from_file.theme;
     options.config.wheel_ffb           = from_file.wheel_ffb;
     options.config.wheel_ffb_strength  = from_file.wheel_ffb_strength;
     options.config.wheel_panel_spring  = from_file.wheel_panel_spring;
@@ -1177,20 +1181,21 @@ int main(int argc, char** argv)
         return started ? 0 : 1;
     }
 
-    // --game with no path: the archive is found in rom_dir once the database is
-    // loaded (a clone may live in its parent's archive). A positional path wins.
-    const bool any_rom_dir = !options.config.rom_dir.empty()
+    // --game with no path: the archive is found in its ROM folder once the
+    // database is loaded (a clone may live in its parent's archive). A
+    // positional path wins.
+    const bool any_rom_dir = !options.config.model2_rom_dir.empty()
                              || !options.config.model1_rom_dir.empty()
                              || !options.config.model3_rom_dir.empty();
     const bool game_in_rom_dir = options.rom_path.empty() && !options.game.empty()
                                  && any_rom_dir;
 
-    // Show the picker when launched with no ROM but a rom_dir to browse.
+    // Show the picker when launched with no ROM but a ROM folder to browse.
     const bool will_show_picker = options.rom_path.empty() && options.game.empty()
                                   && any_rom_dir
                                   && !options.list_games && options.boot_test == 0;
 
-    // As will_show_picker, but rom_dir may be set later from the Paths tab,
+    // As will_show_picker, but a ROM folder may be set later from the Paths tab,
     // whose rescan needs the database.
     const bool may_need_picker = options.rom_path.empty() && options.game.empty()
                                  && !options.list_games && options.boot_test == 0;
@@ -1835,10 +1840,11 @@ int main(int argc, char** argv)
                 osd::Gui::GameFamily& use = uses[family];
                 use.inputs |= static_cast<u32>(game.inputs);
                 const bool one_player = rom::has_input(game.inputs, rom::InputFlags::Fishing);
+                bool aim_y = false;
                 for (const rom::AnalogChannel& channel : game.analog) {
                     switch (osd::Input::pad_axis_role(channel.control, one_player)) {
-                        case Config::PadAxisRole::AimX:
-                        case Config::PadAxisRole::AimY:   use.aim = true; break;
+                        case Config::PadAxisRole::AimY:   aim_y = true; [[fallthrough]];
+                        case Config::PadAxisRole::AimX:   use.aim = true; break;
                         case Config::PadAxisRole::Accel:  use.accel = true; break;
                         case Config::PadAxisRole::Brake:  use.brake = true; break;
                         case Config::PadAxisRole::LeverX:
@@ -1847,6 +1853,38 @@ int main(int argc, char** argv)
                     }
                 }
                 use.gears = use.gears || game.gearbox || game.shift_buttons;
+                use.vr    = std::max(use.vr, static_cast<u32>(game.vr_button_count));
+                use.gate  = use.gate || game.gearbox;
+                use.shift = use.shift || game.shift_buttons;
+                use.joystick = use.joystick || rom::has_input(game.inputs, rom::InputFlags::Joystick1);
+                use.bat      = use.bat || std::any_of(game.analog.begin(), game.analog.end(), [](const rom::AnalogChannel& c) {
+                                   return c.control == rom::AnalogControl::Bat1;
+                               });
+                using Steer = osd::Gui::GameFamily::Steer;
+                if (rom::has_input(game.inputs, rom::InputFlags::Fishing)) use.steer = Steer::Rod;
+                for (const rom::AnalogChannel& channel : game.analog) {
+                    Steer kind = Steer::None;
+                    switch (channel.control) {
+                        case rom::AnalogControl::Steer:     kind = Steer::Wheel; break;
+                        case rom::AnalogControl::Bank:
+                        case rom::AnalogControl::Handle:    kind = Steer::Handlebar; break;
+                        case rom::AnalogControl::StickX:    kind = Steer::Stick; break;
+                        case rom::AnalogControl::Gun1X:     kind = Steer::Gun; break;
+                        case rom::AnalogControl::Slide:
+                        case rom::AnalogControl::Curving:
+                        case rom::AnalogControl::Swing:
+                        case rom::AnalogControl::Inclining: kind = Steer::Board; break;
+                        default: break;
+                    }
+                    // A wheel is the cabinet's main control over anything else.
+                    if (kind == Steer::Wheel || (kind != Steer::None && use.steer == Steer::None)) {
+                        use.steer = kind;
+                    }
+                }
+                if (rom::has_input(game.inputs, rom::InputFlags::Harley)) use.steer = Steer::Handlebar;
+                // A wheel's second axis is not steering: Desert Tank's yoke
+                // also tilts the turret.
+                use.tilt = use.tilt || (aim_y && (use.steer == Steer::Wheel || use.steer == Steer::Handlebar));
             }
             std::vector<osd::Gui::GameFamily> families;
             for (auto& [key, title] : titles) {
@@ -1903,8 +1941,8 @@ int main(int argc, char** argv)
         // Build the picker's entry list from the launchable sets and turn it on.
         // Used at startup and when Esc unloads a game to return here.
         const auto show_picker = [&]() {
-            // A set is launchable when it has an archive in rom_dir: its own
-            // <name>.zip / .7z, or, for a clone, its parent's merged one.
+            // A set is launchable when it has an archive in its ROM folder:
+            // its own <name>.zip / .7z, or, for a clone, its parent's merged one.
             std::vector<osd::Gui::PickerEntry> entries;
             std::vector<osd::Scraper::Entry>   scrape_list;
             for (const rom::GameSpec& game : database.games()) {
@@ -1912,8 +1950,11 @@ int main(int argc, char** argv)
                     continue;
                 }
                 osd::Gui::PickerEntry entry;
-                entry.name  = game.name;
-                entry.title = game.title;
+                entry.name   = game.name;
+                entry.title  = game.title;
+                entry.system = game.board == rom::Board::Model1 ? "Model 1"
+                             : game.board == rom::Board::Model3 ? "Model 3"
+                                                                : "Model 2";
                 entries.push_back(entry);
                 scrape_list.push_back({game.name, game.title});
             }
@@ -1922,7 +1963,7 @@ int main(int argc, char** argv)
                          const osd::Gui::PickerEntry& b) { return a.title < b.title; });
 
             SM2_INFO("game picker: %zu launchable set(s) in '%s'", entries.size(),
-                     options.config.rom_dir.c_str());
+                     options.config.model2_rom_dir.c_str());
 
             // stop() first so a second start() (return-to-picker) never
             // move-assigns over a still-joinable worker thread.
@@ -1932,8 +1973,8 @@ int main(int argc, char** argv)
             gui.enable_picker(std::move(entries), backend.get(), &scraper);
         };
 
-        // No ROM: show the picker if there is a rom_dir, else the settings
-        // overlay so a ROM directory can be set.
+        // No ROM: show the picker if there is a ROM folder, else the settings
+        // overlay so one can be set.
         if (!machine_any) {
             if (will_show_picker) {
                 show_picker();
@@ -2079,6 +2120,35 @@ int main(int argc, char** argv)
         bool running            = true;
         bool quit_key_pressed   = false;  ///< The quit key went down during this run.
         bool screenshot_requested = false;  ///< Serviced next frame.
+
+        // KEISHO_UI_SCRIPT="<ms>:<key>,<ms>:<key>,...": key presses fed to the
+        // window at those times after start, by SDL key name ("F10", "Down",
+        // "Return", "Page Down"). For driving the overlay from a script where no
+        // input automation is available; off when unset.
+        struct ScriptedKey {
+            u64         at_ns;
+            SDL_Keycode key;
+            bool        sent = false;
+        };
+        std::vector<ScriptedKey> scripted_keys;
+        if (const char* script = std::getenv("KEISHO_UI_SCRIPT"); script != nullptr && script[0] != '\0') {
+            std::string_view rest(script);
+            while (!rest.empty()) {
+                const size_t comma = rest.find(',');
+                std::string_view step = rest.substr(0, comma);
+                rest = comma == std::string_view::npos ? std::string_view() : rest.substr(comma + 1);
+                const size_t colon = step.find(':');
+                if (colon == std::string_view::npos) continue;
+                const std::string ms_text(step.substr(0, colon));
+                const std::string key_name(step.substr(colon + 1));
+                const SDL_Keycode key = SDL_GetKeyFromName(key_name.c_str());
+                if (key == SDLK_UNKNOWN) {
+                    SM2_WARN("KEISHO_UI_SCRIPT: unknown key '%s'", key_name.c_str());
+                    continue;
+                }
+                scripted_keys.push_back({static_cast<u64>(std::strtoull(ms_text.c_str(), nullptr, 10)) * 1000000ULL, key});
+            }
+        }
         bool return_to_picker_requested = false;  ///< Set by the exit key; unload + picker.
         std::string dropped_path;  ///< A file dropped on the window, launched next frame.
 
@@ -2091,6 +2161,14 @@ int main(int argc, char** argv)
         };
         std::optional<StateAction> state_action;
         bool settings_was_visible = gui.visible();  ///< Settings visibility, last frame.
+        // What the game list is built from, as it was when the settings opened:
+        // the list is rebuilt only when one of these changed there.
+        const auto list_inputs = [&] {
+            return std::array<std::string, 4>{options.config.model2_rom_dir, options.config.model1_rom_dir,
+                                              options.config.model3_rom_dir,
+                                              options.config.scrape_artwork ? "scrape" : ""};
+        };
+        std::array<std::string, 4> list_inputs_at_open = list_inputs();
         // Fixed at launch by --graphics-backend software.
         const bool use_software_renderer = options.start_in_software_renderer;
         // 16:9 widens the frame only on a GPU renderer; elsewhere it shows 4:3.
@@ -2205,6 +2283,23 @@ int main(int argc, char** argv)
                 apply_input_background(input_background);
             }
 
+            // Scripted key presses due now (KEISHO_UI_SCRIPT): a press and a
+            // release, through the same queue as the keyboard's.
+            for (ScriptedKey& scripted : scripted_keys) {
+                if (scripted.sent || SDL_GetTicksNS() - run_start_ns < scripted.at_ns) continue;
+                scripted.sent = true;
+                for (const bool down : {true, false}) {
+                    SDL_Event key_event{};
+                    key_event.type         = down ? SDL_EVENT_KEY_DOWN : SDL_EVENT_KEY_UP;
+                    key_event.key.timestamp = SDL_GetTicksNS();
+                    key_event.key.windowID = SDL_GetWindowID(window.handle());
+                    key_event.key.key      = scripted.key;
+                    key_event.key.scancode = SDL_GetScancodeFromKey(scripted.key, nullptr);
+                    key_event.key.down     = down;
+                    SDL_PushEvent(&key_event);
+                }
+            }
+
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
                 // Let ImGui see every event, bar a key the System tab is
@@ -2226,6 +2321,11 @@ int main(int argc, char** argv)
                             gui.capture_key(options.config, event.key.key);
                         } else if (event.key.key == SDLK_ESCAPE && gui.load_error_open()) {
                             // The dialog takes this Esc.
+                        } else if (event.key.key == SDLK_ESCAPE && gui.visible() && !event.key.repeat) {
+                            // Back out of the settings before anything else.
+                            gui.escape();
+                        } else if (event.key.key == SDLK_ESCAPE && !event.key.repeat && gui.picker_escape()) {
+                            // The game list's search was cleared instead.
                         } else if (is_hotkey(event.key, Config::Hotkey::Exit)) {
                             // Return to the game picker when there is one,
                             // otherwise quit. Serviced after the event loop.
@@ -2939,8 +3039,13 @@ int main(int argc, char** argv)
             if (options.config.fullscreen != window.fullscreen()) {
                 window.set_fullscreen(options.config.fullscreen);
             }
-            // Settings just closed with no game loaded: rescan rom_dir.
-            if (settings_was_visible && !gui.visible() && machine_any == nullptr) {
+            // Settings just opened: note the folders; just closed with no game
+            // loaded and a folder changed: rescan them.
+            if (!settings_was_visible && gui.visible()) {
+                list_inputs_at_open = list_inputs();
+            }
+            if (settings_was_visible && !gui.visible() && machine_any == nullptr
+                && list_inputs() != list_inputs_at_open) {
                 show_picker();
             }
             settings_was_visible = gui.visible();
@@ -3011,7 +3116,7 @@ int main(int argc, char** argv)
                     load_error.message = "Its archive is no longer in the ROM folder.";
                 }
                 if (!chosen.has_value()) {
-                    SM2_ERROR("picker: could not load '%s' from rom_dir", pick->c_str());
+                    SM2_ERROR("picker: could not load '%s' from its ROM folder", pick->c_str());
                     show_picker();
                     const rom::GameSpec* spec = database.find(*pick);
                     gui.show_load_error(spec != nullptr ? spec->title : *pick,

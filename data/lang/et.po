@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Keisho\n"
 "Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
-"POT-Creation-Date: 2026-11-14 11:53+1000\n"
+"POT-Creation-Date: 2026-11-14 21:42+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -329,77 +329,88 @@ msgstr "Päästik 2"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "File"
-msgstr "Fail"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Hide overlay"
-msgstr "Peida ülekate"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Quit"
-msgstr "Välju"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Settings"
-msgstr "Seaded"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Vsync"
-msgstr "Vsync"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Fullscreen"
-msgstr "Täisekraan"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "FPS counter"
-msgstr "FPS-loendur"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "On-screen notifications"
-msgstr "Ekraaniteated"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "(Model 1 & 2 only)"
-msgstr "(ainult Model 1 ja 2)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Video"
-msgstr "Video"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wait for vertical blank before presenting.\n"
-"Prevents tearing but adds up to one frame of latency."
+msgid "Display"
 msgstr ""
-"Oota enne kuvamist vertikaalset tagasijooksu.\n"
-"Väldib rebenemist, kuid lisab kuni ühe kaadri viivitust."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Notifications"
-msgstr "Teated"
+msgid "Audio"
+msgstr "Heli"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "GPU"
-msgstr "GPU"
+msgid "Input"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Auto (best)"
-msgstr "Automaatne (parim)"
+msgid "Paths"
+msgstr "Teed"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "Olekud"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hotkeys"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "System"
+msgstr "Süsteem"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "Teave"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s: back"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Esc"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LB/RB: pages"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saved"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s   %.1f Hz"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Changes are saved as you make them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "next launch"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 1 & 2 only"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -414,54 +425,88 @@ msgstr "Tarkvaraline"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Which renderer draws the game. Applies on the\n"
-"next launch - save settings and relaunch."
+"Which renderer draws the game. The software renderer needs no GPU and suits "
+"small boards; Vulkan and OpenGL pull ahead on desktop graphics."
 msgstr ""
-"Milline renderdaja mängu joonistab. Rakendub järgmisel\n"
-"käivitusel - salvesta seaded ja käivita uuesti."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Window size"
-msgstr "Akna suurus"
+msgid "What draws the game."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Width"
-msgstr "Laius"
+msgid "Automatic (best)"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Height"
-msgstr "Kõrgus"
+msgid "Graphics card"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "1x (native)"
-msgstr "1x (algne)"
+msgid "The device the GPU renderers draw on."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "8x (4K)"
-msgstr "8x (4K)"
+msgid ""
+"Waits for the display before showing a frame. Stops tearing; adds up to a "
+"frame of delay."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "Vsync"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wait for vertical blank before presenting."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "Täisekraan"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "In windowed mode."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window width"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window height"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Picture"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution, times the native 496x384. Higher is "
+"crisper 3D; the 2D stays sharp either way. GPU renderers only."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x is the arcade's own. 8x suits a 4K display."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "3D render scale"
 msgstr "3D renderdamise skaala"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Internal 3D rendering resolution. Higher is crisper 3D\n"
-"(2D/HUD stays sharp). GPU backends only; the software\n"
-"renderer stays native. Applies on the next launch - save\n"
-"settings and relaunch."
-msgstr ""
-"Sisemine 3D renderdamise eraldusvõime. Suurem on teravam 3D\n"
-"(2D/HUD jääb teravaks). Ainult GPU taustaprogrammid; tarkvaraline\n"
-"renderdaja jääb algseks. Rakendub järgmisel käivitusel -\n"
-"salvesta seaded ja käivita uuesti."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -480,38 +525,36 @@ msgstr "Lähim"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Sharp-bilinear"
-msgstr "Terav bilineaarne"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "2D scaling"
-msgstr "2D skaleerimine"
+msgid "Sharp"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"How the frame is magnified to the window.\n"
-"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
-"nearest shows at non-integer window sizes. Integer snaps\n"
-"to a whole multiple (pixel-perfect, with black bars).\n"
-"Applies live."
+"How the finished frame is magnified to the window. Sharp keeps 2D text crisp "
+"without the shimmer Nearest shows at odd sizes. Integer snaps to a whole "
+"multiple, with black bars."
 msgstr ""
-"Kuidas kaader aknani suurendatakse.\n"
-"Terav bilineaarne hoiab 2D teksti teravana ilma värelemiseta,\n"
-"mida „Lähim“ mittetäisarvulistel akende suurustel näitab.\n"
-"„Täisarvuline“ kasutab täiskordset (pikslitäpne, mustade\n"
-"ribadega). Rakendub kohe."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "16:9 (widescreen)"
-msgstr "16:9 (laiekraan)"
+msgid "How the frame is magnified to the window."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "4:3 (arcade)"
-msgstr "4:3 (arkaad)"
+msgid "Scaling"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "16:9"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -525,23 +568,28 @@ msgstr "Venita"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape. Square pixels shows the raw 496x384, "
+"slightly narrow. 16:9 draws the 3D wider with the 2D in the middle (GPU "
+"renderers). Stretch fills the window."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Aspect"
 msgstr "Kuvasuhe"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"4:3 is the arcade monitor's shape (the default).\n"
-"Square pixels shows the raw 496x384 (slightly narrow).\n"
-"16:9 (experimental) draws the 3D wider, with the 2D in the middle.\n"
-"Stretch fills the whole window.\n"
-"GPU renderers only. Applies live."
+msgid "The shape the picture is shown at."
 msgstr ""
-"4:3 on arkaadmonitori kuju (vaikimisi).\n"
-"Ruutpikslid näitab toorest 496x384 pilti (veidi kitsas).\n"
-"16:9 (katseline) joonistab 3D laiemalt, 2D jääb keskele.\n"
-"Venita täidab kogu akna.\n"
-"Ainult GPU renderdajad. Rakendub kohe."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the picture's black sits. 50% matches an arcade capture; lower is "
+"darker."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -551,13 +599,20 @@ msgstr "Heledus"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the Model 2 picture's black sits. 50% is the default,\n"
-"matched to an arcade capture; lower is darker, higher is\n"
-"brighter. Applies live."
+"In fullscreen, frame the 4:3 picture with an image from the bezels folder: "
+"<game>.png, the parent set's, or default.png. The picture fills the image's "
+"transparent window."
 msgstr ""
-"Kus asub Model 2 pildi must. 50% on vaikimisi,\n"
-"sobitatud mängusaali salvestusega; vähem on tumedam, rohkem on heledam.\n"
-"Rakendub kohe."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bezel"
+msgstr "Raam"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet artwork around the picture in fullscreen."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -567,13 +622,14 @@ msgstr "CRT-filter"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"A cosmetic arcade-monitor look over the finished frame:\n"
-"scanlines, an RGB shadow mask, glow and optional screen\n"
-"curvature. Purely visual; applies live."
+"A cosmetic arcade-monitor look over the finished frame: scanlines, a shadow "
+"mask, glow and optional curvature. Purely visual."
 msgstr ""
-"Kosmeetiline arkaadimonitori välimus valmis kaadri peal:\n"
-"skaneerimisjooned, RGB varjumask, kuma ja valikuline\n"
-"ekraani kumerus. Puhtalt visuaalne; rakendub kohe."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines, mask, glow and curvature."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -597,26 +653,8 @@ msgstr "Kumerus"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Bezel"
-msgstr "Raam"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"In fullscreen, frame the 4:3 picture with an image from\n"
-"the bezels directory (Paths tab): <game>.png, the parent\n"
-"set's, or default.png. The picture fills the image's\n"
-"transparent window."
+msgid "Enhancements beyond the original hardware"
 msgstr ""
-"Täisekraanil ümbritseb 4:3 pilti raamipilt\n"
-"raamide kaustast (vahekaart Teed): <game>.png, ülemkomplekti\n"
-"pilt või default.png. Pilt täidab raami\n"
-"läbipaistva akna."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Enhancement (cosmetic, beyond the original hardware)"
-msgstr "Täiustused (kosmeetilised, üle algse riistvara)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -630,13 +668,8 @@ msgstr "Algupärane"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "3D texture filter"
-msgstr "3D tekstuurifilter"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "(unsupported)"
-msgstr "(pole toetatud)"
+msgid "Anisotropic filtering sharpens textures seen at a slant."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -645,24 +678,30 @@ msgstr "See GPU ei teata anisotroopsest filtreerimisest."
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "3D texture filter"
+msgstr "3D tekstuurifilter"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Not available on this GPU."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Anisotropy"
 msgstr "Anisotroopia"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "2D upscale"
-msgstr "2D suurendus"
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and ScaleFX round "
+"diagonals; Faithful keeps crisp pixels."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
-"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
-"Applies live."
-msgstr ""
-"Silu 2D kihtide servi (HUD, tekst, menüüd). xBR ja\n"
-"ScaleFX ümardavad diagonaale; „Algupärane“ hoiab\n"
-"teravad pikslid. Rakendub kohe."
+msgid "2D upscale"
+msgstr "2D suurendus"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -676,19 +715,28 @@ msgstr "Punktiir"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass, shadows) as a "
+"checkerboard. Blended draws the 50% see-through surface it is trying to "
+"achieve."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Translucency"
 msgstr "Läbipaistvus"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"The hardware draws see-through surfaces (lights, glass,\n"
-"shadows) as a checkerboard. Blended draws the 50%\n"
-"see-through surface it's trying to achieve. Applies live."
+"Draw the scenery to the edge of the course instead of the arcade's short "
+"range, so it no longer pops in. Daytona USA only."
 msgstr ""
-"Riistvara joonistab läbipaistvad pinnad (tuled, klaas,\n"
-"varjud) malelauamustrina. „Segatud“ joonistab 50%\n"
-"läbipaistva pinna, mida taotletakse. Rakendub kohe."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Daytona USA."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -698,13 +746,9 @@ msgstr "Laiendatud joonistuskaugus"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw the scenery to the edge of the course instead of\n"
-"the arcade's short range, so it no longer pops in.\n"
-"Daytona USA only. Applies live."
+"Replace the game's 3D textures with images saved in saves/textures/<game>/"
+"load, named as dumped. GPU renderers only."
 msgstr ""
-"Joonistab maastiku raja servani, mitte ainult\n"
-"mänguautomaadi lühikeses ulatuses, nii et see ei ilmu enam järsku.\n"
-"Ainult Daytona USA. Rakendub kohe."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -713,24 +757,33 @@ msgstr "Kohandatud tekstuurid"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Replace the game's 3D textures with images saved in\n"
-"saves/textures/<game>/load, named as dumped. GPU\n"
-"renderers only; Reload picks up edited files."
+msgid "Replacement textures from the saves folder."
 msgstr ""
-"Asenda mängu 3D tekstuurid piltidega kaustast\n"
-"saves/textures/<game>/load, nimetatud nagu väljavõttel.\n"
-"Ainult GPU renderdajad; „Laadi uuesti“ loeb muudetud failid."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%zu loaded"
-msgstr "%zu laaditud"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Reload"
 msgstr "Laadi uuesti"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu texture loaded"
+msgid_plural "%zu textures loaded"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Loaded textures"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them, with an index.html "
+"to browse, to saves/textures/<game>/dump when the game exits or this is "
+"turned off."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -739,772 +792,129 @@ msgstr "Tekstuuride väljavõte"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Collect every 3D texture the game draws and write them,\n"
-"with an index.html to browse, to saves/textures/<game>/dump\n"
-"when the game exits or this is turned off."
+msgid "Write every texture the game draws."
 msgstr ""
-"Kogu kõik mängu joonistatud 3D tekstuurid ja kirjuta need\n"
-"koos sirvimiseks mõeldud index.html-iga kausta\n"
-"saves/textures/<game>/dump, kui mäng lõpeb või see lülitatakse välja."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Audio"
-msgstr "Heli"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Paths"
-msgstr "Teed"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Browse..."
-msgstr "Sirvi..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Config directory"
-msgstr "Seadete kaust"
+msgid "Performance"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where keisho.ini is read from and saved to.\n"
-"Set with --config <dir>; cannot be changed here."
+"Hold the machine to its own 57.5 Hz. Off runs as fast as the host can, "
+"without sound sync."
 msgstr ""
-"Kust keisho.ini loetakse ja kuhu see salvestatakse.\n"
-"Määrab --config <dir>; siin muuta ei saa."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "ROM directory"
-msgstr "ROM-ide kaust"
+msgid "Limit speed"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Run at the arcade's 57.5 Hz."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the ROM archives live. A game launched by name is\n"
-"loaded from here as <name>.zip or <name>.7z."
+"The software renderer draws each frame on a second thread, one frame behind "
+"the emulation."
 msgstr ""
-"Kus asuvad ROM-arhiivid. Nime järgi käivitatud mäng\n"
-"laaditakse siit kui <name>.zip või <name>.7z."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Model 1 ROM directory"
-msgstr "Model 1 ROM-ide kaust"
+msgid "Faster; a frame of latency."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software renderer on a second thread"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the Model 1 ROM archives live.\n"
-"Empty means the ROM directory."
+"On a big.LITTLE chip, the drawing runs on the little cores and leaves the "
+"big ones to the emulation."
 msgstr ""
-"Kus asuvad Model 1 ROM-arhiivid.\n"
-"Tühi tähendab ROM-ide kausta."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Model 3 ROM directory"
-msgstr "Model 3 ROM-ide kaust"
+msgid "Draw on the slow cores"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "big.LITTLE hosts, with the second thread."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the Model 3 ROM archives live.\n"
-"Empty means the ROM directory."
+"Model 3 builds each frame on a second thread while the next one is emulated; "
+"shown a frame later."
 msgstr ""
-"Kus asuvad Model 3 ROM-arhiivid.\n"
-"Tühi tähendab ROM-ide kausta."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Saves directory"
-msgstr "Salvestuste kaust"
+msgid "Model 3 frame build on a second thread"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "Helitugevus"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
-"(.eeprom) images -- high scores and operator settings."
+"Only for games with a separate music board: Star Wars Arcade, Sega Touring "
+"Car Championship, Top Skater and the Model 3 games with a DSB. Sound effects "
+"stay as they are."
 msgstr ""
-"Patareitoitega salvestused: mängupõhised NVRAM (.nv) ja EEPROM\n"
-"(.eeprom) tõmmised -- rekordid ja operaatori seaded."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Screenshots directory"
-msgstr "Ekraanipiltide kaust"
+msgid "Music volume"
+msgstr "Muusika helitugevus"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Where screenshots are written."
-msgstr "Kuhu ekraanipildid kirjutatakse."
+msgid "The music board's level, where a game has one."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Bezels directory"
-msgstr "Raamide kaust"
+msgid "Per-game volume"
+msgstr "Mängupõhine helitugevus"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside keisho.ini."
+"Raise or lower a game's volume from its default level. One slider covers "
+"every revision of a game. Off plays every game at its default, whatever the "
+"sliders say. Above 100% loud effects can clip."
 msgstr ""
-"Raamipildid: <game>.png, ülemkomplekti pilt või default.png.\n"
-"Tühi tähendab bezels kausta keisho.ini kõrval."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Crosshairs directory"
-msgstr "Sihikute kaust"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Crosshair images: <game>-p1.png (-p2 for player 2) or\n"
-"<game>.png for both, then the parent set's, then default.\n"
-"Drawn at their own size on a 1080-line picture. Without\n"
-"one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside keisho.ini."
+msgid "Each game at its own level."
 msgstr ""
-"Sihikupildid: <game>-p1.png (-p2 mängijale 2) või\n"
-"<game>.png mõlemale, siis vanemkomplekti oma, siis default.\n"
-"Joonistatakse oma suuruses 1080-realisele pildile. Ilma\n"
-"selleta joonistatakse sisseehitatud sihik.\n"
-"Tühi tähendab kausta crosshairs faili keisho.ini kõrval."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Scrape artwork online"
-msgstr "Laadi kujundus võrgust"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps Keisho offline: the\n"
-"picker still lists and launches every game, with placeholder\n"
-"tiles and no descriptions."
-msgstr ""
-"Luba mänguvalijal tuua ArcadeDB-st võrgu kaudu karbipilte\n"
-"ja kirjeldusi. Väljas hoiab Keisho võrguühenduseta:\n"
-"valija loetleb ja käivitab ikka kõik mängud, kohatäitja-\n"
-"paanide ja ilma kirjeldusteta."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gamepad"
-msgstr "Mängupult"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Wheel"
-msgstr "Rool"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light Gun"
-msgstr "Valguspüss"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Network"
-msgstr "Võrk"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "States"
-msgstr "Olekud"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "System"
-msgstr "Süsteem"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "About"
-msgstr "Teave"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr "Sega Model 1, 2 & 3 arkaadmasinate emulaator"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "GPL-3.0-or-later licence. See LICENSE."
-msgstr "GPL-3.0-or-later litsents. Vt LICENSE."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Keisho exists because of open source shared with the community."
-msgstr "Keisho on olemas tänu kogukonnaga jagatud avatud lähtekoodile."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "With thanks to the projects whose code makes it possible:"
-msgstr "Täname projekte, mille kood selle võimalikuks teeb:"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "The MAME project - Sega Model 2 emulation guidance"
-msgstr "MAME projekt - Sega Model 2 emuleerimise juhised"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
-msgstr "Musashi - Motorola 68000 CPU tuum (Karl Stenerud)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
-msgstr "ymfm - Yamaha FM helituumad (Aaron Giles)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "SDL - windowing, input and audio"
-msgstr "SDL - aknad, sisend ja heli"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Dear ImGui - this user interface (Omar Cornut)"
-msgstr "Dear ImGui - see kasutajaliides (Omar Cornut)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "pugixml - games.xml parsing"
-msgstr "pugixml - games.xml parsimine"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "miniz - ZIP archive decompression"
-msgstr "miniz - ZIP-arhiivide lahtipakkimine"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
-msgstr "LZMA SDK - 7-Zip-arhiivide lahtipakkimine (Igor Pavlov)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
-msgstr "VulkanMemoryAllocator - GPU mälu (AMD / GPUOpen)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "shaderc / glslang - shader compilation"
-msgstr "shaderc / glslang - varjutite kompileerimine"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "stb_image - box-art image decoding (Sean Barrett)"
-msgstr "stb_image - karbipiltide dekodeerimine (Sean Barrett)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
-msgstr ""
-"Mängupuldi pilt - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "libcurl - artwork scraping (optional)"
-msgstr "libcurl - kujunduse allalaadimine (valikuline)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "HarfBuzz - text shaping for translations"
-msgstr "HarfBuzz - teksti kujundamine tõlgete jaoks"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
-msgstr "SheenBidi - paremalt vasakule teksti paigutus (Muhammad Tayyab Akram)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Game artwork and descriptions from ArcadeDB"
-msgstr "Mängude kujundus ja kirjeldused ArcadeDB-st"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "(adb.arcadeitalia.net, by Motoschifo)."
-msgstr "(adb.arcadeitalia.net, autor Motoschifo)."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "See NOTICE for full per-component attribution."
-msgstr "Täielik komponentide autorsus on failis NOTICE."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "If you'd like to support development:"
-msgstr "Kui soovid arendust toetada:"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Save settings"
-msgstr "Salvesta seaded"
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Saved to %s"
-msgstr "Salvestatud: %s"
+msgid "%zu game changed"
+msgid_plural "%zu games changed"
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Wheel connected."
-msgstr "Rool ühendatud."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "No wheel connected. Settings still apply once one is."
-msgstr "Rooli pole ühendatud. Seaded rakenduvad, kui see ühendatakse."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Force feedback"
-msgstr "Jõutagasiside"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wheel force on driving games: centring and cornering\n"
-"forces decoded from the game's own drive-board commands,\n"
-"plus an impact jolt when you hit something."
+msgid "Find a game"
 msgstr ""
-"Rooli jõud sõidumängudes: tsentreerimis- ja kurvijõud,\n"
-"mis on dekodeeritud mängu enda roolijuhtplaadi käskudest,\n"
-"pluss löögitõuge, kui millegagi kokku põrkad."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Resistance"
-msgstr "Takistus"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"A gain on every force of the drive board. At 100 %, the\n"
-"board's full power (63) gives the wheel's full force, every\n"
-"force in proportion. 200 % doubles every force: those above\n"
-"half the board's power (32, Sega Rally's strongest torque)\n"
-"then saturate."
-msgstr ""
-"Võimendus ajamiplaadi igale jõule. 100 % juures annab plaadi\n"
-"täisvõimsus (63) rooli täisjõu, iga jõud proportsionaalselt.\n"
-"200 % kahekordistab iga jõu: plaadi poolest võimsusest (32,\n"
-"Sega Rally tugevaim pöördemoment) suuremad jõud küllastuvad\n"
-"siis."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Panel spring"
-msgstr "Paneeli vedru"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The centring spring of the Sega Rally Championship and\n"
-"Daytona USA cabinets: very light, it brings the wheel\n"
-"back and is barely felt when held against. A share of\n"
-"the resistance above. The other games' cabinets drive\n"
-"the wheel with no spring, and ignore this setting."
-msgstr ""
-"Sega Rally Championshipi ja Daytona USA automaatide\n"
-"tsentreeriv vedru: väga kerge, toob rooli tagasi ja on\n"
-"vastu hoides vaevu tuntav. Osa ülalolevast takistusest.\n"
-"Teiste mängude automaadid liigutavad rooli vedruta ega\n"
-"arvesta seda seadet."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Sega Rally Championship and Daytona USA only, all versions."
-msgstr "Ainult Sega Rally Championship ja Daytona USA, kõik versioonid."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Drive board DIP strength"
-msgstr "Ajamiplaadi DIP-tugevus"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The motor strength set on the drive board's DIP switches,\n"
-"the switches ON counted in binary: 0 = all OFF.\n"
-"Sega Rally: switches 1-3, 0 to 7 added to every torque.\n"
-"Daytona USA: switches 1-3, 4 times that.\n"
-"Indy 500, Touring Car, Over Rev, Super GT 24h:\n"
-"switches 1-1 to 1-3, 0 to 7 added to every force."
-msgstr ""
-"Ajamiplaadi DIP-lülititega määratud mootori tugevus, ON-asendis\n"
-"lülitid kahendsüsteemis: 0 = kõik OFF. Sega Rally:\n"
-"lülitid 1-3, 0 kuni 7 lisatakse igale pöördemomendile. Daytona\n"
-"USA: lülitid 1-3, neli korda rohkem. Indy 500, Touring Car, Over\n"
-"Rev, Super GT 24h: lülitid 1-1 kuni 1-3, 0 kuni 7 lisatakse\n"
-"igale jõule."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Invert force feedback"
-msgstr "Pööra jõutagasiside ümber"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"For a wheel whose driver pushes the wrong way: it pulls\n"
-"away from the centre instead of bringing it back, and\n"
-"the game's forces go the opposite way."
-msgstr ""
-"Roolile, mille draiver lükkab valele poole: see tõmbab\n"
-"keskelt eemale, selle asemel et tagasi tuua, ja mängu\n"
-"jõud toimivad vastupidi."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rumble"
-msgstr "Vibratsioon"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Vibrates on the game's impacts, for wheels without force\n"
-"feedback. It never runs alongside force feedback."
-msgstr ""
-"Vibreerib mängu löökide ajal, jõutagasisideta roolidele.\n"
-"See ei tööta kunagi koos jõutagasisidega."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rumble strength"
-msgstr "Vibratsiooni tugevus"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Engine vibration"
-msgstr "Mootori vibratsioon"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"An added vibration that grows with the throttle. It is not\n"
-"from the game. Turn it off to feel only the game's force feedback."
-msgstr ""
-"Lisatud vibratsioon, mis kasvab koos gaasiga. See ei\n"
-"tule mängust. Lülita välja, et tunda ainult mängu jõutagasisidet."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%u deg"
-msgstr "%u°"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Steering range"
-msgstr "Roolimisulatus"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Set this to your wheel's own rotation range. The lock\n"
-"angle below is mapped onto it, so matching your wheel\n"
-"gives arcade-like response."
-msgstr ""
-"Määra see oma rooli enda pöördenurgale. Allolev\n"
-"lukunurk kaardistatakse sellele, nii et vastavus\n"
-"annab arkaadilaadse reageerimise."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Lock angle"
-msgstr "Lukunurk"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%d deg"
-msgstr "%d°"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"How far to physically turn for full game lock (total,\n"
-"so half each side of centre). Lower is more sensitive."
-msgstr ""
-"Kui palju füüsiliselt pöörata täislukuni mängus (kokku,\n"
-"seega pool kummalegi poole). Väiksem on tundlikum."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Centre deadzone"
-msgstr "Keskme surnud tsoon"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wheel travel about centre that reads as centre. Most wheels\n"
-"want none; a little covers one whose centre wanders. The bar\n"
-"shows the wheel now against the shaded zone."
-msgstr ""
-"Rooli liikumine keskme ümber, mida loetakse keskmeks. Enamik\n"
-"roole ei vaja seda; veidi aitab, kui kese hulbib. Riba\n"
-"näitab rooli praegu varjutatud tsooni suhtes."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Wheel position"
-msgstr "Rooli asend"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Axes"
-msgstr "Teljed"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
-msgstr ""
-"Tuvastatud automaatselt. Kalibreeri uuesti, kui rool või pedaal on vale."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Steering"
-msgstr "Roolimine"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Accelerator"
-msgstr "Gaas"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Brake"
-msgstr "Pidur"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "auto"
-msgstr "auto"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d (half, +)"
-msgstr "telg %d (pool, +)"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d (half, -)"
-msgstr "telg %d (pool, -)"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d (inverted)"
-msgstr "telg %d (ümberpööratud)"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d"
-msgstr "telg %d"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "operate it..."
-msgstr "liiguta seda..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "cancel"
-msgstr "tühista"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Calibrate"
-msgstr "Kalibreeri"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Buttons"
-msgstr "Nupud"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Press Bind, then press the wheel button for that control."
-msgstr "Vajuta „Seo“, seejärel vajuta selle juhtnupu jaoks rooli nuppu."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Start"
-msgstr "Start"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Coin"
-msgstr "Münt"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 1"
-msgstr "Nupp 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 2"
-msgstr "Nupp 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 3"
-msgstr "Nupp 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 4"
-msgstr "Nupp 4"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Shift up"
-msgstr "Käik üles"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Shift down"
-msgstr "Käik alla"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 1"
-msgstr "Käik 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 2"
-msgstr "Käik 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 3"
-msgstr "Käik 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 4"
-msgstr "Käik 4"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Neutral"
-msgstr "Neutraal"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Test"
-msgstr "Test"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Service"
-msgstr "Hooldus"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Menu (F10)"
-msgstr "Menüü (F10)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "unbound"
-msgstr "sidumata"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "button %d"
-msgstr "nupp %d"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "press a button..."
-msgstr "vajuta nuppu..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Bind"
-msgstr "Seo"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "clear"
-msgstr "tühjenda"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear shifter"
-msgstr "Käigukang"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Daytona USA and Sega Rally Championship, all versions."
-msgstr "Daytona USA ja Sega Rally Championship, kõik versioonid."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Neutral when no gear is engaged"
-msgstr "Neutraal, kui ükski käik pole sees"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"With an H shifter bound to Gear 1..4: its lever in none\n"
-"of the gears is in neutral, as on the cabinet. Off, the\n"
-"last gear stays engaged until another is selected or\n"
-"Neutral is pressed."
-msgstr ""
-"H-käigukangiga, mis on seotud nuppudega Käik 1..4: kui\n"
-"kang pole üheski käigus, on see neutraalis, nagu automaadil.\n"
-"Väljas: viimane käik jääb sisse, kuni valitakse teine või\n"
-"vajutatakse Neutraal."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Neutral between gears"
-msgstr "Neutraal käikude vahel"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Shift up / Shift down (and a gamepad's RB / LB) from one\n"
-"gear to another pass through neutral this long, as a\n"
-"lever crosses the gate's centre. 0 shifts straight."
-msgstr ""
-"Käik üles / Käik alla (ja mängupuldi RB / LB) ühelt käigult\n"
-"teisele läbivad neutraali nii kaua, nagu kang ületab\n"
-"kulissi keskkoha. 0 vahetab otse."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%d gamepad connected."
-msgid_plural "%d gamepads connected."
-msgstr[0] "%d mängupult ühendatud."
-msgstr[1] "%d mängupulti ühendatud."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "No gamepad connected. Settings still apply once one is."
-msgstr "Mängupulti pole ühendatud. Seaded rakenduvad, kui see ühendatakse."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Default"
-msgstr "Vaikimisi"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Game"
-msgstr "Mäng"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1513,48 +923,808 @@ msgstr "Filtreeri mänge"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "custom"
-msgstr "kohandatud"
+msgid "Reset all"
+msgstr "Lähtesta kõik"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Used by every game without its own layout."
-msgstr "Kasutavad kõik mängud, millel pole oma paigutust."
+msgid "Games"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Uses the default layout until a binding is changed."
-msgstr "Kasutab vaikepaigutust, kuni mõnda määrangut muudetakse."
+msgid "playing"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "This game has its own layout."
-msgstr "Sellel mängul on oma paigutus."
+msgid "Gamepad"
+msgstr "Mängupult"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Player"
-msgstr "Mängija"
+msgid "Light gun"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Reset to SDL defaults"
-msgstr "Lähtesta SDL-i vaikeväärtustele"
+msgid "Wheel"
+msgstr "Rool"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Use Default Layout"
-msgstr "Kasuta vaikepaigutust"
+msgid "Pause"
+msgstr "Paus"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Show bindings"
-msgstr "Näita määranguid"
+msgid "Fast-forward"
+msgstr "Keri edasi"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Show shortcuts"
-msgstr "Näita otseteid"
+msgid "While held."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Held: runs the game backwards. Needs Rewind on, on the System page."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind"
+msgstr "Keri tagasi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quick-save"
+msgstr "Kiirsalvestus"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves the whole machine to the quick slot."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quick-load"
+msgstr "Kiirlaadimine"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Restores the quick slot."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "FPS-loendur"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "Seaded"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This menu."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshot"
+msgstr "Kuvatõmmis"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Back to games"
+msgstr "Tagasi mängude juurde"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Leaves the game for the game list, or quits."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "Välju"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Playing"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Leaving"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a key..."
+msgstr "vajuta klahvi..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Clear"
+msgstr "Tühjenda"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Default"
+msgstr "Vaikimisi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a key, then press the new one. Escape cancels. A key a game also uses "
+"does both."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hold Guide and press a button for the menu, save, load, rewind and the rest; "
+"the Input page lists them. Off for a host that maps the hotkeys itself, such "
+"as Batocera."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guide button shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guide held with a button: menu, save, load, rewind..."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet link"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same title (Sega "
+"Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps this cabinet "
+"standalone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "Ühenda kapid võrgu kaudu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Takes effect at the next game launch."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next. For two machines, point each at the other. The master/slave "
+"role is chosen in the game's own test menu, not here."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "See kapp"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank listens on every interface. "
+"Detect fills it from the primary network adapter."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "Tuvasta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "Kohalik IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "every interface"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "Alamvõrgu mask"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "Kuulamisport"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring, from 0. For your own bookkeeping; the "
+"game negotiates the real link id from the ring."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "Kapi number"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets' data is read. Raise "
+"it if a race over Wi-Fi stutters; lower it on a wired LAN. Each frame shows "
+"the other cars 1/60 s later."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "In frames; Model 3."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link delay"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "Järgmine kapp rõngas"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the other machine's IP. "
+"Blank means this cabinet does not forward (the tail of a chain)."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "Järgmine IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "Järgmine port"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "Olek"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "Ühendus seadistatud; algab järgmisel mängu käivitusel."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "Eraldiseisev (kappide ühenduseta)."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "Ootan, et mäng lülitaks ühendusplaadi sisse..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "Ühendatud: kapp %u / %u."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "Rõnga loomine..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet outputs"
+msgstr "Kapi väljundid"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Send lamps, gun recoil and drive-board output to MAMEHooker, Hook Of The "
+"Reaper and similar tools, using MAME's network output protocol."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lamps and drive-board bytes, as MAME sends them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network outputs"
+msgstr "Võrguväljundid"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "MAME uses 8000."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Port"
+msgstr "Port"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The same outputs over MAME's Windows message protocol, for tools that hook "
+"MAME that way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Windows outputs"
+msgstr "Windowsi väljundid"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "Sirvi..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"One zip or 7z per game, named as in MAME. A game launched by name is loaded "
+"as <name>.zip or <name>.7z from its system's folder; Model 1 and Model 3 "
+"fall back to the Model 2 folder."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 1 ROM folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where the Model 1 ROM archives live. Empty means the Model 2 folder."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "the Model 2 folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 2 ROM folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "One zip or 7z per game, named as in MAME."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 2 ROM archives live, and any Model 1 or Model 3 archives "
+"kept with them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "not set"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 3 ROM folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where the Model 3 ROM archives live. Empty means the Model 2 folder."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves and pictures"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "NVRAM, EEPROM, save states and textures."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM (.eeprom) images, high "
+"scores and operator settings."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where screenshots are written."
+msgstr "Kuhu ekraanipildid kirjutatakse."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bezels"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Bezel images: <game>.png, the parent set's, or default.png. Empty means a "
+"bezels folder beside keisho.ini."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "beside keisho.ini"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Crosshairs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Crosshair images: <game>-p1.png (-p2 for player 2) or <game>.png for both, "
+"then the parent set's, then default. Without one the built-in crosshair is "
+"drawn. Empty means a crosshairs folder beside keisho.ini."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game list"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game list fetch box art and descriptions from ArcadeDB over the "
+"network. Off keeps Keisho offline: the list still launches every game, with "
+"plain tiles."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Box art and descriptions from ArcadeDB."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetch artwork online"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho files"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where keisho.ini is read from and saved to. Set with --config <dir>."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings file"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Artwork cache"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "Laadi mäng, et selle olekut salvestada ja taastada."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save states"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is %s, "
+"quick-load is %s."
+msgstr ""
+"Salvesta kogu masin pessa ja taasta hiljem. Kiirsalvestus on %s, "
+"kiirlaadimine on %s."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "Kustuta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "Laadi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "Salvesta"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "tühi"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Interface"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "Automaatne (süsteem)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "Keel"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Theme"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "In the top-right corner."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brief notes such as \"State saved\"."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "Teated"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Play"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheels and gamepads keep working while the window is not in front. Keyboard "
+"and mouse still need the window in front."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Background controller input"
+msgstr "Kontrollerite sisend taustal"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pads and wheels work while the window is behind."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Keeps the last stretch of play in memory. Hold the rewind key and the game "
+"runs backwards through it at double speed; let go and play carries on from "
+"there. Taking the snapshots costs a little speed."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "The key is %s."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No key is set for it: see the Hotkeys page."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keep recent play in memory to run back through."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"RAM set aside for the history, not disk. Snapshots are stored as what "
+"changed, so 128 MiB holds about half a minute of most games."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "More memory keeps more of the past."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind memory"
+msgstr "Tagasikerimise mälu"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 1, 2 & 3 arcade emulator"
+msgstr "Sega Model 1, 2 & 3 arkaadmasinate emulaator"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Version"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Copyright"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPL-3.0-or-later with additional terms; see LICENSE and NOTICE."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Licence"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Support development"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho on olemas tänu kogukonnaga jagatud avatud lähtekoodile."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Model 1, 2 and 3 emulation guidance"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 3 reference (Bart Trzynadlowski and the Supermodel team)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Motorola 68000 CPU core (Karl Stenerud)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yamaha FM sound cores (Aaron Giles)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "windowing, input and audio"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "this user interface (Omar Cornut)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "games.xml parsing"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ZIP archive decompression"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "7-Zip archive decompression (Igor Pavlov)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU memory (AMD / GPUOpen)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shader compilation"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "image decoding (Sean Barrett)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "the menu's font (The Noto Project Authors), OFL 1.1"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "artwork fetching (optional)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "text shaping for translations"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "game artwork and descriptions (adb.arcadeitalia.net, by Motoschifo)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "Pidur"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1583,8 +1753,43 @@ msgstr "Liigu alla"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Coin"
+msgstr "Münt"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "Gaas"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Gear Up"
 msgstr "Käik üles"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "Nupp 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "Nupp 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "Nupp 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "Nupp 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1593,45 +1798,8 @@ msgstr "Rooli / sihi"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Stick"
-msgstr "Parem juhtkang"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Left Stick"
-msgstr "Vasak juhtkang"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%s (inverted)"
-msgstr "%s (ümberpööratud)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click, then push a stick.\n"
-"Right-click to go back to the default."
+msgid "Elevation"
 msgstr ""
-"Klõpsa, seejärel liiguta juhtkangi.\n"
-"Paremklõps taastab vaikeväärtuse."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click, then pull the trigger, push a stick\n"
-"or press a button. Right-click for the default."
-msgstr ""
-"Klõpsa, seejärel vajuta päästikut, liiguta juhtkangi\n"
-"või vajuta nuppu. Paremklõps taastab vaikeväärtuse."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click, then press a button or pull a trigger.\n"
-"Right-click to unbind."
-msgstr ""
-"Klõpsa, seejärel vajuta nuppu või päästikut.\n"
-"Paremklõps eemaldab sidumise."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1700,8 +1868,33 @@ msgstr "Juhtkang"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Forward"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reverse"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Lever"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Cannon"
 msgstr "Kahur"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "Roolimine"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Turret"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1715,6 +1908,11 @@ msgstr "Kalle paremale"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Handlebars"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Cancel Error"
 msgstr "Tühista viga"
 
@@ -1725,23 +1923,271 @@ msgstr "Tühista võrk"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Screenshot"
-msgstr "Kuvatõmmis"
+msgid "Flight Stick"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Skis"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handle"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bomb"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shot"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Board"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bunt"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Swing"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Run"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering Wheel"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bat"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift Up"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift Down"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shifter"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "P%d: %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "%d mängupult ühendatud."
+msgstr[1] "%d mängupulti ühendatud."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "Mängupulti pole ühendatud. Seaded rakenduvad, kui see ühendatakse."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "custom"
+msgstr "kohandatud"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Every game uses the default layout until it is given one of its own. Pick a "
+"game, change a binding, and the game keeps the change. A game shows only the "
+"controls its cabinet has."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Layout for"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "Mängija"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Used by every game without its own layout."
+msgstr "Kasutavad kõik mängud, millel pole oma paigutust."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Uses the default layout until a binding is changed."
+msgstr "Kasutab vaikepaigutust, kuni mõnda määrangut muudetakse."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This game has its own layout."
+msgstr "Sellel mängul on oma paigutus."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Gamepad shows the pad with every binding. Cabinet shows the game's controls "
+"as the cabinet has them, each with what the pad does for it. Shortcuts lists "
+"what Guide held with another button does."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "sidumata"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "Parem juhtkang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "Vasak juhtkang"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (ümberpööratud)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "D-Pad"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Face buttons"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "Lähtesta SDL-i vaikeväärtustele"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Use default layout"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide unused"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show unused"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Map all"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Map all asks for each control of the cabinet in turn: press the pad input "
+"for it, or wait and it moves on. Show unused adds the slots this cabinet has "
+"no control for, to bind them anyway."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Layout"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press each of its inputs in turn. Right-click or Delete clears "
+"them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press the pad input for it. Right-click or Delete clears it."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Click, then push a stick. Right-click to go back to the default."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then move a stick the way that should read as up. Right-click for the "
+"default."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick or press a button. Right-click "
+"for the default."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Click, then press a button or pull a trigger. Right-click to unbind."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "liiguta seda..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "vajuta nuppu..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "Hooldus"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Left held"
 msgstr "Vasak all"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rewind"
-msgstr "Keri tagasi"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Fast-forward"
-msgstr "Keri edasi"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1755,23 +2201,58 @@ msgstr "Välju"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Quick-load"
-msgstr "Kiirlaadimine"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Quick-save"
-msgstr "Kiirsalvestus"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Settings menu"
 msgstr "Seadete menüü"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Test"
+msgstr "Test"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Hold first"
 msgstr "Hoia esmalt"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Press the pad button for %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Push the stick for %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Move the stick the way that raises %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Pull the trigger or push the stick for %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu of %zu   ·   %d s, then the next   ·   Escape stops"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape cancels"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Skip"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stop"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1783,22 +2264,38 @@ msgstr ""
 "mängude juurde, kui neid on. Hooldus ja Test töötavad alati."
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Slots are named for this game's controls; dimmed ones are not used. Show "
-"shortcuts lists the Guide combinations."
-msgstr ""
-"Lahtrid on nimetatud selle mängu juhtnuppude järgi; tuhmid pole kasutusel. "
-"Näita otseteid loetleb Guide'i kombinatsioonid."
+"Click a control or press Enter on it, then press the pad input for it. Right-"
+"click, Delete or X clears it. %d slot this cabinet has no control for is "
+"hidden: Show unused lists it."
+msgid_plural ""
+"Click a control or press Enter on it, then press the pad input for it. Right-"
+"click, Delete or X clears it. %d slots this cabinet has no control for are "
+"hidden: Show unused lists them."
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
-"is Virtual On's. Show shortcuts lists the Guide combinations."
+"Click a control or press Enter on it, then press the pad input for it. Right-"
+"click, Delete or X clears it. The left stick also moves; the shoulders also "
+"act as Button 3/4."
 msgstr ""
-"Vasak juhtkang liigutab samuti; õlanupud toimivad ka kui Button 3/4. Parem "
-"hoob on Virtual On'i jaoks. Näita otseteid loetleb Guide'i kombinatsioonid."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sticks"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Stick travel about centre that reads as centre. Let go of the stick and "
+"raise this until the marker below sits inside the shaded zone. Also applies "
+"to stick aiming."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1807,19 +2304,21 @@ msgstr "Juhtkangi surnud tsoon"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Stick travel about centre that reads as centre. The bar shows\n"
-"the stick now: let go of it and raise this until the marker\n"
-"sits inside the shaded zone. Also applies to stick aiming."
-msgstr ""
-"Juhtkangi liikumine keskme ümber, mida loetakse keskmeks. Riba näitab\n"
-"juhtkangi praegu: lase see lahti ja tõsta väärtust, kuni marker\n"
-"on varjutatud tsoonis. Kehtib ka juhtkangiga sihtimisel."
+msgid "Stick position"
+msgstr "Juhtkangi asend"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Stick position"
-msgstr "Juhtkangi asend"
+msgid "The stick now, against the deadzone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection is always "
+"full lock; under 100% the middle of the travel does less, over 100% it does "
+"more."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1828,23 +2327,36 @@ msgstr "Juhtkangi tundlikkus"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Response of a stick's travel past its deadzone. Full deflection\n"
-"is always full lock; under 100% the middle of the travel does\n"
-"less, over 100% it does more."
-msgstr ""
-"Juhtkangi liikumise reaktsioon pärast surnud tsooni. Täielik\n"
-"kalle on alati täislukk; alla 100% teeb liikumise keskosa\n"
-"vähem, üle 100% rohkem."
+msgid "Rumble"
+msgstr "Vibratsioon"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Vibrates on the game's impacts in driving games.\n"
-"Other games stay quiet."
+"Vibrates on the game's impacts in driving games. Other games stay quiet."
 msgstr ""
-"Vibreerib mängu löökide ajal sõidumängudes.\n"
-"Teised mängud jäävad vaikseks."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The game's impacts, in driving games."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "Vibratsiooni tugevus"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not from the game. Turn it "
+"off to feel only the game's impacts."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Grows as you steer; not from the game."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1853,75 +2365,314 @@ msgstr "Roolimise vibratsioon"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"An added vibration that grows as you steer. It is not\n"
-"from the game. Turn it off to feel only the game's force feedback."
-msgstr ""
-"Lisatud vibratsioon, mis kasvab roolimisega. See ei\n"
-"tule mängust. Lülita välja, et tunda ainult mängu jõutagasisidet."
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "Rooli pole ühendatud. Seaded rakenduvad, kui see ühendatakse."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Reset"
-msgstr "Lähtesta"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Music volume"
-msgstr "Muusika helitugevus"
+msgid "Wheel connected."
+msgstr "Rool ühendatud."
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Only for games with a separate music board: Star Wars\n"
-"Arcade, Sega Touring Car Championship and Top Skater.\n"
-"Sound effects stay as they are."
+"Wheel force on driving games: centring and cornering forces decoded from the "
+"game's own drive-board commands, plus an impact jolt when you hit something."
 msgstr ""
-"Ainult eraldi muusikaplaadiga mängudele:\n"
-"Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
-"Heliefektid jäävad samaks."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Per-game volume"
-msgstr "Mängupõhine helitugevus"
+msgid "Force feedback"
+msgstr "Jõutagasiside"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The drive board's forces, on a wheel that can make them."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Raise or lower a game's volume from its default level.\n"
-"One slider covers every revision of a game. Off plays\n"
-"every game at its default, whatever the sliders say.\n"
-"\n"
-"Warning: above 100% loud effects can clip (audible\n"
-"distortion)."
+"A gain on every force of the drive board. At 100%, the board's full power "
+"(63) gives the wheel's full force, every force in proportion. 200% doubles "
+"every force: those above half the board's power (32, Sega Rally's strongest "
+"torque) then saturate."
 msgstr ""
-"Tõsta või langeta mängu helitugevust vaiketasemest.\n"
-"Üks liugur katab mängu kõik versioonid. Väljas mängib\n"
-"kõiki mänge vaiketasemel, olenemata liuguritest.\n"
-"\n"
-"Hoiatus: üle 100% võivad valjud efektid moonduda\n"
-"(kuuldav moonutus)."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "Now playing: %s"
-msgstr "Praegu mängib: %s"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Reset all"
-msgstr "Lähtesta kõik"
+msgid "Resistance"
+msgstr "Takistus"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Volume"
-msgstr "Helitugevus"
+msgid ""
+"The centring spring of the Sega Rally Championship and Daytona USA cabinets: "
+"very light, it brings the wheel back and is barely felt when held against. A "
+"share of the resistance above. The other games' cabinets drive the wheel "
+"with no spring, and ignore this setting."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Panel spring"
+msgstr "Paneeli vedru"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Rally Championship and Daytona USA only, all versions."
+msgstr "Ainult Sega Rally Championship ja Daytona USA, kõik versioonid."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The motor strength set on the drive board's DIP switches, the switches ON "
+"counted in binary: 0 = all OFF. Sega Rally: switches 1-3, 0 to 7 added to "
+"every torque. Daytona USA: switches 1-3, 4 times that. Indy 500, Touring "
+"Car, Over Rev, Super GT 24h: switches 1-1 to 1-3, 0 to 7 added to every "
+"force."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Drive board DIP strength"
+msgstr "Ajamiplaadi DIP-tugevus"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The operator's setting, 0 to 7."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls away from the centre "
+"instead of bringing it back, and the game's forces go the opposite way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "Pööra jõutagasiside ümber"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force feedback. It never "
+"runs alongside force feedback."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "For wheels without force feedback."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not from the game. "
+"Turn it off to feel only the game's force feedback."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "Mootori vibratsioon"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Grows with the throttle; not from the game."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock angle below is mapped "
+"onto it, so matching your wheel gives arcade-like response."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "Roolimisulatus"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Your wheel's own rotation, in degrees."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total, so half each side of "
+"centre). Lower is more sensitive."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "Lukunurk"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rotation to full lock, both sides together."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel travel about centre that reads as centre. Most wheels want none; a "
+"little covers one whose centre wanders. The bar below shows the wheel now "
+"against the shaded zone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Centre deadzone"
+msgstr "Keskme surnud tsoon"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The wheel now, against the deadzone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel position"
+msgstr "Rooli asend"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "Teljed"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Auto-detected. Calibrate one if steering or a pedal is wrong: click its "
+"value, then operate that control."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Auto"
 msgstr "Auto"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "auto"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (half, +)"
+msgstr "telg %d (pool, +)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (half, -)"
+msgstr "telg %d (pool, -)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "telg %d (ümberpööratud)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "telg %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "Nupud"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Click a value, then press the wheel button for that control."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "Käik üles"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "Käik alla"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 1"
+msgstr "Käik 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 2"
+msgstr "Käik 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 3"
+msgstr "Käik 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 4"
+msgstr "Käik 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Neutral"
+msgstr "Neutraal"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "nupp %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear shifter"
+msgstr "Käigukang"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"With an H shifter bound to Gear 1..4: its lever in none of the gears is in "
+"neutral, as on the cabinet. Off, the last gear stays engaged until another "
+"is selected or Neutral is pressed."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Daytona USA and Sega Rally Championship, all versions."
+msgstr "Daytona USA ja Sega Rally Championship, kõik versioonid."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Neutral when no gear is engaged"
+msgstr "Neutraal, kui ükski käik pole sees"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Shift up / Shift down (and a gamepad's RB / LB) from one gear to another "
+"pass through neutral this long, as a lever crosses the gate's centre. 0 "
+"shifts straight."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Neutral between gears"
+msgstr "Neutraal käikude vahel"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1935,19 +2686,32 @@ msgstr "Sees"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid ""
+"The aiming crosshair, with the mouse pointer hidden. Auto turns it on in a "
+"gun game; On hides the pointer in every game; Off never shows a crosshair."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Crosshair and hidden pointer: in gun games, always, or never."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Gun mode"
 msgstr "Valguspüssi režiim"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"The aiming crosshair, with the mouse pointer hidden.\n"
-"Auto turns it on in a gun game; On hides the pointer in\n"
-"every game; Off never shows a crosshair."
+"Draw Keisho's own crosshair. Turn off if the gun has its own sight (e.g. a "
+"Sinden). Positional-gun titles always draw their own regardless."
 msgstr ""
-"Sihtimise sihik, hiirekursor peidetud.\n"
-"Auto lülitab selle püssimängus sisse; Sees peidab\n"
-"kursori igas mängus; Väljas ei näita sihikut kunagi."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho's own sight."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1957,13 +2721,15 @@ msgstr "Näita sihikut"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw Keisho's own crosshair. Turn off if the gun\n"
-"has its own sight (e.g. a Sinden). Positional-gun\n"
-"titles always draw their own regardless."
+"A gamepad's stick points at the screen: the crosshair sits in the centre at "
+"rest and reaches the edge at full tilt. Off, the stick moves the crosshair "
+"like a mouse."
 msgstr ""
-"Joonista Keisho enda sihik. Lülita välja, kui püssil\n"
-"on oma sihik (nt Sinden). Positsioonipüssi mängud\n"
-"joonistavad alati oma sihiku."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A stick points at the screen instead of moving the sight."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1973,13 +2739,9 @@ msgstr "Tsentreeritud pulgaga sihtimine"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"A gamepad's stick points at the screen: the crosshair\n"
-"sits in the centre at rest and reaches the edge at full\n"
-"tilt. Off, the stick moves the crosshair like a mouse."
+"Hide the white flash Virtua Cop, Virtua Cop 2 and House of the Dead show on "
+"each shot."
 msgstr ""
-"Mängupuldi pulk osutab ekraanile: sihik on\n"
-"puhkeasendis keskel ja täiskaldel serval.\n"
-"Väljas liigutab pulk sihikut nagu hiirt."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1988,19 +2750,22 @@ msgstr "Peida lasu välgatus"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
-"House of the Dead show on each shot."
+msgid "The white flash of the gun games."
 msgstr ""
-"Peida valge välgatus, mida Virtua Cop, Virtua Cop 2 ja\n"
-"House of the Dead igal lasul näitavad."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "Seadmed"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "By default player 1 aims with the mouse (the left button fires and the right "
 "reloads by shooting off screen) and player 2 with a gamepad."
-msgstr "Vaikimisi sihib mängija 1 hiirega (vasak nupp tulistab ja parem laeb uuesti, tulistades ekraanist välja) ja mängija 2 mängupuldiga."
+msgstr ""
+"Vaikimisi sihib mängija 1 hiirega (vasak nupp tulistab ja parem laeb uuesti, "
+"tulistades ekraanist välja) ja mängija 2 mängupuldiga."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2010,18 +2775,14 @@ msgstr "Tagasilöök"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Kick the gun's rumble motor on each shot, for guns\n"
-"that have one (Sinden and similar). No effect on a\n"
-"gun without a motor."
+"Kick the gun's rumble motor on each shot, for guns that have one (Sinden and "
+"similar). No effect on a gun without a motor."
 msgstr ""
-"Käivita igal lasul püssi vibratsioonimootor püssidel,\n"
-"millel see on (Sinden ja sarnased). Mootorita püssile\n"
-"ei mõju."
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Enable recoil"
-msgstr "Luba tagasilöök"
+msgid "The gun's motor kicks on each shot."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2029,14 +2790,14 @@ msgid "Strength"
 msgstr "Tugevus"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "Devices"
-msgstr "Seadmed"
+#, c-format
+msgid "Gun %zu"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Gun %zu (player %zu): %s"
-msgstr "Püss %zu (mängija %zu): %s"
+msgid "Player %zu"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2061,16 +2822,6 @@ msgstr ""
 "Spetsiaalseid valguspüsse ei tuvastatud. Mängija 1 sihib hiirega; vasak nupp "
 "tulistab ja parem laeb (tulista ekraanist välja). Ühenda püssid märgendiga "
 "ID_INPUT_GUN, et iga mängija saaks eraldi sihtida."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun buttons"
-msgstr "Püssi nupud"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Press Bind, then press the button on that player's gun."
-msgstr "Vajuta „Seo“, seejärel vajuta selle mängija püssi nuppu."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2099,8 +2850,15 @@ msgstr "Suunanupp üles"
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Player %d"
-msgstr "Mängija %d"
+msgid "Gun buttons, player %d"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a value, then press the button on that player's gun. With no gun, a "
+"mouse button binds too."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2110,13 +2868,9 @@ msgstr "Sindeni ääris"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"A bright frame around the game image that a Sinden\n"
-"gun's camera tracks for aiming. Only shown in\n"
-"light-gun mode."
+"A bright frame around the game image that a Sinden gun's camera tracks for "
+"aiming. Only shown in light-gun mode."
 msgstr ""
-"Ere raam ümber mängupildi, mida Sindeni püssi\n"
-"kaamera sihtimiseks jälgib. Näidatakse ainult\n"
-"valguspüssi režiimis."
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2125,334 +2879,23 @@ msgstr "Näita äärist"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "The frame a Sinden gun's camera tracks."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Colour"
 msgstr "Värv"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "In game-image pixels."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Thickness"
 msgstr "Paksus"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Link cabinets over the network"
-msgstr "Ühenda kapid võrgu kaudu"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Race linked with other machines on the same LAN running the same\n"
-"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
-"this cabinet standalone. Takes effect on the next game launch."
-msgstr ""
-"Sõida ühendatult teiste samas LAN-is sama mängu käitavate\n"
-"masinatega (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Väljas\n"
-"jätab selle kapi eraldiseisvaks. Rakendub järgmisel mängu käivitusel."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The comms board is a ring: each cabinet listens on its own address and sends "
-"to the next cabinet. For two machines, point each at the other. The master/"
-"slave role is chosen in the game's own test menu, not here."
-msgstr ""
-"Sideplaat on rõngas: iga kapp kuulab oma aadressil ja saadab järgmisele "
-"kapile. Kahe masina puhul suuna kumbki teisele. Ülem/alluv-roll valitakse "
-"mängu enda testmenüüs, mitte siin."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "This cabinet"
-msgstr "See kapp"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Local IP"
-msgstr "Kohalik IP"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Detect"
-msgstr "Tuvasta"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"This machine's address on the cabinet LAN. Blank\n"
-"listens on every interface. Detect fills it from the\n"
-"primary network adapter."
-msgstr ""
-"Selle masina aadress kappide LAN-is. Tühi\n"
-"kuulab kõigil liidestel. „Tuvasta“ täidab selle\n"
-"peamise võrguadapteri põhjal."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Subnet mask"
-msgstr "Alamvõrgu mask"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Listen port"
-msgstr "Kuulamisport"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Cabinet number"
-msgstr "Kapi number"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Where this cabinet sits in the ring (0-based).\n"
-"For your own bookkeeping; the game negotiates the\n"
-"actual link id from the ring."
-msgstr ""
-"Kus see kapp rõngas asub (alates 0-st).\n"
-"Omaenda arvestuseks; tegeliku ühenduse ID\n"
-"lepib mäng rõngas kokku."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Link delay (frames)"
-msgstr "Lingi viivitus (kaadrid)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Model 3 only. How many frames late the other cabinets'\n"
-"data is read. Raise it if a race over Wi-Fi stutters;\n"
-"lower it on a wired LAN. Each frame shows the other\n"
-"cars 1/60 s later."
-msgstr ""
-"Ainult Model 3. Mitu kaadrit hiljem teiste\n"
-"kappide andmeid loetakse. Suurenda, kui Wi-Fi\n"
-"kaudu sõit hakib; kaabliga vähenda. Iga kaader\n"
-"näitab teisi autosid 1/60 s hiljem."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Next cabinet in the ring"
-msgstr "Järgmine kapp rõngas"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Next IP"
-msgstr "Järgmine IP"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The cabinet this one sends to. For two machines, the\n"
-"other machine's IP. Blank means this cabinet does not\n"
-"forward (tail of a chain)."
-msgstr ""
-"Kapp, millele see saadab. Kahe masina puhul teise\n"
-"masina IP. Tühi tähendab, et see kapp ei\n"
-"edasta (ahela lõpp)."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Next port"
-msgstr "Järgmine port"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Status"
-msgstr "Olek"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Link configured; starts at the next game launch."
-msgstr "Ühendus seadistatud; algab järgmisel mängu käivitusel."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Standalone (no cabinet link)."
-msgstr "Eraldiseisev (kappide ühenduseta)."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Waiting for the game to switch the link board on..."
-msgstr "Ootan, et mäng lülitaks ühendusplaadi sisse..."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "Linked: cabinet %u of %u."
-msgstr "Ühendatud: kapp %u / %u."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Establishing the ring..."
-msgstr "Rõnga loomine..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "This machine's interfaces:"
-msgstr "Selle masina liidesed:"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Automatic (system)"
-msgstr "Automaatne (süsteem)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Language"
-msgstr "Keel"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Background controller input"
-msgstr "Kontrollerite sisend taustal"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wheels and gamepads keep working while the window is\n"
-"not in front. Keyboard and mouse still need the window\n"
-"in front."
-msgstr ""
-"Roolid ja mängupuldid töötavad ka siis, kui aken\n"
-"pole esiplaanil. Klaviatuur ja hiir vajavad\n"
-"endiselt akent esiplaanil."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid ""
-"Hold %s to step back through play.\n"
-"Costs a little speed on every frame while on."
-msgstr ""
-"Hoia %s'i, et mängus tagasi liikuda.\n"
-"Sisselülitatuna maksab igal kaadril veidi kiirust."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rewind memory"
-msgstr "Tagasikerimise mälu"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Cabinet outputs"
-msgstr "Kapi väljundid"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Network outputs"
-msgstr "Võrguväljundid"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Send lamps, gun recoil and drive-board output to\n"
-"MAMEHooker, Hook Of The Reaper and similar tools,\n"
-"using MAME's network output protocol."
-msgstr ""
-"Saada tuled, püssi tagasilöök ja ajamiplaadi väljund\n"
-"programmidele MAMEHooker, Hook Of The Reaper jms,\n"
-"kasutades MAME võrguväljundi protokolli."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Port"
-msgstr "Port"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Windows outputs"
-msgstr "Windowsi väljundid"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The same outputs over MAME's Windows message\n"
-"protocol, for tools that hook MAME that way."
-msgstr ""
-"Samad väljundid MAME Windowsi sõnumiprotokolli kaudu\n"
-"tööriistadele, mis haakuvad MAME-ga sel viisil."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Keyboard shortcuts"
-msgstr "Klaviatuuri otseteed"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Back to games"
-msgstr "Tagasi mängude juurde"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Settings overlay"
-msgstr "Seadete ülekate"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Pause"
-msgstr "Paus"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Fast-forward (held)"
-msgstr "Keri edasi (hoia)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rewind (held)"
-msgstr "Keri tagasi (hoia)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "press a key..."
-msgstr "vajuta klahvi..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Clear"
-msgstr "Tühjenda"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click a key, then press the new one. Escape cancels.\n"
-"A key a game also uses does both."
-msgstr ""
-"Klõpsa klahvil ja vajuta siis uut. Escape tühistab.\n"
-"Klahv, mida ka mäng kasutab, teeb mõlemat."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Load a game to save and restore its state."
-msgstr "Laadi mäng, et selle olekut salvestada ja taastada."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid ""
-"Save the whole machine to a slot and restore it later. Quick-save is %s, "
-"quick-load is %s."
-msgstr ""
-"Salvesta kogu masin pessa ja taasta hiljem. Kiirsalvestus on %s, "
-"kiirlaadimine on %s."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Delete"
-msgstr "Kustuta"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Load"
-msgstr "Laadi"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Save"
-msgstr "Salvesta"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "empty"
-msgstr "tühi"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2510,28 +2953,51 @@ msgid "Cancel"
 msgstr "Tühista"
 
 #: src/osd/gui.cpp
+#, no-c-format
+msgid "All"
+msgstr ""
+
+#: src/osd/gui.cpp
 #, c-format
-msgid "%s: toggle overlay"
-msgstr "%s: lülita ülekatet"
+msgid "%zu of %zu"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Select a game"
-msgstr "Vali mäng"
+msgid "Search"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Enter: launch   %s: settings   %s: quit"
-msgstr "Enter: käivita   %s: seaded   %s: välju"
+msgid "Enter: play   %s: settings   %s: quit"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A: play"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Type to search. Arrows or the D-pad choose."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No ROM archives were found in the ROM directories. Set them in Settings (F1) "
-"> Paths, then relaunch."
+"No ROM archives were found in the ROM folders. Set them in Settings > Paths, "
+"then relaunch."
 msgstr ""
-"ROM-ide kaustadest ei leitud ühtegi ROM-arhiivi. Määra need jaotises Seaded "
-"(F1) > Teed ja käivita uuesti."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No game matches."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2542,6 +3008,1005 @@ msgstr "Kirjelduse toomine..."
 #, no-c-format
 msgid "No description available."
 msgstr "Kirjeldus puudub."
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Ink"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "charcoal and warm grey, a cool blue"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Sunset"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "indigo night, coral and pink from the logo"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Paper"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "light: warm paper, vermilion and indigo"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Arcade"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Sega blue skies with a yellow sun"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "High contrast"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "black, white and yellow; heavier lines"
+msgstr ""
+
+#, no-c-format
+#~ msgid "Show bindings"
+#~ msgstr "Näita määranguid"
+
+#, no-c-format
+#~ msgid "Show shortcuts"
+#~ msgstr "Näita otseteid"
+
+#, no-c-format
+#~ msgid ""
+#~ "Click, then push a stick.\n"
+#~ "Right-click to go back to the default."
+#~ msgstr ""
+#~ "Klõpsa, seejärel liiguta juhtkangi.\n"
+#~ "Paremklõps taastab vaikeväärtuse."
+
+#, no-c-format
+#~ msgid ""
+#~ "Click, then pull the trigger, push a stick\n"
+#~ "or press a button. Right-click for the default."
+#~ msgstr ""
+#~ "Klõpsa, seejärel vajuta päästikut, liiguta juhtkangi\n"
+#~ "või vajuta nuppu. Paremklõps taastab vaikeväärtuse."
+
+#, no-c-format
+#~ msgid ""
+#~ "Click, then press a button or pull a trigger.\n"
+#~ "Right-click to unbind."
+#~ msgstr ""
+#~ "Klõpsa, seejärel vajuta nuppu või päästikut.\n"
+#~ "Paremklõps eemaldab sidumise."
+
+#, no-c-format
+#~ msgid "Select a game"
+#~ msgstr "Vali mäng"
+
+#, c-format
+#~ msgid "Enter: launch   %s: settings   %s: quit"
+#~ msgstr "Enter: käivita   %s: seaded   %s: välju"
+
+#, no-c-format
+#~ msgid "File"
+#~ msgstr "Fail"
+
+#, no-c-format
+#~ msgid "Hide overlay"
+#~ msgstr "Peida ülekate"
+
+#, no-c-format
+#~ msgid "On-screen notifications"
+#~ msgstr "Ekraaniteated"
+
+#, no-c-format
+#~ msgid "(Model 1 & 2 only)"
+#~ msgstr "(ainult Model 1 ja 2)"
+
+#, no-c-format
+#~ msgid "Video"
+#~ msgstr "Video"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wait for vertical blank before presenting.\n"
+#~ "Prevents tearing but adds up to one frame of latency."
+#~ msgstr ""
+#~ "Oota enne kuvamist vertikaalset tagasijooksu.\n"
+#~ "Väldib rebenemist, kuid lisab kuni ühe kaadri viivitust."
+
+#, no-c-format
+#~ msgid "GPU"
+#~ msgstr "GPU"
+
+#, no-c-format
+#~ msgid "Auto (best)"
+#~ msgstr "Automaatne (parim)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Which renderer draws the game. Applies on the\n"
+#~ "next launch - save settings and relaunch."
+#~ msgstr ""
+#~ "Milline renderdaja mängu joonistab. Rakendub järgmisel\n"
+#~ "käivitusel - salvesta seaded ja käivita uuesti."
+
+#, no-c-format
+#~ msgid "Window size"
+#~ msgstr "Akna suurus"
+
+#, no-c-format
+#~ msgid "Width"
+#~ msgstr "Laius"
+
+#, no-c-format
+#~ msgid "Height"
+#~ msgstr "Kõrgus"
+
+#, no-c-format
+#~ msgid "1x (native)"
+#~ msgstr "1x (algne)"
+
+#, no-c-format
+#~ msgid "8x (4K)"
+#~ msgstr "8x (4K)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Internal 3D rendering resolution. Higher is crisper 3D\n"
+#~ "(2D/HUD stays sharp). GPU backends only; the software\n"
+#~ "renderer stays native. Applies on the next launch - save\n"
+#~ "settings and relaunch."
+#~ msgstr ""
+#~ "Sisemine 3D renderdamise eraldusvõime. Suurem on teravam 3D\n"
+#~ "(2D/HUD jääb teravaks). Ainult GPU taustaprogrammid; tarkvaraline\n"
+#~ "renderdaja jääb algseks. Rakendub järgmisel käivitusel -\n"
+#~ "salvesta seaded ja käivita uuesti."
+
+#, no-c-format
+#~ msgid "Sharp-bilinear"
+#~ msgstr "Terav bilineaarne"
+
+#, no-c-format
+#~ msgid "2D scaling"
+#~ msgstr "2D skaleerimine"
+
+#, no-c-format
+#~ msgid ""
+#~ "How the frame is magnified to the window.\n"
+#~ "Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+#~ "nearest shows at non-integer window sizes. Integer snaps\n"
+#~ "to a whole multiple (pixel-perfect, with black bars).\n"
+#~ "Applies live."
+#~ msgstr ""
+#~ "Kuidas kaader aknani suurendatakse.\n"
+#~ "Terav bilineaarne hoiab 2D teksti teravana ilma värelemiseta,\n"
+#~ "mida „Lähim“ mittetäisarvulistel akende suurustel näitab.\n"
+#~ "„Täisarvuline“ kasutab täiskordset (pikslitäpne, mustade\n"
+#~ "ribadega). Rakendub kohe."
+
+#, no-c-format
+#~ msgid "16:9 (widescreen)"
+#~ msgstr "16:9 (laiekraan)"
+
+#, no-c-format
+#~ msgid "4:3 (arcade)"
+#~ msgstr "4:3 (arkaad)"
+
+#, no-c-format
+#~ msgid ""
+#~ "4:3 is the arcade monitor's shape (the default).\n"
+#~ "Square pixels shows the raw 496x384 (slightly narrow).\n"
+#~ "16:9 (experimental) draws the 3D wider, with the 2D in the middle.\n"
+#~ "Stretch fills the whole window.\n"
+#~ "GPU renderers only. Applies live."
+#~ msgstr ""
+#~ "4:3 on arkaadmonitori kuju (vaikimisi).\n"
+#~ "Ruutpikslid näitab toorest 496x384 pilti (veidi kitsas).\n"
+#~ "16:9 (katseline) joonistab 3D laiemalt, 2D jääb keskele.\n"
+#~ "Venita täidab kogu akna.\n"
+#~ "Ainult GPU renderdajad. Rakendub kohe."
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the Model 2 picture's black sits. 50% is the default,\n"
+#~ "matched to an arcade capture; lower is darker, higher is\n"
+#~ "brighter. Applies live."
+#~ msgstr ""
+#~ "Kus asub Model 2 pildi must. 50% on vaikimisi,\n"
+#~ "sobitatud mängusaali salvestusega; vähem on tumedam, rohkem on heledam.\n"
+#~ "Rakendub kohe."
+
+#, no-c-format
+#~ msgid ""
+#~ "A cosmetic arcade-monitor look over the finished frame:\n"
+#~ "scanlines, an RGB shadow mask, glow and optional screen\n"
+#~ "curvature. Purely visual; applies live."
+#~ msgstr ""
+#~ "Kosmeetiline arkaadimonitori välimus valmis kaadri peal:\n"
+#~ "skaneerimisjooned, RGB varjumask, kuma ja valikuline\n"
+#~ "ekraani kumerus. Puhtalt visuaalne; rakendub kohe."
+
+#, no-c-format
+#~ msgid ""
+#~ "In fullscreen, frame the 4:3 picture with an image from\n"
+#~ "the bezels directory (Paths tab): <game>.png, the parent\n"
+#~ "set's, or default.png. The picture fills the image's\n"
+#~ "transparent window."
+#~ msgstr ""
+#~ "Täisekraanil ümbritseb 4:3 pilti raamipilt\n"
+#~ "raamide kaustast (vahekaart Teed): <game>.png, ülemkomplekti\n"
+#~ "pilt või default.png. Pilt täidab raami\n"
+#~ "läbipaistva akna."
+
+#, no-c-format
+#~ msgid "Enhancement (cosmetic, beyond the original hardware)"
+#~ msgstr "Täiustused (kosmeetilised, üle algse riistvara)"
+
+#, no-c-format
+#~ msgid "(unsupported)"
+#~ msgstr "(pole toetatud)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+#~ "ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+#~ "Applies live."
+#~ msgstr ""
+#~ "Silu 2D kihtide servi (HUD, tekst, menüüd). xBR ja\n"
+#~ "ScaleFX ümardavad diagonaale; „Algupärane“ hoiab\n"
+#~ "teravad pikslid. Rakendub kohe."
+
+#, no-c-format
+#~ msgid ""
+#~ "The hardware draws see-through surfaces (lights, glass,\n"
+#~ "shadows) as a checkerboard. Blended draws the 50%\n"
+#~ "see-through surface it's trying to achieve. Applies live."
+#~ msgstr ""
+#~ "Riistvara joonistab läbipaistvad pinnad (tuled, klaas,\n"
+#~ "varjud) malelauamustrina. „Segatud“ joonistab 50%\n"
+#~ "läbipaistva pinna, mida taotletakse. Rakendub kohe."
+
+#, no-c-format
+#~ msgid ""
+#~ "Draw the scenery to the edge of the course instead of\n"
+#~ "the arcade's short range, so it no longer pops in.\n"
+#~ "Daytona USA only. Applies live."
+#~ msgstr ""
+#~ "Joonistab maastiku raja servani, mitte ainult\n"
+#~ "mänguautomaadi lühikeses ulatuses, nii et see ei ilmu enam järsku.\n"
+#~ "Ainult Daytona USA. Rakendub kohe."
+
+#, no-c-format
+#~ msgid ""
+#~ "Replace the game's 3D textures with images saved in\n"
+#~ "saves/textures/<game>/load, named as dumped. GPU\n"
+#~ "renderers only; Reload picks up edited files."
+#~ msgstr ""
+#~ "Asenda mängu 3D tekstuurid piltidega kaustast\n"
+#~ "saves/textures/<game>/load, nimetatud nagu väljavõttel.\n"
+#~ "Ainult GPU renderdajad; „Laadi uuesti“ loeb muudetud failid."
+
+#, c-format
+#~ msgid "%zu loaded"
+#~ msgstr "%zu laaditud"
+
+#, no-c-format
+#~ msgid ""
+#~ "Collect every 3D texture the game draws and write them,\n"
+#~ "with an index.html to browse, to saves/textures/<game>/dump\n"
+#~ "when the game exits or this is turned off."
+#~ msgstr ""
+#~ "Kogu kõik mängu joonistatud 3D tekstuurid ja kirjuta need\n"
+#~ "koos sirvimiseks mõeldud index.html-iga kausta\n"
+#~ "saves/textures/<game>/dump, kui mäng lõpeb või see lülitatakse välja."
+
+#, no-c-format
+#~ msgid "Config directory"
+#~ msgstr "Seadete kaust"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where keisho.ini is read from and saved to.\n"
+#~ "Set with --config <dir>; cannot be changed here."
+#~ msgstr ""
+#~ "Kust keisho.ini loetakse ja kuhu see salvestatakse.\n"
+#~ "Määrab --config <dir>; siin muuta ei saa."
+
+#, no-c-format
+#~ msgid "ROM directory"
+#~ msgstr "ROM-ide kaust"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the ROM archives live. A game launched by name is\n"
+#~ "loaded from here as <name>.zip or <name>.7z."
+#~ msgstr ""
+#~ "Kus asuvad ROM-arhiivid. Nime järgi käivitatud mäng\n"
+#~ "laaditakse siit kui <name>.zip või <name>.7z."
+
+#, no-c-format
+#~ msgid "Model 1 ROM directory"
+#~ msgstr "Model 1 ROM-ide kaust"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the Model 1 ROM archives live.\n"
+#~ "Empty means the ROM directory."
+#~ msgstr ""
+#~ "Kus asuvad Model 1 ROM-arhiivid.\n"
+#~ "Tühi tähendab ROM-ide kausta."
+
+#, no-c-format
+#~ msgid "Model 3 ROM directory"
+#~ msgstr "Model 3 ROM-ide kaust"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the Model 3 ROM archives live.\n"
+#~ "Empty means the ROM directory."
+#~ msgstr ""
+#~ "Kus asuvad Model 3 ROM-arhiivid.\n"
+#~ "Tühi tähendab ROM-ide kausta."
+
+#, no-c-format
+#~ msgid "Saves directory"
+#~ msgstr "Salvestuste kaust"
+
+#, no-c-format
+#~ msgid ""
+#~ "Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+#~ "(.eeprom) images -- high scores and operator settings."
+#~ msgstr ""
+#~ "Patareitoitega salvestused: mängupõhised NVRAM (.nv) ja EEPROM\n"
+#~ "(.eeprom) tõmmised -- rekordid ja operaatori seaded."
+
+#, no-c-format
+#~ msgid "Screenshots directory"
+#~ msgstr "Ekraanipiltide kaust"
+
+#, no-c-format
+#~ msgid "Bezels directory"
+#~ msgstr "Raamide kaust"
+
+#, no-c-format
+#~ msgid ""
+#~ "Bezel images: <game>.png, the parent set's, or default.png.\n"
+#~ "Empty means a bezels folder beside keisho.ini."
+#~ msgstr ""
+#~ "Raamipildid: <game>.png, ülemkomplekti pilt või default.png.\n"
+#~ "Tühi tähendab bezels kausta keisho.ini kõrval."
+
+#, no-c-format
+#~ msgid "Crosshairs directory"
+#~ msgstr "Sihikute kaust"
+
+#, no-c-format
+#~ msgid ""
+#~ "Crosshair images: <game>-p1.png (-p2 for player 2) or\n"
+#~ "<game>.png for both, then the parent set's, then default.\n"
+#~ "Drawn at their own size on a 1080-line picture. Without\n"
+#~ "one the built-in crosshair is drawn.\n"
+#~ "Empty means a crosshairs folder beside keisho.ini."
+#~ msgstr ""
+#~ "Sihikupildid: <game>-p1.png (-p2 mängijale 2) või\n"
+#~ "<game>.png mõlemale, siis vanemkomplekti oma, siis default.\n"
+#~ "Joonistatakse oma suuruses 1080-realisele pildile. Ilma\n"
+#~ "selleta joonistatakse sisseehitatud sihik.\n"
+#~ "Tühi tähendab kausta crosshairs faili keisho.ini kõrval."
+
+#, no-c-format
+#~ msgid "Scrape artwork online"
+#~ msgstr "Laadi kujundus võrgust"
+
+#, no-c-format
+#~ msgid ""
+#~ "Let the game picker fetch box art and descriptions from\n"
+#~ "ArcadeDB over the network. Off keeps Keisho offline: the\n"
+#~ "picker still lists and launches every game, with placeholder\n"
+#~ "tiles and no descriptions."
+#~ msgstr ""
+#~ "Luba mänguvalijal tuua ArcadeDB-st võrgu kaudu karbipilte\n"
+#~ "ja kirjeldusi. Väljas hoiab Keisho võrguühenduseta:\n"
+#~ "valija loetleb ja käivitab ikka kõik mängud, kohatäitja-\n"
+#~ "paanide ja ilma kirjeldusteta."
+
+#, no-c-format
+#~ msgid "Light Gun"
+#~ msgstr "Valguspüss"
+
+#, no-c-format
+#~ msgid "Network"
+#~ msgstr "Võrk"
+
+#, no-c-format
+#~ msgid "GPL-3.0-or-later licence. See LICENSE."
+#~ msgstr "GPL-3.0-or-later litsents. Vt LICENSE."
+
+#, no-c-format
+#~ msgid "With thanks to the projects whose code makes it possible:"
+#~ msgstr "Täname projekte, mille kood selle võimalikuks teeb:"
+
+#, no-c-format
+#~ msgid "The MAME project - Sega Model 2 emulation guidance"
+#~ msgstr "MAME projekt - Sega Model 2 emuleerimise juhised"
+
+#, no-c-format
+#~ msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+#~ msgstr "Musashi - Motorola 68000 CPU tuum (Karl Stenerud)"
+
+#, no-c-format
+#~ msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+#~ msgstr "ymfm - Yamaha FM helituumad (Aaron Giles)"
+
+#, no-c-format
+#~ msgid "SDL - windowing, input and audio"
+#~ msgstr "SDL - aknad, sisend ja heli"
+
+#, no-c-format
+#~ msgid "Dear ImGui - this user interface (Omar Cornut)"
+#~ msgstr "Dear ImGui - see kasutajaliides (Omar Cornut)"
+
+#, no-c-format
+#~ msgid "pugixml - games.xml parsing"
+#~ msgstr "pugixml - games.xml parsimine"
+
+#, no-c-format
+#~ msgid "miniz - ZIP archive decompression"
+#~ msgstr "miniz - ZIP-arhiivide lahtipakkimine"
+
+#, no-c-format
+#~ msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+#~ msgstr "LZMA SDK - 7-Zip-arhiivide lahtipakkimine (Igor Pavlov)"
+
+#, no-c-format
+#~ msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+#~ msgstr "VulkanMemoryAllocator - GPU mälu (AMD / GPUOpen)"
+
+#, no-c-format
+#~ msgid "shaderc / glslang - shader compilation"
+#~ msgstr "shaderc / glslang - varjutite kompileerimine"
+
+#, no-c-format
+#~ msgid "stb_image - box-art image decoding (Sean Barrett)"
+#~ msgstr "stb_image - karbipiltide dekodeerimine (Sean Barrett)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+#~ msgstr ""
+#~ "Mängupuldi pilt - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+
+#, no-c-format
+#~ msgid "libcurl - artwork scraping (optional)"
+#~ msgstr "libcurl - kujunduse allalaadimine (valikuline)"
+
+#, no-c-format
+#~ msgid "HarfBuzz - text shaping for translations"
+#~ msgstr "HarfBuzz - teksti kujundamine tõlgete jaoks"
+
+#, no-c-format
+#~ msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+#~ msgstr ""
+#~ "SheenBidi - paremalt vasakule teksti paigutus (Muhammad Tayyab Akram)"
+
+#, no-c-format
+#~ msgid "Game artwork and descriptions from ArcadeDB"
+#~ msgstr "Mängude kujundus ja kirjeldused ArcadeDB-st"
+
+#, no-c-format
+#~ msgid "(adb.arcadeitalia.net, by Motoschifo)."
+#~ msgstr "(adb.arcadeitalia.net, autor Motoschifo)."
+
+#, no-c-format
+#~ msgid "See NOTICE for full per-component attribution."
+#~ msgstr "Täielik komponentide autorsus on failis NOTICE."
+
+#, no-c-format
+#~ msgid "If you'd like to support development:"
+#~ msgstr "Kui soovid arendust toetada:"
+
+#, no-c-format
+#~ msgid "Save settings"
+#~ msgstr "Salvesta seaded"
+
+#, c-format
+#~ msgid "Saved to %s"
+#~ msgstr "Salvestatud: %s"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wheel force on driving games: centring and cornering\n"
+#~ "forces decoded from the game's own drive-board commands,\n"
+#~ "plus an impact jolt when you hit something."
+#~ msgstr ""
+#~ "Rooli jõud sõidumängudes: tsentreerimis- ja kurvijõud,\n"
+#~ "mis on dekodeeritud mängu enda roolijuhtplaadi käskudest,\n"
+#~ "pluss löögitõuge, kui millegagi kokku põrkad."
+
+#, no-c-format
+#~ msgid ""
+#~ "A gain on every force of the drive board. At 100 %, the\n"
+#~ "board's full power (63) gives the wheel's full force, every\n"
+#~ "force in proportion. 200 % doubles every force: those above\n"
+#~ "half the board's power (32, Sega Rally's strongest torque)\n"
+#~ "then saturate."
+#~ msgstr ""
+#~ "Võimendus ajamiplaadi igale jõule. 100 % juures annab plaadi\n"
+#~ "täisvõimsus (63) rooli täisjõu, iga jõud proportsionaalselt.\n"
+#~ "200 % kahekordistab iga jõu: plaadi poolest võimsusest (32,\n"
+#~ "Sega Rally tugevaim pöördemoment) suuremad jõud küllastuvad\n"
+#~ "siis."
+
+#, no-c-format
+#~ msgid ""
+#~ "The centring spring of the Sega Rally Championship and\n"
+#~ "Daytona USA cabinets: very light, it brings the wheel\n"
+#~ "back and is barely felt when held against. A share of\n"
+#~ "the resistance above. The other games' cabinets drive\n"
+#~ "the wheel with no spring, and ignore this setting."
+#~ msgstr ""
+#~ "Sega Rally Championshipi ja Daytona USA automaatide\n"
+#~ "tsentreeriv vedru: väga kerge, toob rooli tagasi ja on\n"
+#~ "vastu hoides vaevu tuntav. Osa ülalolevast takistusest.\n"
+#~ "Teiste mängude automaadid liigutavad rooli vedruta ega\n"
+#~ "arvesta seda seadet."
+
+#, no-c-format
+#~ msgid ""
+#~ "The motor strength set on the drive board's DIP switches,\n"
+#~ "the switches ON counted in binary: 0 = all OFF.\n"
+#~ "Sega Rally: switches 1-3, 0 to 7 added to every torque.\n"
+#~ "Daytona USA: switches 1-3, 4 times that.\n"
+#~ "Indy 500, Touring Car, Over Rev, Super GT 24h:\n"
+#~ "switches 1-1 to 1-3, 0 to 7 added to every force."
+#~ msgstr ""
+#~ "Ajamiplaadi DIP-lülititega määratud mootori tugevus, ON-asendis\n"
+#~ "lülitid kahendsüsteemis: 0 = kõik OFF. Sega Rally:\n"
+#~ "lülitid 1-3, 0 kuni 7 lisatakse igale pöördemomendile. Daytona\n"
+#~ "USA: lülitid 1-3, neli korda rohkem. Indy 500, Touring Car, Over\n"
+#~ "Rev, Super GT 24h: lülitid 1-1 kuni 1-3, 0 kuni 7 lisatakse\n"
+#~ "igale jõule."
+
+#, no-c-format
+#~ msgid ""
+#~ "For a wheel whose driver pushes the wrong way: it pulls\n"
+#~ "away from the centre instead of bringing it back, and\n"
+#~ "the game's forces go the opposite way."
+#~ msgstr ""
+#~ "Roolile, mille draiver lükkab valele poole: see tõmbab\n"
+#~ "keskelt eemale, selle asemel et tagasi tuua, ja mängu\n"
+#~ "jõud toimivad vastupidi."
+
+#, no-c-format
+#~ msgid ""
+#~ "Vibrates on the game's impacts, for wheels without force\n"
+#~ "feedback. It never runs alongside force feedback."
+#~ msgstr ""
+#~ "Vibreerib mängu löökide ajal, jõutagasisideta roolidele.\n"
+#~ "See ei tööta kunagi koos jõutagasisidega."
+
+#, no-c-format
+#~ msgid ""
+#~ "An added vibration that grows with the throttle. It is not\n"
+#~ "from the game. Turn it off to feel only the game's force feedback."
+#~ msgstr ""
+#~ "Lisatud vibratsioon, mis kasvab koos gaasiga. See ei\n"
+#~ "tule mängust. Lülita välja, et tunda ainult mängu jõutagasisidet."
+
+#, c-format
+#~ msgid "%u deg"
+#~ msgstr "%u°"
+
+#, no-c-format
+#~ msgid ""
+#~ "Set this to your wheel's own rotation range. The lock\n"
+#~ "angle below is mapped onto it, so matching your wheel\n"
+#~ "gives arcade-like response."
+#~ msgstr ""
+#~ "Määra see oma rooli enda pöördenurgale. Allolev\n"
+#~ "lukunurk kaardistatakse sellele, nii et vastavus\n"
+#~ "annab arkaadilaadse reageerimise."
+
+#, c-format
+#~ msgid "%d deg"
+#~ msgstr "%d°"
+
+#, no-c-format
+#~ msgid ""
+#~ "How far to physically turn for full game lock (total,\n"
+#~ "so half each side of centre). Lower is more sensitive."
+#~ msgstr ""
+#~ "Kui palju füüsiliselt pöörata täislukuni mängus (kokku,\n"
+#~ "seega pool kummalegi poole). Väiksem on tundlikum."
+
+#, no-c-format
+#~ msgid ""
+#~ "Wheel travel about centre that reads as centre. Most wheels\n"
+#~ "want none; a little covers one whose centre wanders. The bar\n"
+#~ "shows the wheel now against the shaded zone."
+#~ msgstr ""
+#~ "Rooli liikumine keskme ümber, mida loetakse keskmeks. Enamik\n"
+#~ "roole ei vaja seda; veidi aitab, kui kese hulbib. Riba\n"
+#~ "näitab rooli praegu varjutatud tsooni suhtes."
+
+#, no-c-format
+#~ msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+#~ msgstr ""
+#~ "Tuvastatud automaatselt. Kalibreeri uuesti, kui rool või pedaal on vale."
+
+#, no-c-format
+#~ msgid "cancel"
+#~ msgstr "tühista"
+
+#, no-c-format
+#~ msgid "Calibrate"
+#~ msgstr "Kalibreeri"
+
+#, no-c-format
+#~ msgid "Press Bind, then press the wheel button for that control."
+#~ msgstr "Vajuta „Seo“, seejärel vajuta selle juhtnupu jaoks rooli nuppu."
+
+#, no-c-format
+#~ msgid "Menu (F10)"
+#~ msgstr "Menüü (F10)"
+
+#, no-c-format
+#~ msgid "Bind"
+#~ msgstr "Seo"
+
+#, no-c-format
+#~ msgid "clear"
+#~ msgstr "tühjenda"
+
+#, no-c-format
+#~ msgid ""
+#~ "With an H shifter bound to Gear 1..4: its lever in none\n"
+#~ "of the gears is in neutral, as on the cabinet. Off, the\n"
+#~ "last gear stays engaged until another is selected or\n"
+#~ "Neutral is pressed."
+#~ msgstr ""
+#~ "H-käigukangiga, mis on seotud nuppudega Käik 1..4: kui\n"
+#~ "kang pole üheski käigus, on see neutraalis, nagu automaadil.\n"
+#~ "Väljas: viimane käik jääb sisse, kuni valitakse teine või\n"
+#~ "vajutatakse Neutraal."
+
+#, no-c-format
+#~ msgid ""
+#~ "Shift up / Shift down (and a gamepad's RB / LB) from one\n"
+#~ "gear to another pass through neutral this long, as a\n"
+#~ "lever crosses the gate's centre. 0 shifts straight."
+#~ msgstr ""
+#~ "Käik üles / Käik alla (ja mängupuldi RB / LB) ühelt käigult\n"
+#~ "teisele läbivad neutraali nii kaua, nagu kang ületab\n"
+#~ "kulissi keskkoha. 0 vahetab otse."
+
+#, no-c-format
+#~ msgid "Game"
+#~ msgstr "Mäng"
+
+#, no-c-format
+#~ msgid "Use Default Layout"
+#~ msgstr "Kasuta vaikepaigutust"
+
+#, no-c-format
+#~ msgid ""
+#~ "Slots are named for this game's controls; dimmed ones are not used. Show "
+#~ "shortcuts lists the Guide combinations."
+#~ msgstr ""
+#~ "Lahtrid on nimetatud selle mängu juhtnuppude järgi; tuhmid pole "
+#~ "kasutusel. Näita otseteid loetleb Guide'i kombinatsioonid."
+
+#, no-c-format
+#~ msgid ""
+#~ "The left stick also moves; the shoulders also act as Button 3/4. Right "
+#~ "Lever is Virtual On's. Show shortcuts lists the Guide combinations."
+#~ msgstr ""
+#~ "Vasak juhtkang liigutab samuti; õlanupud toimivad ka kui Button 3/4. "
+#~ "Parem hoob on Virtual On'i jaoks. Näita otseteid loetleb Guide'i "
+#~ "kombinatsioonid."
+
+#, no-c-format
+#~ msgid ""
+#~ "Stick travel about centre that reads as centre. The bar shows\n"
+#~ "the stick now: let go of it and raise this until the marker\n"
+#~ "sits inside the shaded zone. Also applies to stick aiming."
+#~ msgstr ""
+#~ "Juhtkangi liikumine keskme ümber, mida loetakse keskmeks. Riba näitab\n"
+#~ "juhtkangi praegu: lase see lahti ja tõsta väärtust, kuni marker\n"
+#~ "on varjutatud tsoonis. Kehtib ka juhtkangiga sihtimisel."
+
+#, no-c-format
+#~ msgid ""
+#~ "Response of a stick's travel past its deadzone. Full deflection\n"
+#~ "is always full lock; under 100% the middle of the travel does\n"
+#~ "less, over 100% it does more."
+#~ msgstr ""
+#~ "Juhtkangi liikumise reaktsioon pärast surnud tsooni. Täielik\n"
+#~ "kalle on alati täislukk; alla 100% teeb liikumise keskosa\n"
+#~ "vähem, üle 100% rohkem."
+
+#, no-c-format
+#~ msgid ""
+#~ "Vibrates on the game's impacts in driving games.\n"
+#~ "Other games stay quiet."
+#~ msgstr ""
+#~ "Vibreerib mängu löökide ajal sõidumängudes.\n"
+#~ "Teised mängud jäävad vaikseks."
+
+#, no-c-format
+#~ msgid ""
+#~ "An added vibration that grows as you steer. It is not\n"
+#~ "from the game. Turn it off to feel only the game's force feedback."
+#~ msgstr ""
+#~ "Lisatud vibratsioon, mis kasvab roolimisega. See ei\n"
+#~ "tule mängust. Lülita välja, et tunda ainult mängu jõutagasisidet."
+
+#, no-c-format
+#~ msgid "Reset"
+#~ msgstr "Lähtesta"
+
+#, no-c-format
+#~ msgid ""
+#~ "Only for games with a separate music board: Star Wars\n"
+#~ "Arcade, Sega Touring Car Championship and Top Skater.\n"
+#~ "Sound effects stay as they are."
+#~ msgstr ""
+#~ "Ainult eraldi muusikaplaadiga mängudele:\n"
+#~ "Star Wars Arcade, Sega Touring Car Championship, Top Skater.\n"
+#~ "Heliefektid jäävad samaks."
+
+#, no-c-format
+#~ msgid ""
+#~ "Raise or lower a game's volume from its default level.\n"
+#~ "One slider covers every revision of a game. Off plays\n"
+#~ "every game at its default, whatever the sliders say.\n"
+#~ "\n"
+#~ "Warning: above 100% loud effects can clip (audible\n"
+#~ "distortion)."
+#~ msgstr ""
+#~ "Tõsta või langeta mängu helitugevust vaiketasemest.\n"
+#~ "Üks liugur katab mängu kõik versioonid. Väljas mängib\n"
+#~ "kõiki mänge vaiketasemel, olenemata liuguritest.\n"
+#~ "\n"
+#~ "Hoiatus: üle 100% võivad valjud efektid moonduda\n"
+#~ "(kuuldav moonutus)."
+
+#, c-format
+#~ msgid "Now playing: %s"
+#~ msgstr "Praegu mängib: %s"
+
+#, no-c-format
+#~ msgid ""
+#~ "The aiming crosshair, with the mouse pointer hidden.\n"
+#~ "Auto turns it on in a gun game; On hides the pointer in\n"
+#~ "every game; Off never shows a crosshair."
+#~ msgstr ""
+#~ "Sihtimise sihik, hiirekursor peidetud.\n"
+#~ "Auto lülitab selle püssimängus sisse; Sees peidab\n"
+#~ "kursori igas mängus; Väljas ei näita sihikut kunagi."
+
+#, no-c-format
+#~ msgid ""
+#~ "Draw Keisho's own crosshair. Turn off if the gun\n"
+#~ "has its own sight (e.g. a Sinden). Positional-gun\n"
+#~ "titles always draw their own regardless."
+#~ msgstr ""
+#~ "Joonista Keisho enda sihik. Lülita välja, kui püssil\n"
+#~ "on oma sihik (nt Sinden). Positsioonipüssi mängud\n"
+#~ "joonistavad alati oma sihiku."
+
+#, no-c-format
+#~ msgid ""
+#~ "A gamepad's stick points at the screen: the crosshair\n"
+#~ "sits in the centre at rest and reaches the edge at full\n"
+#~ "tilt. Off, the stick moves the crosshair like a mouse."
+#~ msgstr ""
+#~ "Mängupuldi pulk osutab ekraanile: sihik on\n"
+#~ "puhkeasendis keskel ja täiskaldel serval.\n"
+#~ "Väljas liigutab pulk sihikut nagu hiirt."
+
+#, no-c-format
+#~ msgid ""
+#~ "Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+#~ "House of the Dead show on each shot."
+#~ msgstr ""
+#~ "Peida valge välgatus, mida Virtua Cop, Virtua Cop 2 ja\n"
+#~ "House of the Dead igal lasul näitavad."
+
+#, no-c-format
+#~ msgid ""
+#~ "Kick the gun's rumble motor on each shot, for guns\n"
+#~ "that have one (Sinden and similar). No effect on a\n"
+#~ "gun without a motor."
+#~ msgstr ""
+#~ "Käivita igal lasul püssi vibratsioonimootor püssidel,\n"
+#~ "millel see on (Sinden ja sarnased). Mootorita püssile\n"
+#~ "ei mõju."
+
+#, no-c-format
+#~ msgid "Enable recoil"
+#~ msgstr "Luba tagasilöök"
+
+#, c-format
+#~ msgid "Gun %zu (player %zu): %s"
+#~ msgstr "Püss %zu (mängija %zu): %s"
+
+#, no-c-format
+#~ msgid "Gun buttons"
+#~ msgstr "Püssi nupud"
+
+#, no-c-format
+#~ msgid "Press Bind, then press the button on that player's gun."
+#~ msgstr "Vajuta „Seo“, seejärel vajuta selle mängija püssi nuppu."
+
+#, c-format
+#~ msgid "Player %d"
+#~ msgstr "Mängija %d"
+
+#, no-c-format
+#~ msgid ""
+#~ "A bright frame around the game image that a Sinden\n"
+#~ "gun's camera tracks for aiming. Only shown in\n"
+#~ "light-gun mode."
+#~ msgstr ""
+#~ "Ere raam ümber mängupildi, mida Sindeni püssi\n"
+#~ "kaamera sihtimiseks jälgib. Näidatakse ainult\n"
+#~ "valguspüssi režiimis."
+
+#, no-c-format
+#~ msgid ""
+#~ "Race linked with other machines on the same LAN running the same\n"
+#~ "title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+#~ "this cabinet standalone. Takes effect on the next game launch."
+#~ msgstr ""
+#~ "Sõida ühendatult teiste samas LAN-is sama mängu käitavate\n"
+#~ "masinatega (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Väljas\n"
+#~ "jätab selle kapi eraldiseisvaks. Rakendub järgmisel mängu käivitusel."
+
+#, no-c-format
+#~ msgid ""
+#~ "The comms board is a ring: each cabinet listens on its own address and "
+#~ "sends to the next cabinet. For two machines, point each at the other. The "
+#~ "master/slave role is chosen in the game's own test menu, not here."
+#~ msgstr ""
+#~ "Sideplaat on rõngas: iga kapp kuulab oma aadressil ja saadab järgmisele "
+#~ "kapile. Kahe masina puhul suuna kumbki teisele. Ülem/alluv-roll valitakse "
+#~ "mängu enda testmenüüs, mitte siin."
+
+#, no-c-format
+#~ msgid ""
+#~ "This machine's address on the cabinet LAN. Blank\n"
+#~ "listens on every interface. Detect fills it from the\n"
+#~ "primary network adapter."
+#~ msgstr ""
+#~ "Selle masina aadress kappide LAN-is. Tühi\n"
+#~ "kuulab kõigil liidestel. „Tuvasta“ täidab selle\n"
+#~ "peamise võrguadapteri põhjal."
+
+#, no-c-format
+#~ msgid ""
+#~ "Where this cabinet sits in the ring (0-based).\n"
+#~ "For your own bookkeeping; the game negotiates the\n"
+#~ "actual link id from the ring."
+#~ msgstr ""
+#~ "Kus see kapp rõngas asub (alates 0-st).\n"
+#~ "Omaenda arvestuseks; tegeliku ühenduse ID\n"
+#~ "lepib mäng rõngas kokku."
+
+#, no-c-format
+#~ msgid "Link delay (frames)"
+#~ msgstr "Lingi viivitus (kaadrid)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Model 3 only. How many frames late the other cabinets'\n"
+#~ "data is read. Raise it if a race over Wi-Fi stutters;\n"
+#~ "lower it on a wired LAN. Each frame shows the other\n"
+#~ "cars 1/60 s later."
+#~ msgstr ""
+#~ "Ainult Model 3. Mitu kaadrit hiljem teiste\n"
+#~ "kappide andmeid loetakse. Suurenda, kui Wi-Fi\n"
+#~ "kaudu sõit hakib; kaabliga vähenda. Iga kaader\n"
+#~ "näitab teisi autosid 1/60 s hiljem."
+
+#, no-c-format
+#~ msgid ""
+#~ "The cabinet this one sends to. For two machines, the\n"
+#~ "other machine's IP. Blank means this cabinet does not\n"
+#~ "forward (tail of a chain)."
+#~ msgstr ""
+#~ "Kapp, millele see saadab. Kahe masina puhul teise\n"
+#~ "masina IP. Tühi tähendab, et see kapp ei\n"
+#~ "edasta (ahela lõpp)."
+
+#, no-c-format
+#~ msgid "This machine's interfaces:"
+#~ msgstr "Selle masina liidesed:"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wheels and gamepads keep working while the window is\n"
+#~ "not in front. Keyboard and mouse still need the window\n"
+#~ "in front."
+#~ msgstr ""
+#~ "Roolid ja mängupuldid töötavad ka siis, kui aken\n"
+#~ "pole esiplaanil. Klaviatuur ja hiir vajavad\n"
+#~ "endiselt akent esiplaanil."
+
+#, c-format
+#~ msgid ""
+#~ "Hold %s to step back through play.\n"
+#~ "Costs a little speed on every frame while on."
+#~ msgstr ""
+#~ "Hoia %s'i, et mängus tagasi liikuda.\n"
+#~ "Sisselülitatuna maksab igal kaadril veidi kiirust."
+
+#, no-c-format
+#~ msgid ""
+#~ "Send lamps, gun recoil and drive-board output to\n"
+#~ "MAMEHooker, Hook Of The Reaper and similar tools,\n"
+#~ "using MAME's network output protocol."
+#~ msgstr ""
+#~ "Saada tuled, püssi tagasilöök ja ajamiplaadi väljund\n"
+#~ "programmidele MAMEHooker, Hook Of The Reaper jms,\n"
+#~ "kasutades MAME võrguväljundi protokolli."
+
+#, no-c-format
+#~ msgid ""
+#~ "The same outputs over MAME's Windows message\n"
+#~ "protocol, for tools that hook MAME that way."
+#~ msgstr ""
+#~ "Samad väljundid MAME Windowsi sõnumiprotokolli kaudu\n"
+#~ "tööriistadele, mis haakuvad MAME-ga sel viisil."
+
+#, no-c-format
+#~ msgid "Keyboard shortcuts"
+#~ msgstr "Klaviatuuri otseteed"
+
+#, no-c-format
+#~ msgid "Settings overlay"
+#~ msgstr "Seadete ülekate"
+
+#, no-c-format
+#~ msgid "Fast-forward (held)"
+#~ msgstr "Keri edasi (hoia)"
+
+#, no-c-format
+#~ msgid "Rewind (held)"
+#~ msgstr "Keri tagasi (hoia)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Click a key, then press the new one. Escape cancels.\n"
+#~ "A key a game also uses does both."
+#~ msgstr ""
+#~ "Klõpsa klahvil ja vajuta siis uut. Escape tühistab.\n"
+#~ "Klahv, mida ka mäng kasutab, teeb mõlemat."
+
+#, c-format
+#~ msgid "%s: toggle overlay"
+#~ msgstr "%s: lülita ülekatet"
+
+#, no-c-format
+#~ msgid ""
+#~ "No ROM archives were found in the ROM directories. Set them in Settings "
+#~ "(F1) > Paths, then relaunch."
+#~ msgstr ""
+#~ "ROM-ide kaustadest ei leitud ühtegi ROM-arhiivi. Määra need jaotises "
+#~ "Seaded (F1) > Teed ja käivita uuesti."
 
 #, no-c-format
 #~ msgid "Light-gun mode"

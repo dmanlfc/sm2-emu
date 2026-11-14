@@ -78,6 +78,7 @@ enum class HostAxis : u8 {
     Pad2LeftY,
     RightTrigger,   ///< Pedal.
     LeftTrigger,    ///< Pedal.
+    Pad2RightTrigger,  ///< Player 2's pad: their own bat.
 };
 
 struct ControlBinding {
@@ -110,7 +111,7 @@ constexpr ControlBinding kControlBindings[] = {
     {rom::AnalogControl::Throttle,  HostAxis::RightTrigger},
     {rom::AnalogControl::Bat1,      HostAxis::RightTrigger},
     {rom::AnalogControl::Brake,     HostAxis::LeftTrigger},
-    {rom::AnalogControl::Bat2,      HostAxis::LeftTrigger},
+    {rom::AnalogControl::Bat2,      HostAxis::Pad2RightTrigger},
 };
 
 // A released stick can settle off centre, so read the deadzone as centre and
@@ -834,7 +835,8 @@ Config::PadAxisRole Input::pad_axis_role(rom::AnalogControl control, bool one_pl
         case HostAxis::PadLeftY:     return Config::PadAxisRole::AimY;
         case HostAxis::Pad2LeftX:    return one_player ? Config::PadAxisRole::LeverX : Config::PadAxisRole::AimX;
         case HostAxis::Pad2LeftY:    return one_player ? Config::PadAxisRole::LeverY : Config::PadAxisRole::AimY;
-        case HostAxis::RightTrigger: return Config::PadAxisRole::Accel;
+        case HostAxis::RightTrigger:
+        case HostAxis::Pad2RightTrigger: return Config::PadAxisRole::Accel;
         case HostAxis::LeftTrigger:  return Config::PadAxisRole::Brake;
         default:                     return Config::PadAxisRole::kCount;
     }
@@ -846,6 +848,29 @@ Config::PadLayout Input::game_layout(const Config& config, const std::string& fa
         return found->second;
     }
     Config::PadLayout layout = config.pad;
+    // Desert Tank: the yoke steers on the left stick and tilts the turret on
+    // the right (pull back to raise it), the accelerator is the right
+    // trigger, the machine gun and cannon are LB and RB, the gear lever is
+    // d-pad up (forward) and down (reverse), and the three views are A, B
+    // and X.
+    if (family == "desert") {
+        for (u32 p = 0; p < 2; ++p) {
+            auto& b = layout.buttons[p];
+            b[static_cast<u32>(Config::PadRole::Button1)]  = SDL_GAMEPAD_BUTTON_LEFT_SHOULDER;
+            b[static_cast<u32>(Config::PadRole::Button2)]  = SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER;
+            b[static_cast<u32>(Config::PadRole::Button3)]  = SDL_GAMEPAD_BUTTON_SOUTH;
+            b[static_cast<u32>(Config::PadRole::Button4)]  = SDL_GAMEPAD_BUTTON_EAST;
+            b[static_cast<u32>(Config::PadRole::Up)]       = SDL_GAMEPAD_BUTTON_WEST;
+            b[static_cast<u32>(Config::PadRole::Down)]     = -1;
+            b[static_cast<u32>(Config::PadRole::Left)]     = -1;
+            b[static_cast<u32>(Config::PadRole::Right)]    = -1;
+            b[static_cast<u32>(Config::PadRole::GearUp)]   = SDL_GAMEPAD_BUTTON_DPAD_UP;
+            b[static_cast<u32>(Config::PadRole::GearDown)] = SDL_GAMEPAD_BUTTON_DPAD_DOWN;
+            layout.axes[p][static_cast<u32>(Config::PadAxisRole::AimY)]        = SDL_GAMEPAD_AXIS_RIGHTY;
+            layout.axis_invert[p][static_cast<u32>(Config::PadAxisRole::AimY)] = true;
+        }
+        return layout;
+    }
     // Star Wars Trilogy's triggers sit where the stick's up and down switches
     // would: put them on the pad's triggers.
     if (rom::has_input(static_cast<rom::InputFlags>(inputs), rom::InputFlags::AnalogJoystick)) {
@@ -870,8 +895,9 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve, bool on
         return channel.rest;
     }
 
-    const bool second = axis == HostAxis::Pad2LeftX || axis == HostAxis::Pad2LeftY;
-    const bool lever  = second && one_player;
+    const bool second = axis == HostAxis::Pad2LeftX || axis == HostAxis::Pad2LeftY
+                     || axis == HostAxis::Pad2RightTrigger;
+    const bool lever  = second && one_player && axis != HostAxis::Pad2RightTrigger;
     SDL_Gamepad* pad = pad_for(second && !lever ? 1u : 0u);
     if (pad == nullptr) {
         // No pad for this control: return the hardware's rest value. Full lock or full
@@ -899,6 +925,7 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve, bool on
                                bool* inverted) {
         const s32 override_axis = m_pad_axes[which_player][static_cast<u32>(role)];
         *inverted = m_pad_axis_invert[which_player][static_cast<u32>(role)];
+        if (override_axis == Config::kPadAxisNone) return SDL_GAMEPAD_AXIS_INVALID;  // a button alone drives it
         return override_axis >= 0 ? static_cast<SDL_GamepadAxis>(override_axis) : fallback;
     };
 
@@ -927,13 +954,14 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve, bool on
             break;
         }
         case HostAxis::RightTrigger:
+        case HostAxis::Pad2RightTrigger:
         case HostAxis::LeftTrigger: {
             bool inv = false;
             const SDL_GamepadAxis which =
-                axis == HostAxis::RightTrigger
+                axis != HostAxis::LeftTrigger
                     ? role_axis(Config::PadAxisRole::Accel, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, &inv)
                     : role_axis(Config::PadAxisRole::Brake, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, &inv);
-            int reading = static_cast<int>(SDL_GetGamepadAxis(pad, which));
+            int reading = which == SDL_GAMEPAD_AXIS_INVALID ? kPedalFloor : static_cast<int>(SDL_GetGamepadAxis(pad, which));
             // A stick bound to a pedal rests centred, not low, so its full
             // swing is the pedal.
             const bool is_stick_axis = which == SDL_GAMEPAD_AXIS_LEFTX
@@ -949,8 +977,8 @@ u8 Input::sample_channel(const rom::AnalogChannel& channel, float curve, bool on
             fraction = range > 0 ? static_cast<float>(travelled) / static_cast<float>(range)
                                  : 0.0f;
             // A button bound to the pedal floors it while held.
-            const auto role   = axis == HostAxis::RightTrigger ? Config::PadAxisRole::Accel
-                                                               : Config::PadAxisRole::Brake;
+            const auto role   = axis != HostAxis::LeftTrigger ? Config::PadAxisRole::Accel
+                                                              : Config::PadAxisRole::Brake;
             if (binding_held(pad, m_pad_axis_buttons[which_player][static_cast<u32>(role)])) {
                 fraction = 1.0f;
             }
@@ -1804,6 +1832,10 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         }
     }
     const bool positional = pos_gun_ch[0] >= 0 || pos_gun_ch[1] >= 0;
+    // A hand-held positional gun (The Lost World) is aimed like a lightgun: it
+    // gets the crosshair and an off-screen reload, unlike the mounted guns of
+    // Gunblade NY or L.A. Machineguns, which draw their own sight.
+    const bool handheld = positional && game.gun_handheld;
 
     if (!spec.present && !positional) {
         m_gun_aims[0].active = false;
@@ -2100,8 +2132,9 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
     // Record the aim (before the reload snap) for the crosshair overlay. Player 2's
     // shows only when a second gun or pad aims it.
     const bool p2_active = on_gun[1] || pad_for(1) != nullptr;
-    // Positional-gun titles draw their own crosshair. `side` is how far the
-    // widescreen picture reaches past the screen, as a fraction of its width.
+    // Mounted positional guns draw their own crosshair; a hand-held one gets
+    // Keisho's. `side` is how far the widescreen picture reaches past the
+    // screen, as a fraction of its width.
     const float side = static_cast<float>(m_wide_columns) / static_cast<float>(render::kNativeWidth);
     const auto record = [side](bool active, bool mouse, const GunInput& g) {
         return GunAim{active, mouse, std::clamp(g.x, -side, 1.0f + side),
@@ -2123,15 +2156,16 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         }
         return !m_gun_used[player] || now - m_gun_last_use_ms[player] > kIdleMs;
     };
-    m_gun_aims[0] = record(!positional, on_mouse[0], p1);
-    m_gun_aims[1] = record(p2_active && !positional, on_mouse[1], p2);
+    const bool sight = !positional || handheld;
+    m_gun_aims[0] = record(sight, on_mouse[0], p1);
+    m_gun_aims[1] = record(p2_active && sight, on_mouse[1], p2);
     m_gun_aims[0].idle = idle(0, p1);
     m_gun_aims[1].idle = idle(1, p2);
 
     if (positional) {
         // Positional gun: scale the aim into each channel's calibrated travel,
-        // overriding the stick. No off-screen reload. X reaches into the widescreen
-        // columns as far as the 8-bit value allows.
+        // overriding the stick. X reaches into the widescreen columns as far as
+        // the 8-bit value allows.
         const auto write_channel = [&](int idx, float fraction, float reach) {
             if (idx < 0) {
                 return;
@@ -2163,6 +2197,25 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
         write_channel(pos_gun_ch[1], p1.y, 0.0f);
         write_channel(pos_gun_ch[2], p2.x, side);
         write_channel(pos_gun_ch[3], p2.y, 0.0f);
+
+        // A hand-held gun fired off the screen reloads. The mouse and a gun both
+        // clamp at the picture's edge, so the outermost ADC steps stand in for
+        // off screen (as Supermodel reads them too).
+        if (handheld) {
+            const auto off_screen = [&](int idx) {
+                if (idx < 0) {
+                    return false;
+                }
+                const u8 value = inputs->analog[static_cast<usize>(idx)];
+                return value <= 2 || value >= 253;
+            };
+            if (p1.trigger && (off_screen(pos_gun_ch[0]) || off_screen(pos_gun_ch[1]))) {
+                p1.reload = true;
+            }
+            if (p2.trigger && (off_screen(pos_gun_ch[2]) || off_screen(pos_gun_ch[3]))) {
+                p2.reload = true;
+            }
+        }
     } else {
         // X across the whole picture, which in widescreen reaches past the
         // screen; the X axes' travel grows to match.
@@ -2204,6 +2257,13 @@ void Input::gather_lightguns(hw::Inputs* inputs, const rom::GameSpec& game) cons
     if (p2.trigger) {
         if (game.board == rom::Board::Model3) inputs->in2 &= static_cast<u8>(~kButton1);
         else inputs->in1 &= static_cast<u8>(~kButton2);
+    }
+
+    // A hand-held gun's reload line, bit 1 of the player's port: raised by the
+    // gun board when the gun is fired off the screen, here also by Reload.
+    if (handheld) {
+        if (p1.reload) inputs->in1 &= static_cast<u8>(~kButton2);
+        if (p2.reload) inputs->in2 &= static_cast<u8>(~kButton2);
     }
 
     // Missile (bel): P1 IN1 0x10, P2 IN1 0x20.
@@ -2383,15 +2443,12 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             port &= static_cast<u8>(~kButton4);
         }
 
-        // Pad VR buttons: A/B/X/Y -> VR1-4 through the declared port/bit, for titles
-        // that wire them off the default IN1 nibble (Daytona). Player one only.
+        // Pad VR buttons: Button 1-4, as bound, -> VR1-4 through the declared
+        // port/bit, for titles that wire them off the default IN1 nibble
+        // (Daytona). Player one only.
         if (game.vr_buttons_declared && pad.player == 0 && !is_wingwar) {
-            static constexpr SDL_GamepadButton kVrPadButtons[4] = {
-                SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST,
-                SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH,
-            };
             for (u8 i = 0; i < game.vr_button_count && i < 4; ++i) {
-                if (pad_button_held(pad, kVrPadButtons[i])) {
+                if (binding_held(pad.handle, binds[i])) {
                     const auto [vport, vbit] = game.wheel_button_bits[i];
                     if (vport < 3) {
                         ports[vport] &= static_cast<u8>(~vbit);
@@ -2727,6 +2784,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
         const bool kdown  = down(SDL_SCANCODE_DOWN);
         const bool kgas   = down(SDL_SCANCODE_LCTRL);
         const bool kbrake = down(SDL_SCANCODE_LALT);
+        const bool kbat2  = down(SDL_SCANCODE_RCTRL);  // player 2's bat swing
 
         const auto drive = [&](usize ch, bool high) {
             const rom::AnalogChannel& c = game.analog[ch];
@@ -2757,8 +2815,10 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
                     if (kgas) drive(ch, true);
                     break;
                 case rom::AnalogControl::Brake:
-                case rom::AnalogControl::Bat2:
                     if (kbrake) drive(ch, true);
+                    break;
+                case rom::AnalogControl::Bat2:
+                    if (kbat2) drive(ch, true);
                     break;
                 default:
                     break;  // Gun1/2 X/Y: gather_lightguns.
@@ -3024,7 +3084,7 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
     //   IN1: 0x01 Shift (PORT_TOGGLE, forward/reverse), 0x10 Machine Gun,
     //        0x20 Cannon.
     // The analogue channels come through the generic sampler; this block owns the
-    // buttons, the shift toggle and the d-pad.
+    // buttons and the gear lever, read through the layout's roles.
     if (is_desert) {
         // Steer (ch0) and turret elevation (ch2, sticky) by control, not index.
         int steer_ch  = -1;
@@ -3055,41 +3115,20 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             shift_now |= keys[SDL_SCANCODE_SPACE];
         }
 
-        for (const Pad& pad : m_pads) {
-            if (!plays(pad) || pad.player != 0) {
-                continue;
-            }
-
-            // Steer and turret elevation are both on the left stick (X and Y)
-
-            // The d-pad slams the axes to an extreme while held. SDL's stick Y grows
-            // downward, so Up is the minimum end, matching the stick.
-            const bool dl = pad_button_held(pad, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
-            const bool dr = pad_button_held(pad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
-            const bool du = pad_button_held(pad, SDL_GAMEPAD_BUTTON_DPAD_UP);
-            const bool dd = pad_button_held(pad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
-            if (dl != dr) slam(steer_ch, dr);
-            if (du != dd) slam(turret_ch, dd);
-
-            mg     |= pad_button_held(pad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
-            cannon |= pad_button_held(pad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
-
-            // Shift on A or the left trigger; either flips forward/reverse.
-            shift_now |= pad_button_held(pad, SDL_GAMEPAD_BUTTON_SOUTH)
-                      || SDL_GetGamepadAxis(pad.handle, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > kPedalFloor;
-
-            // Views on the face buttons: B=VR1, Y=VR2, X=VR3.
-            if (pad_button_held(pad, SDL_GAMEPAD_BUTTON_EAST))  in0_clear |= 0x20;
-            if (pad_button_held(pad, SDL_GAMEPAD_BUTTON_NORTH)) in0_clear |= 0x40;
-            if (pad_button_held(pad, SDL_GAMEPAD_BUTTON_WEST))  in0_clear |= 0x80;
-
-            if (pad_button_held(pad, SDL_GAMEPAD_BUTTON_START)) {
-                inputs->in0 &= static_cast<u8>(~kStart1);
-            }
-            if (pad_button_held(pad, SDL_GAMEPAD_BUTTON_BACK)) {
-                inputs->in0 &= static_cast<u8>(~kCoin1);
-            }
-        }
+        // The pad, by the layout's roles (game_layout() holds the defaults):
+        // Button 1 machine gun, Button 2 cannon, Button 3 / Button 4 / Up the
+        // three views, Gear Up forward, Gear Down reverse. Steering, the
+        // turret and the accelerator come through the analogue sampler.
+        using Role = Config::PadRole;
+        mg     = pad_role_held(0, Role::Button1);
+        cannon = pad_role_held(0, Role::Button2);
+        if (pad_role_held(0, Role::Button3)) in0_clear |= 0x20;
+        if (pad_role_held(0, Role::Button4)) in0_clear |= 0x40;
+        if (pad_role_held(0, Role::Up))      in0_clear |= 0x80;
+        if (pad_role_held(0, Role::Start))   inputs->in0 &= static_cast<u8>(~kStart1);
+        if (pad_role_held(0, Role::Coin))    inputs->in0 &= static_cast<u8>(~kCoin1);
+        const bool gear_forward = pad_role_held(0, Role::GearUp);
+        const bool gear_reverse = pad_role_held(0, Role::GearDown);
 
         // The generic keyboard pass wrote IN1 bits that are not desert's layout, so
         // release the port and drive only the real bits.
@@ -3122,10 +3161,14 @@ void Input::poll(hw::Inputs* inputs, const rom::GameSpec& game) const
             }
         }
 
+        // The gear lever: the pad's two buttons set it, the keyboard's Space
+        // flips it. Forward until told otherwise.
         if (shift_now && !m_desert_shift_held) {
             m_desert_shift = !m_desert_shift;
         }
         m_desert_shift_held = shift_now;
+        if (gear_reverse) m_desert_shift = true;
+        else if (gear_forward) m_desert_shift = false;
 
         if (m_desert_shift) inputs->in1 &= static_cast<u8>(~0x01);  // Shift (reverse)
         if (mg)             inputs->in1 &= static_cast<u8>(~0x10);  // Machine Gun
@@ -3361,6 +3404,7 @@ void Input::print_bindings()
     std::printf("  W A S D  G H J K     player 2 stick and buttons\n");
     std::printf("  arrows               steering and centred analog axes\n");
     std::printf("  Left Ctrl / Left Alt accelerate / brake (driving titles)\n");
+    std::printf("  Left Ctrl / Right Ctrl  bat swing, player 1 / 2 (Dynamite Baseball)\n");
     std::printf("  F1 F2                shift up / down (Indy 500, Manx TT family)\n");
     std::printf("  F1-F4  F5            gears 1 to 4, neutral (gate gearbox titles)\n");
     std::printf("  B N M ,              VR / view buttons 1 to 4 (titles that have them)\n");

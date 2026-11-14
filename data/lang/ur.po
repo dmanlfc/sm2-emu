@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Keisho\n"
 "Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
-"POT-Creation-Date: 2026-11-14 11:53+1000\n"
+"POT-Creation-Date: 2026-11-14 21:42+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -327,77 +327,88 @@ msgstr "ٹریگر 2"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "File"
-msgstr "فائل"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Hide overlay"
-msgstr "اوورلے چھپائیں"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Quit"
-msgstr "باہر نکلیں"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Settings"
-msgstr "ترتیبات"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Vsync"
-msgstr "Vsync"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Fullscreen"
-msgstr "پوری اسکرین"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "FPS counter"
-msgstr "FPS کاؤنٹر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "On-screen notifications"
-msgstr "اسکرین پر اطلاعات"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "(Model 1 & 2 only)"
-msgstr "(صرف Model 1 اور 2)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Video"
-msgstr "ویڈیو"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wait for vertical blank before presenting.\n"
-"Prevents tearing but adds up to one frame of latency."
+msgid "Display"
 msgstr ""
-"تصویر دکھانے سے پہلے عمودی خلا کا انتظار کریں۔\n"
-"پھٹنے سے بچاتا ہے مگر ایک فریم تک تاخیر بڑھاتا ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Notifications"
-msgstr "اطلاعات"
+msgid "Audio"
+msgstr "آڈیو"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "GPU"
-msgstr "GPU"
+msgid "Input"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Auto (best)"
-msgstr "خودکار (بہترین)"
+msgid "Paths"
+msgstr "راستے"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "States"
+msgstr "حالتیں"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hotkeys"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "System"
+msgstr "سسٹم"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "About"
+msgstr "تعارف"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s: back"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Esc"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "LB/RB: pages"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saved"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s   %.1f Hz"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Changes are saved as you make them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "next launch"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 1 & 2 only"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -412,54 +423,88 @@ msgstr "سافٹ ویئر"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Which renderer draws the game. Applies on the\n"
-"next launch - save settings and relaunch."
+"Which renderer draws the game. The software renderer needs no GPU and suits "
+"small boards; Vulkan and OpenGL pull ahead on desktop graphics."
 msgstr ""
-"کون سا رینڈرر گیم بناتا ہے۔ اگلی بار چلانے پر لاگو\n"
-"ہوتا ہے - ترتیبات محفوظ کر کے دوبارہ چلائیں۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Window size"
-msgstr "ونڈو کا سائز"
+msgid "What draws the game."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Width"
-msgstr "چوڑائی"
+msgid "Automatic (best)"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Height"
-msgstr "اونچائی"
+msgid "Graphics card"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "1x (native)"
-msgstr "1x (اصل)"
+msgid "The device the GPU renderers draw on."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "8x (4K)"
-msgstr "8x (4K)"
+msgid ""
+"Waits for the display before showing a frame. Stops tearing; adds up to a "
+"frame of delay."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Vsync"
+msgstr "Vsync"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wait for vertical blank before presenting."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fullscreen"
+msgstr "پوری اسکرین"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "In windowed mode."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window width"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window height"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Picture"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Internal 3D rendering resolution, times the native 496x384. Higher is "
+"crisper 3D; the 2D stays sharp either way. GPU renderers only."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "1x is the arcade's own. 8x suits a 4K display."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "3D render scale"
 msgstr "3D رینڈر پیمانہ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Internal 3D rendering resolution. Higher is crisper 3D\n"
-"(2D/HUD stays sharp). GPU backends only; the software\n"
-"renderer stays native. Applies on the next launch - save\n"
-"settings and relaunch."
-msgstr ""
-"اندرونی 3D رینڈرنگ ریزولوشن۔ زیادہ قدر سے 3D زیادہ واضح\n"
-"(2D/HUD تیز رہتا ہے)۔ صرف GPU بیک اینڈ؛ سافٹ ویئر\n"
-"رینڈرر اصل پر رہتا ہے۔ اگلی بار چلانے پر لاگو ہوتا ہے -\n"
-"ترتیبات محفوظ کر کے دوبارہ چلائیں۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -478,38 +523,36 @@ msgstr "قریب ترین"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Sharp-bilinear"
-msgstr "تیز بائی لینیئر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "2D scaling"
-msgstr "2D اسکیلنگ"
+msgid "Sharp"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"How the frame is magnified to the window.\n"
-"Sharp-bilinear keeps 2D text crisp without the shimmer\n"
-"nearest shows at non-integer window sizes. Integer snaps\n"
-"to a whole multiple (pixel-perfect, with black bars).\n"
-"Applies live."
+"How the finished frame is magnified to the window. Sharp keeps 2D text crisp "
+"without the shimmer Nearest shows at odd sizes. Integer snaps to a whole "
+"multiple, with black bars."
 msgstr ""
-"فریم کو ونڈو تک کیسے بڑا کیا جائے۔\n"
-"تیز بائی لینیئر 2D متن کو اس جھلملاہٹ کے بغیر واضح رکھتا ہے\n"
-"جو قریب ترین غیر عدد صحیح سائز پر دکھاتا ہے۔ عدد صحیح\n"
-"پورے گنا پر رکھتا ہے (پکسل درست، سیاہ پٹیوں کے ساتھ)۔\n"
-"فوراً لاگو ہوتا ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "16:9 (widescreen)"
-msgstr "16:9 (وائڈ اسکرین)"
+msgid "How the frame is magnified to the window."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "4:3 (arcade)"
-msgstr "4:3 (آرکیڈ)"
+msgid "Scaling"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "16:9"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "4:3"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -523,23 +566,28 @@ msgstr "کھینچیں"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid ""
+"4:3 is the arcade monitor's shape. Square pixels shows the raw 496x384, "
+"slightly narrow. 16:9 draws the 3D wider with the 2D in the middle (GPU "
+"renderers). Stretch fills the window."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Aspect"
 msgstr "تناسب"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"4:3 is the arcade monitor's shape (the default).\n"
-"Square pixels shows the raw 496x384 (slightly narrow).\n"
-"16:9 (experimental) draws the 3D wider, with the 2D in the middle.\n"
-"Stretch fills the whole window.\n"
-"GPU renderers only. Applies live."
+msgid "The shape the picture is shown at."
 msgstr ""
-"4:3 آرکیڈ مانیٹر کی شکل ہے (طے شدہ)۔\n"
-"مربع پکسل خام 496x384 دکھاتا ہے (تھوڑا تنگ)۔\n"
-"16:9 (تجرباتی) 3D کو چوڑا بناتا ہے، 2D درمیان میں۔\n"
-"کھینچیں پوری ونڈو بھر دیتا ہے۔\n"
-"صرف GPU رینڈرر۔ فوراً لاگو ہوتا ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the picture's black sits. 50% matches an arcade capture; lower is "
+"darker."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -549,13 +597,20 @@ msgstr "چمک"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the Model 2 picture's black sits. 50% is the default,\n"
-"matched to an arcade capture; lower is darker, higher is\n"
-"brighter. Applies live."
+"In fullscreen, frame the 4:3 picture with an image from the bezels folder: "
+"<game>.png, the parent set's, or default.png. The picture fills the image's "
+"transparent window."
 msgstr ""
-"Model 2 تصویر میں سیاہ کہاں بیٹھتا ہے۔ 50% طے شدہ ہے،\n"
-"ایک آرکیڈ کیپچر سے ملایا گیا؛ کم مزید گہرا، زیادہ مزید روشن۔\n"
-"فوراً لاگو ہوتا ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bezel"
+msgstr "فریم"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet artwork around the picture in fullscreen."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -565,13 +620,14 @@ msgstr "CRT فلٹر"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"A cosmetic arcade-monitor look over the finished frame:\n"
-"scanlines, an RGB shadow mask, glow and optional screen\n"
-"curvature. Purely visual; applies live."
+"A cosmetic arcade-monitor look over the finished frame: scanlines, a shadow "
+"mask, glow and optional curvature. Purely visual."
 msgstr ""
-"تیار فریم پر آرکیڈ مانیٹر جیسی سجاوٹی شکل:\n"
-"اسکین لائنیں، RGB شیڈو ماسک، چمک اور اختیاری اسکرین\n"
-"خمیدگی۔ صرف بصری؛ فوراً لاگو ہوتا ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Scanlines, mask, glow and curvature."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -595,26 +651,8 @@ msgstr "خمیدگی"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Bezel"
-msgstr "فریم"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"In fullscreen, frame the 4:3 picture with an image from\n"
-"the bezels directory (Paths tab): <game>.png, the parent\n"
-"set's, or default.png. The picture fills the image's\n"
-"transparent window."
+msgid "Enhancements beyond the original hardware"
 msgstr ""
-"پوری اسکرین میں 4:3 تصویر کو فریم ڈائریکٹری (راستے ٹیب)\n"
-"کی ایک تصویر سے گھیرتا ہے: <game>.png، پیرنٹ سیٹ کی\n"
-"تصویر، یا default.png۔ گیم کی تصویر فریم کی\n"
-"شفاف کھڑکی کو بھرتی ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Enhancement (cosmetic, beyond the original hardware)"
-msgstr "بہتری (سجاوٹی، اصل ہارڈ ویئر سے آگے)"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -628,13 +666,8 @@ msgstr "اصل جیسا"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "3D texture filter"
-msgstr "3D ٹیکسچر فلٹر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "(unsupported)"
-msgstr "(غیر معاون)"
+msgid "Anisotropic filtering sharpens textures seen at a slant."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -643,24 +676,30 @@ msgstr "یہ GPU اینی سوٹروپک فلٹرنگ کی اطلاع نہیں �
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "3D texture filter"
+msgstr "3D ٹیکسچر فلٹر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Not available on this GPU."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Anisotropy"
 msgstr "اینی سوٹروپی"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "2D upscale"
-msgstr "2D اپ اسکیل"
+msgid ""
+"Edge-smooth the 2D layers (HUD, text, menus). xBR and ScaleFX round "
+"diagonals; Faithful keeps crisp pixels."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
-"ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
-"Applies live."
-msgstr ""
-"2D تہوں (HUD، متن، مینو) کے کنارے ہموار کریں۔ xBR اور\n"
-"ScaleFX ترچھی لکیریں گول کرتے ہیں؛ اصل جیسا پکسل تیز رکھتا ہے۔\n"
-"فوراً لاگو ہوتا ہے۔"
+msgid "2D upscale"
+msgstr "2D اپ اسکیل"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -674,19 +713,28 @@ msgstr "نقطہ دار"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid ""
+"The hardware draws see-through surfaces (lights, glass, shadows) as a "
+"checkerboard. Blended draws the 50% see-through surface it is trying to "
+"achieve."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Translucency"
 msgstr "نیم شفافیت"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"The hardware draws see-through surfaces (lights, glass,\n"
-"shadows) as a checkerboard. Blended draws the 50%\n"
-"see-through surface it's trying to achieve. Applies live."
+"Draw the scenery to the edge of the course instead of the arcade's short "
+"range, so it no longer pops in. Daytona USA only."
 msgstr ""
-"ہارڈ ویئر شفاف سطحوں (روشنیاں، شیشہ، سائے) کو\n"
-"شطرنجی خانوں کی شکل میں بناتا ہے۔ ملا ہوا وہ 50%\n"
-"شفاف سطح بناتا ہے جو مقصود ہے۔ فوراً لاگو ہوتا ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Daytona USA."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -696,13 +744,9 @@ msgstr "بڑھایا گیا ڈرا فاصلہ"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw the scenery to the edge of the course instead of\n"
-"the arcade's short range, so it no longer pops in.\n"
-"Daytona USA only. Applies live."
+"Replace the game's 3D textures with images saved in saves/textures/<game>/"
+"load, named as dumped. GPU renderers only."
 msgstr ""
-"آرکیڈ کی مختصر حد کے بجائے ٹریک کے کنارے تک\n"
-"منظر بناتا ہے، تاکہ وہ اچانک نمودار نہ ہو۔\n"
-"صرف Daytona USA۔ فوراً لاگو ہوتا ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -711,24 +755,33 @@ msgstr "حسب منشا ٹیکسچر"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Replace the game's 3D textures with images saved in\n"
-"saves/textures/<game>/load, named as dumped. GPU\n"
-"renderers only; Reload picks up edited files."
+msgid "Replacement textures from the saves folder."
 msgstr ""
-"گیم کے 3D ٹیکسچر کو saves/textures/<game>/load میں\n"
-"ڈمپ والے ناموں سے محفوظ تصاویر سے بدلیں۔ صرف GPU\n"
-"رینڈرر؛ دوبارہ لوڈ ترمیم شدہ فائلیں اٹھا لیتا ہے۔"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%zu loaded"
-msgstr "%zu لوڈ ہوئے"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Reload"
 msgstr "دوبارہ لوڈ"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu texture loaded"
+msgid_plural "%zu textures loaded"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Loaded textures"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Collect every 3D texture the game draws and write them, with an index.html "
+"to browse, to saves/textures/<game>/dump when the game exits or this is "
+"turned off."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -737,770 +790,129 @@ msgstr "ٹیکسچر ڈمپ کریں"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Collect every 3D texture the game draws and write them,\n"
-"with an index.html to browse, to saves/textures/<game>/dump\n"
-"when the game exits or this is turned off."
+msgid "Write every texture the game draws."
 msgstr ""
-"گیم کے بنائے ہر 3D ٹیکسچر کو جمع کر کے، دیکھنے کے لیے\n"
-"index.html کے ساتھ، saves/textures/<game>/dump میں لکھیں\n"
-"جب گیم بند ہو یا یہ آپشن بند کیا جائے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Audio"
-msgstr "آڈیو"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Paths"
-msgstr "راستے"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Browse..."
-msgstr "براؤز..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Config directory"
-msgstr "کنفیگ ڈائریکٹری"
+msgid "Performance"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where keisho.ini is read from and saved to.\n"
-"Set with --config <dir>; cannot be changed here."
+"Hold the machine to its own 57.5 Hz. Off runs as fast as the host can, "
+"without sound sync."
 msgstr ""
-"جہاں سے keisho.ini پڑھی اور محفوظ کی جاتی ہے۔\n"
-"--config <dir> سے مقرر ہوتی ہے؛ یہاں تبدیل نہیں ہو سکتی۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "ROM directory"
-msgstr "ROM ڈائریکٹری"
+msgid "Limit speed"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Run at the arcade's 57.5 Hz."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the ROM archives live. A game launched by name is\n"
-"loaded from here as <name>.zip or <name>.7z."
+"The software renderer draws each frame on a second thread, one frame behind "
+"the emulation."
 msgstr ""
-"جہاں ROM آرکائیو رکھے ہیں۔ نام سے چلایا گیا گیم یہاں سے\n"
-"<name>.zip یا <name>.7z کے طور پر لوڈ ہوتا ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Model 1 ROM directory"
-msgstr "Model 1 ROM ڈائریکٹری"
+msgid "Faster; a frame of latency."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Software renderer on a second thread"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the Model 1 ROM archives live.\n"
-"Empty means the ROM directory."
+"On a big.LITTLE chip, the drawing runs on the little cores and leaves the "
+"big ones to the emulation."
 msgstr ""
-"Model 1 ROM آرکائیوز کی جگہ۔\n"
-"خالی کا مطلب ROM ڈائریکٹری ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Model 3 ROM directory"
-msgstr "Model 3 ROM ڈائریکٹری"
+msgid "Draw on the slow cores"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "big.LITTLE hosts, with the second thread."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Where the Model 3 ROM archives live.\n"
-"Empty means the ROM directory."
+"Model 3 builds each frame on a second thread while the next one is emulated; "
+"shown a frame later."
 msgstr ""
-"Model 3 ROM آرکائیوز کی جگہ۔\n"
-"خالی کا مطلب ROM ڈائریکٹری ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Saves directory"
-msgstr "سیو ڈائریکٹری"
+msgid "Model 3 frame build on a second thread"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Volume"
+msgstr "والیوم"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
-"(.eeprom) images -- high scores and operator settings."
+"Only for games with a separate music board: Star Wars Arcade, Sega Touring "
+"Car Championship, Top Skater and the Model 3 games with a DSB. Sound effects "
+"stay as they are."
 msgstr ""
-"بیٹری والی سیو: ہر گیم کی NVRAM (.nv) اور EEPROM\n"
-"(.eeprom) فائلیں -- ہائی اسکور اور آپریٹر ترتیبات۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Screenshots directory"
-msgstr "اسکرین شاٹ ڈائریکٹری"
+msgid "Music volume"
+msgstr "موسیقی کی آواز"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Where screenshots are written."
-msgstr "جہاں اسکرین شاٹ لکھے جاتے ہیں۔"
+msgid "The music board's level, where a game has one."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Bezels directory"
-msgstr "فریم ڈائریکٹری"
+msgid "Per-game volume"
+msgstr "ہر گیم کا والیوم"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Bezel images: <game>.png, the parent set's, or default.png.\n"
-"Empty means a bezels folder beside keisho.ini."
+"Raise or lower a game's volume from its default level. One slider covers "
+"every revision of a game. Off plays every game at its default, whatever the "
+"sliders say. Above 100% loud effects can clip."
 msgstr ""
-"فریم تصاویر: <game>.png، پیرنٹ سیٹ کی تصویر، یا default.png۔\n"
-"خالی کا مطلب keisho.ini کے ساتھ bezels فولڈر ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Crosshairs directory"
-msgstr "کراس ہیئر فولڈر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Crosshair images: <game>-p1.png (-p2 for player 2) or\n"
-"<game>.png for both, then the parent set's, then default.\n"
-"Drawn at their own size on a 1080-line picture. Without\n"
-"one the built-in crosshair is drawn.\n"
-"Empty means a crosshairs folder beside keisho.ini."
+msgid "Each game at its own level."
 msgstr ""
-"کراس ہیئر تصاویر: <game>-p1.png (کھلاڑی 2 کے لیے -p2) یا\n"
-"دونوں کے لیے <game>.png، پھر پیرنٹ سیٹ کی، پھر default۔\n"
-"1080 لائن کی تصویر پر اپنے سائز میں بنتی ہیں۔ ان کے بغیر\n"
-"بلٹ اِن کراس ہیئر بنتا ہے۔\n"
-"خالی کا مطلب keisho.ini کے ساتھ crosshairs فولڈر ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Scrape artwork online"
-msgstr "آن لائن آرٹ ورک حاصل کریں"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Let the game picker fetch box art and descriptions from\n"
-"ArcadeDB over the network. Off keeps Keisho offline: the\n"
-"picker still lists and launches every game, with placeholder\n"
-"tiles and no descriptions."
-msgstr ""
-"گیم چننے والے کو نیٹ ورک پر ArcadeDB سے باکس آرٹ اور\n"
-"تفصیلات لانے دیں۔ بند ہونے پر Keisho آف لائن رہتا ہے:\n"
-"چننے والا پھر بھی ہر گیم دکھاتا اور چلاتا ہے، عارضی\n"
-"ٹائلوں کے ساتھ اور بغیر تفصیلات کے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gamepad"
-msgstr "گیم پیڈ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Wheel"
-msgstr "اسٹیئرنگ وہیل"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Light Gun"
-msgstr "لائٹ گن"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Network"
-msgstr "نیٹ ورک"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "States"
-msgstr "حالتیں"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "System"
-msgstr "سسٹم"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "About"
-msgstr "تعارف"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "A Sega Model 1, 2 & 3 arcade emulator"
-msgstr "ایک Sega Model 1, 2 & 3 آرکیڈ ایمولیٹر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "GPL-3.0-or-later licence. See LICENSE."
-msgstr "GPL-3.0-or-later لائسنس۔ LICENSE دیکھیں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Keisho exists because of open source shared with the community."
-msgstr "Keisho کمیونٹی کے ساتھ بانٹے گئے اوپن سورس کی بدولت موجود ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "With thanks to the projects whose code makes it possible:"
-msgstr "ان منصوبوں کا شکریہ جن کا کوڈ اسے ممکن بناتا ہے:"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "The MAME project - Sega Model 2 emulation guidance"
-msgstr "MAME منصوبہ - Sega Model 2 ایمولیشن رہنمائی"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
-msgstr "Musashi - Motorola 68000 CPU کور (Karl Stenerud)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
-msgstr "ymfm - Yamaha FM ساؤنڈ کور (Aaron Giles)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "SDL - windowing, input and audio"
-msgstr "SDL - ونڈو، ان پٹ اور آڈیو"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Dear ImGui - this user interface (Omar Cornut)"
-msgstr "Dear ImGui - یہ یوزر انٹرفیس (Omar Cornut)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "pugixml - games.xml parsing"
-msgstr "pugixml - games.xml پارسنگ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "miniz - ZIP archive decompression"
-msgstr "miniz - ZIP آرکائیو کھولنا"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
-msgstr "LZMA SDK - 7-Zip آرکائیو کھولنا (Igor Pavlov)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
-msgstr "VulkanMemoryAllocator - GPU میموری (AMD / GPUOpen)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "shaderc / glslang - shader compilation"
-msgstr "shaderc / glslang - شیڈر کمپائلیشن"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "stb_image - box-art image decoding (Sean Barrett)"
-msgstr "stb_image - باکس آرٹ تصویر ڈی کوڈنگ (Sean Barrett)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
-msgstr "گیم پیڈ تصویر - Xelu's Free Controller Prompts (Nicolae Berbece)، CC0"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "libcurl - artwork scraping (optional)"
-msgstr "libcurl - آرٹ ورک حاصل کرنا (اختیاری)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "HarfBuzz - text shaping for translations"
-msgstr "HarfBuzz - ترجموں کے لیے متن کی تشکیل"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
-msgstr "SheenBidi - دائیں سے بائیں متن کی ترتیب (Muhammad Tayyab Akram)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Game artwork and descriptions from ArcadeDB"
-msgstr "گیم آرٹ ورک اور تفصیلات ArcadeDB سے"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "(adb.arcadeitalia.net, by Motoschifo)."
-msgstr "(adb.arcadeitalia.net، از Motoschifo)۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "See NOTICE for full per-component attribution."
-msgstr "ہر جزو کی مکمل نسبت کے لیے NOTICE دیکھیں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "If you'd like to support development:"
-msgstr "اگر آپ ترقی میں مدد کرنا چاہیں:"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Save settings"
-msgstr "ترتیبات محفوظ کریں"
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Saved to %s"
-msgstr "%s میں محفوظ کیا گیا"
+msgid "%zu game changed"
+msgid_plural "%zu games changed"
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Wheel connected."
-msgstr "وہیل منسلک ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "No wheel connected. Settings still apply once one is."
-msgstr "کوئی وہیل منسلک نہیں۔ منسلک ہونے پر ترتیبات پھر بھی لاگو ہوں گی۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Force feedback"
-msgstr "فورس فیڈ بیک"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wheel force on driving games: centring and cornering\n"
-"forces decoded from the game's own drive-board commands,\n"
-"plus an impact jolt when you hit something."
+msgid "Find a game"
 msgstr ""
-"ڈرائیونگ گیمز میں وہیل پر قوت: گیم کے اپنے ڈرائیو بورڈ\n"
-"کمانڈز سے حاصل مرکز اور موڑ کی قوتیں، نیز کسی چیز\n"
-"سے ٹکرانے پر ایک جھٹکا۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Resistance"
-msgstr "مزاحمت"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"A gain on every force of the drive board. At 100 %, the\n"
-"board's full power (63) gives the wheel's full force, every\n"
-"force in proportion. 200 % doubles every force: those above\n"
-"half the board's power (32, Sega Rally's strongest torque)\n"
-"then saturate."
-msgstr ""
-"ڈرائیو بورڈ کی ہر قوت پر ایک گین۔ 100 % پر بورڈ کی پوری طاقت\n"
-"(63) وہیل کی پوری قوت دیتی ہے، ہر قوت تناسب میں۔ 200 % ہر قوت\n"
-"کو دگنا کرتا ہے: بورڈ کی آدھی طاقت (32، Sega Rally کا سب سے\n"
-"طاقتور ٹارک) سے زیادہ قوتیں تب سیچوریٹ ہو جاتی ہیں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Panel spring"
-msgstr "پینل اسپرنگ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The centring spring of the Sega Rally Championship and\n"
-"Daytona USA cabinets: very light, it brings the wheel\n"
-"back and is barely felt when held against. A share of\n"
-"the resistance above. The other games' cabinets drive\n"
-"the wheel with no spring, and ignore this setting."
-msgstr ""
-"Sega Rally Championship اور Daytona USA کیبنٹ کا\n"
-"سینٹرنگ اسپرنگ: بہت ہلکا، یہ وہیل کو واپس لاتا ہے اور\n"
-"روکنے پر بمشکل محسوس ہوتا ہے۔ اوپر والی مزاحمت کا ایک\n"
-"حصہ۔ دوسرے گیمز کے کیبنٹ بغیر اسپرنگ کے وہیل چلاتے ہیں\n"
-"اور اس ترتیب کو نظرانداز کرتے ہیں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Sega Rally Championship and Daytona USA only, all versions."
-msgstr "صرف Sega Rally Championship اور Daytona USA، تمام ورژن۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Drive board DIP strength"
-msgstr "ڈرائیو بورڈ کی DIP طاقت"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The motor strength set on the drive board's DIP switches,\n"
-"the switches ON counted in binary: 0 = all OFF.\n"
-"Sega Rally: switches 1-3, 0 to 7 added to every torque.\n"
-"Daytona USA: switches 1-3, 4 times that.\n"
-"Indy 500, Touring Car, Over Rev, Super GT 24h:\n"
-"switches 1-1 to 1-3, 0 to 7 added to every force."
-msgstr ""
-"ڈرائیو بورڈ کے DIP سوئچز سے طے شدہ موٹر کی طاقت، ON سوئچز\n"
-"بائنری میں گنے جاتے ہیں: 0 = سب OFF۔\n"
-"Sega Rally: سوئچ 1-3، ہر ٹارک میں 0 سے 7 شامل۔ Daytona USA:\n"
-"سوئچ 1-3، اس کا 4 گنا۔ Indy 500، Touring Car، Over Rev،\n"
-"Super GT 24h: سوئچ 1-1 سے 1-3، ہر قوت میں 0 سے 7 شامل۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Invert force feedback"
-msgstr "فورس فیڈ بیک الٹ دیں"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"For a wheel whose driver pushes the wrong way: it pulls\n"
-"away from the centre instead of bringing it back, and\n"
-"the game's forces go the opposite way."
-msgstr ""
-"اس وہیل کے لیے جس کا ڈرائیور غلط سمت دھکیلتا ہے: یہ\n"
-"مرکز پر واپس لانے کی بجائے مرکز سے دور کھینچتا ہے، اور\n"
-"گیم کی قوتیں الٹی سمت جاتی ہیں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rumble"
-msgstr "ارتعاش"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Vibrates on the game's impacts, for wheels without force\n"
-"feedback. It never runs alongside force feedback."
-msgstr ""
-"فورس فیڈ بیک کے بغیر وہیلز کے لیے گیم کے ٹکراؤ پر\n"
-"لرزتا ہے۔ یہ فورس فیڈ بیک کے ساتھ کبھی نہیں چلتا۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rumble strength"
-msgstr "ارتعاش کی شدت"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Engine vibration"
-msgstr "انجن کا ارتعاش"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"An added vibration that grows with the throttle. It is not\n"
-"from the game. Turn it off to feel only the game's force feedback."
-msgstr ""
-"ایک اضافی ارتعاش جو تھروٹل کے ساتھ بڑھتا ہے۔ یہ گیم کی\n"
-"طرف سے نہیں۔ صرف گیم کا فورس فیڈ بیک محسوس کرنے کے لیے اسے بند کریں۔"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%u deg"
-msgstr "%u ڈگری"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Steering range"
-msgstr "اسٹیئرنگ کی حد"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Set this to your wheel's own rotation range. The lock\n"
-"angle below is mapped onto it, so matching your wheel\n"
-"gives arcade-like response."
-msgstr ""
-"اسے اپنے وہیل کی گردش کی حد پر رکھیں۔ نیچے دیا\n"
-"لاک زاویہ اس پر لاگو ہوتا ہے، لہٰذا وہیل سے مطابقت\n"
-"آرکیڈ جیسا ردعمل دیتی ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Lock angle"
-msgstr "لاک زاویہ"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%d deg"
-msgstr "%d ڈگری"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"How far to physically turn for full game lock (total,\n"
-"so half each side of centre). Lower is more sensitive."
-msgstr ""
-"گیم کے مکمل لاک کے لیے کتنا گھمانا ہے (کل، یعنی\n"
-"مرکز کی ہر طرف آدھا)۔ کم قدر زیادہ حساس ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Centre deadzone"
-msgstr "مرکزی ڈیڈ زون"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wheel travel about centre that reads as centre. Most wheels\n"
-"want none; a little covers one whose centre wanders. The bar\n"
-"shows the wheel now against the shaded zone."
-msgstr ""
-"مرکز کے آس پاس وہیل کی حرکت جو مرکز ہی پڑھی جائے۔ زیادہ تر وہیل کو\n"
-"اس کی ضرورت نہیں؛ تھوڑا سا اُس وہیل کے لیے جس کا مرکز سرکتا ہو۔ بار\n"
-"وہیل کی موجودہ حالت سایہ دار حصے کے مقابل دکھاتی ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Wheel position"
-msgstr "وہیل کی پوزیشن"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Axes"
-msgstr "محور"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
-msgstr ""
-"خودکار طور پر شناخت ہوئی۔ اگر اسٹیئرنگ یا پیڈل غلط ہو تو دوبارہ کیلیبریٹ "
-"کریں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Steering"
-msgstr "اسٹیئرنگ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Accelerator"
-msgstr "ایکسلریٹر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Brake"
-msgstr "بریک"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "auto"
-msgstr "خودکار"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d (half, +)"
-msgstr "محور %d (آدھا، +)"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d (half, -)"
-msgstr "محور %d (آدھا، -)"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d (inverted)"
-msgstr "محور %d (الٹا)"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "axis %d"
-msgstr "محور %d"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "operate it..."
-msgstr "اسے چلائیں..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "cancel"
-msgstr "منسوخ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Calibrate"
-msgstr "کیلیبریٹ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Buttons"
-msgstr "بٹن"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Press Bind, then press the wheel button for that control."
-msgstr "تفویض دبائیں، پھر اس کنٹرول کے لیے وہیل کا بٹن دبائیں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Start"
-msgstr "Start"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Coin"
-msgstr "سکہ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 1"
-msgstr "بٹن 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 2"
-msgstr "بٹن 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 3"
-msgstr "بٹن 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Button 4"
-msgstr "بٹن 4"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Shift up"
-msgstr "گیئر اوپر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Shift down"
-msgstr "گیئر نیچے"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 1"
-msgstr "گیئر 1"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 2"
-msgstr "گیئر 2"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 3"
-msgstr "گیئر 3"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear 4"
-msgstr "گیئر 4"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Neutral"
-msgstr "نیوٹرل"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Test"
-msgstr "ٹیسٹ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Service"
-msgstr "سروس"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Menu (F10)"
-msgstr "مینو (F10)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "unbound"
-msgstr "غیر تفویض"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "button %d"
-msgstr "بٹن %d"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "press a button..."
-msgstr "کوئی بٹن دبائیں..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Bind"
-msgstr "تفویض"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "clear"
-msgstr "صاف"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gear shifter"
-msgstr "گیئر لیور"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Daytona USA and Sega Rally Championship, all versions."
-msgstr "Daytona USA اور Sega Rally Championship، تمام ورژن۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Neutral when no gear is engaged"
-msgstr "جب کوئی گیئر نہ لگا ہو تو نیوٹرل"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"With an H shifter bound to Gear 1..4: its lever in none\n"
-"of the gears is in neutral, as on the cabinet. Off, the\n"
-"last gear stays engaged until another is selected or\n"
-"Neutral is pressed."
-msgstr ""
-"گیئر 1..4 سے منسلک H شفٹر کے ساتھ: اگر لیور کسی\n"
-"گیئر میں نہ ہو تو وہ نیوٹرل میں ہوتا ہے، جیسے کیبنٹ پر۔\n"
-"بند ہو تو آخری گیئر اس وقت تک لگا رہتا ہے جب تک\n"
-"دوسرا نہ چنا جائے یا نیوٹرل نہ دبایا جائے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Neutral between gears"
-msgstr "گیئرز کے درمیان نیوٹرل"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Shift up / Shift down (and a gamepad's RB / LB) from one\n"
-"gear to another pass through neutral this long, as a\n"
-"lever crosses the gate's centre. 0 shifts straight."
-msgstr ""
-"گیئر اوپر / گیئر نیچے (اور گیم پیڈ کے RB / LB) ایک گیئر سے\n"
-"دوسرے میں اتنی دیر نیوٹرل سے گزرتے ہیں، جیسے لیور گیٹ کے\n"
-"بیچ سے گزرتا ہے۔ 0 سیدھا بدلتا ہے۔"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%d gamepad connected."
-msgid_plural "%d gamepads connected."
-msgstr[0] "%d گیم پیڈ منسلک ہے۔"
-msgstr[1] "%d گیم پیڈ منسلک ہیں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "No gamepad connected. Settings still apply once one is."
-msgstr "کوئی گیم پیڈ منسلک نہیں۔ منسلک ہونے پر ترتیبات پھر بھی لاگو ہوں گی۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Default"
-msgstr "طے شدہ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Game"
-msgstr "گیم"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1509,48 +921,808 @@ msgstr "گیمز فلٹر کریں"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "custom"
-msgstr "حسب ضرورت"
+msgid "Reset all"
+msgstr "سب ری سیٹ"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Used by every game without its own layout."
-msgstr "ہر اس گیم کے لیے جس کا اپنا لے آؤٹ نہیں۔"
+msgid "Games"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Uses the default layout until a binding is changed."
-msgstr "کوئی بائنڈنگ بدلنے تک طے شدہ لے آؤٹ استعمال کرتا ہے۔"
+msgid "playing"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "This game has its own layout."
-msgstr "اس گیم کا اپنا لے آؤٹ ہے۔"
+msgid "Gamepad"
+msgstr "گیم پیڈ"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Player"
-msgstr "کھلاڑی"
+msgid "Light gun"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Reset to SDL defaults"
-msgstr "SDL کی طے شدہ ترتیبات بحال کریں"
+msgid "Wheel"
+msgstr "اسٹیئرنگ وہیل"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Use Default Layout"
-msgstr "طے شدہ لے آؤٹ استعمال کریں"
+msgid "Pause"
+msgstr "توقف"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Show bindings"
-msgstr "بائنڈنگز دکھائیں"
+msgid "Fast-forward"
+msgstr "تیز آگے"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Show shortcuts"
-msgstr "شارٹ کٹس دکھائیں"
+msgid "While held."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Held: runs the game backwards. Needs Rewind on, on the System page."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind"
+msgstr "ریوائنڈ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quick-save"
+msgstr "فوری محفوظ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves the whole machine to the quick slot."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quick-load"
+msgstr "فوری لوڈ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Restores the quick slot."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "FPS counter"
+msgstr "FPS کاؤنٹر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings"
+msgstr "ترتیبات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This menu."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshot"
+msgstr "اسکرین شاٹ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Back to games"
+msgstr "گیمز پر واپس"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Leaves the game for the game list, or quits."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Quit"
+msgstr "باہر نکلیں"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Playing"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Window"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Leaving"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a key..."
+msgstr "کوئی کلید دبائیں..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Clear"
+msgstr "صاف"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Default"
+msgstr "طے شدہ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a key, then press the new one. Escape cancels. A key a game also uses "
+"does both."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Hold Guide and press a button for the menu, save, load, rewind and the rest; "
+"the Input page lists them. Off for a host that maps the hotkeys itself, such "
+"as Batocera."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guide button shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Guide held with a button: menu, save, load, rewind..."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet link"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Race linked with other machines on the same LAN running the same title (Sega "
+"Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps this cabinet "
+"standalone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link cabinets over the network"
+msgstr "نیٹ ورک پر کیبنٹس جوڑیں"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Takes effect at the next game launch."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The comms board is a ring: each cabinet listens on its own address and sends "
+"to the next. For two machines, point each at the other. The master/slave "
+"role is chosen in the game's own test menu, not here."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This cabinet"
+msgstr "یہ کیبنٹ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"This machine's address on the cabinet LAN. Blank listens on every interface. "
+"Detect fills it from the primary network adapter."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Detect"
+msgstr "شناخت کریں"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Local IP"
+msgstr "مقامی IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "every interface"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Subnet mask"
+msgstr "سب نیٹ ماسک"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Listen port"
+msgstr "سننے کا پورٹ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where this cabinet sits in the ring, from 0. For your own bookkeeping; the "
+"game negotiates the real link id from the ring."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet number"
+msgstr "کیبنٹ نمبر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Model 3 only. How many frames late the other cabinets' data is read. Raise "
+"it if a race over Wi-Fi stutters; lower it on a wired LAN. Each frame shows "
+"the other cars 1/60 s later."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "In frames; Model 3."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link delay"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next cabinet in the ring"
+msgstr "حلقے میں اگلا کیبنٹ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The cabinet this one sends to. For two machines, the other machine's IP. "
+"Blank means this cabinet does not forward (the tail of a chain)."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next IP"
+msgstr "اگلا IP"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Next port"
+msgstr "اگلا پورٹ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Status"
+msgstr "کیفیت"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Link configured; starts at the next game launch."
+msgstr "لنک ترتیب دیا گیا؛ اگلی بار گیم چلانے پر شروع ہوگا۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Standalone (no cabinet link)."
+msgstr "الگ (کوئی کیبنٹ لنک نہیں)۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Waiting for the game to switch the link board on..."
+msgstr "گیم کے لنک بورڈ آن کرنے کا انتظار..."
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Linked: cabinet %u of %u."
+msgstr "منسلک: کیبنٹ %u از %u۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Establishing the ring..."
+msgstr "حلقہ قائم ہو رہا ہے..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet outputs"
+msgstr "کیبنٹ آؤٹ پٹس"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Send lamps, gun recoil and drive-board output to MAMEHooker, Hook Of The "
+"Reaper and similar tools, using MAME's network output protocol."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lamps and drive-board bytes, as MAME sends them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Network outputs"
+msgstr "نیٹ ورک آؤٹ پٹس"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "MAME uses 8000."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Port"
+msgstr "پورٹ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The same outputs over MAME's Windows message protocol, for tools that hook "
+"MAME that way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Windows outputs"
+msgstr "Windows آؤٹ پٹس"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Browse..."
+msgstr "براؤز..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"One zip or 7z per game, named as in MAME. A game launched by name is loaded "
+"as <name>.zip or <name>.7z from its system's folder; Model 1 and Model 3 "
+"fall back to the Model 2 folder."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 1 ROM folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where the Model 1 ROM archives live. Empty means the Model 2 folder."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "the Model 2 folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 2 ROM folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "One zip or 7z per game, named as in MAME."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Where the Model 2 ROM archives live, and any Model 1 or Model 3 archives "
+"kept with them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "not set"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 3 ROM folder"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where the Model 3 ROM archives live. Empty means the Model 2 folder."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves and pictures"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "NVRAM, EEPROM, save states and textures."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Saves"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Battery-backed saves: per-game NVRAM (.nv) and EEPROM (.eeprom) images, high "
+"scores and operator settings."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Screenshots"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where screenshots are written."
+msgstr "جہاں اسکرین شاٹ لکھے جاتے ہیں۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bezels"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Bezel images: <game>.png, the parent set's, or default.png. Empty means a "
+"bezels folder beside keisho.ini."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "beside keisho.ini"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Crosshairs"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Crosshair images: <game>-p1.png (-p2 for player 2) or <game>.png for both, "
+"then the parent set's, then default. Without one the built-in crosshair is "
+"drawn. Empty means a crosshairs folder beside keisho.ini."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Game list"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Let the game list fetch box art and descriptions from ArcadeDB over the "
+"network. Off keeps Keisho offline: the list still launches every game, with "
+"plain tiles."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Box art and descriptions from ArcadeDB."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Fetch artwork online"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho files"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Where keisho.ini is read from and saved to. Set with --config <dir>."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Settings file"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Artwork cache"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load a game to save and restore its state."
+msgstr "حالت محفوظ اور بحال کرنے کے لیے کوئی گیم لوڈ کریں۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save states"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid ""
+"Save the whole machine to a slot and restore it later. Quick-save is %s, "
+"quick-load is %s."
+msgstr ""
+"پوری مشین کو ایک سلاٹ میں محفوظ کریں اور بعد میں بحال کریں۔ فوری محفوظ %s "
+"اور فوری لوڈ %s ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Delete"
+msgstr "حذف"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Load"
+msgstr "لوڈ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Save"
+msgstr "محفوظ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "empty"
+msgstr "خالی"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Interface"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Automatic (system)"
+msgstr "خودکار (سسٹم)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Language"
+msgstr "زبان"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Theme"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "In the top-right corner."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brief notes such as \"State saved\"."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Notifications"
+msgstr "اطلاعات"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Play"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheels and gamepads keep working while the window is not in front. Keyboard "
+"and mouse still need the window in front."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Background controller input"
+msgstr "پس منظر میں کنٹرولر ان پٹ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Pads and wheels work while the window is behind."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Keeps the last stretch of play in memory. Hold the rewind key and the game "
+"runs backwards through it at double speed; let go and play carries on from "
+"there. Taking the snapshots costs a little speed."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "The key is %s."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No key is set for it: see the Hotkeys page."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keep recent play in memory to run back through."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"RAM set aside for the history, not disk. Snapshots are stored as what "
+"changed, so 128 MiB holds about half a minute of most games."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "More memory keeps more of the past."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rewind memory"
+msgstr "ریوائنڈ میموری"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A Sega Model 1, 2 & 3 arcade emulator"
+msgstr "ایک Sega Model 1, 2 & 3 آرکیڈ ایمولیٹر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Version"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Copyright"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPL-3.0-or-later with additional terms; see LICENSE and NOTICE."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Licence"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Support development"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "With thanks to"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho exists because of open source shared with the community."
+msgstr "Keisho کمیونٹی کے ساتھ بانٹے گئے اوپن سورس کی بدولت موجود ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Model 1, 2 and 3 emulation guidance"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Model 3 reference (Bart Trzynadlowski and the Supermodel team)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Motorola 68000 CPU core (Karl Stenerud)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Yamaha FM sound cores (Aaron Giles)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "windowing, input and audio"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "this user interface (Omar Cornut)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "games.xml parsing"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "ZIP archive decompression"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "7-Zip archive decompression (Igor Pavlov)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "GPU memory (AMD / GPUOpen)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "shader compilation"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "image decoding (Sean Barrett)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gamepad picture"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "the menu's font (The Noto Project Authors), OFL 1.1"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "artwork fetching (optional)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "text shaping for translations"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "right-to-left text layout (Muhammad Tayyab Akram)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "game artwork and descriptions (adb.arcadeitalia.net, by Motoschifo)"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Brake"
+msgstr "بریک"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1579,8 +1751,43 @@ msgstr "نیچے"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Coin"
+msgstr "سکہ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Accelerator"
+msgstr "ایکسلریٹر"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Gear Up"
 msgstr "گیئر اوپر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 4"
+msgstr "بٹن 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 3"
+msgstr "بٹن 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 2"
+msgstr "بٹن 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Button 1"
+msgstr "بٹن 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Start"
+msgstr "Start"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1589,45 +1796,8 @@ msgstr "اسٹیئر / نشانہ"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Right Stick"
-msgstr "دائیں اسٹک"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Left Stick"
-msgstr "بائیں اسٹک"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "%s (inverted)"
-msgstr "%s (الٹا)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click, then push a stick.\n"
-"Right-click to go back to the default."
+msgid "Elevation"
 msgstr ""
-"کلک کریں، پھر اسٹک دھکیلیں۔\n"
-"طے شدہ پر واپس جانے کے لیے دایاں کلک کریں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click, then pull the trigger, push a stick\n"
-"or press a button. Right-click for the default."
-msgstr ""
-"کلک کریں، پھر ٹریگر کھینچیں، اسٹک دھکیلیں\n"
-"یا بٹن دبائیں۔ طے شدہ کے لیے دایاں کلک کریں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click, then press a button or pull a trigger.\n"
-"Right-click to unbind."
-msgstr ""
-"کلک کریں، پھر بٹن دبائیں یا ٹریگر کھینچیں۔\n"
-"تفویض ہٹانے کے لیے دایاں کلک کریں۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1696,8 +1866,33 @@ msgstr "اسٹک"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Forward"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reverse"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear Lever"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Cannon"
 msgstr "توپ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering"
+msgstr "اسٹیئرنگ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Turret"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1711,6 +1906,11 @@ msgstr "دائیں جھکاؤ"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Handlebars"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Cancel Error"
 msgstr "خرابی منسوخ کریں"
 
@@ -1721,23 +1921,271 @@ msgstr "نیٹ ورک منسوخ کریں"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Screenshot"
-msgstr "اسکرین شاٹ"
+msgid "Flight Stick"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Skis"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Handle"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bomb"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shot"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Board"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bunt"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Swing"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Run"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering Wheel"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Bat"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift Up"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift Down"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shifter"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "P%d: %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%d gamepad connected."
+msgid_plural "%d gamepads connected."
+msgstr[0] "%d گیم پیڈ منسلک ہے۔"
+msgstr[1] "%d گیم پیڈ منسلک ہیں۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No gamepad connected. Settings still apply once one is."
+msgstr "کوئی گیم پیڈ منسلک نہیں۔ منسلک ہونے پر ترتیبات پھر بھی لاگو ہوں گی۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "custom"
+msgstr "حسب ضرورت"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Every game uses the default layout until it is given one of its own. Pick a "
+"game, change a binding, and the game keeps the change. A game shows only the "
+"controls its cabinet has."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Layout for"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Player"
+msgstr "کھلاڑی"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Used by every game without its own layout."
+msgstr "ہر اس گیم کے لیے جس کا اپنا لے آؤٹ نہیں۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Uses the default layout until a binding is changed."
+msgstr "کوئی بائنڈنگ بدلنے تک طے شدہ لے آؤٹ استعمال کرتا ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "This game has its own layout."
+msgstr "اس گیم کا اپنا لے آؤٹ ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Cabinet"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shortcuts"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Gamepad shows the pad with every binding. Cabinet shows the game's controls "
+"as the cabinet has them, each with what the pad does for it. Shortcuts lists "
+"what Guide held with another button does."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "unbound"
+msgstr "غیر تفویض"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Right Stick"
+msgstr "دائیں اسٹک"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Left Stick"
+msgstr "بائیں اسٹک"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%s (inverted)"
+msgstr "%s (الٹا)"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "D-Pad"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Face buttons"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Reset to SDL defaults"
+msgstr "SDL کی طے شدہ ترتیبات بحال کریں"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Use default layout"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Hide unused"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Show unused"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Map all"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Map all asks for each control of the cabinet in turn: press the pad input "
+"for it, or wait and it moves on. Show unused adds the slots this cabinet has "
+"no control for, to bind them anyway."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Layout"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press each of its inputs in turn. Right-click or Delete clears "
+"them."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then press the pad input for it. Right-click or Delete clears it."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Click, then push a stick. Right-click to go back to the default."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then move a stick the way that should read as up. Right-click for the "
+"default."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click, then pull the trigger, push a stick or press a button. Right-click "
+"for the default."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Click, then press a button or pull a trigger. Right-click to unbind."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "operate it..."
+msgstr "اسے چلائیں..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "press a button..."
+msgstr "کوئی بٹن دبائیں..."
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Service"
+msgstr "سروس"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Left held"
 msgstr "بایاں دبا ہوا"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rewind"
-msgstr "ریوائنڈ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Fast-forward"
-msgstr "تیز آگے"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1751,23 +2199,58 @@ msgstr "باہر نکلیں"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Quick-load"
-msgstr "فوری لوڈ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Quick-save"
-msgstr "فوری محفوظ"
-
-#: src/osd/gui.cpp
-#, no-c-format
 msgid "Settings menu"
 msgstr "ترتیبات مینو"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "Test"
+msgstr "ٹیسٹ"
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Hold first"
 msgstr "پہلے دبائے رکھیں"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Press the pad button for %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Push the stick for %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Move the stick the way that raises %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Pull the trigger or push the stick for %s"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "%zu of %zu   ·   %d s, then the next   ·   Escape stops"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Escape cancels"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Skip"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Stop"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1779,22 +2262,38 @@ msgstr ""
 "گیمز کی فہرست پر لے جاتا ہے جب گیمز ہوں۔ سروس اور ٹیسٹ ہمیشہ کام کرتے ہیں۔"
 
 #: src/osd/gui.cpp
-#, no-c-format
+#, c-format
 msgid ""
-"Slots are named for this game's controls; dimmed ones are not used. Show "
-"shortcuts lists the Guide combinations."
-msgstr ""
-"خانوں کے نام اس گیم کے کنٹرولز پر ہیں؛ مدھم خانے استعمال نہیں ہوتے۔ شارٹ کٹس "
-"دکھائیں Guide کے مجموعے دکھاتا ہے۔"
+"Click a control or press Enter on it, then press the pad input for it. Right-"
+"click, Delete or X clears it. %d slot this cabinet has no control for is "
+"hidden: Show unused lists it."
+msgid_plural ""
+"Click a control or press Enter on it, then press the pad input for it. Right-"
+"click, Delete or X clears it. %d slots this cabinet has no control for are "
+"hidden: Show unused lists them."
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"The left stick also moves; the shoulders also act as Button 3/4. Right Lever "
-"is Virtual On's. Show shortcuts lists the Guide combinations."
+"Click a control or press Enter on it, then press the pad input for it. Right-"
+"click, Delete or X clears it. The left stick also moves; the shoulders also "
+"act as Button 3/4."
 msgstr ""
-"بائیں اسٹک بھی حرکت دیتی ہے؛ کندھے کے بٹن Button 3/4 کا کام بھی کرتے ہیں۔ "
-"دایاں لیور Virtual On کا ہے۔ شارٹ کٹس دکھائیں Guide کے مجموعے دکھاتا ہے۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sticks"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Stick travel about centre that reads as centre. Let go of the stick and "
+"raise this until the marker below sits inside the shaded zone. Also applies "
+"to stick aiming."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1803,19 +2302,21 @@ msgstr "اسٹک ڈیڈ زون"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Stick travel about centre that reads as centre. The bar shows\n"
-"the stick now: let go of it and raise this until the marker\n"
-"sits inside the shaded zone. Also applies to stick aiming."
-msgstr ""
-"مرکز کے آس پاس اسٹک کی حرکت جو مرکز ہی پڑھی جائے۔ بار اسٹک کی\n"
-"موجودہ حالت دکھاتی ہے: اسے چھوڑ دیں اور اسے بڑھائیں جب تک نشان\n"
-"سایہ دار حصے میں نہ آ جائے۔ اسٹک سے نشانہ لینے پر بھی لاگو۔"
+msgid "Stick position"
+msgstr "اسٹک کی پوزیشن"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Stick position"
-msgstr "اسٹک کی پوزیشن"
+msgid "The stick now, against the deadzone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Response of a stick's travel past its deadzone. Full deflection is always "
+"full lock; under 100% the middle of the travel does less, over 100% it does "
+"more."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1824,23 +2325,36 @@ msgstr "اسٹک کی حساسیت"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Response of a stick's travel past its deadzone. Full deflection\n"
-"is always full lock; under 100% the middle of the travel does\n"
-"less, over 100% it does more."
-msgstr ""
-"ڈیڈ زون سے آگے اسٹک کی حرکت کا ردعمل۔ مکمل جھکاؤ\n"
-"ہمیشہ مکمل لاک ہے؛ 100% سے کم پر درمیانی حرکت کم\n"
-"اور 100% سے زیادہ پر زیادہ اثر کرتی ہے۔"
+msgid "Rumble"
+msgstr "ارتعاش"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Vibrates on the game's impacts in driving games.\n"
-"Other games stay quiet."
+"Vibrates on the game's impacts in driving games. Other games stay quiet."
 msgstr ""
-"ڈرائیونگ گیمز میں گیم کے ٹکراؤ پر لرزتا ہے۔\n"
-"دوسرے گیمز خاموش رہتے ہیں۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The game's impacts, in driving games."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rumble strength"
+msgstr "ارتعاش کی شدت"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows as you steer. It is not from the game. Turn it "
+"off to feel only the game's impacts."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Grows as you steer; not from the game."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1849,75 +2363,314 @@ msgstr "اسٹیئرنگ ارتعاش"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"An added vibration that grows as you steer. It is not\n"
-"from the game. Turn it off to feel only the game's force feedback."
-msgstr ""
-"ایک اضافی ارتعاش جو اسٹیئر کرنے کے ساتھ بڑھتا ہے۔ یہ گیم کی\n"
-"طرف سے نہیں۔ صرف گیم کا فورس فیڈ بیک محسوس کرنے کے لیے اسے بند کریں۔"
+msgid "No wheel connected. Settings still apply once one is."
+msgstr "کوئی وہیل منسلک نہیں۔ منسلک ہونے پر ترتیبات پھر بھی لاگو ہوں گی۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Reset"
-msgstr "ری سیٹ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Music volume"
-msgstr "موسیقی کی آواز"
+msgid "Wheel connected."
+msgstr "وہیل منسلک ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Only for games with a separate music board: Star Wars\n"
-"Arcade, Sega Touring Car Championship and Top Skater.\n"
-"Sound effects stay as they are."
+"Wheel force on driving games: centring and cornering forces decoded from the "
+"game's own drive-board commands, plus an impact jolt when you hit something."
 msgstr ""
-"صرف الگ میوزک بورڈ والی گیمز کے لیے:\n"
-"Star Wars Arcade, Sega Touring Car Championship, Top Skater۔\n"
-"ساؤنڈ ایفیکٹس ویسے ہی رہتے ہیں۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Per-game volume"
-msgstr "ہر گیم کا والیوم"
+msgid "Force feedback"
+msgstr "فورس فیڈ بیک"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The drive board's forces, on a wheel that can make them."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Raise or lower a game's volume from its default level.\n"
-"One slider covers every revision of a game. Off plays\n"
-"every game at its default, whatever the sliders say.\n"
-"\n"
-"Warning: above 100% loud effects can clip (audible\n"
-"distortion)."
+"A gain on every force of the drive board. At 100%, the board's full power "
+"(63) gives the wheel's full force, every force in proportion. 200% doubles "
+"every force: those above half the board's power (32, Sega Rally's strongest "
+"torque) then saturate."
 msgstr ""
-"گیم کا والیوم اس کی طے شدہ سطح سے بڑھائیں یا گھٹائیں۔\n"
-"ایک سلائیڈر گیم کے تمام ورژنز پر لاگو ہوتا ہے۔ بند ہونے\n"
-"پر ہر گیم طے شدہ سطح پر چلتا ہے، سلائیڈر کچھ بھی ہوں۔\n"
-"\n"
-"انتباہ: 100% سے اوپر تیز آوازیں کٹ سکتی ہیں (سنائی دینے\n"
-"والا بگاڑ)۔"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "Now playing: %s"
-msgstr "اب چل رہا ہے: %s"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Reset all"
-msgstr "سب ری سیٹ"
+msgid "Resistance"
+msgstr "مزاحمت"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Volume"
-msgstr "والیوم"
+msgid ""
+"The centring spring of the Sega Rally Championship and Daytona USA cabinets: "
+"very light, it brings the wheel back and is barely felt when held against. A "
+"share of the resistance above. The other games' cabinets drive the wheel "
+"with no spring, and ignore this setting."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Panel spring"
+msgstr "پینل اسپرنگ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Sega Rally Championship and Daytona USA only, all versions."
+msgstr "صرف Sega Rally Championship اور Daytona USA، تمام ورژن۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"The motor strength set on the drive board's DIP switches, the switches ON "
+"counted in binary: 0 = all OFF. Sega Rally: switches 1-3, 0 to 7 added to "
+"every torque. Daytona USA: switches 1-3, 4 times that. Indy 500, Touring "
+"Car, Over Rev, Super GT 24h: switches 1-1 to 1-3, 0 to 7 added to every "
+"force."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Drive board DIP strength"
+msgstr "ڈرائیو بورڈ کی DIP طاقت"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The operator's setting, 0 to 7."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"For a wheel whose driver pushes the wrong way: it pulls away from the centre "
+"instead of bringing it back, and the game's forces go the opposite way."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Invert force feedback"
+msgstr "فورس فیڈ بیک الٹ دیں"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Vibrates on the game's impacts, for wheels without force feedback. It never "
+"runs alongside force feedback."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "For wheels without force feedback."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"An added vibration that grows with the throttle. It is not from the game. "
+"Turn it off to feel only the game's force feedback."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Engine vibration"
+msgstr "انجن کا ارتعاش"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Grows with the throttle; not from the game."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Set this to your wheel's own rotation range. The lock angle below is mapped "
+"onto it, so matching your wheel gives arcade-like response."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Steering range"
+msgstr "اسٹیئرنگ کی حد"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Your wheel's own rotation, in degrees."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"How far to physically turn for full game lock (total, so half each side of "
+"centre). Lower is more sensitive."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Lock angle"
+msgstr "لاک زاویہ"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Rotation to full lock, both sides together."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Wheel travel about centre that reads as centre. Most wheels want none; a "
+"little covers one whose centre wanders. The bar below shows the wheel now "
+"against the shaded zone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Centre deadzone"
+msgstr "مرکزی ڈیڈ زون"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "The wheel now, against the deadzone."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Wheel position"
+msgstr "وہیل کی پوزیشن"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Axes"
+msgstr "محور"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Auto-detected. Calibrate one if steering or a pedal is wrong: click its "
+"value, then operate that control."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid "Auto"
 msgstr "خودکار"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "auto"
+msgstr "خودکار"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (half, +)"
+msgstr "محور %d (آدھا، +)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (half, -)"
+msgstr "محور %d (آدھا، -)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d (inverted)"
+msgstr "محور %d (الٹا)"
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "axis %d"
+msgstr "محور %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Buttons"
+msgstr "بٹن"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Click a value, then press the wheel button for that control."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift up"
+msgstr "گیئر اوپر"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Shift down"
+msgstr "گیئر نیچے"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 1"
+msgstr "گیئر 1"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 2"
+msgstr "گیئر 2"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 3"
+msgstr "گیئر 3"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear 4"
+msgstr "گیئر 4"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Neutral"
+msgstr "نیوٹرل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Menu"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "button %d"
+msgstr "بٹن %d"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Gear shifter"
+msgstr "گیئر لیور"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"With an H shifter bound to Gear 1..4: its lever in none of the gears is in "
+"neutral, as on the cabinet. Off, the last gear stays engaged until another "
+"is selected or Neutral is pressed."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Daytona USA and Sega Rally Championship, all versions."
+msgstr "Daytona USA اور Sega Rally Championship، تمام ورژن۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Neutral when no gear is engaged"
+msgstr "جب کوئی گیئر نہ لگا ہو تو نیوٹرل"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Shift up / Shift down (and a gamepad's RB / LB) from one gear to another "
+"pass through neutral this long, as a lever crosses the gate's centre. 0 "
+"shifts straight."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Neutral between gears"
+msgstr "گیئرز کے درمیان نیوٹرل"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1931,19 +2684,32 @@ msgstr "آن"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid ""
+"The aiming crosshair, with the mouse pointer hidden. Auto turns it on in a "
+"gun game; On hides the pointer in every game; Off never shows a crosshair."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Crosshair and hidden pointer: in gun games, always, or never."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Gun mode"
 msgstr "گن موڈ"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"The aiming crosshair, with the mouse pointer hidden.\n"
-"Auto turns it on in a gun game; On hides the pointer in\n"
-"every game; Off never shows a crosshair."
+"Draw Keisho's own crosshair. Turn off if the gun has its own sight (e.g. a "
+"Sinden). Positional-gun titles always draw their own regardless."
 msgstr ""
-"نشانے کا کراس ہیئر، ماؤس پوائنٹر چھپا کر۔\n"
-"خودکار اسے گن گیم میں آن کرتا ہے؛ آن ہر گیم میں\n"
-"پوائنٹر چھپاتا ہے؛ بند کبھی کراس ہیئر نہیں دکھاتا۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Keisho's own sight."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1953,13 +2719,15 @@ msgstr "نشانے کا کراس دکھائیں"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Draw Keisho's own crosshair. Turn off if the gun\n"
-"has its own sight (e.g. a Sinden). Positional-gun\n"
-"titles always draw their own regardless."
+"A gamepad's stick points at the screen: the crosshair sits in the centre at "
+"rest and reaches the edge at full tilt. Off, the stick moves the crosshair "
+"like a mouse."
 msgstr ""
-"Keisho کا اپنا نشانے کا کراس بنائیں۔ اگر گن کا اپنا\n"
-"نشانہ ہو (مثلاً Sinden) تو بند کریں۔ مقامی گن والے\n"
-"گیمز ہر حال میں اپنا کراس خود بناتے ہیں۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A stick points at the screen instead of moving the sight."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1969,13 +2737,9 @@ msgstr "مرکزی اسٹک نشانہ"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"A gamepad's stick points at the screen: the crosshair\n"
-"sits in the centre at rest and reaches the edge at full\n"
-"tilt. Off, the stick moves the crosshair like a mouse."
+"Hide the white flash Virtua Cop, Virtua Cop 2 and House of the Dead show on "
+"each shot."
 msgstr ""
-"گیم پیڈ کی اسٹک اسکرین کی طرف اشارہ کرتی ہے: آرام پر\n"
-"کراس ہیئر مرکز میں رہتا ہے اور پورا جھکانے پر کنارے تک۔\n"
-"بند ہو تو اسٹک کراس ہیئر کو ماؤس کی طرح چلاتی ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -1984,19 +2748,23 @@ msgstr "فائر کی چمک چھپائیں"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid ""
-"Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
-"House of the Dead show on each shot."
+msgid "The white flash of the gun games."
 msgstr ""
-"Virtua Cop، Virtua Cop 2 اور House of the Dead میں\n"
-"ہر فائر پر دکھنے والی سفید چمک چھپائیں۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Devices"
+msgstr "آلات"
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
 "By default player 1 aims with the mouse (the left button fires and the right "
 "reloads by shooting off screen) and player 2 with a gamepad."
-msgstr "پہلے سے طے شدہ طور پر کھلاڑی 1 ماؤس سے نشانہ لیتا ہے (بایاں بٹن فائر کرتا ہے اور دایاں اسکرین سے باہر فائر کر کے دوبارہ لوڈ کرتا ہے) اور کھلاڑی 2 گیم پیڈ سے۔"
+msgstr ""
+"پہلے سے طے شدہ طور پر کھلاڑی 1 ماؤس سے نشانہ لیتا ہے (بایاں بٹن فائر کرتا ہے "
+"اور دایاں اسکرین سے باہر فائر کر کے دوبارہ لوڈ کرتا ہے) اور کھلاڑی 2 گیم پیڈ "
+"سے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2006,18 +2774,14 @@ msgstr "جھٹکا"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"Kick the gun's rumble motor on each shot, for guns\n"
-"that have one (Sinden and similar). No effect on a\n"
-"gun without a motor."
+"Kick the gun's rumble motor on each shot, for guns that have one (Sinden and "
+"similar). No effect on a gun without a motor."
 msgstr ""
-"ہر فائر پر گن کی ارتعاشی موٹر چلائیں، ان گنز کے لیے\n"
-"جن میں موٹر ہو (Sinden وغیرہ)۔ بغیر موٹر والی\n"
-"گن پر کوئی اثر نہیں۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Enable recoil"
-msgstr "جھٹکا فعال کریں"
+msgid "The gun's motor kicks on each shot."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2025,14 +2789,14 @@ msgid "Strength"
 msgstr "شدت"
 
 #: src/osd/gui.cpp
-#, no-c-format
-msgid "Devices"
-msgstr "آلات"
+#, c-format
+msgid "Gun %zu"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Gun %zu (player %zu): %s"
-msgstr "گن %zu (کھلاڑی %zu): %s"
+msgid "Player %zu"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2057,16 +2821,6 @@ msgstr ""
 "کوئی مخصوص لائٹ گن نہیں ملی۔ کھلاڑی 1 ماؤس سے نشانہ لیتا ہے؛ بایاں بٹن فائر "
 "کرتا ہے اور دایاں بٹن ری لوڈ کرتا ہے (اسکرین سے باہر فائر)۔ ہر کھلاڑی کے الگ "
 "نشانے کے لیے ID_INPUT_GUN ٹیگ والی گنز لگائیں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Gun buttons"
-msgstr "گن کے بٹن"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Press Bind, then press the button on that player's gun."
-msgstr "تفویض دبائیں، پھر اس کھلاڑی کی گن کا بٹن دبائیں۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2095,8 +2849,15 @@ msgstr "ہیٹ اوپر"
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Player %d"
-msgstr "کھلاڑی %d"
+msgid "Gun buttons, player %d"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid ""
+"Click a value, then press the button on that player's gun. With no gun, a "
+"mouse button binds too."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2106,13 +2867,9 @@ msgstr "Sinden فریم"
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"A bright frame around the game image that a Sinden\n"
-"gun's camera tracks for aiming. Only shown in\n"
-"light-gun mode."
+"A bright frame around the game image that a Sinden gun's camera tracks for "
+"aiming. Only shown in light-gun mode."
 msgstr ""
-"گیم کی تصویر کے گرد ایک روشن فریم جسے Sinden گن کا\n"
-"کیمرا نشانے کے لیے ٹریک کرتا ہے۔ صرف لائٹ گن\n"
-"موڈ میں دکھایا جاتا ہے۔"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2121,334 +2878,23 @@ msgstr "فریم دکھائیں"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "The frame a Sinden gun's camera tracks."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Colour"
 msgstr "رنگ"
 
 #: src/osd/gui.cpp
 #, no-c-format
+msgid "In game-image pixels."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
 msgid "Thickness"
 msgstr "موٹائی"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Link cabinets over the network"
-msgstr "نیٹ ورک پر کیبنٹس جوڑیں"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Race linked with other machines on the same LAN running the same\n"
-"title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
-"this cabinet standalone. Takes effect on the next game launch."
-msgstr ""
-"اسی LAN پر وہی گیم چلانے والی دوسری مشینوں کے ساتھ جڑ کر ریس کریں\n"
-"(Sega Rally، Daytona، Super GT 24h، Indy 500، ...)۔ بند ہونے پر\n"
-"یہ کیبنٹ الگ رہتا ہے۔ اگلی بار گیم چلانے پر لاگو ہوتا ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The comms board is a ring: each cabinet listens on its own address and sends "
-"to the next cabinet. For two machines, point each at the other. The master/"
-"slave role is chosen in the game's own test menu, not here."
-msgstr ""
-"کمیونیکیشن بورڈ ایک حلقہ ہے: ہر کیبنٹ اپنے پتے پر سنتا ہے اور اگلے کیبنٹ کو "
-"بھیجتا ہے۔ دو مشینوں کے لیے ہر ایک کو دوسری کی طرف اشارہ کریں۔ ماسٹر/سلیو "
-"کردار یہاں نہیں بلکہ گیم کے اپنے ٹیسٹ مینو میں چنا جاتا ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "This cabinet"
-msgstr "یہ کیبنٹ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Local IP"
-msgstr "مقامی IP"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Detect"
-msgstr "شناخت کریں"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"This machine's address on the cabinet LAN. Blank\n"
-"listens on every interface. Detect fills it from the\n"
-"primary network adapter."
-msgstr ""
-"کیبنٹ LAN پر اس مشین کا پتہ۔ خالی ہو تو ہر\n"
-"انٹرفیس پر سنتا ہے۔ شناخت کریں اسے بنیادی\n"
-"نیٹ ورک اڈاپٹر سے بھرتا ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Subnet mask"
-msgstr "سب نیٹ ماسک"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Listen port"
-msgstr "سننے کا پورٹ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Cabinet number"
-msgstr "کیبنٹ نمبر"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Where this cabinet sits in the ring (0-based).\n"
-"For your own bookkeeping; the game negotiates the\n"
-"actual link id from the ring."
-msgstr ""
-"حلقے میں اس کیبنٹ کی جگہ (0 سے شروع)۔\n"
-"آپ کے اپنے ریکارڈ کے لیے؛ اصل لنک id گیم\n"
-"حلقے سے طے کرتا ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Link delay (frames)"
-msgstr "لنک تاخیر (فریم)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Model 3 only. How many frames late the other cabinets'\n"
-"data is read. Raise it if a race over Wi-Fi stutters;\n"
-"lower it on a wired LAN. Each frame shows the other\n"
-"cars 1/60 s later."
-msgstr ""
-"صرف Model 3۔ دوسرے کیبنٹس کا ڈیٹا کتنے فریم\n"
-"دیر سے پڑھا جائے۔ Wi-Fi پر ریس اٹکے تو بڑھائیں؛\n"
-"تار والے LAN پر کم کریں۔ ہر فریم دوسری گاڑیوں کو\n"
-"1/60 سیکنڈ بعد دکھاتا ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Next cabinet in the ring"
-msgstr "حلقے میں اگلا کیبنٹ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Next IP"
-msgstr "اگلا IP"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The cabinet this one sends to. For two machines, the\n"
-"other machine's IP. Blank means this cabinet does not\n"
-"forward (tail of a chain)."
-msgstr ""
-"وہ کیبنٹ جسے یہ بھیجتا ہے۔ دو مشینوں کے لیے دوسری\n"
-"مشین کا IP۔ خالی کا مطلب ہے یہ کیبنٹ آگے نہیں\n"
-"بھیجتا (زنجیر کا آخری سرا)۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Next port"
-msgstr "اگلا پورٹ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Status"
-msgstr "کیفیت"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Link configured; starts at the next game launch."
-msgstr "لنک ترتیب دیا گیا؛ اگلی بار گیم چلانے پر شروع ہوگا۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Standalone (no cabinet link)."
-msgstr "الگ (کوئی کیبنٹ لنک نہیں)۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Waiting for the game to switch the link board on..."
-msgstr "گیم کے لنک بورڈ آن کرنے کا انتظار..."
-
-#: src/osd/gui.cpp
-#, c-format
-msgid "Linked: cabinet %u of %u."
-msgstr "منسلک: کیبنٹ %u از %u۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Establishing the ring..."
-msgstr "حلقہ قائم ہو رہا ہے..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "This machine's interfaces:"
-msgstr "اس مشین کے انٹرفیس:"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Automatic (system)"
-msgstr "خودکار (سسٹم)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Language"
-msgstr "زبان"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Background controller input"
-msgstr "پس منظر میں کنٹرولر ان پٹ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Wheels and gamepads keep working while the window is\n"
-"not in front. Keyboard and mouse still need the window\n"
-"in front."
-msgstr ""
-"ونڈو سامنے نہ ہونے پر بھی اسٹیئرنگ وہیل اور گیم پیڈ\n"
-"کام کرتے رہتے ہیں۔ کی بورڈ اور ماؤس کے لیے\n"
-"ونڈو کا سامنے ہونا ضروری ہے۔"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid ""
-"Hold %s to step back through play.\n"
-"Costs a little speed on every frame while on."
-msgstr ""
-"کھیل میں پیچھے جانے کے لیے %s دبائے رکھیں۔\n"
-"آن ہونے پر ہر فریم پر رفتار تھوڑی کم ہوتی ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rewind memory"
-msgstr "ریوائنڈ میموری"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Cabinet outputs"
-msgstr "کیبنٹ آؤٹ پٹس"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Network outputs"
-msgstr "نیٹ ورک آؤٹ پٹس"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Send lamps, gun recoil and drive-board output to\n"
-"MAMEHooker, Hook Of The Reaper and similar tools,\n"
-"using MAME's network output protocol."
-msgstr ""
-"لیمپ، گن کا جھٹکا اور ڈرائیو بورڈ آؤٹ پٹ\n"
-"MAMEHooker، Hook Of The Reaper اور ایسے ٹولز کو بھیجیں،\n"
-"MAME کے نیٹ ورک آؤٹ پٹ پروٹوکول کے ذریعے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Port"
-msgstr "پورٹ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Windows outputs"
-msgstr "Windows آؤٹ پٹس"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"The same outputs over MAME's Windows message\n"
-"protocol, for tools that hook MAME that way."
-msgstr ""
-"یہی آؤٹ پٹس MAME کے Windows میسج پروٹوکول پر،\n"
-"ان ٹولز کے لیے جو MAME سے اسی طرح جڑتے ہیں۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Keyboard shortcuts"
-msgstr "کی بورڈ شارٹ کٹس"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Back to games"
-msgstr "گیمز پر واپس"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Settings overlay"
-msgstr "ترتیبات اوورلے"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Pause"
-msgstr "توقف"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Fast-forward (held)"
-msgstr "تیز آگے (دبائے رکھیں)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Rewind (held)"
-msgstr "ریوائنڈ (دبائے رکھیں)"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "press a key..."
-msgstr "کوئی کلید دبائیں..."
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Clear"
-msgstr "صاف"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid ""
-"Click a key, then press the new one. Escape cancels.\n"
-"A key a game also uses does both."
-msgstr ""
-"کسی کلید پر کلک کریں، پھر نئی کلید دبائیں۔ Escape منسوخ کرتا ہے۔\n"
-"جو کلید گیم بھی استعمال کرتا ہے وہ دونوں کام کرتی ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Load a game to save and restore its state."
-msgstr "حالت محفوظ اور بحال کرنے کے لیے کوئی گیم لوڈ کریں۔"
-
-#: src/osd/gui.cpp
-#, c-format
-msgid ""
-"Save the whole machine to a slot and restore it later. Quick-save is %s, "
-"quick-load is %s."
-msgstr ""
-"پوری مشین کو ایک سلاٹ میں محفوظ کریں اور بعد میں بحال کریں۔ فوری محفوظ %s "
-"اور فوری لوڈ %s ہے۔"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Delete"
-msgstr "حذف"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Load"
-msgstr "لوڈ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "Save"
-msgstr "محفوظ"
-
-#: src/osd/gui.cpp
-#, no-c-format
-msgid "empty"
-msgstr "خالی"
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2506,28 +2952,51 @@ msgid "Cancel"
 msgstr "منسوخ"
 
 #: src/osd/gui.cpp
+#, no-c-format
+msgid "All"
+msgstr ""
+
+#: src/osd/gui.cpp
 #, c-format
-msgid "%s: toggle overlay"
-msgstr "%s: اوورلے دکھائیں/چھپائیں"
+msgid "%zu of %zu"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
-msgid "Select a game"
-msgstr "گیم منتخب کریں"
+msgid "Search"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, c-format
-msgid "Enter: launch   %s: settings   %s: quit"
-msgstr "Enter: چلائیں   %s: ترتیبات   %s: باہر نکلیں"
+msgid "Enter: play   %s: settings   %s: quit"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "A: play"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Type to search. Arrows or the D-pad choose."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
 msgid ""
-"No ROM archives were found in the ROM directories. Set them in Settings (F1) "
-"> Paths, then relaunch."
+"No ROM archives were found in the ROM folders. Set them in Settings > Paths, "
+"then relaunch."
 msgstr ""
-"ROM ڈائریکٹریز میں کوئی ROM آرکائیو نہیں ملا۔ انہیں ترتیبات (F1) > راستے میں "
-"مقرر کریں، پھر دوبارہ چلائیں۔"
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "No game matches."
+msgstr ""
+
+#: src/osd/gui.cpp
+#, no-c-format
+msgid "Enter"
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2538,6 +3007,1002 @@ msgstr "تفصیل حاصل کی جا رہی ہے..."
 #, no-c-format
 msgid "No description available."
 msgstr "کوئی تفصیل دستیاب نہیں۔"
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Ink"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "charcoal and warm grey, a cool blue"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Sunset"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "indigo night, coral and pink from the logo"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Paper"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "light: warm paper, vermilion and indigo"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Arcade"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "Sega blue skies with a yellow sun"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "High contrast"
+msgstr ""
+
+#: src/osd/ui/theme.cpp
+#, no-c-format
+msgid "black, white and yellow; heavier lines"
+msgstr ""
+
+#, no-c-format
+#~ msgid "Show bindings"
+#~ msgstr "بائنڈنگز دکھائیں"
+
+#, no-c-format
+#~ msgid "Show shortcuts"
+#~ msgstr "شارٹ کٹس دکھائیں"
+
+#, no-c-format
+#~ msgid ""
+#~ "Click, then push a stick.\n"
+#~ "Right-click to go back to the default."
+#~ msgstr ""
+#~ "کلک کریں، پھر اسٹک دھکیلیں۔\n"
+#~ "طے شدہ پر واپس جانے کے لیے دایاں کلک کریں۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Click, then pull the trigger, push a stick\n"
+#~ "or press a button. Right-click for the default."
+#~ msgstr ""
+#~ "کلک کریں، پھر ٹریگر کھینچیں، اسٹک دھکیلیں\n"
+#~ "یا بٹن دبائیں۔ طے شدہ کے لیے دایاں کلک کریں۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Click, then press a button or pull a trigger.\n"
+#~ "Right-click to unbind."
+#~ msgstr ""
+#~ "کلک کریں، پھر بٹن دبائیں یا ٹریگر کھینچیں۔\n"
+#~ "تفویض ہٹانے کے لیے دایاں کلک کریں۔"
+
+#, no-c-format
+#~ msgid "Select a game"
+#~ msgstr "گیم منتخب کریں"
+
+#, c-format
+#~ msgid "Enter: launch   %s: settings   %s: quit"
+#~ msgstr "Enter: چلائیں   %s: ترتیبات   %s: باہر نکلیں"
+
+#, no-c-format
+#~ msgid "File"
+#~ msgstr "فائل"
+
+#, no-c-format
+#~ msgid "Hide overlay"
+#~ msgstr "اوورلے چھپائیں"
+
+#, no-c-format
+#~ msgid "On-screen notifications"
+#~ msgstr "اسکرین پر اطلاعات"
+
+#, no-c-format
+#~ msgid "(Model 1 & 2 only)"
+#~ msgstr "(صرف Model 1 اور 2)"
+
+#, no-c-format
+#~ msgid "Video"
+#~ msgstr "ویڈیو"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wait for vertical blank before presenting.\n"
+#~ "Prevents tearing but adds up to one frame of latency."
+#~ msgstr ""
+#~ "تصویر دکھانے سے پہلے عمودی خلا کا انتظار کریں۔\n"
+#~ "پھٹنے سے بچاتا ہے مگر ایک فریم تک تاخیر بڑھاتا ہے۔"
+
+#, no-c-format
+#~ msgid "GPU"
+#~ msgstr "GPU"
+
+#, no-c-format
+#~ msgid "Auto (best)"
+#~ msgstr "خودکار (بہترین)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Which renderer draws the game. Applies on the\n"
+#~ "next launch - save settings and relaunch."
+#~ msgstr ""
+#~ "کون سا رینڈرر گیم بناتا ہے۔ اگلی بار چلانے پر لاگو\n"
+#~ "ہوتا ہے - ترتیبات محفوظ کر کے دوبارہ چلائیں۔"
+
+#, no-c-format
+#~ msgid "Window size"
+#~ msgstr "ونڈو کا سائز"
+
+#, no-c-format
+#~ msgid "Width"
+#~ msgstr "چوڑائی"
+
+#, no-c-format
+#~ msgid "Height"
+#~ msgstr "اونچائی"
+
+#, no-c-format
+#~ msgid "1x (native)"
+#~ msgstr "1x (اصل)"
+
+#, no-c-format
+#~ msgid "8x (4K)"
+#~ msgstr "8x (4K)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Internal 3D rendering resolution. Higher is crisper 3D\n"
+#~ "(2D/HUD stays sharp). GPU backends only; the software\n"
+#~ "renderer stays native. Applies on the next launch - save\n"
+#~ "settings and relaunch."
+#~ msgstr ""
+#~ "اندرونی 3D رینڈرنگ ریزولوشن۔ زیادہ قدر سے 3D زیادہ واضح\n"
+#~ "(2D/HUD تیز رہتا ہے)۔ صرف GPU بیک اینڈ؛ سافٹ ویئر\n"
+#~ "رینڈرر اصل پر رہتا ہے۔ اگلی بار چلانے پر لاگو ہوتا ہے -\n"
+#~ "ترتیبات محفوظ کر کے دوبارہ چلائیں۔"
+
+#, no-c-format
+#~ msgid "Sharp-bilinear"
+#~ msgstr "تیز بائی لینیئر"
+
+#, no-c-format
+#~ msgid "2D scaling"
+#~ msgstr "2D اسکیلنگ"
+
+#, no-c-format
+#~ msgid ""
+#~ "How the frame is magnified to the window.\n"
+#~ "Sharp-bilinear keeps 2D text crisp without the shimmer\n"
+#~ "nearest shows at non-integer window sizes. Integer snaps\n"
+#~ "to a whole multiple (pixel-perfect, with black bars).\n"
+#~ "Applies live."
+#~ msgstr ""
+#~ "فریم کو ونڈو تک کیسے بڑا کیا جائے۔\n"
+#~ "تیز بائی لینیئر 2D متن کو اس جھلملاہٹ کے بغیر واضح رکھتا ہے\n"
+#~ "جو قریب ترین غیر عدد صحیح سائز پر دکھاتا ہے۔ عدد صحیح\n"
+#~ "پورے گنا پر رکھتا ہے (پکسل درست، سیاہ پٹیوں کے ساتھ)۔\n"
+#~ "فوراً لاگو ہوتا ہے۔"
+
+#, no-c-format
+#~ msgid "16:9 (widescreen)"
+#~ msgstr "16:9 (وائڈ اسکرین)"
+
+#, no-c-format
+#~ msgid "4:3 (arcade)"
+#~ msgstr "4:3 (آرکیڈ)"
+
+#, no-c-format
+#~ msgid ""
+#~ "4:3 is the arcade monitor's shape (the default).\n"
+#~ "Square pixels shows the raw 496x384 (slightly narrow).\n"
+#~ "16:9 (experimental) draws the 3D wider, with the 2D in the middle.\n"
+#~ "Stretch fills the whole window.\n"
+#~ "GPU renderers only. Applies live."
+#~ msgstr ""
+#~ "4:3 آرکیڈ مانیٹر کی شکل ہے (طے شدہ)۔\n"
+#~ "مربع پکسل خام 496x384 دکھاتا ہے (تھوڑا تنگ)۔\n"
+#~ "16:9 (تجرباتی) 3D کو چوڑا بناتا ہے، 2D درمیان میں۔\n"
+#~ "کھینچیں پوری ونڈو بھر دیتا ہے۔\n"
+#~ "صرف GPU رینڈرر۔ فوراً لاگو ہوتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the Model 2 picture's black sits. 50% is the default,\n"
+#~ "matched to an arcade capture; lower is darker, higher is\n"
+#~ "brighter. Applies live."
+#~ msgstr ""
+#~ "Model 2 تصویر میں سیاہ کہاں بیٹھتا ہے۔ 50% طے شدہ ہے،\n"
+#~ "ایک آرکیڈ کیپچر سے ملایا گیا؛ کم مزید گہرا، زیادہ مزید روشن۔\n"
+#~ "فوراً لاگو ہوتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "A cosmetic arcade-monitor look over the finished frame:\n"
+#~ "scanlines, an RGB shadow mask, glow and optional screen\n"
+#~ "curvature. Purely visual; applies live."
+#~ msgstr ""
+#~ "تیار فریم پر آرکیڈ مانیٹر جیسی سجاوٹی شکل:\n"
+#~ "اسکین لائنیں، RGB شیڈو ماسک، چمک اور اختیاری اسکرین\n"
+#~ "خمیدگی۔ صرف بصری؛ فوراً لاگو ہوتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "In fullscreen, frame the 4:3 picture with an image from\n"
+#~ "the bezels directory (Paths tab): <game>.png, the parent\n"
+#~ "set's, or default.png. The picture fills the image's\n"
+#~ "transparent window."
+#~ msgstr ""
+#~ "پوری اسکرین میں 4:3 تصویر کو فریم ڈائریکٹری (راستے ٹیب)\n"
+#~ "کی ایک تصویر سے گھیرتا ہے: <game>.png، پیرنٹ سیٹ کی\n"
+#~ "تصویر، یا default.png۔ گیم کی تصویر فریم کی\n"
+#~ "شفاف کھڑکی کو بھرتی ہے۔"
+
+#, no-c-format
+#~ msgid "Enhancement (cosmetic, beyond the original hardware)"
+#~ msgstr "بہتری (سجاوٹی، اصل ہارڈ ویئر سے آگے)"
+
+#, no-c-format
+#~ msgid "(unsupported)"
+#~ msgstr "(غیر معاون)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Edge-smooth the 2D layers (HUD, text, menus). xBR and\n"
+#~ "ScaleFX round diagonals; Faithful keeps crisp pixels.\n"
+#~ "Applies live."
+#~ msgstr ""
+#~ "2D تہوں (HUD، متن، مینو) کے کنارے ہموار کریں۔ xBR اور\n"
+#~ "ScaleFX ترچھی لکیریں گول کرتے ہیں؛ اصل جیسا پکسل تیز رکھتا ہے۔\n"
+#~ "فوراً لاگو ہوتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "The hardware draws see-through surfaces (lights, glass,\n"
+#~ "shadows) as a checkerboard. Blended draws the 50%\n"
+#~ "see-through surface it's trying to achieve. Applies live."
+#~ msgstr ""
+#~ "ہارڈ ویئر شفاف سطحوں (روشنیاں، شیشہ، سائے) کو\n"
+#~ "شطرنجی خانوں کی شکل میں بناتا ہے۔ ملا ہوا وہ 50%\n"
+#~ "شفاف سطح بناتا ہے جو مقصود ہے۔ فوراً لاگو ہوتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Draw the scenery to the edge of the course instead of\n"
+#~ "the arcade's short range, so it no longer pops in.\n"
+#~ "Daytona USA only. Applies live."
+#~ msgstr ""
+#~ "آرکیڈ کی مختصر حد کے بجائے ٹریک کے کنارے تک\n"
+#~ "منظر بناتا ہے، تاکہ وہ اچانک نمودار نہ ہو۔\n"
+#~ "صرف Daytona USA۔ فوراً لاگو ہوتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Replace the game's 3D textures with images saved in\n"
+#~ "saves/textures/<game>/load, named as dumped. GPU\n"
+#~ "renderers only; Reload picks up edited files."
+#~ msgstr ""
+#~ "گیم کے 3D ٹیکسچر کو saves/textures/<game>/load میں\n"
+#~ "ڈمپ والے ناموں سے محفوظ تصاویر سے بدلیں۔ صرف GPU\n"
+#~ "رینڈرر؛ دوبارہ لوڈ ترمیم شدہ فائلیں اٹھا لیتا ہے۔"
+
+#, c-format
+#~ msgid "%zu loaded"
+#~ msgstr "%zu لوڈ ہوئے"
+
+#, no-c-format
+#~ msgid ""
+#~ "Collect every 3D texture the game draws and write them,\n"
+#~ "with an index.html to browse, to saves/textures/<game>/dump\n"
+#~ "when the game exits or this is turned off."
+#~ msgstr ""
+#~ "گیم کے بنائے ہر 3D ٹیکسچر کو جمع کر کے، دیکھنے کے لیے\n"
+#~ "index.html کے ساتھ، saves/textures/<game>/dump میں لکھیں\n"
+#~ "جب گیم بند ہو یا یہ آپشن بند کیا جائے۔"
+
+#, no-c-format
+#~ msgid "Config directory"
+#~ msgstr "کنفیگ ڈائریکٹری"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where keisho.ini is read from and saved to.\n"
+#~ "Set with --config <dir>; cannot be changed here."
+#~ msgstr ""
+#~ "جہاں سے keisho.ini پڑھی اور محفوظ کی جاتی ہے۔\n"
+#~ "--config <dir> سے مقرر ہوتی ہے؛ یہاں تبدیل نہیں ہو سکتی۔"
+
+#, no-c-format
+#~ msgid "ROM directory"
+#~ msgstr "ROM ڈائریکٹری"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the ROM archives live. A game launched by name is\n"
+#~ "loaded from here as <name>.zip or <name>.7z."
+#~ msgstr ""
+#~ "جہاں ROM آرکائیو رکھے ہیں۔ نام سے چلایا گیا گیم یہاں سے\n"
+#~ "<name>.zip یا <name>.7z کے طور پر لوڈ ہوتا ہے۔"
+
+#, no-c-format
+#~ msgid "Model 1 ROM directory"
+#~ msgstr "Model 1 ROM ڈائریکٹری"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the Model 1 ROM archives live.\n"
+#~ "Empty means the ROM directory."
+#~ msgstr ""
+#~ "Model 1 ROM آرکائیوز کی جگہ۔\n"
+#~ "خالی کا مطلب ROM ڈائریکٹری ہے۔"
+
+#, no-c-format
+#~ msgid "Model 3 ROM directory"
+#~ msgstr "Model 3 ROM ڈائریکٹری"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where the Model 3 ROM archives live.\n"
+#~ "Empty means the ROM directory."
+#~ msgstr ""
+#~ "Model 3 ROM آرکائیوز کی جگہ۔\n"
+#~ "خالی کا مطلب ROM ڈائریکٹری ہے۔"
+
+#, no-c-format
+#~ msgid "Saves directory"
+#~ msgstr "سیو ڈائریکٹری"
+
+#, no-c-format
+#~ msgid ""
+#~ "Battery-backed saves: per-game NVRAM (.nv) and EEPROM\n"
+#~ "(.eeprom) images -- high scores and operator settings."
+#~ msgstr ""
+#~ "بیٹری والی سیو: ہر گیم کی NVRAM (.nv) اور EEPROM\n"
+#~ "(.eeprom) فائلیں -- ہائی اسکور اور آپریٹر ترتیبات۔"
+
+#, no-c-format
+#~ msgid "Screenshots directory"
+#~ msgstr "اسکرین شاٹ ڈائریکٹری"
+
+#, no-c-format
+#~ msgid "Bezels directory"
+#~ msgstr "فریم ڈائریکٹری"
+
+#, no-c-format
+#~ msgid ""
+#~ "Bezel images: <game>.png, the parent set's, or default.png.\n"
+#~ "Empty means a bezels folder beside keisho.ini."
+#~ msgstr ""
+#~ "فریم تصاویر: <game>.png، پیرنٹ سیٹ کی تصویر، یا default.png۔\n"
+#~ "خالی کا مطلب keisho.ini کے ساتھ bezels فولڈر ہے۔"
+
+#, no-c-format
+#~ msgid "Crosshairs directory"
+#~ msgstr "کراس ہیئر فولڈر"
+
+#, no-c-format
+#~ msgid ""
+#~ "Crosshair images: <game>-p1.png (-p2 for player 2) or\n"
+#~ "<game>.png for both, then the parent set's, then default.\n"
+#~ "Drawn at their own size on a 1080-line picture. Without\n"
+#~ "one the built-in crosshair is drawn.\n"
+#~ "Empty means a crosshairs folder beside keisho.ini."
+#~ msgstr ""
+#~ "کراس ہیئر تصاویر: <game>-p1.png (کھلاڑی 2 کے لیے -p2) یا\n"
+#~ "دونوں کے لیے <game>.png، پھر پیرنٹ سیٹ کی، پھر default۔\n"
+#~ "1080 لائن کی تصویر پر اپنے سائز میں بنتی ہیں۔ ان کے بغیر\n"
+#~ "بلٹ اِن کراس ہیئر بنتا ہے۔\n"
+#~ "خالی کا مطلب keisho.ini کے ساتھ crosshairs فولڈر ہے۔"
+
+#, no-c-format
+#~ msgid "Scrape artwork online"
+#~ msgstr "آن لائن آرٹ ورک حاصل کریں"
+
+#, no-c-format
+#~ msgid ""
+#~ "Let the game picker fetch box art and descriptions from\n"
+#~ "ArcadeDB over the network. Off keeps Keisho offline: the\n"
+#~ "picker still lists and launches every game, with placeholder\n"
+#~ "tiles and no descriptions."
+#~ msgstr ""
+#~ "گیم چننے والے کو نیٹ ورک پر ArcadeDB سے باکس آرٹ اور\n"
+#~ "تفصیلات لانے دیں۔ بند ہونے پر Keisho آف لائن رہتا ہے:\n"
+#~ "چننے والا پھر بھی ہر گیم دکھاتا اور چلاتا ہے، عارضی\n"
+#~ "ٹائلوں کے ساتھ اور بغیر تفصیلات کے۔"
+
+#, no-c-format
+#~ msgid "Light Gun"
+#~ msgstr "لائٹ گن"
+
+#, no-c-format
+#~ msgid "Network"
+#~ msgstr "نیٹ ورک"
+
+#, no-c-format
+#~ msgid "GPL-3.0-or-later licence. See LICENSE."
+#~ msgstr "GPL-3.0-or-later لائسنس۔ LICENSE دیکھیں۔"
+
+#, no-c-format
+#~ msgid "With thanks to the projects whose code makes it possible:"
+#~ msgstr "ان منصوبوں کا شکریہ جن کا کوڈ اسے ممکن بناتا ہے:"
+
+#, no-c-format
+#~ msgid "The MAME project - Sega Model 2 emulation guidance"
+#~ msgstr "MAME منصوبہ - Sega Model 2 ایمولیشن رہنمائی"
+
+#, no-c-format
+#~ msgid "Musashi - Motorola 68000 CPU core (Karl Stenerud)"
+#~ msgstr "Musashi - Motorola 68000 CPU کور (Karl Stenerud)"
+
+#, no-c-format
+#~ msgid "ymfm - Yamaha FM sound cores (Aaron Giles)"
+#~ msgstr "ymfm - Yamaha FM ساؤنڈ کور (Aaron Giles)"
+
+#, no-c-format
+#~ msgid "SDL - windowing, input and audio"
+#~ msgstr "SDL - ونڈو، ان پٹ اور آڈیو"
+
+#, no-c-format
+#~ msgid "Dear ImGui - this user interface (Omar Cornut)"
+#~ msgstr "Dear ImGui - یہ یوزر انٹرفیس (Omar Cornut)"
+
+#, no-c-format
+#~ msgid "pugixml - games.xml parsing"
+#~ msgstr "pugixml - games.xml پارسنگ"
+
+#, no-c-format
+#~ msgid "miniz - ZIP archive decompression"
+#~ msgstr "miniz - ZIP آرکائیو کھولنا"
+
+#, no-c-format
+#~ msgid "LZMA SDK - 7-Zip archive decompression (Igor Pavlov)"
+#~ msgstr "LZMA SDK - 7-Zip آرکائیو کھولنا (Igor Pavlov)"
+
+#, no-c-format
+#~ msgid "VulkanMemoryAllocator - GPU memory (AMD / GPUOpen)"
+#~ msgstr "VulkanMemoryAllocator - GPU میموری (AMD / GPUOpen)"
+
+#, no-c-format
+#~ msgid "shaderc / glslang - shader compilation"
+#~ msgstr "shaderc / glslang - شیڈر کمپائلیشن"
+
+#, no-c-format
+#~ msgid "stb_image - box-art image decoding (Sean Barrett)"
+#~ msgstr "stb_image - باکس آرٹ تصویر ڈی کوڈنگ (Sean Barrett)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Gamepad picture - Xelu's Free Controller Prompts (Nicolae Berbece), CC0"
+#~ msgstr ""
+#~ "گیم پیڈ تصویر - Xelu's Free Controller Prompts (Nicolae Berbece)، CC0"
+
+#, no-c-format
+#~ msgid "libcurl - artwork scraping (optional)"
+#~ msgstr "libcurl - آرٹ ورک حاصل کرنا (اختیاری)"
+
+#, no-c-format
+#~ msgid "HarfBuzz - text shaping for translations"
+#~ msgstr "HarfBuzz - ترجموں کے لیے متن کی تشکیل"
+
+#, no-c-format
+#~ msgid "SheenBidi - right-to-left text layout (Muhammad Tayyab Akram)"
+#~ msgstr "SheenBidi - دائیں سے بائیں متن کی ترتیب (Muhammad Tayyab Akram)"
+
+#, no-c-format
+#~ msgid "Game artwork and descriptions from ArcadeDB"
+#~ msgstr "گیم آرٹ ورک اور تفصیلات ArcadeDB سے"
+
+#, no-c-format
+#~ msgid "(adb.arcadeitalia.net, by Motoschifo)."
+#~ msgstr "(adb.arcadeitalia.net، از Motoschifo)۔"
+
+#, no-c-format
+#~ msgid "See NOTICE for full per-component attribution."
+#~ msgstr "ہر جزو کی مکمل نسبت کے لیے NOTICE دیکھیں۔"
+
+#, no-c-format
+#~ msgid "If you'd like to support development:"
+#~ msgstr "اگر آپ ترقی میں مدد کرنا چاہیں:"
+
+#, no-c-format
+#~ msgid "Save settings"
+#~ msgstr "ترتیبات محفوظ کریں"
+
+#, c-format
+#~ msgid "Saved to %s"
+#~ msgstr "%s میں محفوظ کیا گیا"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wheel force on driving games: centring and cornering\n"
+#~ "forces decoded from the game's own drive-board commands,\n"
+#~ "plus an impact jolt when you hit something."
+#~ msgstr ""
+#~ "ڈرائیونگ گیمز میں وہیل پر قوت: گیم کے اپنے ڈرائیو بورڈ\n"
+#~ "کمانڈز سے حاصل مرکز اور موڑ کی قوتیں، نیز کسی چیز\n"
+#~ "سے ٹکرانے پر ایک جھٹکا۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "A gain on every force of the drive board. At 100 %, the\n"
+#~ "board's full power (63) gives the wheel's full force, every\n"
+#~ "force in proportion. 200 % doubles every force: those above\n"
+#~ "half the board's power (32, Sega Rally's strongest torque)\n"
+#~ "then saturate."
+#~ msgstr ""
+#~ "ڈرائیو بورڈ کی ہر قوت پر ایک گین۔ 100 % پر بورڈ کی پوری طاقت\n"
+#~ "(63) وہیل کی پوری قوت دیتی ہے، ہر قوت تناسب میں۔ 200 % ہر قوت\n"
+#~ "کو دگنا کرتا ہے: بورڈ کی آدھی طاقت (32، Sega Rally کا سب سے\n"
+#~ "طاقتور ٹارک) سے زیادہ قوتیں تب سیچوریٹ ہو جاتی ہیں۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "The centring spring of the Sega Rally Championship and\n"
+#~ "Daytona USA cabinets: very light, it brings the wheel\n"
+#~ "back and is barely felt when held against. A share of\n"
+#~ "the resistance above. The other games' cabinets drive\n"
+#~ "the wheel with no spring, and ignore this setting."
+#~ msgstr ""
+#~ "Sega Rally Championship اور Daytona USA کیبنٹ کا\n"
+#~ "سینٹرنگ اسپرنگ: بہت ہلکا، یہ وہیل کو واپس لاتا ہے اور\n"
+#~ "روکنے پر بمشکل محسوس ہوتا ہے۔ اوپر والی مزاحمت کا ایک\n"
+#~ "حصہ۔ دوسرے گیمز کے کیبنٹ بغیر اسپرنگ کے وہیل چلاتے ہیں\n"
+#~ "اور اس ترتیب کو نظرانداز کرتے ہیں۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "The motor strength set on the drive board's DIP switches,\n"
+#~ "the switches ON counted in binary: 0 = all OFF.\n"
+#~ "Sega Rally: switches 1-3, 0 to 7 added to every torque.\n"
+#~ "Daytona USA: switches 1-3, 4 times that.\n"
+#~ "Indy 500, Touring Car, Over Rev, Super GT 24h:\n"
+#~ "switches 1-1 to 1-3, 0 to 7 added to every force."
+#~ msgstr ""
+#~ "ڈرائیو بورڈ کے DIP سوئچز سے طے شدہ موٹر کی طاقت، ON سوئچز\n"
+#~ "بائنری میں گنے جاتے ہیں: 0 = سب OFF۔\n"
+#~ "Sega Rally: سوئچ 1-3، ہر ٹارک میں 0 سے 7 شامل۔ Daytona USA:\n"
+#~ "سوئچ 1-3، اس کا 4 گنا۔ Indy 500، Touring Car، Over Rev،\n"
+#~ "Super GT 24h: سوئچ 1-1 سے 1-3، ہر قوت میں 0 سے 7 شامل۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "For a wheel whose driver pushes the wrong way: it pulls\n"
+#~ "away from the centre instead of bringing it back, and\n"
+#~ "the game's forces go the opposite way."
+#~ msgstr ""
+#~ "اس وہیل کے لیے جس کا ڈرائیور غلط سمت دھکیلتا ہے: یہ\n"
+#~ "مرکز پر واپس لانے کی بجائے مرکز سے دور کھینچتا ہے، اور\n"
+#~ "گیم کی قوتیں الٹی سمت جاتی ہیں۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Vibrates on the game's impacts, for wheels without force\n"
+#~ "feedback. It never runs alongside force feedback."
+#~ msgstr ""
+#~ "فورس فیڈ بیک کے بغیر وہیلز کے لیے گیم کے ٹکراؤ پر\n"
+#~ "لرزتا ہے۔ یہ فورس فیڈ بیک کے ساتھ کبھی نہیں چلتا۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "An added vibration that grows with the throttle. It is not\n"
+#~ "from the game. Turn it off to feel only the game's force feedback."
+#~ msgstr ""
+#~ "ایک اضافی ارتعاش جو تھروٹل کے ساتھ بڑھتا ہے۔ یہ گیم کی\n"
+#~ "طرف سے نہیں۔ صرف گیم کا فورس فیڈ بیک محسوس کرنے کے لیے اسے بند کریں۔"
+
+#, c-format
+#~ msgid "%u deg"
+#~ msgstr "%u ڈگری"
+
+#, no-c-format
+#~ msgid ""
+#~ "Set this to your wheel's own rotation range. The lock\n"
+#~ "angle below is mapped onto it, so matching your wheel\n"
+#~ "gives arcade-like response."
+#~ msgstr ""
+#~ "اسے اپنے وہیل کی گردش کی حد پر رکھیں۔ نیچے دیا\n"
+#~ "لاک زاویہ اس پر لاگو ہوتا ہے، لہٰذا وہیل سے مطابقت\n"
+#~ "آرکیڈ جیسا ردعمل دیتی ہے۔"
+
+#, c-format
+#~ msgid "%d deg"
+#~ msgstr "%d ڈگری"
+
+#, no-c-format
+#~ msgid ""
+#~ "How far to physically turn for full game lock (total,\n"
+#~ "so half each side of centre). Lower is more sensitive."
+#~ msgstr ""
+#~ "گیم کے مکمل لاک کے لیے کتنا گھمانا ہے (کل، یعنی\n"
+#~ "مرکز کی ہر طرف آدھا)۔ کم قدر زیادہ حساس ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wheel travel about centre that reads as centre. Most wheels\n"
+#~ "want none; a little covers one whose centre wanders. The bar\n"
+#~ "shows the wheel now against the shaded zone."
+#~ msgstr ""
+#~ "مرکز کے آس پاس وہیل کی حرکت جو مرکز ہی پڑھی جائے۔ زیادہ تر وہیل کو\n"
+#~ "اس کی ضرورت نہیں؛ تھوڑا سا اُس وہیل کے لیے جس کا مرکز سرکتا ہو۔ بار\n"
+#~ "وہیل کی موجودہ حالت سایہ دار حصے کے مقابل دکھاتی ہے۔"
+
+#, no-c-format
+#~ msgid "Auto-detected. Recalibrate if steering or a pedal is wrong."
+#~ msgstr ""
+#~ "خودکار طور پر شناخت ہوئی۔ اگر اسٹیئرنگ یا پیڈل غلط ہو تو دوبارہ کیلیبریٹ "
+#~ "کریں۔"
+
+#, no-c-format
+#~ msgid "cancel"
+#~ msgstr "منسوخ"
+
+#, no-c-format
+#~ msgid "Calibrate"
+#~ msgstr "کیلیبریٹ"
+
+#, no-c-format
+#~ msgid "Press Bind, then press the wheel button for that control."
+#~ msgstr "تفویض دبائیں، پھر اس کنٹرول کے لیے وہیل کا بٹن دبائیں۔"
+
+#, no-c-format
+#~ msgid "Menu (F10)"
+#~ msgstr "مینو (F10)"
+
+#, no-c-format
+#~ msgid "Bind"
+#~ msgstr "تفویض"
+
+#, no-c-format
+#~ msgid "clear"
+#~ msgstr "صاف"
+
+#, no-c-format
+#~ msgid ""
+#~ "With an H shifter bound to Gear 1..4: its lever in none\n"
+#~ "of the gears is in neutral, as on the cabinet. Off, the\n"
+#~ "last gear stays engaged until another is selected or\n"
+#~ "Neutral is pressed."
+#~ msgstr ""
+#~ "گیئر 1..4 سے منسلک H شفٹر کے ساتھ: اگر لیور کسی\n"
+#~ "گیئر میں نہ ہو تو وہ نیوٹرل میں ہوتا ہے، جیسے کیبنٹ پر۔\n"
+#~ "بند ہو تو آخری گیئر اس وقت تک لگا رہتا ہے جب تک\n"
+#~ "دوسرا نہ چنا جائے یا نیوٹرل نہ دبایا جائے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Shift up / Shift down (and a gamepad's RB / LB) from one\n"
+#~ "gear to another pass through neutral this long, as a\n"
+#~ "lever crosses the gate's centre. 0 shifts straight."
+#~ msgstr ""
+#~ "گیئر اوپر / گیئر نیچے (اور گیم پیڈ کے RB / LB) ایک گیئر سے\n"
+#~ "دوسرے میں اتنی دیر نیوٹرل سے گزرتے ہیں، جیسے لیور گیٹ کے\n"
+#~ "بیچ سے گزرتا ہے۔ 0 سیدھا بدلتا ہے۔"
+
+#, no-c-format
+#~ msgid "Game"
+#~ msgstr "گیم"
+
+#, no-c-format
+#~ msgid "Use Default Layout"
+#~ msgstr "طے شدہ لے آؤٹ استعمال کریں"
+
+#, no-c-format
+#~ msgid ""
+#~ "Slots are named for this game's controls; dimmed ones are not used. Show "
+#~ "shortcuts lists the Guide combinations."
+#~ msgstr ""
+#~ "خانوں کے نام اس گیم کے کنٹرولز پر ہیں؛ مدھم خانے استعمال نہیں ہوتے۔ شارٹ "
+#~ "کٹس دکھائیں Guide کے مجموعے دکھاتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "The left stick also moves; the shoulders also act as Button 3/4. Right "
+#~ "Lever is Virtual On's. Show shortcuts lists the Guide combinations."
+#~ msgstr ""
+#~ "بائیں اسٹک بھی حرکت دیتی ہے؛ کندھے کے بٹن Button 3/4 کا کام بھی کرتے ہیں۔ "
+#~ "دایاں لیور Virtual On کا ہے۔ شارٹ کٹس دکھائیں Guide کے مجموعے دکھاتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Stick travel about centre that reads as centre. The bar shows\n"
+#~ "the stick now: let go of it and raise this until the marker\n"
+#~ "sits inside the shaded zone. Also applies to stick aiming."
+#~ msgstr ""
+#~ "مرکز کے آس پاس اسٹک کی حرکت جو مرکز ہی پڑھی جائے۔ بار اسٹک کی\n"
+#~ "موجودہ حالت دکھاتی ہے: اسے چھوڑ دیں اور اسے بڑھائیں جب تک نشان\n"
+#~ "سایہ دار حصے میں نہ آ جائے۔ اسٹک سے نشانہ لینے پر بھی لاگو۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Response of a stick's travel past its deadzone. Full deflection\n"
+#~ "is always full lock; under 100% the middle of the travel does\n"
+#~ "less, over 100% it does more."
+#~ msgstr ""
+#~ "ڈیڈ زون سے آگے اسٹک کی حرکت کا ردعمل۔ مکمل جھکاؤ\n"
+#~ "ہمیشہ مکمل لاک ہے؛ 100% سے کم پر درمیانی حرکت کم\n"
+#~ "اور 100% سے زیادہ پر زیادہ اثر کرتی ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Vibrates on the game's impacts in driving games.\n"
+#~ "Other games stay quiet."
+#~ msgstr ""
+#~ "ڈرائیونگ گیمز میں گیم کے ٹکراؤ پر لرزتا ہے۔\n"
+#~ "دوسرے گیمز خاموش رہتے ہیں۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "An added vibration that grows as you steer. It is not\n"
+#~ "from the game. Turn it off to feel only the game's force feedback."
+#~ msgstr ""
+#~ "ایک اضافی ارتعاش جو اسٹیئر کرنے کے ساتھ بڑھتا ہے۔ یہ گیم کی\n"
+#~ "طرف سے نہیں۔ صرف گیم کا فورس فیڈ بیک محسوس کرنے کے لیے اسے بند کریں۔"
+
+#, no-c-format
+#~ msgid "Reset"
+#~ msgstr "ری سیٹ"
+
+#, no-c-format
+#~ msgid ""
+#~ "Only for games with a separate music board: Star Wars\n"
+#~ "Arcade, Sega Touring Car Championship and Top Skater.\n"
+#~ "Sound effects stay as they are."
+#~ msgstr ""
+#~ "صرف الگ میوزک بورڈ والی گیمز کے لیے:\n"
+#~ "Star Wars Arcade, Sega Touring Car Championship, Top Skater۔\n"
+#~ "ساؤنڈ ایفیکٹس ویسے ہی رہتے ہیں۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Raise or lower a game's volume from its default level.\n"
+#~ "One slider covers every revision of a game. Off plays\n"
+#~ "every game at its default, whatever the sliders say.\n"
+#~ "\n"
+#~ "Warning: above 100% loud effects can clip (audible\n"
+#~ "distortion)."
+#~ msgstr ""
+#~ "گیم کا والیوم اس کی طے شدہ سطح سے بڑھائیں یا گھٹائیں۔\n"
+#~ "ایک سلائیڈر گیم کے تمام ورژنز پر لاگو ہوتا ہے۔ بند ہونے\n"
+#~ "پر ہر گیم طے شدہ سطح پر چلتا ہے، سلائیڈر کچھ بھی ہوں۔\n"
+#~ "\n"
+#~ "انتباہ: 100% سے اوپر تیز آوازیں کٹ سکتی ہیں (سنائی دینے\n"
+#~ "والا بگاڑ)۔"
+
+#, c-format
+#~ msgid "Now playing: %s"
+#~ msgstr "اب چل رہا ہے: %s"
+
+#, no-c-format
+#~ msgid ""
+#~ "The aiming crosshair, with the mouse pointer hidden.\n"
+#~ "Auto turns it on in a gun game; On hides the pointer in\n"
+#~ "every game; Off never shows a crosshair."
+#~ msgstr ""
+#~ "نشانے کا کراس ہیئر، ماؤس پوائنٹر چھپا کر۔\n"
+#~ "خودکار اسے گن گیم میں آن کرتا ہے؛ آن ہر گیم میں\n"
+#~ "پوائنٹر چھپاتا ہے؛ بند کبھی کراس ہیئر نہیں دکھاتا۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Draw Keisho's own crosshair. Turn off if the gun\n"
+#~ "has its own sight (e.g. a Sinden). Positional-gun\n"
+#~ "titles always draw their own regardless."
+#~ msgstr ""
+#~ "Keisho کا اپنا نشانے کا کراس بنائیں۔ اگر گن کا اپنا\n"
+#~ "نشانہ ہو (مثلاً Sinden) تو بند کریں۔ مقامی گن والے\n"
+#~ "گیمز ہر حال میں اپنا کراس خود بناتے ہیں۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "A gamepad's stick points at the screen: the crosshair\n"
+#~ "sits in the centre at rest and reaches the edge at full\n"
+#~ "tilt. Off, the stick moves the crosshair like a mouse."
+#~ msgstr ""
+#~ "گیم پیڈ کی اسٹک اسکرین کی طرف اشارہ کرتی ہے: آرام پر\n"
+#~ "کراس ہیئر مرکز میں رہتا ہے اور پورا جھکانے پر کنارے تک۔\n"
+#~ "بند ہو تو اسٹک کراس ہیئر کو ماؤس کی طرح چلاتی ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Hide the white flash Virtua Cop, Virtua Cop 2 and\n"
+#~ "House of the Dead show on each shot."
+#~ msgstr ""
+#~ "Virtua Cop، Virtua Cop 2 اور House of the Dead میں\n"
+#~ "ہر فائر پر دکھنے والی سفید چمک چھپائیں۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Kick the gun's rumble motor on each shot, for guns\n"
+#~ "that have one (Sinden and similar). No effect on a\n"
+#~ "gun without a motor."
+#~ msgstr ""
+#~ "ہر فائر پر گن کی ارتعاشی موٹر چلائیں، ان گنز کے لیے\n"
+#~ "جن میں موٹر ہو (Sinden وغیرہ)۔ بغیر موٹر والی\n"
+#~ "گن پر کوئی اثر نہیں۔"
+
+#, no-c-format
+#~ msgid "Enable recoil"
+#~ msgstr "جھٹکا فعال کریں"
+
+#, c-format
+#~ msgid "Gun %zu (player %zu): %s"
+#~ msgstr "گن %zu (کھلاڑی %zu): %s"
+
+#, no-c-format
+#~ msgid "Gun buttons"
+#~ msgstr "گن کے بٹن"
+
+#, no-c-format
+#~ msgid "Press Bind, then press the button on that player's gun."
+#~ msgstr "تفویض دبائیں، پھر اس کھلاڑی کی گن کا بٹن دبائیں۔"
+
+#, c-format
+#~ msgid "Player %d"
+#~ msgstr "کھلاڑی %d"
+
+#, no-c-format
+#~ msgid ""
+#~ "A bright frame around the game image that a Sinden\n"
+#~ "gun's camera tracks for aiming. Only shown in\n"
+#~ "light-gun mode."
+#~ msgstr ""
+#~ "گیم کی تصویر کے گرد ایک روشن فریم جسے Sinden گن کا\n"
+#~ "کیمرا نشانے کے لیے ٹریک کرتا ہے۔ صرف لائٹ گن\n"
+#~ "موڈ میں دکھایا جاتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Race linked with other machines on the same LAN running the same\n"
+#~ "title (Sega Rally, Daytona, Super GT 24h, Indy 500, ...). Off keeps\n"
+#~ "this cabinet standalone. Takes effect on the next game launch."
+#~ msgstr ""
+#~ "اسی LAN پر وہی گیم چلانے والی دوسری مشینوں کے ساتھ جڑ کر ریس کریں\n"
+#~ "(Sega Rally، Daytona، Super GT 24h، Indy 500، ...)۔ بند ہونے پر\n"
+#~ "یہ کیبنٹ الگ رہتا ہے۔ اگلی بار گیم چلانے پر لاگو ہوتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "The comms board is a ring: each cabinet listens on its own address and "
+#~ "sends to the next cabinet. For two machines, point each at the other. The "
+#~ "master/slave role is chosen in the game's own test menu, not here."
+#~ msgstr ""
+#~ "کمیونیکیشن بورڈ ایک حلقہ ہے: ہر کیبنٹ اپنے پتے پر سنتا ہے اور اگلے کیبنٹ "
+#~ "کو بھیجتا ہے۔ دو مشینوں کے لیے ہر ایک کو دوسری کی طرف اشارہ کریں۔ ماسٹر/"
+#~ "سلیو کردار یہاں نہیں بلکہ گیم کے اپنے ٹیسٹ مینو میں چنا جاتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "This machine's address on the cabinet LAN. Blank\n"
+#~ "listens on every interface. Detect fills it from the\n"
+#~ "primary network adapter."
+#~ msgstr ""
+#~ "کیبنٹ LAN پر اس مشین کا پتہ۔ خالی ہو تو ہر\n"
+#~ "انٹرفیس پر سنتا ہے۔ شناخت کریں اسے بنیادی\n"
+#~ "نیٹ ورک اڈاپٹر سے بھرتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Where this cabinet sits in the ring (0-based).\n"
+#~ "For your own bookkeeping; the game negotiates the\n"
+#~ "actual link id from the ring."
+#~ msgstr ""
+#~ "حلقے میں اس کیبنٹ کی جگہ (0 سے شروع)۔\n"
+#~ "آپ کے اپنے ریکارڈ کے لیے؛ اصل لنک id گیم\n"
+#~ "حلقے سے طے کرتا ہے۔"
+
+#, no-c-format
+#~ msgid "Link delay (frames)"
+#~ msgstr "لنک تاخیر (فریم)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Model 3 only. How many frames late the other cabinets'\n"
+#~ "data is read. Raise it if a race over Wi-Fi stutters;\n"
+#~ "lower it on a wired LAN. Each frame shows the other\n"
+#~ "cars 1/60 s later."
+#~ msgstr ""
+#~ "صرف Model 3۔ دوسرے کیبنٹس کا ڈیٹا کتنے فریم\n"
+#~ "دیر سے پڑھا جائے۔ Wi-Fi پر ریس اٹکے تو بڑھائیں؛\n"
+#~ "تار والے LAN پر کم کریں۔ ہر فریم دوسری گاڑیوں کو\n"
+#~ "1/60 سیکنڈ بعد دکھاتا ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "The cabinet this one sends to. For two machines, the\n"
+#~ "other machine's IP. Blank means this cabinet does not\n"
+#~ "forward (tail of a chain)."
+#~ msgstr ""
+#~ "وہ کیبنٹ جسے یہ بھیجتا ہے۔ دو مشینوں کے لیے دوسری\n"
+#~ "مشین کا IP۔ خالی کا مطلب ہے یہ کیبنٹ آگے نہیں\n"
+#~ "بھیجتا (زنجیر کا آخری سرا)۔"
+
+#, no-c-format
+#~ msgid "This machine's interfaces:"
+#~ msgstr "اس مشین کے انٹرفیس:"
+
+#, no-c-format
+#~ msgid ""
+#~ "Wheels and gamepads keep working while the window is\n"
+#~ "not in front. Keyboard and mouse still need the window\n"
+#~ "in front."
+#~ msgstr ""
+#~ "ونڈو سامنے نہ ہونے پر بھی اسٹیئرنگ وہیل اور گیم پیڈ\n"
+#~ "کام کرتے رہتے ہیں۔ کی بورڈ اور ماؤس کے لیے\n"
+#~ "ونڈو کا سامنے ہونا ضروری ہے۔"
+
+#, c-format
+#~ msgid ""
+#~ "Hold %s to step back through play.\n"
+#~ "Costs a little speed on every frame while on."
+#~ msgstr ""
+#~ "کھیل میں پیچھے جانے کے لیے %s دبائے رکھیں۔\n"
+#~ "آن ہونے پر ہر فریم پر رفتار تھوڑی کم ہوتی ہے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "Send lamps, gun recoil and drive-board output to\n"
+#~ "MAMEHooker, Hook Of The Reaper and similar tools,\n"
+#~ "using MAME's network output protocol."
+#~ msgstr ""
+#~ "لیمپ، گن کا جھٹکا اور ڈرائیو بورڈ آؤٹ پٹ\n"
+#~ "MAMEHooker، Hook Of The Reaper اور ایسے ٹولز کو بھیجیں،\n"
+#~ "MAME کے نیٹ ورک آؤٹ پٹ پروٹوکول کے ذریعے۔"
+
+#, no-c-format
+#~ msgid ""
+#~ "The same outputs over MAME's Windows message\n"
+#~ "protocol, for tools that hook MAME that way."
+#~ msgstr ""
+#~ "یہی آؤٹ پٹس MAME کے Windows میسج پروٹوکول پر،\n"
+#~ "ان ٹولز کے لیے جو MAME سے اسی طرح جڑتے ہیں۔"
+
+#, no-c-format
+#~ msgid "Keyboard shortcuts"
+#~ msgstr "کی بورڈ شارٹ کٹس"
+
+#, no-c-format
+#~ msgid "Settings overlay"
+#~ msgstr "ترتیبات اوورلے"
+
+#, no-c-format
+#~ msgid "Fast-forward (held)"
+#~ msgstr "تیز آگے (دبائے رکھیں)"
+
+#, no-c-format
+#~ msgid "Rewind (held)"
+#~ msgstr "ریوائنڈ (دبائے رکھیں)"
+
+#, no-c-format
+#~ msgid ""
+#~ "Click a key, then press the new one. Escape cancels.\n"
+#~ "A key a game also uses does both."
+#~ msgstr ""
+#~ "کسی کلید پر کلک کریں، پھر نئی کلید دبائیں۔ Escape منسوخ کرتا ہے۔\n"
+#~ "جو کلید گیم بھی استعمال کرتا ہے وہ دونوں کام کرتی ہے۔"
+
+#, c-format
+#~ msgid "%s: toggle overlay"
+#~ msgstr "%s: اوورلے دکھائیں/چھپائیں"
+
+#, no-c-format
+#~ msgid ""
+#~ "No ROM archives were found in the ROM directories. Set them in Settings "
+#~ "(F1) > Paths, then relaunch."
+#~ msgstr ""
+#~ "ROM ڈائریکٹریز میں کوئی ROM آرکائیو نہیں ملا۔ انہیں ترتیبات (F1) > راستے "
+#~ "میں مقرر کریں، پھر دوبارہ چلائیں۔"
 
 #, no-c-format
 #~ msgid "Light-gun mode"

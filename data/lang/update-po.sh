@@ -8,7 +8,7 @@
 # then add X-Language-Name (its own name) and X-Language-Name-English headers.
 #
 # Strings are marked in the source with tr(), tr_id(), trf(), trnf(), N_() and
-# text_wrapped(). Only trf() and trnf() strings are printf formats.
+# Only trf() and trnf() strings are printf formats.
 set -e
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -19,11 +19,10 @@ cd "$ROOT"
 xgettext --language=C++ --from-code=UTF-8 --add-comments=TRANSLATORS: \
     --package-name=Keisho --msgid-bugs-address=https://github.com/Keisho-Emu/Keisho/issues \
     --keyword= --keyword=tr --keyword=tr_id --keyword=trf --keyword=trnf:1,2 \
-    --keyword=N_ --keyword=text_wrapped \
+    --keyword=N_ \
     --flag=tr:1:no-c-format --flag=tr_id:1:no-c-format --flag=N_:1:no-c-format \
-    --flag=text_wrapped:1:no-c-format \
     --flag=trf:1:c-format --flag=trnf:1:c-format --flag=trnf:2:c-format \
-    --add-location=file --sort-by-file -o "$POT" src/osd/gui.cpp src/main.cpp
+    --add-location=file --sort-by-file -o "$POT" src/osd/gui.cpp src/osd/ui/theme.cpp src/main.cpp
 
 if [ $# -eq 0 ]; then
     set -- $(cd "$LANG_DIR" && ls *.po 2>/dev/null | sed 's/\.po$//')

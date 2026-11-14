@@ -391,6 +391,8 @@ add_library(sm2_osd STATIC
     osd/input.cpp
     osd/scraper.cpp
     osd/ui_text.cpp
+    osd/ui/kit.cpp
+    osd/ui/theme.cpp
     osd/wheel_ffb.cpp
     osd/window.cpp
 )
@@ -407,17 +409,19 @@ elseif(SM2_PLATFORM_WINDOWS)
 else()
     target_sources(sm2_osd PRIVATE osd/sysfont_none.cpp)
 endif()
-# The Gamepad tab's pad picture, embedded as a byte array.
+# The overlay's assets, embedded as byte arrays: the Gamepad page's pad
+# picture and the menu's font (Noto Sans, Latin/Greek/Cyrillic subset).
 set(SM2_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
-foreach(asset pad_xbox_outline)
-    set(asset_in  "${CMAKE_CURRENT_SOURCE_DIR}/osd/assets/${asset}.png")
-    set(asset_out "${SM2_GENERATED_DIR}/assets/${asset}.h")
+foreach(asset pad_xbox_outline.png notosans_ui.ttf)
+    get_filename_component(symbol "${asset}" NAME_WE)
+    set(asset_in  "${CMAKE_CURRENT_SOURCE_DIR}/osd/assets/${asset}")
+    set(asset_out "${SM2_GENERATED_DIR}/assets/${symbol}.h")
     add_custom_command(
         OUTPUT  "${asset_out}"
         COMMAND ${CMAKE_COMMAND} -DSM2_IN=${asset_in} -DSM2_OUT=${asset_out}
-                -DSM2_SYMBOL=${asset} -P "${CMAKE_SOURCE_DIR}/cmake/EmbedBinary.cmake"
+                -DSM2_SYMBOL=${symbol} -P "${CMAKE_SOURCE_DIR}/cmake/EmbedBinary.cmake"
         DEPENDS "${asset_in}" "${CMAKE_SOURCE_DIR}/cmake/EmbedBinary.cmake"
-        COMMENT "Embedding ${asset}.png")
+        COMMENT "Embedding ${asset}")
     target_sources(sm2_osd PRIVATE "${asset_out}")
 endforeach()
 target_include_directories(sm2_osd PRIVATE "${SM2_GENERATED_DIR}")
@@ -543,6 +547,7 @@ if(NOT SM2_PLATFORM_MACOS)
     )
 endif()
 
+target_compile_definitions(sm2_osd PRIVATE SM2_VERSION="${PROJECT_VERSION}")
 target_compile_definitions(keisho PRIVATE
     SM2_VERSION="${PROJECT_VERSION}"
     $<$<BOOL:${SM2_ENABLE_VALIDATION}>:SM2_ENABLE_VALIDATION=1>

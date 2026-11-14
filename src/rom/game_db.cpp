@@ -694,6 +694,8 @@ bool GameDatabase::load(const std::string& path)
                                context.c_str())
             || !attribute_bool(game_node, "gun_missile", false, &game.gun_missile,
                                context.c_str())
+            || !attribute_bool(game_node, "gun_handheld", false, &game.gun_handheld,
+                               context.c_str())
             || !attribute_integer(game_node, "start_gear", 1, &game.start_gear,
                                   context.c_str())
             || !attribute_integer(game_node, "texture_wait", 0, &game.texture_wait,
@@ -1136,6 +1138,8 @@ bool GameDatabase::merge_clones(const Declarations& declared)
             game.drive_protocol = parent.drive_protocol;
         }
         if (!game.motion_base)         { game.motion_base = parent.motion_base; }
+        if (!game.gun_missile)         { game.gun_missile = parent.gun_missile; }
+        if (!game.gun_handheld)        { game.gun_handheld = parent.gun_handheld; }
         if (game.device_sets.empty())  { game.device_sets = parent.device_sets; }
         // A clone is no more validated than its parent unless boot-tested itself.
         game.preliminary = game.preliminary || parent.preliminary;

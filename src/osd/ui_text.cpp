@@ -20,6 +20,8 @@
 #include "osd/i18n.h"
 #include "osd/sysfont.h"
 
+#include "assets/notosans_ui.h"
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <imstb_truetype.h>
@@ -37,7 +39,8 @@ namespace sm2::osd::ui_text {
 namespace {
 
 /// ProggyClean's size; the overlay scales from it.
-constexpr float kBaseSize = 13.0f;
+/// The menu's font, Noto Sans, at this many pixels before the overlay's scale.
+constexpr float kBaseSize = 15.0f;
 
 /// System fonts are sized so their em is this share of ProggyClean's line,
 /// rather than fitting their (often much taller) line height into it.
@@ -337,16 +340,21 @@ void release_shaper()
 // Fonts
 // ---------------------------------------------------------------------------
 
-/// ProggyClean covers printable ASCII and Latin-1.
-bool in_proggy(char32_t c)
+/// The embedded Noto Sans subset: Latin, Greek and Cyrillic with their
+/// extensions, punctuation, arrows and the common symbols.
+const stbtt_fontinfo& base_font()
 {
-    return (c >= 0x20 && c <= 0x7E) || (c >= 0xA0 && c <= 0xFF);
+    static stbtt_fontinfo info = [] {
+        stbtt_fontinfo out{};
+        stbtt_InitFont(&out, assets::notosans_ui, stbtt_GetFontOffsetForIndex(assets::notosans_ui, 0));
+        return out;
+    }();
+    return info;
 }
 
-bool is_latin_letter(char32_t c)
+bool in_base(char32_t c)
 {
-    return (c >= 0x100 && c <= 0x24F) || (c >= 0x1E00 && c <= 0x1EFF)
-        || (c >= 0x2C60 && c <= 0x2C7F) || (c >= 0xA720 && c <= 0xA7FF);
+    return stbtt_FindGlyphIndex(&base_font(), static_cast<int>(c)) != 0;
 }
 
 /// Letters, marks and digits must be drawable; a missing symbol only costs a box.
@@ -435,13 +443,12 @@ bool build_font()
         s.font = nullptr;
     }
 
-    // What ProggyClean cannot draw. If that includes Latin letters, the system
-    // font draws all the text, so a word is never split between two fonts.
+    // What the menu's own font cannot draw: the other scripts, which a system
+    // font or a bundled one covers.
     const std::u32string& chars = i18n::catalog_characters();
     std::u32string        needed;
-    const bool            latin = std::any_of(chars.begin(), chars.end(), is_latin_letter);
     for (const char32_t c : chars) {
-        if (c > 0x20 && (latin || !in_proggy(c))) {
+        if (c > 0x20 && !in_base(c)) {
             needed += c;
         }
     }
@@ -497,7 +504,7 @@ bool build_font()
     }
 
     const usize undrawable = static_cast<usize>(std::count_if(
-        missing.begin(), missing.end(), [](char32_t c) { return !in_proggy(c) && essential(c); }));
+        missing.begin(), missing.end(), [](char32_t c) { return !in_base(c) && essential(c); }));
     const bool ok = undrawable == 0;
     if (!ok) {
         SM2_WARN("gui: no system font draws %zu characters of language %s", undrawable,
@@ -508,13 +515,12 @@ bool build_font()
         faces.clear();
     }
 
-    // ProggyClean first: it sets the size and line metrics either way.
-    static const ImWchar kAllOfProggy[] = {0x20, 0xFF, 0};
-    ImFontConfig         base;
-    if (ok && latin) {
-        base.GlyphExcludeRanges = kAllOfProggy;
-    }
-    s.font = io.Fonts->AddFontDefault(&base);
+    // Noto Sans first: it sets the size and line metrics either way.
+    ImFontConfig base;
+    base.FontDataOwnedByAtlas = false;
+    std::snprintf(base.Name, sizeof base.Name, "Noto Sans");
+    s.font = io.Fonts->AddFontFromMemoryTTF(const_cast<unsigned char*>(assets::notosans_ui),
+                                            static_cast<int>(assets::notosans_ui_size), kBaseSize, &base);
 
     // Shaped glyphs next, ahead of any system font's own private-use glyphs.
     const bool shaping = ok && i18n::catalog_needs_shaping();

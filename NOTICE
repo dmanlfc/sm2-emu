@@ -263,10 +263,11 @@ Third-party dependencies
   libcurl                   — curl licence      — Daniel Stenberg et al.
     (optional, for the game picker's artwork scraping; linked from the
     system, not vendored under 3rdparty/)
-  Noto Sans Thai, Devanagari, Bengali, Tamil and Arabic
-                            — SIL OFL 1.1       — The Noto Project Authors
-    (subsets in data/lang/fonts, used only where the system has no font
-    for the script; licence in data/lang/fonts/OFL.txt and
+  Noto Sans                 — SIL OFL 1.1       — The Noto Project Authors
+    (the menu's font: a Latin, Greek and Cyrillic subset embedded from
+    src/osd/assets/notosans_ui.ttf; and the Thai, Devanagari, Bengali, Tamil
+    and Arabic subsets in data/lang/fonts, used only where the system has no
+    font for the script; licence in data/lang/fonts/OFL.txt and
     LICENSES/OFL-1.1.txt)
 
 Sega, Model 1, Model 2, Virtua Fighter, Virtua Cop and Daytona USA are

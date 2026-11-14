@@ -104,6 +104,10 @@ struct Config {
     /// "auto" to follow the system's preferred languages.
     std::string language = "auto";
 
+    /// Overlay theme, by its key (see osd/ui/theme.h): "ink", "sunset",
+    /// "paper", "arcade" or "contrast".
+    std::string theme = "ink";
+
     /// Gun mode: the aiming crosshair, and the OS cursor hidden. Auto turns it
     /// on in a gun game, hiding the cursor while a player aims with the mouse
     /// or a light gun; On also hides the cursor in every game; Off never.
@@ -366,6 +370,11 @@ struct Config {
     static constexpr s32 kPadAxisPlus  = 100;
     static constexpr s32 kPadAxisMinus = 200;
 
+    /// In a layout's `axes`, an analogue role read from no axis at all: only
+    /// the button in `axis_buttons` drives it (Desert Tank's accelerator on
+    /// A, its triggers being the guns). -1 means the role's default axis.
+    static constexpr s32 kPadAxisNone = -2;
+
     /// The pad's analogue controls: the aim stick (steering, bank, flight
     /// stick), the two pedals and Virtual On's right lever, in X/Y pairs for
     /// the sticks. Which game channel each feeds is the ROM's business. Keep
@@ -506,14 +515,16 @@ struct Config {
 
     // -- paths -------------------------------------------------------------
 
-    /// ROM archives; a game named with no path loads <rom_dir>/<name>.{zip,7z}.
-    /// No default (ROMs are not app data): empty until the user sets it.
-    std::string rom_dir;
-
-    /// Model 1 ROM archives; empty means rom_dir holds them too.
+    /// Model 1 ROM archives; empty means model2_rom_dir holds them too.
     std::string model1_rom_dir;
 
-    /// Model 3 ROM archives; empty means rom_dir holds them too.
+    /// Model 2 ROM archives, and the fallback for the other two systems: a
+    /// game named with no path loads <dir>/<name>.{zip,7z} from its system's
+    /// folder, else from here. No default (ROMs are not app data): empty
+    /// until the user sets it. The ini key `rom_dir` still reads into it.
+    std::string model2_rom_dir;
+
+    /// Model 3 ROM archives; empty means model2_rom_dir holds them too.
     std::string model3_rom_dir;
 
     /// Saves: per-game .nv and .eeprom images. Empty here;
@@ -549,6 +560,8 @@ struct Config {
 
     /// One of trace, debug, info, warning, error.
     std::string log_level = "info";
+
+    bool operator==(const Config&) const = default;
 };
 
 /// The settings file in `directory`.

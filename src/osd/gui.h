@@ -18,6 +18,7 @@
 
 #include "core/config.h"
 #include "core/types.h"
+#include "osd/ui/kit.h"
 #include "render/backend.h"
 
 #include <array>
@@ -73,6 +74,10 @@ public:
     /// Toggle the overlay on/off.
     void toggle() { m_visible = !m_visible; }
 
+    /// Escape pressed with the overlay open: closes it, unless a popup of its
+    /// own (a list, the folder picker) takes the key first.
+    void escape();
+
     /// Whether the overlay is currently shown. When visible, the emulator
     /// should still run but input is captured by ImGui.
     [[nodiscard]] bool visible() const { return m_visible; }
@@ -123,6 +128,15 @@ public:
         bool        brake   = false;
         bool        lever   = false;
         bool        gears   = false;
+        /// What the cabinet puts under the player's hands, for its picture.
+        enum class Steer { None, Wheel, Handlebar, Stick, Gun, Board, Rod };
+        Steer steer    = Steer::None;
+        bool  joystick = false;  ///< a digital joystick
+        bool  bat      = false;  ///< a baseball bat swung on the accelerator's trigger
+        bool  tilt     = false;  ///< a wheel or handlebar whose second axis is an elevation (Desert Tank's turret)
+        u32   vr       = 0;      ///< the view buttons a driving cabinet declares
+        bool  gate     = false;  ///< an H-gate shifter
+        bool  shift    = false;  ///< shift up / down buttons or paddles
     };
 
     void set_game_families(std::vector<GameFamily> families)
@@ -228,6 +242,7 @@ public:
     struct PickerEntry {
         std::string name;   ///< MAME short name: launch key + cache key.
         std::string title;
+        std::string system; ///< "Model 1", "Model 2" or "Model 3": the list groups by it
         std::string year;
         std::string manufacturer;
         std::string description;
@@ -262,6 +277,10 @@ public:
     /// The game chosen since the last call, or nullopt. Polled by the main loop.
     [[nodiscard]] std::optional<std::string> take_pending_launch();
 
+    /// Escape pressed over the game list: clears a search in progress and
+    /// says so, else false and the key means what it did before.
+    bool picker_escape();
+
     /// Free every picker texture. Main thread, before the backend is destroyed.
     void release_picker_textures();
 
@@ -270,27 +289,33 @@ private:
     void apply_language();
     void draw_picker(Config& config);
     void poll_scraper_and_load_metadata();
-    void draw_menu_bar(Config& config);
-    void draw_settings(Config& config, const std::vector<std::string>& gpu_names,
-                       class Input* input);
-    void draw_wheel_tab(Config& config, class Input* input);
-    void draw_gamepad_tab(Config& config, class Input* input);
-    void draw_lightgun_tab(Config& config, class Input* input);
-    void draw_network_tab(Config& config);
-    void draw_states_tab(const Config& config);
-    void draw_system_tab(Config& config);
-    void draw_hotkeys(Config& config);
-    void draw_audio_tab(Config& config);
-    bool draw_volume_slider(Config& config, const GameFamily& family);
+    void apply_theme(const Config& config);
+    void autosave(Config& config);
+    void draw_menu(Config& config, const std::vector<std::string>& gpu_names, class Input* input,
+                   float measured_hz);
+    void page_display(ui::Kit& kit, Config& config, const std::vector<std::string>& gpu_names);
+    void page_audio(ui::Kit& kit, Config& config);
+    void page_input(ui::Kit& kit, Config& config, class Input* input);
+    void page_hotkeys(ui::Kit& kit, Config& config);
+    void page_link(ui::Kit& kit, Config& config);
+    void page_paths(ui::Kit& kit, Config& config);
+    void page_states(ui::Kit& kit, const Config& config);
+    void page_system(ui::Kit& kit, Config& config);
+    void page_about(ui::Kit& kit);
+    void page_gamepad(ui::Kit& kit, Config& config, class Input* input);
+    void page_wheel(ui::Kit& kit, Config& config, class Input* input);
+    void page_lightgun(ui::Kit& kit, Config& config, class Input* input);
+    /// A wheel, pad or gun control is waiting for a press.
+    [[nodiscard]] bool capturing_input() const;
+    void               cancel_captures();
     void draw_dir_picker_popup(Config& config);
-    void draw_status_bar(const Config& config, float measured_hz);
     void draw_fps_overlay(float measured_hz, const char* renderer_label);
     void draw_notification();
     void draw_crosshairs(const Config& config, const class Input* input);
     void draw_calibration_markers(const class Input* input);
     void draw_sinden_border(const Config& config);
 
-    enum class DirPickerTarget { None, RomDir, Model1RomDir, Model3RomDir, NvramDir, ScreenshotDir, BezelDir, CrosshairDir };
+    enum class DirPickerTarget { None, Model1RomDir, Model2RomDir, Model3RomDir, NvramDir, ScreenshotDir, BezelDir, CrosshairDir };
 
     void open_dir_picker(DirPickerTarget target, const std::string& initial);
 
@@ -304,6 +329,16 @@ private:
     bool        m_visible     = false;
     bool        m_initialised = false;
     float       m_ui_scale    = 0.0f;  ///< applied overlay scale; 0 forces first-frame apply.
+    ImGuiStyle  m_base_style;          ///< the style at scale 1, in the theme's colours
+    const ui::Palette* m_palette = nullptr;  ///< the theme in use; set by apply_theme() before any drawing
+    int         m_page        = 0;     ///< the settings page shown
+    int         m_input_page  = 0;     ///< Input page: gamepad, wheel or light gun
+    bool        m_popup_open  = false; ///< a popup of the menu was open this frame
+    ui::NavState m_nav;                ///< where Up/Down focus is among the rows
+    // Settings are saved a moment after they change (autosave()).
+    std::optional<Config> m_saved_snapshot;
+    float       m_dirty_seconds = 0.0f;
+    float       m_saved_flash   = 0.0f;  ///< seconds left of the "Saved" note
     std::string m_language;            ///< Config::language as last applied
     bool        m_language_pending = false;  ///< m_language changed; rebuild before the next frame
     u32         m_framebuffer_width  = 0;  ///< overlay target extent; 0 = use ImGui's own.
@@ -349,7 +384,15 @@ private:
     u32 m_pad_capture_role   = 0;
     int m_pad_edit_player    = 0;
     int  m_capture_hotkey     = -1;     ///< Config::Hotkey waiting for a key, or -1
-    bool m_pad_shortcuts_view = false;  ///< the Guide shortcuts in place of the bindings
+    int  m_pad_view     = 1;      ///< the Gamepad page's picture: 0 pad, 1 cabinet (the default), 2 shortcuts
+    bool m_pad_show_all = false;  ///< the slots a cabinet has no control for, too
+    // Map all, and a single capture: the slots to ask for, which one now,
+    // how long it has waited.
+    std::vector<u32> m_map_queue;
+    usize            m_map_at      = 0;
+    float            m_map_seconds = 0.0f;
+    bool             m_map_all     = false;
+    int              m_map_slot    = -1;  ///< the slot being captured, or -1
 
     // Axis capture: the (player, role) awaiting a move, or -1, and the rest
     // position when it began.
@@ -455,6 +498,11 @@ private:
     bool                       m_picker_scroll_to_sel = false;
     float                      m_picker_art_timer = 0.0f;
     int                        m_picker_art_index = 0;
+    char                       m_picker_search[64] = {};     ///< the search typed
+    int                        m_picker_system     = 0;      ///< 0 all, else Model 1, 2 or 3
+    bool                       m_picker_focus_search = false; ///< a letter was typed: the field takes it
+    bool                       m_picker_searching    = false; ///< the search field is being typed in
+    bool                       m_picker_drop_search  = false; ///< Escape: leave the field
 };
 
 }  // namespace sm2::osd
