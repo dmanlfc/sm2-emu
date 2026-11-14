@@ -4534,9 +4534,22 @@ void Gui::draw_picker(Config& config)
         list->AddText(ImVec2(origin.x + margin + title_w + kit.px(10.0f), head_top + (head_h - font) * 0.5f),
                       p.faint, count.c_str());
 
-        // The search at the right.
+        // The settings cog at the far right, the search beside it.
+        const float  cog_d = kit.px(26.0f);
+        const ImVec2 cog_at(origin.x + room.x - margin - cog_d, head_top + (head_h - cog_d) * 0.5f);
+        {
+            ImGui::SetCursorScreenPos(cog_at);
+            const bool pressed = ImGui::InvisibleButton("settings_cog", ImVec2(cog_d, cog_d));
+            const bool hovered = ImGui::IsItemHovered();
+            const ImVec2 centre(cog_at.x + cog_d * 0.5f, cog_at.y + cog_d * 0.5f);
+            list->AddCircleFilled(centre, cog_d * 0.5f, hovered ? ui::mix(p.card, p.text, 0.10f) : p.card);
+            list->AddCircle(centre, cog_d * 0.5f, p.edge, 0, kit.stroke());
+            ui::Kit::icon(list, ui::Kit::Icon::Gear, centre, kit.px(14.0f), hovered ? p.text : p.muted, kit.stroke());
+            if (hovered) tooltip(trf("Settings (%s)", hotkey_label(config, Config::Hotkey::Overlay)).c_str());
+            if (pressed) show();
+        }
         const float  search_w = kit.px(230.0f);
-        const ImVec2 search_at(origin.x + room.x - margin - search_w, head_top + (head_h - kit.px(26.0f)) * 0.5f);
+        const ImVec2 search_at(cog_at.x - kit.px(8.0f) - search_w, head_top + (head_h - kit.px(26.0f)) * 0.5f);
         // A letter or digit typed with nothing else taking it starts a search:
         // the field then takes the rest. (SDL sends text only to a field, so
         // the first key is read as a key.)

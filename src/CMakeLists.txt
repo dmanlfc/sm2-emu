@@ -396,6 +396,14 @@ add_library(sm2_osd STATIC
     osd/wheel_ffb.cpp
     osd/window.cpp
 )
+# The host's application menu: a "Settings..." item on macOS, nothing elsewhere.
+if(SM2_PLATFORM_MACOS)
+    enable_language(OBJCXX)
+    target_sources(sm2_osd PRIVATE osd/app_menu_macos.mm)
+    target_link_libraries(sm2_osd PRIVATE "-framework Cocoa")
+else()
+    target_sources(sm2_osd PRIVATE osd/app_menu_none.cpp)
+endif()
 # System font lookup for the overlay's translations, per platform.
 if(SM2_HAVE_FONTCONFIG)
     target_sources(sm2_osd PRIVATE osd/sysfont_fontconfig.cpp)

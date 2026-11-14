@@ -39,6 +39,7 @@
 #include "hw/model2_softrender.h"
 #include "hw/model2_softrender_async.h"
 #include "hw/rewind.h"
+#include "osd/app_menu.h"
 #include "hw/save_state_io.h"
 #include "osd/audio.h"
 #include "osd/outputs.h"
@@ -2032,7 +2033,10 @@ int main(int argc, char** argv)
         pacer.set_throttled(options.config.throttle);
         pacer.start(hw::Model2::kFrameNanoseconds);
 
-{
+        // The host's menu, where it has one: "Settings..." pushes this event.
+        const u32 app_menu_event = osd::install_app_menu();
+
+        {
             const auto key = [&](Config::Hotkey hotkey) {
                 const std::string& name = options.config.hotkey(hotkey);
                 return name.empty() ? "none" : name.c_str();
@@ -2306,6 +2310,10 @@ int main(int argc, char** argv)
                 // binding, which its keyboard navigation would also press.
                 if (event.type != SDL_EVENT_KEY_DOWN || !gui.visible() || !gui.capturing_key()) {
                     ImGui_ImplSDL3_ProcessEvent(&event);
+                }
+                if (app_menu_event != 0 && event.type == app_menu_event) {
+                    gui.show();
+                    continue;
                 }
 
                 switch (event.type) {

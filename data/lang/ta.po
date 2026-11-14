@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Keisho\n"
 "Report-Msgid-Bugs-To: https://github.com/Keisho-Emu/Keisho/issues\n"
-"POT-Creation-Date: 2026-11-14 21:42+1000\n"
+"POT-Creation-Date: 2026-11-15 00:13+1000\n"
 "PO-Revision-Date: 2026-10-09 00:35+1000\n"
 "Last-Translator: machine translation, needs review\n"
 "Language-Team: none\n"
@@ -64,6 +64,11 @@ msgstr "நிலை நீக்கப்பட்டது: %s"
 #, c-format
 msgid "Delete failed: %s"
 msgstr "நீக்குதல் தோல்வி: %s"
+
+#: src/osd/app_menu_macos.mm
+#, no-c-format
+msgid "Settings..."
+msgstr ""
 
 #: src/osd/gui.cpp
 #, no-c-format
@@ -2963,6 +2968,11 @@ msgstr ""
 #: src/osd/gui.cpp
 #, c-format
 msgid "%zu of %zu"
+msgstr ""
+
+#: src/osd/gui.cpp
+#, c-format
+msgid "Settings (%s)"
 msgstr ""
 
 #: src/osd/gui.cpp

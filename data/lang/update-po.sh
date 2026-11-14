@@ -22,7 +22,7 @@ xgettext --language=C++ --from-code=UTF-8 --add-comments=TRANSLATORS: \
     --keyword=N_ \
     --flag=tr:1:no-c-format --flag=tr_id:1:no-c-format --flag=N_:1:no-c-format \
     --flag=trf:1:c-format --flag=trnf:1:c-format --flag=trnf:2:c-format \
-    --add-location=file --sort-by-file -o "$POT" src/osd/gui.cpp src/osd/ui/theme.cpp src/main.cpp
+    --add-location=file --sort-by-file -o "$POT" src/osd/gui.cpp src/osd/ui/theme.cpp src/osd/app_menu_macos.mm src/main.cpp
 
 if [ $# -eq 0 ]; then
     set -- $(cd "$LANG_DIR" && ls *.po 2>/dev/null | sed 's/\.po$//')
