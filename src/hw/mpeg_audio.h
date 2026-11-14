@@ -94,24 +94,24 @@ private:
 	static const double s_synthesis_filter[512];
 
 	const uint8_t *m_base;
-	int m_accepted, m_position_align;
+	int m_accepted = 0, m_position_align = 0;
 
-	int m_sampling_rate, m_last_frame_number;
-	int m_param_index, m_cbr_param_index;
+	int m_sampling_rate = 0, m_last_frame_number = 0;
+	int m_param_index = 0, m_cbr_param_index = 0;
 
-	int m_channel_count, m_total_bands, m_joint_bands;
+	int m_channel_count = 0, m_total_bands = 0, m_joint_bands = 0;
 
-	int m_band_param[2][32];
-	int m_scfsi[2][32];
-	int m_scf[2][3][32];
-	double m_amp_values[2][3][32];
-	double m_bdata[2][3][32];
-	double m_subbuffer[2][32];
+	int m_band_param[2][32] = {};
+	int m_scfsi[2][32] = {};
+	int m_scf[2][3][32] = {};
+	double m_amp_values[2][3][32] = {};
+	double m_bdata[2][3][32] = {};
+	double m_subbuffer[2][32] = {};
 	double m_audio_buffer[2][32*32];
 	int m_audio_buffer_pos[2];
 	double m_cos_cache[32][32];
 
-	int m_current_pos, m_current_limit;
+	int m_current_pos = 0, m_current_limit = 0;
 
 	void read_header_amm(bool layer25);
 	void read_header_mpeg2(bool layer25);
